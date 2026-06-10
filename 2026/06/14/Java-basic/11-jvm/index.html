@@ -1,0 +1,1160 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言JVM 是 Java 程序运行的基石——理解它的内存结构、类加载机制和垃圾回收原理，不仅面试必考，更是排查线上 OOM、GC 停顿、类冲突等问题的前提。这篇文章把 JVM 最核心的三大块知识梳理清楚。 1. JVM 内存结构JVM 把内存划分为几个区域，各司其职：   JVM 内存  线程共享  堆 (Heap)  新生代Eden + S0 + S1 老年代    方法区 &#x2F; 元空间 类信息、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收">
+<meta property="og:url" content="https://rebibabo.github.io/2026/06/14/Java-basic/11-jvm/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言JVM 是 Java 程序运行的基石——理解它的内存结构、类加载机制和垃圾回收原理，不仅面试必考，更是排查线上 OOM、GC 停顿、类冲突等问题的前提。这篇文章把 JVM 最核心的三大块知识梳理清楚。 1. JVM 内存结构JVM 把内存划分为几个区域，各司其职：   JVM 内存  线程共享  堆 (Heap)  新生代Eden + S0 + S1 老年代    方法区 &#x2F; 元空间 类信息、">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-09T12:56:40.223Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="GC">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-14 00:00" pubdate>
+          2026年6月14日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          54 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>JVM 是 Java 程序运行的基石——理解它的内存结构、类加载机制和垃圾回收原理，不仅面试必考，更是排查线上 OOM、GC 停顿、类冲突等问题的前提。这篇文章把 JVM 最核心的三大块知识梳理清楚。</p>
+<h2 id="1-JVM-内存结构"><a href="#1-JVM-内存结构" class="headerlink" title="1. JVM 内存结构"></a>1. JVM 内存结构</h2><p>JVM 把内存划分为几个区域，各司其职：</p>
+<div style="font-family:'Courier New',monospace;font-size:14px;line-height:1.6;margin:20px 0;">
+<div style="border:2px solid #555;border-radius:8px;padding:16px;background:#FAFAFA;">
+<div style="font-weight:bold;color:#555;margin-bottom:12px;font-size:16px;">JVM 内存</div>
+<div style="border:2px solid #4A90D9;border-radius:8px;padding:14px;background:#EBF2FA;margin-bottom:12px;">
+<div style="font-weight:bold;color:#4A90D9;margin-bottom:10px;">线程共享</div>
+<div style="border:2px solid #E85D75;border-radius:8px;padding:12px;background:#FFF0F2;margin-bottom:10px;">
+<div style="font-weight:bold;color:#E85D75;margin-bottom:8px;">堆 (Heap)</div>
+<div style="display:flex;gap:10px;">
+<div style="border:1px solid #E85D75;border-radius:6px;padding:8px 16px;background:#FFE4E8;flex:1;text-align:center;"><div style="font-weight:bold;color:#E85D75;">新生代</div><div style="color:#888;font-size:12px;">Eden + S0 + S1</div></div>
+<div style="border:1px solid #E85D75;border-radius:6px;padding:8px 16px;background:#FFE4E8;flex:1;text-align:center;"><div style="font-weight:bold;color:#E85D75;">老年代</div></div>
+</div>
+</div>
+<div style="border:2px solid #7B61FF;border-radius:8px;padding:10px 14px;background:#F0ECFF;">
+<div style="font-weight:bold;color:#7B61FF;">方法区 / 元空间</div>
+<div style="color:#888;font-size:13px;">类信息、常量池、静态变量</div>
+</div>
+</div>
+<div style="border:2px solid #2EAD6B;border-radius:8px;padding:14px;background:#EEFBF3;">
+<div style="font-weight:bold;color:#2EAD6B;margin-bottom:10px;">线程私有</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 14px;background:#D8F5E5;text-align:center;"><div style="font-weight:bold;color:#2EAD6B;">虚拟机栈</div><div style="color:#888;font-size:12px;">栈帧</div></div>
+<div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 14px;background:#D8F5E5;text-align:center;"><div style="font-weight:bold;color:#2EAD6B;">程序计数器 (PC)</div></div>
+<div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 14px;background:#D8F5E5;text-align:center;"><div style="font-weight:bold;color:#2EAD6B;">本地方法栈</div></div>
+</div>
+</div>
+</div>
+</div>
+
+
+<h3 id="1-1-堆（Heap）"><a href="#1-1-堆（Heap）" class="headerlink" title="1.1 堆（Heap）"></a>1.1 堆（Heap）</h3><p>存放<strong>所有对象实例和数组</strong>，是 GC 管理的主要区域。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Object</span> <span class="hljs-variable">obj</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>();   <span class="hljs-comment">// obj 引用在栈上，Object 实例在堆上</span><br><span class="hljs-type">int</span>[] arr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[<span class="hljs-number">100</span>];    <span class="hljs-comment">// 数组对象也在堆上</span><br></code></pre></td></tr></table></figure>
+
+<p>堆分为两大区域：</p>
+<ul>
+<li><strong>新生代（Young Generation）</strong>：新创建的对象在这里分配。又细分为 Eden 区和两个 Survivor 区（S0、S1）。大部分对象”朝生夕死”，在新生代就被回收。</li>
+<li><strong>老年代（Old Generation）</strong>：经过多次 GC 仍然存活的对象被晋升到这里。老年代的对象生命周期长，GC 频率低但耗时长。</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs powershell">对象分配流程：<br>new Object()<br>  → Eden 区分配<br>  → Eden 满了触发 Minor <span class="hljs-built_in">GC</span><br>  → 存活对象复制到 Survivor 区<br>  → 多次 <span class="hljs-built_in">GC</span> 后仍存活（默认 <span class="hljs-number">15</span> 次）<br>  → 晋升到老年代<br>  → 老年代满了触发 Major <span class="hljs-built_in">GC</span> / Full <span class="hljs-built_in">GC</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="1-2-虚拟机栈（VM-Stack）"><a href="#1-2-虚拟机栈（VM-Stack）" class="headerlink" title="1.2 虚拟机栈（VM Stack）"></a>1.2 虚拟机栈（VM Stack）</h3><p>每个线程一个栈，每调用一个方法就压入一个<strong>栈帧（Stack Frame）</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">methodA</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;          <span class="hljs-comment">// x 在 methodA 的栈帧中</span><br>    methodB(x);<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">methodB</span><span class="hljs-params">(<span class="hljs-type">int</span> y)</span> &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;hello&quot;</span>;  <span class="hljs-comment">// y 和 s 在 methodB 的栈帧中</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>栈帧包含：</p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>局部变量表</td>
+<td>基本类型的值、对象引用</td>
+</tr>
+<tr>
+<td>操作数栈</td>
+<td>方法执行时的中间计算结果</td>
+</tr>
+<tr>
+<td>动态链接</td>
+<td>指向方法区中该方法的引用</td>
+</tr>
+<tr>
+<td>返回地址</td>
+<td>方法执行完后回到哪里继续执行</td>
+</tr>
+</tbody></table>
+<div style="font-family:'Courier New',monospace;font-size:14px;line-height:1.6;margin:20px 0;display:flex;flex-direction:column;align-items:center;gap:0;">
+<div style="color:#666;margin-bottom:8px;">调用栈示意：</div>
+<div style="border:2px solid #E85D75;border-radius:6px 6px 0 0;padding:8px 24px;background:#FFF0F2;text-align:center;width:220px;"><span style="font-weight:bold;color:#E85D75;">methodB 栈帧</span><span style="color:#999;font-size:12px;margin-left:8px;">← 栈顶（当前执行）</span></div>
+<div style="border:2px solid #7B61FF;border-top:none;padding:8px 24px;background:#F0ECFF;text-align:center;width:220px;"><span style="font-weight:bold;color:#7B61FF;">methodA 栈帧</span></div>
+<div style="border:2px solid #4A90D9;border-top:none;border-radius:0 0 6px 6px;padding:8px 24px;background:#EBF2FA;text-align:center;width:220px;"><span style="font-weight:bold;color:#4A90D9;">main 栈帧</span><span style="color:#999;font-size:12px;margin-left:8px;">← 栈底</span></div>
+<div style="color:#666;margin-top:8px;">methodB 执行完 → 弹出 → 回到 methodA 继续执行</div>
+</div>
+
+<p>栈的两种异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// StackOverflowError：栈深度超限（通常是无限递归）</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">infinite</span><span class="hljs-params">()</span> &#123;<br>    infinite();  <span class="hljs-comment">// 每次调用压一个栈帧，最终溢出</span><br>&#125;<br><br><span class="hljs-comment">// OutOfMemoryError：创建太多线程，每个线程都要分配栈空间</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="1-3-程序计数器（PC-Register）"><a href="#1-3-程序计数器（PC-Register）" class="headerlink" title="1.3 程序计数器（PC Register）"></a>1.3 程序计数器（PC Register）</h3><p>每个线程一个，记录当前正在执行的字节码指令地址。是 JVM 中<strong>唯一不会 OOM 的区域</strong>。</p>
+<h3 id="1-4-方法区-元空间（Metaspace）"><a href="#1-4-方法区-元空间（Metaspace）" class="headerlink" title="1.4 方法区 &#x2F; 元空间（Metaspace）"></a>1.4 方法区 &#x2F; 元空间（Metaspace）</h3><p>存储已加载的<strong>类信息、常量、静态变量、JIT 编译后的代码</strong>。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">Java </span><span class="hljs-number">7</span> 及之前：方法区在 <span class="hljs-keyword">JVM </span>内存中（永久代 PermGen），大小有限，容易 OOM<br><span class="hljs-keyword">Java </span><span class="hljs-number">8</span> 开始：改为元空间（Metaspace），使用本地内存（Native Memory），默认不限大小<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 元空间溢出场景：动态生成大量类（如 CGLIB 代理、大量 JSP）</span><br><span class="hljs-comment">// 报错：java.lang.OutOfMemoryError: Metaspace</span><br><span class="hljs-comment">// 调优：-XX:MaxMetaspaceSize=256m</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="1-5-各区域-OOM-总结"><a href="#1-5-各区域-OOM-总结" class="headerlink" title="1.5 各区域 OOM 总结"></a>1.5 各区域 OOM 总结</h3><table>
+<thead>
+<tr>
+<th>区域</th>
+<th>异常</th>
+<th>常见原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>堆</td>
+<td><code>OutOfMemoryError: Java heap space</code></td>
+<td>对象太多、内存泄漏</td>
+</tr>
+<tr>
+<td>栈</td>
+<td><code>StackOverflowError</code></td>
+<td>无限递归、方法调用太深</td>
+</tr>
+<tr>
+<td>栈</td>
+<td><code>OutOfMemoryError</code></td>
+<td>线程太多</td>
+</tr>
+<tr>
+<td>元空间</td>
+<td><code>OutOfMemoryError: Metaspace</code></td>
+<td>动态生成大量类</td>
+</tr>
+<tr>
+<td>直接内存</td>
+<td><code>OutOfMemoryError: Direct buffer memory</code></td>
+<td>NIO ByteBuffer.allocateDirect 过多</td>
+</tr>
+</tbody></table>
+<h2 id="2-类加载机制"><a href="#2-类加载机制" class="headerlink" title="2. 类加载机制"></a>2. 类加载机制</h2><h3 id="2-1-类的生命周期"><a href="#2-1-类的生命周期" class="headerlink" title="2.1 类的生命周期"></a>2.1 类的生命周期</h3><figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs scss">加载 → 验证 → 准备 → 解析 → 初始化 → 使用 → 卸载<br>      └─── 连接(Linking) ──┘<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>加载</strong></td>
+<td>读取 .class 文件字节码，生成 Class 对象</td>
+</tr>
+<tr>
+<td><strong>验证</strong></td>
+<td>校验字节码合法性（格式、语义、字节码指令、符号引用）</td>
+</tr>
+<tr>
+<td><strong>准备</strong></td>
+<td>为类的静态变量分配内存并设默认值（0 &#x2F; null &#x2F; false）</td>
+</tr>
+<tr>
+<td><strong>解析</strong></td>
+<td>将常量池中的符号引用替换为直接引用</td>
+</tr>
+<tr>
+<td><strong>初始化</strong></td>
+<td>执行静态代码块和静态变量赋值（<code>static {}</code> 和 <code>static int x = 10</code>）</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Demo</span> &#123;<br>    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;       <span class="hljs-comment">// 准备阶段：a = 0；初始化阶段：a = 10</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">B</span> <span class="hljs-operator">=</span> <span class="hljs-number">20</span>; <span class="hljs-comment">// 编译期常量，准备阶段直接赋值 20</span><br><br>    <span class="hljs-keyword">static</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;类初始化&quot;</span>);  <span class="hljs-comment">// 初始化阶段执行</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-双亲委派模型"><a href="#2-2-双亲委派模型" class="headerlink" title="2.2 双亲委派模型"></a>2.2 双亲委派模型</h3><p>类加载器收到加载请求时，先委派给父加载器，父加载器加载不了才自己加载：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">Bootstrap </span>ClassLoader（启动类加载器）<br>  ↑ 委派    加载 rt.<span class="hljs-keyword">jar（java.lang.*, </span><span class="hljs-keyword">java.util.* </span>等核心类）<br><span class="hljs-keyword">Extension </span>ClassLoader（扩展类加载器）<br>  ↑ 委派    加载 <span class="hljs-keyword">jre/lib/ext </span>目录下的类<br>Application ClassLoader（应用类加载器）<br>  ↑ 委派    加载 classpath 下的类（你写的代码）<br>自定义 ClassLoader<br>          加载指定位置的类<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 验证类加载器层级</span><br>System.out.println(String.class.getClassLoader());<br><span class="hljs-comment">// null（Bootstrap ClassLoader，C++ 实现，Java 中显示为 null）</span><br><br>System.out.println(Demo.class.getClassLoader());<br><span class="hljs-comment">// sun.misc.Launcher$AppClassLoader（Application ClassLoader）</span><br><br>System.out.println(Demo.class.getClassLoader().getParent());<br><span class="hljs-comment">// sun.misc.Launcher$ExtClassLoader（Extension ClassLoader）</span><br><br>System.out.println(Demo.class.getClassLoader().getParent().getParent());<br><span class="hljs-comment">// null（Bootstrap ClassLoader）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-3-为什么要双亲委派？"><a href="#2-3-为什么要双亲委派？" class="headerlink" title="2.3 为什么要双亲委派？"></a>2.3 为什么要双亲委派？</h3><p><strong>安全性</strong>：防止用户自定义一个 <code>java.lang.String</code> 来替换核心类。无论谁请求加载 <code>String</code>，最终都会由 Bootstrap ClassLoader 加载 rt.jar 中的那个。</p>
+<p><strong>一致性</strong>：保证同一个类在 JVM 中只被加载一次，所有代码用的是同一个 <code>String.class</code>。</p>
+<h3 id="2-4-打破双亲委派"><a href="#2-4-打破双亲委派" class="headerlink" title="2.4 打破双亲委派"></a>2.4 打破双亲委派</h3><p>某些场景需要打破双亲委派：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 典型场景：</span><br><span class="hljs-comment">// 1. Tomcat：每个 Web 应用有自己的 ClassLoader，同名类互不影响</span><br><span class="hljs-comment">// 2. SPI 机制：Bootstrap ClassLoader 加载的接口需要加载 classpath 上的实现类</span><br><span class="hljs-comment">// 3. 热部署：抛弃旧 ClassLoader，创建新的来加载修改后的类</span><br><br><span class="hljs-comment">// 自定义 ClassLoader 示例</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyClassLoader</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">ClassLoader</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> Class&lt;?&gt; findClass(String name) <span class="hljs-keyword">throws</span> ClassNotFoundException &#123;<br>        <span class="hljs-type">byte</span>[] bytes = loadClassBytes(name);  <span class="hljs-comment">// 从自定义位置读取字节码</span><br>        <span class="hljs-keyword">return</span> defineClass(name, bytes, <span class="hljs-number">0</span>, bytes.length);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-垃圾回收（GC）"><a href="#3-垃圾回收（GC）" class="headerlink" title="3. 垃圾回收（GC）"></a>3. 垃圾回收（GC）</h2><h3 id="3-1-如何判断对象是否可回收？"><a href="#3-1-如何判断对象是否可回收？" class="headerlink" title="3.1 如何判断对象是否可回收？"></a>3.1 如何判断对象是否可回收？</h3><p><strong>引用计数法</strong>（JVM 不用）：每个对象维护一个引用计数器，为 0 时回收。问题：循环引用无法回收。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 循环引用示例</span><br><span class="hljs-type">A</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">A</span>();<br><span class="hljs-type">B</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">B</span>();<br>a.ref = b;<br>b.ref = a;<br>a = <span class="hljs-literal">null</span>;<br>b = <span class="hljs-literal">null</span>;<br><span class="hljs-comment">// 两个对象互相引用，计数都不为 0，但已经无法访问了</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>可达性分析</strong>（JVM 实际使用）：从<strong>GC Roots</strong> 出发，沿引用链遍历，不可达的对象就是垃圾。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">GC Roots 包括：<br>├── 虚拟机栈中引用的对象（局部变量）<br>├── 方法区中静态变量引用的对象<br>├── 方法区中常量引用的对象<br>├── 本地方法栈中 <span class="hljs-keyword">JNI </span>引用的对象<br>└── 被 <span class="hljs-keyword">synchronized </span>锁持有的对象<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-2-四种引用类型"><a href="#3-2-四种引用类型" class="headerlink" title="3.2 四种引用类型"></a>3.2 四种引用类型</h3><table>
+<thead>
+<tr>
+<th>引用类型</th>
+<th>回收时机</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>强引用 <code>Object o = new Object()</code></td>
+<td>永远不回收（只要可达）</td>
+<td>普通变量</td>
+</tr>
+<tr>
+<td>软引用 <code>SoftReference&lt;T&gt;</code></td>
+<td>内存不足时回收</td>
+<td>缓存</td>
+</tr>
+<tr>
+<td>弱引用 <code>WeakReference&lt;T&gt;</code></td>
+<td>下次 GC 就回收</td>
+<td>WeakHashMap</td>
+</tr>
+<tr>
+<td>虚引用 <code>PhantomReference&lt;T&gt;</code></td>
+<td>随时回收，无法获取对象</td>
+<td>跟踪对象回收状态</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 软引用：适合做内存敏感的缓存</span><br>SoftReference&lt;<span class="hljs-type">byte</span>[]&gt; cache = <span class="hljs-keyword">new</span> <span class="hljs-title class_">SoftReference</span>&lt;&gt;(<span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">1024</span> * <span class="hljs-number">1024</span>]);<br><span class="hljs-type">byte</span>[] data = cache.get();  <span class="hljs-comment">// 内存充足时能获取到，内存不足时返回 null</span><br><br><span class="hljs-comment">// 弱引用</span><br>WeakReference&lt;Object&gt; weak = <span class="hljs-keyword">new</span> <span class="hljs-title class_">WeakReference</span>&lt;&gt;(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>());<br>System.gc();<br>weak.get();  <span class="hljs-comment">// 大概率返回 null</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-3-GC-算法"><a href="#3-3-GC-算法" class="headerlink" title="3.3 GC 算法"></a>3.3 GC 算法</h3><h4 id="标记-清除（Mark-Sweep）"><a href="#标记-清除（Mark-Sweep）" class="headerlink" title="标记-清除（Mark-Sweep）"></a>标记-清除（Mark-Sweep）</h4><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">标记阶段：从 <span class="hljs-variable">GC</span> <span class="hljs-built_in">Roots</span> 遍历，标记所有可达对象<br>清除阶段：回收未被标记的对象<br><br>优点：简单<br>缺点：产生内存碎片<br></code></pre></td></tr></table></figure>
+
+<h4 id="标记-复制（Copying）"><a href="#标记-复制（Copying）" class="headerlink" title="标记-复制（Copying）"></a>标记-复制（Copying）</h4><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs armasm">将内存分为两半，每次只用一半<br><span class="hljs-symbol">GC</span> 时把存活对象复制到另一半，清空当前这半<br><br>优点：无碎片，分配快（指针碰撞）<br>缺点：可用内存减半<br><br>新生代使用此算法（Eden + <span class="hljs-built_in">S0</span> + <span class="hljs-built_in">S1</span> 的设计就是优化版的复制算法）<br></code></pre></td></tr></table></figure>
+
+<h4 id="标记-整理（Mark-Compact）"><a href="#标记-整理（Mark-Compact）" class="headerlink" title="标记-整理（Mark-Compact）"></a>标记-整理（Mark-Compact）</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs">标记阶段：同标记-清除<br>整理阶段：将存活对象向一端移动，清空边界以外的内存<br><br>优点：无碎片<br>缺点：移动对象开销大<br><br>老年代使用此算法<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-4-分代回收策略"><a href="#3-4-分代回收策略" class="headerlink" title="3.4 分代回收策略"></a>3.4 分代回收策略</h3><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs armasm">新生代（Young）                              老年代（Old）<br>┌────────┬──────┬──────┐           ┌──────────────────┐<br>│  Eden  │  <span class="hljs-built_in">S0</span>  │  <span class="hljs-built_in">S1</span>  │           │                  │<br>│  (<span class="hljs-number">80</span>%) │(<span class="hljs-number">10</span>%) │(<span class="hljs-number">10</span>%) │           │                  │<br>└────────┴──────┴──────┘           └──────────────────┘<br><br>新对象分配在 Eden<br>  → Eden 满了 → Minor GC（标记-复制）<br>  → 存活对象复制到 <span class="hljs-built_in">S0</span>（或 <span class="hljs-built_in">S1</span>）<br>  → 下次 GC，Eden + <span class="hljs-built_in">S0</span> 存活对象复制到 <span class="hljs-built_in">S1</span>，清空 Eden 和 <span class="hljs-built_in">S0</span><br>  → <span class="hljs-built_in">S0</span> 和 <span class="hljs-built_in">S1</span> 角色交替<br>  → 对象年龄 +<span class="hljs-number">1</span>，达到阈值（默认 <span class="hljs-number">15</span>）→ 晋升到老年代<br>  → 老年代满了 → Major GC / Full GC（标记-整理，耗时长）<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-5-主流垃圾回收器"><a href="#3-5-主流垃圾回收器" class="headerlink" title="3.5 主流垃圾回收器"></a>3.5 主流垃圾回收器</h3><table>
+<thead>
+<tr>
+<th>回收器</th>
+<th>算法</th>
+<th>区域</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Serial</td>
+<td>复制 &#x2F; 标记-整理</td>
+<td>新 &#x2F; 老</td>
+<td>单线程，STW，适合客户端</td>
+</tr>
+<tr>
+<td>Parallel (默认)</td>
+<td>复制 &#x2F; 标记-整理</td>
+<td>新 &#x2F; 老</td>
+<td>多线程并行，吞吐量优先</td>
+</tr>
+<tr>
+<td>CMS</td>
+<td>标记-清除</td>
+<td>老</td>
+<td>低延迟，已废弃（Java 14 移除）</td>
+</tr>
+<tr>
+<td><strong>G1</strong>（Java 9 默认）</td>
+<td>分区 + 复制 + 整理</td>
+<td>全堆</td>
+<td>可预测停顿，兼顾吞吐和延迟</td>
+</tr>
+<tr>
+<td><strong>ZGC</strong>（Java 15+）</td>
+<td>着色指针 + 读屏障</td>
+<td>全堆</td>
+<td>停顿 &lt; 1ms，适合大堆</td>
+</tr>
+<tr>
+<td>Shenandoah</td>
+<td>Brooks 指针</td>
+<td>全堆</td>
+<td>类似 ZGC，Red Hat 主导</td>
+</tr>
+</tbody></table>
+<h4 id="G1-核心思想"><a href="#G1-核心思想" class="headerlink" title="G1 核心思想"></a>G1 核心思想</h4><div style="font-family:'Courier New',monospace;font-size:14px;line-height:1.6;margin:20px 0;">
+<div style="color:#666;margin-bottom:10px;">G1 将堆划分为大小相等的 Region（通常 2048 个）：</div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-width:480px;margin-bottom:12px;">
+<div style="border:2px solid #E85D75;border-radius:4px;padding:6px;text-align:center;background:#FFF0F2;font-weight:bold;color:#E85D75;">Eden</div>
+<div style="border:2px solid #E85D75;border-radius:4px;padding:6px;text-align:center;background:#FFF0F2;font-weight:bold;color:#E85D75;">Eden</div>
+<div style="border:2px solid #F5A623;border-radius:4px;padding:6px;text-align:center;background:#FFF8ED;font-weight:bold;color:#F5A623;">S</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #7B61FF;border-radius:4px;padding:6px;text-align:center;background:#F0ECFF;font-weight:bold;color:#7B61FF;">Humong</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #AAA;border-radius:4px;padding:6px;text-align:center;background:#F5F5F5;font-weight:bold;color:#AAA;">Free</div>
+<div style="border:2px solid #E85D75;border-radius:4px;padding:6px;text-align:center;background:#FFF0F2;font-weight:bold;color:#E85D75;">Eden</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #AAA;border-radius:4px;padding:6px;text-align:center;background:#F5F5F5;font-weight:bold;color:#AAA;">Free</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #AAA;border-radius:4px;padding:6px;text-align:center;background:#F5F5F5;font-weight:bold;color:#AAA;">Free</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #4A90D9;border-radius:4px;padding:6px;text-align:center;background:#EBF2FA;font-weight:bold;color:#4A90D9;">Old</div>
+<div style="border:2px solid #E85D75;border-radius:4px;padding:6px;text-align:center;background:#FFF0F2;font-weight:bold;color:#E85D75;">Eden</div>
+<div style="border:2px solid #F5A623;border-radius:4px;padding:6px;text-align:center;background:#FFF8ED;font-weight:bold;color:#F5A623;">S</div>
+<div style="border:2px solid #AAA;border-radius:4px;padding:6px;text-align:center;background:#F5F5F5;font-weight:bold;color:#AAA;">Free</div>
+</div>
+<div style="color:#666;font-size:13px;line-height:1.8;">
+<span style="color:#E85D75;">■</span> Eden　<span style="color:#F5A623;">■</span> Survivor　<span style="color:#4A90D9;">■</span> Old　<span style="color:#7B61FF;">■</span> Humongous　<span style="color:#AAA;">■</span> Free<br>每个 Region 可以是 Eden、Survivor、Old 或 Humongous（大对象）<br>GC 时优先回收"垃圾最多"的 Region（Garbage First 的含义）<br>可以设置期望停顿时间：-XX:MaxGCPauseMillis=200
+</div>
+</div>
+
+<h2 id="4-JVM-常用参数"><a href="#4-JVM-常用参数" class="headerlink" title="4. JVM 常用参数"></a>4. JVM 常用参数</h2><h3 id="4-1-内存设置"><a href="#4-1-内存设置" class="headerlink" title="4.1 内存设置"></a>4.1 内存设置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 堆大小</span><br>-Xms512m          <span class="hljs-comment"># 初始堆大小（建议和 Xmx 设为一样，避免动态扩缩）</span><br>-Xmx2g            <span class="hljs-comment"># 最大堆大小</span><br><br><span class="hljs-comment"># 新生代</span><br>-Xmn512m          <span class="hljs-comment"># 新生代大小</span><br>-XX:NewRatio=2    <span class="hljs-comment"># 老年代 : 新生代 = 2 : 1（默认）</span><br>-XX:SurvivorRatio=8  <span class="hljs-comment"># Eden : S0 : S1 = 8 : 1 : 1（默认）</span><br><br><span class="hljs-comment"># 元空间</span><br>-XX:MetaspaceSize=128m       <span class="hljs-comment"># 初始大小</span><br>-XX:MaxMetaspaceSize=256m    <span class="hljs-comment"># 最大大小</span><br><br><span class="hljs-comment"># 栈</span><br>-Xss256k          <span class="hljs-comment"># 每个线程的栈大小</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="4-2-GC-选择"><a href="#4-2-GC-选择" class="headerlink" title="4.2 GC 选择"></a>4.2 GC 选择</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">-XX:+UseG1GC                <span class="hljs-comment"># 使用 G1（Java 9+ 默认）</span><br>-XX:+UseZGC                 <span class="hljs-comment"># 使用 ZGC（Java 15+）</span><br>-XX:MaxGCPauseMillis=200    <span class="hljs-comment"># G1 期望最大停顿时间</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="4-3-GC-日志"><a href="#4-3-GC-日志" class="headerlink" title="4.3 GC 日志"></a>4.3 GC 日志</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># Java 9+ 统一日志（推荐）</span><br>-Xlog:gc*:file=gc.log:<span class="hljs-keyword">time</span>,<span class="hljs-built_in">uptime</span>,level,tags<br><br><span class="hljs-comment"># 打印更详细的信息</span><br>-Xlog:gc+heap=debug:file=gc.log<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-4-排查工具"><a href="#4-4-排查工具" class="headerlink" title="4.4 排查工具"></a>4.4 排查工具</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 查看 JVM 进程</span><br>jps -l<br><br><span class="hljs-comment"># 查看堆内存使用</span><br>jmap -heap &lt;pid&gt;<br><br><span class="hljs-comment"># 导出堆快照（分析内存泄漏）</span><br>jmap -dump:format=b,file=heap.hprof &lt;pid&gt;<br><br><span class="hljs-comment"># 查看线程状态（排查死锁、CPU 飙高）</span><br>jstack &lt;pid&gt;<br><br><span class="hljs-comment"># 实时监控 GC 情况（每秒刷新）</span><br>jstat -gcutil &lt;pid&gt; 1000<br><br><span class="hljs-comment"># 可视化工具</span><br><span class="hljs-comment"># jconsole / jvisualvm（JDK 自带）</span><br><span class="hljs-comment"># Arthas（阿里开源，线上诊断神器）</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="5-常见-OOM-排查思路"><a href="#5-常见-OOM-排查思路" class="headerlink" title="5. 常见 OOM 排查思路"></a>5. 常见 OOM 排查思路</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs markdown">OutOfMemoryError: Java heap space<br>  → jmap -dump 导出堆快照<br>  → 用 MAT 或 VisualVM 分析<br>  → 找到占用内存最大的对象<br>  → 检查是否有内存泄漏（长生命周期对象持有短生命周期对象的引用）<br>  → 常见原因：<br><span class="hljs-bullet">     -</span> 集合不断添加不清理（Map 做缓存没有淘汰策略）<br><span class="hljs-bullet">     -</span> 大查询一次性加载全部数据（应该分页）<br><span class="hljs-bullet">     -</span> 静态集合持有大量对象<br><br>OutOfMemoryError: Metaspace<br>  → 检查是否动态生成大量类（CGLIB 代理、反射、脚本引擎）<br>  → 增大 -XX:MaxMetaspaceSize<br><br>StackOverflowError<br>  → 检查递归是否有终止条件<br>  → 考虑将递归改为迭代<br>  → 增大 -Xss（治标不治本）<br></code></pre></td></tr></table></figure>
+
+<h2 id="6-小结"><a href="#6-小结" class="headerlink" title="6. 小结"></a>6. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>堆</td>
+<td>所有对象实例在这里分配；分新生代（Eden + S0 + S1）和老年代</td>
+</tr>
+<tr>
+<td>栈</td>
+<td>线程私有，每个方法调用一个栈帧；存局部变量和引用</td>
+</tr>
+<tr>
+<td>方法区&#x2F;元空间</td>
+<td>类信息、常量池、静态变量；Java 8 改为本地内存</td>
+</tr>
+<tr>
+<td>类加载</td>
+<td>加载 → 验证 → 准备 → 解析 → 初始化</td>
+</tr>
+<tr>
+<td>双亲委派</td>
+<td>先委派父加载器，保证核心类安全和唯一</td>
+</tr>
+<tr>
+<td>可达性分析</td>
+<td>从 GC Roots 出发，不可达即为垃圾</td>
+</tr>
+<tr>
+<td>GC 算法</td>
+<td>标记-清除（碎片）、标记-复制（新生代）、标记-整理（老年代）</td>
+</tr>
+<tr>
+<td>GC 回收器</td>
+<td>G1 是默认选择，ZGC 适合大堆低延迟场景</td>
+</tr>
+<tr>
+<td>调优工具</td>
+<td>jmap（内存）、jstack（线程）、jstat（GC）、Arthas（线上诊断）</td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：注解与反射——动态类信息获取与运行时行为修改</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
+      
+        <a href="/tags/GC/" class="print-no-link">#GC</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收</div>
+      <div>https://rebibabo.github.io/2026/06/14/Java-basic/11-jvm/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/14/Java-basic/10-concurrency/" title="Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/13/Java-basic/08-lambda-and-stream/" title="Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具">
+                        <span class="hidden-mobile">Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

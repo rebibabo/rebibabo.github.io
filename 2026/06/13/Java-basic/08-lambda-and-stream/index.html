@@ -1,0 +1,1103 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具">
+<meta property="og:url" content="https://rebibabo.github.io/2026/06/13/Java-basic/08-lambda-and-stream/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-09T12:36:09.487Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Lambda">
+<meta property="article:tag" content="Stream">
+<meta property="article:tag" content="函数式编程">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-13 00:00" pubdate>
+          2026年6月13日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          10k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          86 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。</p>
+<span id="more"></span>
+
+<h2 id="1-从匿名内部类到-Lambda"><a href="#1-从匿名内部类到-Lambda" class="headerlink" title="1. 从匿名内部类到 Lambda"></a>1. 从匿名内部类到 Lambda</h2><h3 id="1-1-问题：匿名内部类太啰嗦"><a href="#1-1-问题：匿名内部类太啰嗦" class="headerlink" title="1.1 问题：匿名内部类太啰嗦"></a>1.1 问题：匿名内部类太啰嗦</h3><p>Java 8 之前，想把”一段行为”传给方法，只能用匿名内部类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 排序：按字符串长度</span><br>List&lt;String&gt; list = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(List.of(<span class="hljs-string">&quot;banana&quot;</span>, <span class="hljs-string">&quot;apple&quot;</span>, <span class="hljs-string">&quot;cherry&quot;</span>));<br><br>list.sort(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Comparator</span>&lt;String&gt;() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">compare</span><span class="hljs-params">(String a, String b)</span> &#123;<br>        <span class="hljs-keyword">return</span> a.length() - b.length();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>5 行代码，真正有用的只有 <code>a.length() - b.length()</code> 一行。</p>
+<h3 id="1-2-Lambda-表达式"><a href="#1-2-Lambda-表达式" class="headerlink" title="1.2 Lambda 表达式"></a>1.2 Lambda 表达式</h3><p>Lambda 本质就是<strong>匿名函数</strong>——一段可以传递的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 上面的匿名内部类，用 Lambda 一行搞定</span><br>list.sort((a, b) -&gt; a.length() - b.length());<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-3-Lambda-语法"><a href="#1-3-Lambda-语法" class="headerlink" title="1.3 Lambda 语法"></a>1.3 Lambda 语法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 完整形式</span><br>(String a, String b) -&gt; &#123; <span class="hljs-keyword">return</span> a.length() - b.length(); &#125;<br><br><span class="hljs-comment">// 参数类型可省略（编译器推断）</span><br>(a, b) -&gt; &#123; <span class="hljs-keyword">return</span> a.length() - b.length(); &#125;<br><br><span class="hljs-comment">// 方法体只有一行时，可以省略大括号和 return</span><br>(a, b) -&gt; a.length() - b.length()<br><br><span class="hljs-comment">// 只有一个参数时，可以省略括号</span><br>x -&gt; x * <span class="hljs-number">2</span><br><br><span class="hljs-comment">// 无参数</span><br>() -&gt; System.out.println(<span class="hljs-string">&quot;hello&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-4-Lambda-的本质"><a href="#1-4-Lambda-的本质" class="headerlink" title="1.4 Lambda 的本质"></a>1.4 Lambda 的本质</h3><p>Lambda 不是语法糖那么简单。它的底层不是匿名内部类，而是通过 <code>invokedynamic</code> 字节码指令实现，性能更好（不会每次创建新的 class 文件）。</p>
+<p>但从使用角度理解，你可以把 Lambda 看作<strong>一个只有一个抽象方法的接口的实例</strong>。这就引出了下一个概念。</p>
+<h2 id="2-函数式接口（Functional-Interface）"><a href="#2-函数式接口（Functional-Interface）" class="headerlink" title="2. 函数式接口（Functional Interface）"></a>2. 函数式接口（Functional Interface）</h2><h3 id="2-1-定义"><a href="#2-1-定义" class="headerlink" title="2.1 定义"></a>2.1 定义</h3><p><strong>只有一个抽象方法</strong>的接口就是函数式接口，Lambda 只能赋值给函数式接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@FunctionalInterface</span>  <span class="hljs-comment">// 可选注解，编译器会校验是否只有一个抽象方法</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">MyFunction</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span>;<br>    <span class="hljs-comment">// 如果再加一个抽象方法，编译报错</span><br>&#125;<br><br><span class="hljs-type">MyFunction</span> <span class="hljs-variable">doubler</span> <span class="hljs-operator">=</span> x -&gt; x * <span class="hljs-number">2</span>;<br>System.out.println(doubler.apply(<span class="hljs-number">5</span>));  <span class="hljs-comment">// 10</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-Java-内置的四大函数式接口"><a href="#2-2-Java-内置的四大函数式接口" class="headerlink" title="2.2 Java 内置的四大函数式接口"></a>2.2 Java 内置的四大函数式接口</h3><p>Java 在 <code>java.util.function</code> 包中预定义了大量函数式接口，最常用的四个：</p>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>方法签名</th>
+<th>用途</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Function&lt;T, R&gt;</code></td>
+<td><code>R apply(T t)</code></td>
+<td>转换：T → R</td>
+<td><code>s -&gt; s.length()</code></td>
+</tr>
+<tr>
+<td><code>Predicate&lt;T&gt;</code></td>
+<td><code>boolean test(T t)</code></td>
+<td>判断：T → boolean</td>
+<td><code>s -&gt; s.isEmpty()</code></td>
+</tr>
+<tr>
+<td><code>Consumer&lt;T&gt;</code></td>
+<td><code>void accept(T t)</code></td>
+<td>消费：T → void</td>
+<td><code>s -&gt; System.out.println(s)</code></td>
+</tr>
+<tr>
+<td><code>Supplier&lt;T&gt;</code></td>
+<td><code>T get()</code></td>
+<td>生产：() → T</td>
+<td><code>() -&gt; new ArrayList&lt;&gt;()</code></td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Function：转换</span><br>Function&lt;String, Integer&gt; strLen = s -&gt; s.length();<br>strLen.apply(<span class="hljs-string">&quot;hello&quot;</span>);  <span class="hljs-comment">// 5</span><br><br><span class="hljs-comment">// Predicate：判断</span><br>Predicate&lt;String&gt; isLong = s -&gt; s.length() &gt; <span class="hljs-number">5</span>;<br>isLong.test(<span class="hljs-string">&quot;hello&quot;</span>);   <span class="hljs-comment">// false</span><br><br><span class="hljs-comment">// Consumer：消费</span><br>Consumer&lt;String&gt; printer = s -&gt; System.out.println(s);<br>printer.accept(<span class="hljs-string">&quot;hello&quot;</span>);  <span class="hljs-comment">// 输出 hello</span><br><br><span class="hljs-comment">// Supplier：生产</span><br>Supplier&lt;List&lt;String&gt;&gt; listFactory = () -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>List&lt;String&gt; list = listFactory.get();<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-3-其他常用变体"><a href="#2-3-其他常用变体" class="headerlink" title="2.3 其他常用变体"></a>2.3 其他常用变体</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 双参数版本</span><br>BiFunction&lt;String, String, Integer&gt; sumLen = (a, b) -&gt; a.length() + b.length();<br>BiPredicate&lt;String, Integer&gt; longerThan = (s, n) -&gt; s.length() &gt; n;<br>BiConsumer&lt;String, Integer&gt; printPair = (k, v) -&gt; System.out.println(k + <span class="hljs-string">&quot;=&quot;</span> + v);<br><br><span class="hljs-comment">// 基本类型特化（避免装箱开销）</span><br>IntFunction&lt;String&gt; intToStr = i -&gt; <span class="hljs-string">&quot;num:&quot;</span> + i;<br>ToIntFunction&lt;String&gt; strToInt = s -&gt; s.length();<br><span class="hljs-type">IntPredicate</span> <span class="hljs-variable">isPositive</span> <span class="hljs-operator">=</span> n -&gt; n &gt; <span class="hljs-number">0</span>;<br><span class="hljs-type">IntConsumer</span> <span class="hljs-variable">printInt</span> <span class="hljs-operator">=</span> n -&gt; System.out.println(n);<br><span class="hljs-type">IntSupplier</span> <span class="hljs-variable">randomInt</span> <span class="hljs-operator">=</span> () -&gt; (<span class="hljs-type">int</span>)(Math.random() * <span class="hljs-number">100</span>);<br><br><span class="hljs-comment">// UnaryOperator：输入输出同类型的 Function</span><br>UnaryOperator&lt;String&gt; toUpper = s -&gt; s.toUpperCase();<br><br><span class="hljs-comment">// BinaryOperator：两个同类型输入、同类型输出</span><br>BinaryOperator&lt;Integer&gt; add = (a, b) -&gt; a + b;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-4-函数式接口的组合"><a href="#2-4-函数式接口的组合" class="headerlink" title="2.4 函数式接口的组合"></a>2.4 函数式接口的组合</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java">Predicate&lt;String&gt; isLong = s -&gt; s.length() &gt; <span class="hljs-number">5</span>;<br>Predicate&lt;String&gt; startsWithA = s -&gt; s.startsWith(<span class="hljs-string">&quot;A&quot;</span>);<br><br><span class="hljs-comment">// and / or / negate</span><br>Predicate&lt;String&gt; longAndStartsA = isLong.and(startsWithA);<br>Predicate&lt;String&gt; longOrStartsA = isLong.or(startsWithA);<br>Predicate&lt;String&gt; isShort = isLong.negate();<br><br><span class="hljs-comment">// Function 链式组合</span><br>Function&lt;String, String&gt; trim = String::trim;<br>Function&lt;String, String&gt; upper = String::toUpperCase;<br>Function&lt;String, String&gt; trimThenUpper = trim.andThen(upper);  <span class="hljs-comment">// 先 trim 再 upper</span><br>Function&lt;String, String&gt; upperThenTrim = trim.compose(upper);  <span class="hljs-comment">// 先 upper 再 trim</span><br><br>trimThenUpper.apply(<span class="hljs-string">&quot;  hello  &quot;</span>);  <span class="hljs-comment">// &quot;HELLO&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="3-方法引用（Method-Reference）"><a href="#3-方法引用（Method-Reference）" class="headerlink" title="3. 方法引用（Method Reference）"></a>3. 方法引用（Method Reference）</h2><p>当 Lambda 只是调用一个已有方法时，可以用方法引用进一步简化：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Lambda                           →  方法引用</span><br>s -&gt; System.out.println(s)          →  System.out::println<br>s -&gt; s.toUpperCase()                →  String::toUpperCase<br>s -&gt; Integer.parseInt(s)            →  Integer::parseInt<br>() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;()             →  ArrayList::<span class="hljs-keyword">new</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-1-四种形式"><a href="#3-1-四种形式" class="headerlink" title="3.1 四种形式"></a>3.1 四种形式</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>语法</th>
+<th>等价 Lambda</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>静态方法引用</td>
+<td><code>类名::静态方法</code></td>
+<td><code>x -&gt; 类名.方法(x)</code></td>
+<td><code>Integer::parseInt</code></td>
+</tr>
+<tr>
+<td>实例方法引用（对象）</td>
+<td><code>对象::实例方法</code></td>
+<td><code>x -&gt; 对象.方法(x)</code></td>
+<td><code>System.out::println</code></td>
+</tr>
+<tr>
+<td>实例方法引用（类）</td>
+<td><code>类名::实例方法</code></td>
+<td><code>(obj, x) -&gt; obj.方法(x)</code></td>
+<td><code>String::compareTo</code></td>
+</tr>
+<tr>
+<td>构造方法引用</td>
+<td><code>类名::new</code></td>
+<td><code>x -&gt; new 类名(x)</code></td>
+<td><code>ArrayList::new</code></td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;String&gt; list = List.of(<span class="hljs-string">&quot;banana&quot;</span>, <span class="hljs-string">&quot;apple&quot;</span>, <span class="hljs-string">&quot;cherry&quot;</span>);<br><br><span class="hljs-comment">// 静态方法引用</span><br>list.stream().map(Integer::parseInt);  <span class="hljs-comment">// 如果 list 是数字字符串</span><br><br><span class="hljs-comment">// 实例方法引用（通过类名）</span><br>list.sort(String::compareToIgnoreCase);<br><span class="hljs-comment">// 等价于 list.sort((a, b) -&gt; a.compareToIgnoreCase(b))</span><br><br><span class="hljs-comment">// 构造方法引用</span><br>list.stream().map(StringBuilder::<span class="hljs-keyword">new</span>);<br><span class="hljs-comment">// 等价于 list.stream().map(s -&gt; new StringBuilder(s))</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="4-Stream-API"><a href="#4-Stream-API" class="headerlink" title="4. Stream API"></a>4. Stream API</h2><h3 id="4-1-Stream-是什么？"><a href="#4-1-Stream-是什么？" class="headerlink" title="4.1 Stream 是什么？"></a>4.1 Stream 是什么？</h3><p>Stream 是对集合数据的<strong>声明式处理管道</strong>——你描述”要做什么”，而不是”怎么做”：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 命令式：手动循环</span><br>List&lt;String&gt; result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br><span class="hljs-keyword">for</span> (String s : list) &#123;<br>    <span class="hljs-keyword">if</span> (s.length() &gt; <span class="hljs-number">4</span>) &#123;<br>        result.add(s.toUpperCase());<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 声明式：Stream</span><br>List&lt;String&gt; result = list.stream()<br>    .filter(s -&gt; s.length() &gt; <span class="hljs-number">4</span>)<br>    .map(String::toUpperCase)<br>    .collect(Collectors.toList());<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-2-Stream-的三个阶段"><a href="#4-2-Stream-的三个阶段" class="headerlink" title="4.2 Stream 的三个阶段"></a>4.2 Stream 的三个阶段</h3><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs coq">数据源 → 中间操作（<span class="hljs-built_in">lazy</span>） → 终端操作（触发执行）<br></code></pre></td></tr></table></figure>
+
+<p><strong>中间操作</strong>返回新的 Stream，可以链式调用，不会立即执行（惰性求值）：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>filter</code></td>
+<td>过滤</td>
+<td><code>.filter(s -&gt; s.length() &gt; 3)</code></td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td>转换</td>
+<td><code>.map(String::toUpperCase)</code></td>
+</tr>
+<tr>
+<td><code>flatMap</code></td>
+<td>一对多展开</td>
+<td><code>.flatMap(line -&gt; Arrays.stream(line.split(&quot; &quot;)))</code></td>
+</tr>
+<tr>
+<td><code>distinct</code></td>
+<td>去重</td>
+<td><code>.distinct()</code></td>
+</tr>
+<tr>
+<td><code>sorted</code></td>
+<td>排序</td>
+<td><code>.sorted()</code> 或 <code>.sorted(Comparator)</code></td>
+</tr>
+<tr>
+<td><code>peek</code></td>
+<td>查看（调试用）</td>
+<td><code>.peek(System.out::println)</code></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>截取前 n 个</td>
+<td><code>.limit(5)</code></td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>跳过前 n 个</td>
+<td><code>.skip(2)</code></td>
+</tr>
+</tbody></table>
+<p><strong>终端操作</strong>触发整个管道执行，返回结果：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>collect</code></td>
+<td>收集为集合</td>
+<td><code>.collect(Collectors.toList())</code></td>
+</tr>
+<tr>
+<td><code>forEach</code></td>
+<td>遍历</td>
+<td><code>.forEach(System.out::println)</code></td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td>计数</td>
+<td><code>.count()</code></td>
+</tr>
+<tr>
+<td><code>reduce</code></td>
+<td>归约</td>
+<td><code>.reduce(0, Integer::sum)</code></td>
+</tr>
+<tr>
+<td><code>findFirst</code></td>
+<td>第一个元素</td>
+<td><code>.findFirst()</code></td>
+</tr>
+<tr>
+<td><code>findAny</code></td>
+<td>任意一个</td>
+<td><code>.findAny()</code></td>
+</tr>
+<tr>
+<td><code>anyMatch</code></td>
+<td>任一匹配</td>
+<td><code>.anyMatch(s -&gt; s.isEmpty())</code></td>
+</tr>
+<tr>
+<td><code>allMatch</code></td>
+<td>全部匹配</td>
+<td><code>.allMatch(s -&gt; s.length() &gt; 0)</code></td>
+</tr>
+<tr>
+<td><code>noneMatch</code></td>
+<td>全不匹配</td>
+<td><code>.noneMatch(s -&gt; s.isEmpty())</code></td>
+</tr>
+<tr>
+<td><code>min / max</code></td>
+<td>最值</td>
+<td><code>.min(Comparator.naturalOrder())</code></td>
+</tr>
+<tr>
+<td><code>toArray</code></td>
+<td>转数组</td>
+<td><code>.toArray(String[]::new)</code></td>
+</tr>
+</tbody></table>
+<h3 id="4-3-常见用法实战"><a href="#4-3-常见用法实战" class="headerlink" title="4.3 常见用法实战"></a>4.3 常见用法实战</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;String&gt; names = List.of(<span class="hljs-string">&quot;Alice&quot;</span>, <span class="hljs-string">&quot;Bob&quot;</span>, <span class="hljs-string">&quot;Charlie&quot;</span>, <span class="hljs-string">&quot;David&quot;</span>, <span class="hljs-string">&quot;Alice&quot;</span>, <span class="hljs-string">&quot;Bob&quot;</span>);<br><br><span class="hljs-comment">// 去重 + 排序</span><br>List&lt;String&gt; unique = names.stream()<br>    .distinct()<br>    .sorted()<br>    .collect(Collectors.toList());<br><span class="hljs-comment">// [Alice, Bob, Charlie, David]</span><br><br><span class="hljs-comment">// 过滤 + 转换 + 拼接</span><br><span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> names.stream()<br>    .filter(s -&gt; s.length() &gt; <span class="hljs-number">3</span>)<br>    .map(String::toUpperCase)<br>    .collect(Collectors.joining(<span class="hljs-string">&quot;, &quot;</span>));<br><span class="hljs-comment">// &quot;ALICE, CHARLIE, DAVID, ALICE&quot;</span><br><br><span class="hljs-comment">// 统计</span><br><span class="hljs-type">long</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> names.stream().filter(s -&gt; s.startsWith(<span class="hljs-string">&quot;A&quot;</span>)).count();  <span class="hljs-comment">// 2</span><br><br><span class="hljs-comment">// 分组</span><br>Map&lt;Integer, List&lt;String&gt;&gt; byLength = names.stream()<br>    .collect(Collectors.groupingBy(String::length));<br><span class="hljs-comment">// &#123;3=[Bob, Bob], 5=[Alice, David, Alice], 7=[Charlie]&#125;</span><br><br><span class="hljs-comment">// 分区（按条件分成两组）</span><br>Map&lt;Boolean, List&lt;String&gt;&gt; partition = names.stream()<br>    .collect(Collectors.partitioningBy(s -&gt; s.length() &gt; <span class="hljs-number">4</span>));<br><span class="hljs-comment">// &#123;false=[Bob, Bob], true=[Alice, Charlie, David, Alice]&#125;</span><br><br><span class="hljs-comment">// 转 Map</span><br>Map&lt;String, Integer&gt; nameToLength = names.stream()<br>    .distinct()<br>    .collect(Collectors.toMap(<br>        name -&gt; name,           <span class="hljs-comment">// key</span><br>        String::length           <span class="hljs-comment">// value</span><br>    ));<br><span class="hljs-comment">// &#123;Alice=5, Bob=3, Charlie=7, David=5&#125;</span><br><br><span class="hljs-comment">// 求和</span><br><span class="hljs-type">int</span> <span class="hljs-variable">totalLength</span> <span class="hljs-operator">=</span> names.stream()<br>    .mapToInt(String::length)<br>    .sum();<br><span class="hljs-comment">// 29</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="4-4-flatMap：处理嵌套结构"><a href="#4-4-flatMap：处理嵌套结构" class="headerlink" title="4.4 flatMap：处理嵌套结构"></a>4.4 flatMap：处理嵌套结构</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;List&lt;String&gt;&gt; nested = List.of(<br>    List.of(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>),<br>    List.of(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-string">&quot;d&quot;</span>),<br>    List.of(<span class="hljs-string">&quot;e&quot;</span>)<br>);<br><br><span class="hljs-comment">// 展平为一层</span><br>List&lt;String&gt; flat = nested.stream()<br>    .flatMap(Collection::stream)<br>    .collect(Collectors.toList());<br><span class="hljs-comment">// [a, b, c, d, e]</span><br><br><span class="hljs-comment">// 实际场景：每行文本拆成单词</span><br>List&lt;String&gt; lines = List.of(<span class="hljs-string">&quot;hello world&quot;</span>, <span class="hljs-string">&quot;foo bar baz&quot;</span>);<br>List&lt;String&gt; words = lines.stream()<br>    .flatMap(line -&gt; Arrays.stream(line.split(<span class="hljs-string">&quot; &quot;</span>)))<br>    .collect(Collectors.toList());<br><span class="hljs-comment">// [hello, world, foo, bar, baz]</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="4-5-reduce：归约"><a href="#4-5-reduce：归约" class="headerlink" title="4.5 reduce：归约"></a>4.5 reduce：归约</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;Integer&gt; nums = List.of(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>);<br><br><span class="hljs-comment">// 求和</span><br><span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> nums.stream().reduce(<span class="hljs-number">0</span>, Integer::sum);  <span class="hljs-comment">// 15</span><br><br><span class="hljs-comment">// 求最大值</span><br>Optional&lt;Integer&gt; max = nums.stream().reduce(Integer::max);  <span class="hljs-comment">// Optional[5]</span><br><br><span class="hljs-comment">// 字符串拼接</span><br><span class="hljs-type">String</span> <span class="hljs-variable">joined</span> <span class="hljs-operator">=</span> List.of(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-string">&quot;c&quot;</span>).stream()<br>    .reduce(<span class="hljs-string">&quot;&quot;</span>, (a, b) -&gt; a + b);  <span class="hljs-comment">// &quot;abc&quot;</span><br><span class="hljs-comment">// 但拼接字符串更推荐用 Collectors.joining()</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="4-6-Stream-的注意事项"><a href="#4-6-Stream-的注意事项" class="headerlink" title="4.6 Stream 的注意事项"></a>4.6 Stream 的注意事项</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. Stream 只能消费一次</span><br>Stream&lt;String&gt; stream = names.stream();<br>stream.forEach(System.out::println);<br><span class="hljs-comment">// stream.count();  // 运行时报 IllegalStateException！Stream 已关闭</span><br><br><span class="hljs-comment">// 2. 不要在 forEach 中修改外部状态（副作用）</span><br>List&lt;String&gt; result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>names.stream()<br>    .filter(s -&gt; s.length() &gt; <span class="hljs-number">3</span>)<br>    .forEach(result::add);  <span class="hljs-comment">// 能跑，但不推荐，并行流下会出 bug</span><br><span class="hljs-comment">// 正确做法：用 collect</span><br><br><span class="hljs-comment">// 3. 基本类型用专门的 Stream 避免装箱</span><br>IntStream.range(<span class="hljs-number">0</span>, <span class="hljs-number">10</span>);           <span class="hljs-comment">// 0, 1, 2, ..., 9</span><br>IntStream.rangeClosed(<span class="hljs-number">1</span>, <span class="hljs-number">10</span>);     <span class="hljs-comment">// 1, 2, 3, ..., 10</span><br>IntStream.of(<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span>);<br><br><span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> IntStream.rangeClosed(<span class="hljs-number">1</span>, <span class="hljs-number">100</span>).sum();  <span class="hljs-comment">// 5050</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="5-Optional"><a href="#5-Optional" class="headerlink" title="5. Optional"></a>5. Optional</h2><h3 id="5-1-为什么需要-Optional？"><a href="#5-1-为什么需要-Optional？" class="headerlink" title="5.1 为什么需要 Optional？"></a>5.1 为什么需要 Optional？</h3><p><code>Optional</code> 是一个容器，表示”值可能存在，也可能不存在”，用来替代 null 减少 NPE：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 传统写法：满屏的 null 检查</span><br><span class="hljs-type">String</span> <span class="hljs-variable">city</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br><span class="hljs-keyword">if</span> (user != <span class="hljs-literal">null</span>) &#123;<br>    <span class="hljs-type">Address</span> <span class="hljs-variable">addr</span> <span class="hljs-operator">=</span> user.getAddress();<br>    <span class="hljs-keyword">if</span> (addr != <span class="hljs-literal">null</span>) &#123;<br>        city = addr.getCity();<br>    &#125;<br>&#125;<br><span class="hljs-keyword">if</span> (city == <span class="hljs-literal">null</span>) city = <span class="hljs-string">&quot;Unknown&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-2-基本用法"><a href="#5-2-基本用法" class="headerlink" title="5.2 基本用法"></a>5.2 基本用法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 创建</span><br>Optional&lt;String&gt; opt1 = Optional.of(<span class="hljs-string">&quot;hello&quot;</span>);       <span class="hljs-comment">// 值不能为 null</span><br>Optional&lt;String&gt; opt2 = Optional.ofNullable(<span class="hljs-literal">null</span>);   <span class="hljs-comment">// 值可以为 null</span><br>Optional&lt;String&gt; opt3 = Optional.empty();             <span class="hljs-comment">// 空的 Optional</span><br><br><span class="hljs-comment">// 判断和获取</span><br>opt1.isPresent();   <span class="hljs-comment">// true</span><br>opt2.isPresent();   <span class="hljs-comment">// false</span><br>opt1.isEmpty();     <span class="hljs-comment">// false（Java 11+）</span><br><br>opt1.get();         <span class="hljs-comment">// &quot;hello&quot;（有值时获取）</span><br><span class="hljs-comment">// opt2.get();      // 抛 NoSuchElementException！空的不能 get</span><br><br><span class="hljs-comment">// 安全获取</span><br>opt2.orElse(<span class="hljs-string">&quot;default&quot;</span>);                    <span class="hljs-comment">// &quot;default&quot;</span><br>opt2.orElseGet(() -&gt; computeDefault());    <span class="hljs-comment">// 惰性计算默认值</span><br>opt2.orElseThrow(() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;no value&quot;</span>));  <span class="hljs-comment">// 抛自定义异常</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="5-3-链式操作"><a href="#5-3-链式操作" class="headerlink" title="5.3 链式操作"></a>5.3 链式操作</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 用 Optional 改写上面的嵌套 null 检查</span><br><span class="hljs-type">String</span> <span class="hljs-variable">city</span> <span class="hljs-operator">=</span> Optional.ofNullable(user)<br>    .map(User::getAddress)<br>    .map(Address::getCity)<br>    .orElse(<span class="hljs-string">&quot;Unknown&quot;</span>);<br><br><span class="hljs-comment">// filter：条件不满足时变成空 Optional</span><br>Optional&lt;String&gt; longName = Optional.of(<span class="hljs-string">&quot;Alice&quot;</span>)<br>    .filter(s -&gt; s.length() &gt; <span class="hljs-number">10</span>);  <span class="hljs-comment">// Optional.empty()</span><br><br><span class="hljs-comment">// flatMap：当映射函数本身返回 Optional 时</span><br>Optional&lt;String&gt; city = Optional.ofNullable(user)<br>    .flatMap(User::getOptionalAddress)   <span class="hljs-comment">// 返回 Optional&lt;Address&gt;</span><br>    .flatMap(Address::getOptionalCity);  <span class="hljs-comment">// 返回 Optional&lt;String&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="5-4-Optional-的使用原则"><a href="#5-4-Optional-的使用原则" class="headerlink" title="5.4 Optional 的使用原则"></a>5.4 Optional 的使用原则</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// ✅ 用作方法返回值，表示结果可能不存在</span><br><span class="hljs-keyword">public</span> Optional&lt;User&gt; <span class="hljs-title function_">findById</span><span class="hljs-params">(String id)</span> &#123;<br>    <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> db.query(id);<br>    <span class="hljs-keyword">return</span> Optional.ofNullable(user);<br>&#125;<br><br><span class="hljs-comment">// ❌ 不要用作方法参数（调用者还是要判断传 Optional 还是传 null）</span><br><span class="hljs-comment">// ❌ 不要用作类的字段（Optional 没有实现 Serializable）</span><br><span class="hljs-comment">// ❌ 不要用 Optional 包装集合（空集合比 Optional&lt;List&gt; 更好）</span><br><span class="hljs-comment">// ❌ 不要用 isPresent() + get() 替代 null 检查（这和直接判 null 一样丑）</span><br><br><span class="hljs-comment">// 反面教材</span><br><span class="hljs-keyword">if</span> (opt.isPresent()) &#123;<br>    doSomething(opt.get());<br>&#125;<br><br><span class="hljs-comment">// 正确姿势</span><br>opt.ifPresent(value -&gt; doSomething(value));<br><span class="hljs-comment">// 或</span><br>opt.ifPresentOrElse(<br>    value -&gt; doSomething(value),<br>    () -&gt; handleEmpty()<br>);  <span class="hljs-comment">// Java 9+</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="6-小结"><a href="#6-小结" class="headerlink" title="6. 小结"></a>6. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Lambda</td>
+<td>匿名函数，替代匿名内部类；底层用 invokedynamic 而非生成类</td>
+</tr>
+<tr>
+<td>函数式接口</td>
+<td>只有一个抽象方法；四大核心：Function、Predicate、Consumer、Supplier</td>
+</tr>
+<tr>
+<td>方法引用</td>
+<td>Lambda 的简写；四种形式：静态、实例(对象)、实例(类)、构造</td>
+</tr>
+<tr>
+<td>Stream 三阶段</td>
+<td>数据源 → 中间操作(lazy) → 终端操作(触发执行)</td>
+</tr>
+<tr>
+<td>常用终端操作</td>
+<td>collect、forEach、count、reduce、findFirst、anyMatch</td>
+</tr>
+<tr>
+<td>Collectors</td>
+<td>toList、toSet、toMap、groupingBy、joining、partitioningBy</td>
+</tr>
+<tr>
+<td>flatMap</td>
+<td>展平嵌套结构，一对多映射</td>
+</tr>
+<tr>
+<td>Optional</td>
+<td>替代 null；用作返回值，不用作参数和字段；链式 map&#x2F;flatMap&#x2F;orElse</td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：I&#x2F;O 与文件操作——BIO、NIO 与 Files 工具类</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/Lambda/" class="print-no-link">#Lambda</a>
+      
+        <a href="/tags/Stream/" class="print-no-link">#Stream</a>
+      
+        <a href="/tags/%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B/" class="print-no-link">#函数式编程</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具</div>
+      <div>https://rebibabo.github.io/2026/06/13/Java-basic/08-lambda-and-stream/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/14/Java-basic/11-jvm/" title="Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/13/Java-basic/09-io/" title="Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类">
+                        <span class="hidden-mobile">Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
