@@ -1,0 +1,982 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言作为一个写了几年 Python &#x2F; C++ 的人，回头重新审视 Java 的编译运行机制，会发现很多”入门时死记硬背”的东西——javac、.class、JVM、JRE、JDK——其实背后有一条非常清晰的设计逻辑链。这篇文章的目标是：用一个 Hello.java 的完整生命周期，把 Java 程序”从写下第一行代码到最终执行”的每个环节串起来。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java全貌(1) | 从源码到运行：理解Java程序的一生">
+<meta property="og:url" content="https://rebibabo.github.io/2026/05/01/Java-basic/01-introduction/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言作为一个写了几年 Python &#x2F; C++ 的人，回头重新审视 Java 的编译运行机制，会发现很多”入门时死记硬背”的东西——javac、.class、JVM、JRE、JDK——其实背后有一条非常清晰的设计逻辑链。这篇文章的目标是：用一个 Hello.java 的完整生命周期，把 Java 程序”从写下第一行代码到最终执行”的每个环节串起来。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-11T04:43:49.580Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="字节码">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java全貌(1) | 从源码到运行：理解Java程序的一生 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java全貌(1) | 从源码到运行：理解Java程序的一生"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-01 00:00" pubdate>
+          2026年5月1日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          25 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java全貌(1) | 从源码到运行：理解Java程序的一生</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>作为一个写了几年 Python &#x2F; C++ 的人，回头重新审视 Java 的编译运行机制，会发现很多”入门时死记硬背”的东西——<code>javac</code>、<code>.class</code>、JVM、JRE、JDK——其实背后有一条非常清晰的设计逻辑链。这篇文章的目标是：<strong>用一个 <code>Hello.java</code> 的完整生命周期，把 Java 程序”从写下第一行代码到最终执行”的每个环节串起来。</strong></p>
+<span id="more"></span>
+
+<h2 id="1-先跑起来：一个最小实验"><a href="#1-先跑起来：一个最小实验" class="headerlink" title="1. 先跑起来：一个最小实验"></a>1. 先跑起来：一个最小实验</h2><p>在理解任何概念之前，先动手。创建一个 <code>Hello.java</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Hello</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;Hello, Java!&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后在终端执行两步：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">javac Hello.java   <span class="hljs-comment"># 第一步：编译</span><br>java Hello          <span class="hljs-comment"># 第二步：运行</span><br></code></pre></td></tr></table></figure>
+
+<p>输出 <code>Hello, Java!</code>。看起来平平无奇，但这两步背后藏着 Java 区别于 C&#x2F;C++&#x2F;Python 的核心设计。</p>
+<h2 id="2-javac：从源码到字节码"><a href="#2-javac：从源码到字节码" class="headerlink" title="2. javac：从源码到字节码"></a>2. javac：从源码到字节码</h2><h3 id="2-1-javac-是什么？"><a href="#2-1-javac-是什么？" class="headerlink" title="2.1 javac 是什么？"></a>2.1 javac 是什么？</h3><p><code>javac</code> 是 <strong>Java Compiler</strong>，即 Java 编译器。它的职责是：</p>
+<blockquote>
+<p>将人类可读的 <code>.java</code> 源代码 → 编译为 JVM 可执行的 <code>.class</code> 字节码文件</p>
+</blockquote>
+<p>执行 <code>javac Hello.java</code> 后，当前目录下会多出一个 <code>Hello.class</code> 文件。这个文件<strong>不是</strong>机器码（不像 C++ 的 <code>gcc -o</code> 产物可以直接被操作系统执行），而是一种中间表示——<strong>字节码（Bytecode）</strong>。</p>
+<h3 id="2-2-为什么不直接编译成机器码？"><a href="#2-2-为什么不直接编译成机器码？" class="headerlink" title="2.2 为什么不直接编译成机器码？"></a>2.2 为什么不直接编译成机器码？</h3><p>这是 Java 最核心的设计决策之一，也是”Write Once, Run Anywhere”的基础：</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>编译目标</th>
+<th>可移植性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C&#x2F;C++</td>
+<td>平台相关的机器码（x86、ARM…）</td>
+<td>换平台需要重新编译</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>不需要显式编译，解释器逐行执行</td>
+<td>依赖解释器实现</td>
+</tr>
+<tr>
+<td><strong>Java</strong></td>
+<td><strong>平台无关的字节码</strong></td>
+<td><strong>只要有对应平台的 JVM 就能运行</strong></td>
+</tr>
+</tbody></table>
+<p>Java 的思路是：<strong>把”适配不同平台”的脏活交给 JVM，字节码本身保持统一。</strong> 你在 macOS 上编译出的 <code>.class</code> 文件，拷贝到 Linux 或 Windows 上，只要装了对应的 JVM，就能直接跑。</p>
+<h3 id="2-3-字节码长什么样？"><a href="#2-3-字节码长什么样？" class="headerlink" title="2.3 字节码长什么样？"></a>2.3 字节码长什么样？</h3><p>用 <code>javap -c Hello</code> 可以反编译 <code>.class</code> 文件，看到字节码指令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">javap -c Hello<br></code></pre></td></tr></table></figure>
+
+<details>
+<summary>点击展开 javap 输出</summary>
+
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs csharp">Compiled <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;Hello.java&quot;</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Hello</span> &#123;<br>  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Hello</span>()</span>;<br>    Code:<br>       <span class="hljs-number">0</span>: aload_0<br>       <span class="hljs-number">1</span>: invokespecial <span class="hljs-meta">#1    // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br>       <span class="hljs-number">4</span>: <span class="hljs-keyword">return</span><br><br>  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span>(<span class="hljs-params">java.lang.String[]</span>)</span>;<br>    Code:<br>       <span class="hljs-number">0</span>: getstatic     <span class="hljs-meta">#7    // Field java/lang/System.out:Ljava/io/PrintStream;</span><br>       <span class="hljs-number">3</span>: ldc           <span class="hljs-meta">#13   // String Hello, Java!</span><br>       <span class="hljs-number">5</span>: invokevirtual <span class="hljs-meta">#15   // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br>       <span class="hljs-number">8</span>: <span class="hljs-keyword">return</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+</details>
+
+<p>几个值得注意的点：</p>
+<ul>
+<li><strong><code>aload_0</code>、<code>invokespecial</code>、<code>getstatic</code></strong> 这些就是字节码指令，类似汇编，但面向的是 JVM 这台”虚拟机器”而非物理 CPU。</li>
+<li>即使我们没有写构造函数，编译器也自动生成了一个默认构造函数 <code>Hello()</code>，内部调用了 <code>Object.&lt;init&gt;</code>——因为 Java 中所有类都隐式继承 <code>Object</code>。</li>
+<li><code>ldc #13</code> 是从常量池加载字符串 <code>&quot;Hello, Java!&quot;</code>，<code>invokevirtual</code> 是虚方法调用（多态的基础）。</li>
+</ul>
+<h2 id="3-JVM-JRE-JDK：三个容易混淆的概念"><a href="#3-JVM-JRE-JDK：三个容易混淆的概念" class="headerlink" title="3. JVM &#x2F; JRE &#x2F; JDK：三个容易混淆的概念"></a>3. JVM &#x2F; JRE &#x2F; JDK：三个容易混淆的概念</h2><p>这三个缩写经常让人头大，其实它们是一个<strong>层层包含</strong>的关系：</p>
+<div style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6;">
+  <div style="border: 2px solid #4A90D9; border-radius: 8px; padding: 16px; background: #EBF2FA;">
+    <div style="font-weight: bold; color: #4A90D9; margin-bottom: 8px;">JDK (Java Development Kit)</div>
+    <div style="border: 2px solid #7B61FF; border-radius: 8px; padding: 14px; background: #F0ECFF;">
+      <div style="font-weight: bold; color: #7B61FF; margin-bottom: 8px;">JRE (Java Runtime Environment)</div>
+      <div style="border: 2px solid #E85D75; border-radius: 8px; padding: 12px; background: #FFF0F2;">
+        <div style="font-weight: bold; color: #E85D75; margin-bottom: 6px;">JVM (Java Virtual Machine)</div>
+        <div style="color: #555; padding-left: 8px;">
+          · 类加载器<br>
+          · 字节码解释器<br>
+          · JIT 编译器<br>
+          · 垃圾回收器<br>
+          · 内存管理
+        </div>
+      </div>
+      <div style="color: #555; margin-top: 10px; padding-left: 8px;">
+        + 核心类库 (java.lang, java.util, ...)<br>
+        + java 命令 (启动 JVM)
+      </div>
+    </div>
+    <div style="color: #555; margin-top: 10px; padding-left: 8px;">
+      + javac (编译器)<br>
+      + javap (反编译工具)<br>
+      + jdb (调试器)<br>
+      + jar (打包工具)<br>
+      + 其他开发工具
+    </div>
+  </div>
+</div>
+
+<p>用一句话总结各自的角色：</p>
+<ul>
+<li><strong>JVM</strong>：执行字节码的虚拟机，是 Java 跨平台的关键。它本身是平台相关的（macOS 的 JVM 和 Linux 的 JVM 是不同的二进制程序），但它对上层暴露统一的字节码接口。</li>
+<li><strong>JRE</strong>：JVM + 核心类库。有了 JRE 就能<strong>运行</strong> Java 程序，但不能编译。</li>
+<li><strong>JDK</strong>：JRE + 开发工具（javac、javap、jdb 等）。<strong>开发者</strong>需要装 JDK，纯用户只需要 JRE。</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：从 Java 11 开始，Oracle 不再单独提供 JRE 下载，JDK 成了唯一的发行单元。但概念上的分层关系依然成立。</p>
+</blockquote>
+<h2 id="4-一个更直观的对比"><a href="#4-一个更直观的对比" class="headerlink" title="4. 一个更直观的对比"></a>4. 一个更直观的对比</h2><p>为了加深理解，把 Java 和你熟悉的 C++ &#x2F; Python 放在一起对比：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>C++</th>
+<th>Python</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编译&#x2F;解释</td>
+<td>编译为机器码</td>
+<td>解释执行（.pyc 是优化缓存）</td>
+<td>编译为字节码 + JVM 解释&#x2F;JIT</td>
+</tr>
+<tr>
+<td>编译产物</td>
+<td>可执行文件（ELF&#x2F;PE）</td>
+<td>无显式产物</td>
+<td><code>.class</code> 文件</td>
+</tr>
+<tr>
+<td>跨平台方式</td>
+<td>重新编译</td>
+<td>依赖 Python 解释器</td>
+<td>依赖 JVM</td>
+</tr>
+<tr>
+<td>运行时性能</td>
+<td>最高</td>
+<td>最低</td>
+<td>中高（JIT 优化后接近 C++）</td>
+</tr>
+<tr>
+<td>内存管理</td>
+<td>手动（new&#x2F;delete）</td>
+<td>GC</td>
+<td>GC</td>
+</tr>
+<tr>
+<td>启动速度</td>
+<td>快</td>
+<td>快</td>
+<td>较慢（JVM 启动开销）</td>
+</tr>
+</tbody></table>
+<h2 id="5-动手验证"><a href="#5-动手验证" class="headerlink" title="5. 动手验证"></a>5. 动手验证</h2><p>可以自己跑一遍以下实验加深印象：</p>
+<h3 id="实验-1：观察编译产物"><a href="#实验-1：观察编译产物" class="headerlink" title="实验 1：观察编译产物"></a>实验 1：观察编译产物</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 编译</span><br>javac Hello.java<br><br><span class="hljs-comment"># 查看生成的 .class 文件</span><br><span class="hljs-built_in">ls</span> -la Hello.class<br></code></pre></td></tr></table></figure>
+
+<h3 id="实验-2：反编译观察字节码"><a href="#实验-2：反编译观察字节码" class="headerlink" title="实验 2：反编译观察字节码"></a>实验 2：反编译观察字节码</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 基础反编译</span><br>javap -c Hello<br><br><span class="hljs-comment"># 更详细的信息（常量池、版本号等）</span><br>javap -v Hello<br></code></pre></td></tr></table></figure>
+
+<h3 id="实验-3：跨版本观察"><a href="#实验-3：跨版本观察" class="headerlink" title="实验 3：跨版本观察"></a>实验 3：跨版本观察</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 查看 class 文件的版本号</span><br>javap -v Hello | grep <span class="hljs-string">&quot;major version&quot;</span><br><span class="hljs-comment"># Java 8 → 52, Java 11 → 55, Java 17 → 61, Java 21 → 65</span><br></code></pre></td></tr></table></figure>
+
+<p>版本号决定了这个 <code>.class</code> 文件需要多高版本的 JVM 才能运行。高版本 JVM 可以运行低版本 class，反过来不行。</p>
+<h2 id="6-小结"><a href="#6-小结" class="headerlink" title="6. 小结"></a>6. 小结</h2><p>一张图概括 Java 程序的一生：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">源码 (.<span class="hljs-keyword">java)</span><br><span class="hljs-keyword"></span>   │<br>   │  <span class="hljs-keyword">javac </span>编译<br>   ▼<br>字节码 (.class)      ← 平台无关的中间表示<br>   │<br>   │  <span class="hljs-keyword">java </span>命令启动 <span class="hljs-keyword">JVM</span><br><span class="hljs-keyword"></span>   ▼<br><span class="hljs-keyword">JVM </span>加载 → 执行<br>            ↑<br>    平台相关（不同 OS 有不同 <span class="hljs-keyword">JVM </span>实现）<br></code></pre></td></tr></table></figure>
+
+<p>核心要点回顾：</p>
+<ul>
+<li><code>javac</code> 把 <code>.java</code> 编译成 <code>.class</code>（字节码），而非机器码。</li>
+<li><code>.class</code> 是一种平台无关的中间表示，由 JVM 负责加载和执行。</li>
+<li>JVM 是执行字节码的虚拟机，它本身是平台相关的，但对上提供统一接口。</li>
+<li>JDK ⊃ JRE ⊃ JVM，开发需要 JDK，运行只需 JRE（Java 11+ 合并了）。</li>
+</ul>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：类型系统与面向对象——从 C++ 视角理解 Java 的取舍（封装、继承、多态、接口）</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
+      
+        <a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" class="print-no-link">#字节码</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java全貌(1) | 从源码到运行：理解Java程序的一生</div>
+      <div>https://rebibabo.github.io/2026/05/01/Java-basic/01-introduction/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/02/Java-basic/02-basic-types/" title="Java全貌(2) | 基本数据类型：八大原始类型与那些必踩的坑">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java全貌(2) | 基本数据类型：八大原始类型与那些必踩的坑</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

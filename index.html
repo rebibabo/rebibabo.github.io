@@ -74,7 +74,119 @@
 
 
   
-<meta name="generator" content="Hexo 8.1.2"></head>
+<meta name="generator" content="Hexo 8.1.2"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
 
 
 <body>
@@ -333,13 +445,997 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/20/Java-basic/22-http-client/" target="_self">
+        <a href="/2026/06/10/programmatic-ads/07-key-metrics/" target="_self">
+          程序化广告 (7)：考核指标——程序化广告的&#34;成绩单&#34;
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/10/programmatic-ads/07-key-metrics/" target="_self">
+        <div>
+          从投放漏斗出发，系统梳理程序化广告里的核心考核指标，包括曝光、点击、转化、效果四层指标，以及最容易引起争议的归因问题。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-10 16:00" pubdate>
+              2026-06-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/%E8%80%83%E6%A0%B8%E6%8C%87%E6%A0%87/">#考核指标</a>
+            
+              <a href="/tags/%E5%BD%92%E5%9B%A0/">#归因</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/10/programmatic-ads/06-trading-mode-part2/" target="_self">
+          程序化广告 (6)：交易模式（下）——Header Bidding 的革命
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/10/programmatic-ads/06-trading-mode-part2/" target="_self">
+        <div>
+          从单 SSP 内部的交易模式演化到跨 SSP 的革命——Header Bidding。本文用一张完整的决策树串起所有交易模式，并讲清楚 First Look 和 Deal ID 两个关键概念。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-10 14:00" pubdate>
+              2026-06-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/%E4%BA%A4%E6%98%93%E6%A8%A1%E5%BC%8F/">#交易模式</a>
+            
+              <a href="/tags/Header-Bidding/">#Header Bidding</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/10/programmatic-ads/05-trading-mode-part1/" target="_self">
+          程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/10/programmatic-ads/05-trading-mode-part1/" target="_self">
+        <div>
+          程序化广告里 RTB、PMP、PD、PDB 这些模式到底是什么关系？用"问题驱动"的演化叙事，讲清楚单 SSP 内部交易模式的完整演化逻辑。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-10 12:00" pubdate>
+              2026-06-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/%E4%BA%A4%E6%98%93%E6%A8%A1%E5%BC%8F/">#交易模式</a>
+            
+              <a href="/tags/RTB/">#RTB</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/10/programmatic-ads/04-Ad%20network&amp;server/" target="_self">
+          程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/10/programmatic-ads/04-Ad%20network&amp;server/" target="_self">
+        <div>
+          详解程序化广告生态里两个容易被忽略但极其重要的角色——Ad Network 和 Ad Server，理解它们才能看清完整的广告链路。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-10 10:00" pubdate>
+              2026-06-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/Ad-Network/">#Ad Network</a>
+            
+              <a href="/tags/Ad-Server/">#Ad Server</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/09/programmatic-ads/03-SSP/" target="_self">
+          程序化广告 (3)：SSP 和 ADX——媒体方的&#34;商业化中枢&#34;与&#34;交易所&#34;
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/09/programmatic-ads/03-SSP/" target="_self">
+        <div>
+          切换到供给方视角，详解 SSP 如何帮媒体把广告位卖出最高价，ADX 如何撮合 DSP 和 SSP 的实时交易。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-09 23:00" pubdate>
+              2026-06-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/SSP/">#SSP</a>
+            
+              <a href="/tags/ADX/">#ADX</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/09/programmatic-ads/02-DSP-helper/" target="_self">
+          程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/09/programmatic-ads/02-DSP-helper/" target="_self">
+        <div>
+          详解 CMP、广告验证、DMP、监测分析四大广告服务平台，它们如何让 DSP 从"能用"变成"好用"。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-09 22:00" pubdate>
+              2026-06-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A%E6%9C%8D%E5%8A%A1%E5%B9%B3%E5%8F%B0/">#广告服务平台</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/09/programmatic-ads/01-DSP/" target="_self">
+          程序化广告 (1)：DSP——广告主的&#34;代理人&#34;
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/09/programmatic-ads/01-DSP/" target="_self">
+        <div>
+          详解 DSP 的目标、构成、商业模式，以及它和 Trading Desk、DMP 之间的协作关系。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-09 21:00" pubdate>
+              2026-06-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/DSP/">#DSP</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/09/programmatic-ads/00-introduction/" target="_self">
+          程序化广告 (0)：先看清楚整个江湖
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/09/programmatic-ads/00-introduction/" target="_self">
+        <div>
+          从一次普通的广告展示出发，看清整个程序化广告生态的全景图。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-09 20:00" pubdate>
+              2026-06-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
+            
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
+            
+              <a href="/tags/%E4%B8%9A%E5%8A%A1%E7%90%86%E8%A7%A3/">#业务理解</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/05/llm-inference/06-series-summary/" target="_self">
+          series-summary
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/05/llm-inference/06-series-summary/" target="_self">
+        <div>
+          一、前言这个系列从一台 RTX 3090 和一个 Qwen2.5-7B 模型开始，用五篇文章逐一实验了主流的 LLM 推理优化技术。有成功的、有失败的，每一篇都在回答同一个问题：这项优化在当前硬件条件下值不值得用？ 本文是系列收官，不做新实验，而是把五篇文章的数据、结论和方法论串在一起，给出三个交付物：  RTX 3090 + 7B 的最优部署配置 每项优化技术的适用条件速查表 做 AI Infr
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-05 12:00" pubdate>
+              2026-06-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/05/llm-inference/05-spectulative-decoding/" target="_self">
+          speculative-decoding
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/05/llm-inference/05-spectulative-decoding/" target="_self">
+        <div>
+          一、前言前几篇文章中，AWQ 量化将 TPOT 从 19.7ms 压到 6.84ms（-65%），Prefix Caching 将 TTFT 降低了最高 92.6%——这两项优化分别针对 Decode 和 Prefill 阶段，效果显著且几乎没有代价。 但 Decode 阶段还有一个更根本的问题：每生成 1 个 token，GPU 就要把全部模型权重搬运一次，而算力大部分时间在等数据搬运。能不能一
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-05 10:31" pubdate>
+              2026-06-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/04/llm-inference/04-prefix-caching/" target="_self">
+          prefix-caching
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/04/llm-inference/04-prefix-caching/" target="_self">
+        <div>
+          一、前言前两篇文章分别建立了 BF16 基线和 AWQ INT4 量化实验，也验证了 KV Cache 是高并发场景下的显存瓶颈，以及 AWQ 量化通过释放 KV Cache 空间实现吞吐翻倍的根本原因。本文在此基础上，继续探索另一个常见但容易被忽视的推理优化手段——Prefix Caching。 在实际生产中，大量请求共享相同的 system prompt 或上下文前缀，而这部分 KV 每次都被
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-04 21:05" pubdate>
+              2026-06-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/04/llm-inference/03-kvcache/" target="_self">
+          kvcache
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/04/llm-inference/03-kvcache/" target="_self">
+        <div>
+          一、前言前两篇文章分别建立了 BF16 基线和 AWQ INT4 量化实验，我们发现了一个有趣的现象：AWQ 量化把模型权重从 14 GB 压缩到 4 GB，TPOT 降了 65%，但吞吐却翻了一倍多——这个倍数远超 TPOT 降幅能解释的范围。 吞吐翻倍的另一半原因藏在 KV Cache 里。 本文不做新的优化实验，而是深入理解 LLM 推理中最关键的显存消费者——KV Cache。通过理论推导
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-04 15:06" pubdate>
+              2026-06-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/03/llm-inference/02-quantization/" target="_self">
+          quantization
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/03/llm-inference/02-quantization/" target="_self">
+        <div>
+          一、前言上一篇文章我们在 RTX 3090 上建立了 Qwen2.5-7B-Instruct BF16 的完整基线，得出了一个关键结论：单请求 TPOT 已逼近显存带宽的物理极限（19.7ms vs 理论下限 15ms），纯软件调参已经到顶。 想进一步压缩延迟，必须减少每次 decode 需要搬运的权重字节数——这正是量化要做的事。 本文使用 AWQ INT4 量化，把模型权重从 BF16（每参数
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-03 17:56" pubdate>
+              2026-06-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/06/03/llm-inference/01-baseline-deployment/" target="_self">
+          baseline-deployment
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/03/llm-inference/01-baseline-deployment/" target="_self">
+        <div>
+          一、前言在做任何优化之前，你需要一份可信的基线数据——否则你永远不知道优化到底有没有效果。 本文记录在一台 RTX 3090 上从零部署 Qwen2.5-7B-Instruct BF16，并建立完整精度与性能基线的全过程，包括环境搭建、踩坑实录、参数扫描实验和结果分析。这份基线将作为后续量化、投机采样等优化实验的对照组，每次优化都要打败它。 先看结论：    指标 数值    单请求 TPOT 1
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-03 10:39" pubdate>
+              2026-06-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/24/Java-basic/24-dev-conventions/" target="_self">
+          Java全貌(番外) | 开发规范全集：命名、代码、目录、文档、Git 一站式速查
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/24/Java-basic/24-dev-conventions/" target="_self">
+        <div>
+          前言代码是写给人看的，其次才是给机器执行的。入职后你写的每一行代码都会被同事 Review、被后人维护。遵循统一的规范不是形式主义，而是团队高效协作的基础。这篇文章汇总了 Java 后端开发中最常见的规范，大部分参考了阿里巴巴 Java 开发手册，并结合了实际开发中的经验。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-24 00:00" pubdate>
+              2026-05-24
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83/">#开发规范</a>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E9%A3%8E%E6%A0%BC/">#代码风格</a>
+            
+              <a href="/tags/%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/">#最佳实践</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/23/Java-basic/23-dev-workflow/" target="_self">
+          Java全貌(番外) | 团队开发全流程：从需求到上线的完整链路
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/23/Java-basic/23-dev-workflow/" target="_self">
+        <div>
+          前言写代码只是软件开发中的一个环节。入职后你会发现，真正的工作流程是：需求评审 → 技术方案 → 分支开发 → Code Review → 测试 → 部署 → 监控。这篇文章把一个需求从”产品经理提出”到”上线被用户使用”的完整链路走一遍，帮你在入职前建立全局视角。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-23 00:00" pubdate>
+              2026-05-23
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/">#开发流程</a>
+            
+              <a href="/tags/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C/">#团队协作</a>
+            
+              <a href="/tags/DevOps/">#DevOps</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/22/Java-basic/22-http-client/" target="_self">
           Java全貌(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/20/Java-basic/22-http-client/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/22/Java-basic/22-http-client/" target="_self">
         <div>
           前言广告系统需要频繁调用外部接口——向 DSP 发送竞价请求、调用素材审核服务、对接第三方数据平台。Java 中发起 HTTP 请求的方式经历了 HttpURLConnection → HttpClient → RestTemplate → WebClient 的演进。这篇文章讲后两者——它们是 Spring 生态中的标准选择。
         </div>
@@ -349,8 +1445,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-20 00:00" pubdate>
-              2026-06-20
+            <time datetime="2026-05-22 00:00" pubdate>
+              2026-05-22
             </time>
           </div>
         
@@ -400,13 +1496,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/19/Java-basic/21-redis/" target="_self">
+        <a href="/2026/05/21/Java-basic/21-redis/" target="_self">
           Java全貌(21) | Redis 实战：Spring Data Redis 与缓存策略
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/19/Java-basic/21-redis/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/21/Java-basic/21-redis/" target="_self">
         <div>
           前言广告系统对性能要求极高——一次竞价请求必须在几十毫秒内完成，不可能每次都查数据库。Redis 作为内存数据库，是后端开发中最常用的缓存和高速数据存储方案。这篇文章覆盖 Redis 的核心数据结构、Spring Boot 整合方式、以及实际开发中的缓存模式。
         </div>
@@ -416,8 +1512,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-19 00:00" pubdate>
-              2026-06-19
+            <time datetime="2026-05-21 00:00" pubdate>
+              2026-05-21
             </time>
           </div>
         
@@ -465,13 +1561,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/19/Java-basic/20-unit-testing/" target="_self">
+        <a href="/2026/05/20/Java-basic/20-unit-testing/" target="_self">
           Java全貌(20) | 单元测试：JUnit 5 + Mockito 实战
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/19/Java-basic/20-unit-testing/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/20/Java-basic/20-unit-testing/" target="_self">
         <div>
           前言写完代码只是一半，另一半是证明它能正确工作。单元测试不只是”加分项”——在正规团队中，没有测试的代码不允许合并。这篇文章覆盖 JUnit 5 的核心用法和 Mockito 的 Mock 技巧，目标是让你入职第一天就能写出规范的测试。
         </div>
@@ -481,8 +1577,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-19 00:00" pubdate>
-              2026-06-19
+            <time datetime="2026-05-20 00:00" pubdate>
+              2026-05-20
             </time>
           </div>
         
@@ -532,13 +1628,76 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/18/Java-basic/18-mybatis/" target="_self">
+        <a href="/2026/05/19/Java-basic/19-design-patterns/" target="_self">
+          Java全貌(19) | 设计模式：Java 中最常见的几种模式实战
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/19/Java-basic/19-design-patterns/" target="_self">
+        <div>
+          前言设计模式不是用来”背”的，而是用来解决具体问题的。这篇文章不追求 23 种模式大全，只讲 Java 开发中真正高频遇到的几种——你在阅读 Spring 源码、写业务代码、做系统设计时一定会碰到它们。每种模式都从”没有它会怎样”讲起，再给出 Java 实现。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-19 00:00" pubdate>
+              2026-05-19
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/18/Java-basic/18-mybatis/" target="_self">
           Java全貌(18) | MyBatis 数据访问：SQL 映射、动态 SQL 与 MyBatis-Plus
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/18/Java-basic/18-mybatis/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/18/Java-basic/18-mybatis/" target="_self">
         <div>
           前言上一篇用 Spring Data JPA 做了数据访问层，它的优势是简洁——方法名即查询。但在国内 Java 后端开发中，MyBatis 是更主流的选择，尤其是需要写复杂 SQL、性能调优、或者团队对 SQL 有强掌控需求的场景。这篇文章覆盖原生 MyBatis 和 MyBatis-Plus 两套方案。
         </div>
@@ -548,8 +1707,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-18 00:00" pubdate>
-              2026-06-18
+            <time datetime="2026-05-18 00:00" pubdate>
+              2026-05-18
             </time>
           </div>
         
@@ -597,15 +1756,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/18/Java-basic/19-design-patterns/" target="_self">
-          Java全貌(19) | 设计模式：Java 中最常见的几种模式实战
+        <a href="/2026/05/17/Java-basic/17-springboot/" target="_self">
+          Java全貌(17) | Spring Boot 快速上手：自动配置与 REST 服务实战
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/18/Java-basic/19-design-patterns/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/17/Java-basic/17-springboot/" target="_self">
         <div>
-          前言设计模式不是用来”背”的，而是用来解决具体问题的。这篇文章不追求 23 种模式大全，只讲 Java 开发中真正高频遇到的几种——你在阅读 Spring 源码、写业务代码、做系统设计时一定会碰到它们。每种模式都从”没有它会怎样”讲起，再给出 Java 实现。
+          前言上一篇理解了 Spring 的 IoC 和 AOP，这篇直接进入实战——用 Spring Boot 从零搭建一个完整的 REST 服务。Spring Boot 的核心价值是自动配置：它把 Spring 生态中大量的样板配置变成了”开箱即用”，让你专注于业务代码。
         </div>
       </a>
 
@@ -613,8 +1772,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-18 00:00" pubdate>
-              2026-06-18
+            <time datetime="2026-05-17 00:00" pubdate>
+              2026-05-17
             </time>
           </div>
         
@@ -646,7 +1805,9 @@
             
               <a href="/tags/Java/">#Java</a>
             
-              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
+              <a href="/tags/Spring-Boot/">#Spring Boot</a>
+            
+              <a href="/tags/REST/">#REST</a>
             
           </div>
         
@@ -660,13 +1821,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/17/Java-basic/16-spring-ioc-aop/" target="_self">
+        <a href="/2026/05/16/Java-basic/16-spring-ioc-aop/" target="_self">
           Java全貌(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/17/Java-basic/16-spring-ioc-aop/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/16/Java-basic/16-spring-ioc-aop/" target="_self">
         <div>
           前言Spring 是 Java 后端开发的事实标准，但很多人只会用 @Autowired、@Service 这些注解，却说不清楚 Spring 到底在干什么。这篇文章不讲 API 使用细节，而是把两个核心问题讲透：IoC（控制反转）解决了什么问题？AOP（面向切面编程）解决了什么问题？ 理解了这两个，Spring 的一切设计都顺理成章。
         </div>
@@ -676,8 +1837,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-17 00:00" pubdate>
-              2026-06-17
+            <time datetime="2026-05-16 00:00" pubdate>
+              2026-05-16
             </time>
           </div>
         
@@ -727,78 +1888,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/17/Java-basic/17-springboot/" target="_self">
-          Java全貌(17) | Spring Boot 快速上手：自动配置与 REST 服务实战
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/17/Java-basic/17-springboot/" target="_self">
-        <div>
-          前言上一篇理解了 Spring 的 IoC 和 AOP，这篇直接进入实战——用 Spring Boot 从零搭建一个完整的 REST 服务。Spring Boot 的核心价值是自动配置：它把 Spring 生态中大量的样板配置变成了”开箱即用”，让你专注于业务代码。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-17 00:00" pubdate>
-              2026-06-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/Spring-Boot/">#Spring Boot</a>
-            
-              <a href="/tags/REST/">#REST</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/06/16/Java-basic/15-maven-and-gradle/" target="_self">
+        <a href="/2026/05/15/Java-basic/15-maven-and-gradle/" target="_self">
           Java全貌(15) | 构建工具：Maven vs Gradle，依赖管理与项目结构
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/16/Java-basic/15-maven-and-gradle/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/15/Java-basic/15-maven-and-gradle/" target="_self">
         <div>
           前言Java 项目不像 Python 那样一个 .py 文件就能跑——真实项目涉及依赖管理、编译、测试、打包、发布等一系列工程化流程。构建工具就是把这些事情自动化的基础设施。这篇文章把 Maven 和 Gradle 两个主流工具都讲清楚，重点放在日常开发中最常用的操作。
         </div>
@@ -808,8 +1904,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-16 00:00" pubdate>
-              2026-06-16
+            <time datetime="2026-05-15 00:00" pubdate>
+              2026-05-15
             </time>
           </div>
         
@@ -857,13 +1953,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/16/Java-basic/14-datetime/" target="_self">
+        <a href="/2026/05/14/Java-basic/14-datetime/" target="_self">
           Java全貌(14) | 日期时间 API：java.time 全梳理
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/16/Java-basic/14-datetime/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/14/Java-basic/14-datetime/" target="_self">
         <div>
           前言Java 8 之前的日期 API（Date、Calendar）设计混乱、线程不安全、API 难用，是公认的 Java 黑历史。Java 8 引入的 java.time 包彻底解决了这些问题。这篇文章只讲新 API——旧的不值得花时间学，遇到了知道怎么转换就行。
         </div>
@@ -873,8 +1969,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-16 00:00" pubdate>
-              2026-06-16
+            <time datetime="2026-05-14 00:00" pubdate>
+              2026-05-14
             </time>
           </div>
         
@@ -920,13 +2016,76 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/06/15/Java-basic/12-annotation-and-reflection/" target="_self">
+        <a href="/2026/05/13/Java-basic/13-enum/" target="_self">
+          Java全貌(13) | 枚举：不只是常量，还能做策略模式和单例
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/13/Java-basic/13-enum/" target="_self">
+        <div>
+          前言很多人把枚举当成”高级版常量”用完就算了，实际上 Java 的 enum 功能远超想象——它可以有字段、方法、实现接口，甚至用来做策略模式和线程安全的单例。这篇文章从基础到进阶，把枚举的所有用法过一遍。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-13 00:00" pubdate>
+              2026-05-13
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E6%9E%9A%E4%B8%BE/">#枚举</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/12/Java-basic/12-annotation-and-reflection/" target="_self">
           Java全貌(12) | 注解与反射：框架背后的魔法
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/15/Java-basic/12-annotation-and-reflection/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/12/Java-basic/12-annotation-and-reflection/" target="_self">
         <div>
           前言如果你用过 Spring，一定写过 @Autowired、@RequestMapping、@Transactional——这些注解看起来像”魔法标签”，贴上去就生效了。但它们到底是怎么工作的？答案是：注解定义”标记”，反射读取”标记”，然后执行对应逻辑。 这篇文章把注解和反射这对搭档一次讲透。
         </div>
@@ -936,8 +2095,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-15 00:00" pubdate>
-              2026-06-15
+            <time datetime="2026-05-12 00:00" pubdate>
+              2026-05-12
             </time>
           </div>
         
@@ -979,13 +2138,722 @@
     </article>
   </div>
 
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/11/Java-basic/11-jvm/" target="_self">
+          Java全貌(11) | JVM 基础：内存结构、类加载与垃圾回收
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/11/Java-basic/11-jvm/" target="_self">
+        <div>
+          前言JVM 是 Java 程序运行的基石——理解它的内存结构、类加载机制和垃圾回收原理，不仅面试必考，更是排查线上 OOM、GC 停顿、类冲突等问题的前提。这篇文章把 JVM 最核心的三大块知识梳理清楚。 1. JVM 内存结构JVM 把内存划分为几个区域，各司其职：   JVM 内存  线程共享  堆 (Heap)  新生代Eden + S0 + S1 老年代    方法区 / 元空间 类信息、
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-11 00:00" pubdate>
+              2026-05-11
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/JVM/">#JVM</a>
+            
+              <a href="/tags/GC/">#GC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/10/Java-basic/10-concurrency/" target="_self">
+          Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/10/Java-basic/10-concurrency/" target="_self">
+        <div>
+          前言并发编程是 Java 的核心竞争力之一——从最底层的 Thread，到 synchronized，到 java.util.concurrent 包的高级工具，再到 CompletableFuture 的异步编排，Java 提供了从低级到高级的全套并发方案。这篇文章按照”从手动到自动”的思路，把并发编程的核心知识串起来。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-10 00:00" pubdate>
+              2026-05-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91/">#并发</a>
+            
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">#多线程</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/09/Java-basic/09-io/" target="_self">
+          Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/09/Java-basic/09-io/" target="_self">
+        <div>
+          前言Java 的 I&#x2F;O 体系庞大且历史悠久——从 Java 1.0 的字节流&#x2F;字符流（BIO），到 Java 1.4 的 NIO，再到 Java 7 的 NIO.2（Files&#x2F;Path），经历了三代演进。这篇文章按照”先会用、再理解模型”的思路，把日常开发中会用到的 I&#x2F;O 操作梳理清楚。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-09 00:00" pubdate>
+              2026-05-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/IO/">#IO</a>
+            
+              <a href="/tags/NIO/">#NIO</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/08/Java-basic/08-lambda-and-stream/" target="_self">
+          Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/08/Java-basic/08-lambda-and-stream/" target="_self">
+        <div>
+          前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-08 00:00" pubdate>
+              2026-05-08
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/Lambda/">#Lambda</a>
+            
+              <a href="/tags/Stream/">#Stream</a>
+            
+              <a href="/tags/%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B/">#函数式编程</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/07/Java-basic/07-exception/" target="_self">
+          Java全貌(7) | 异常体系：Checked vs Unchecked 与 try-with-resources
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/07/Java-basic/07-exception/" target="_self">
+        <div>
+          前言Java 的异常体系是它最具争议的设计之一——Checked Exception 到底是好是坏，至今没有定论。但不管你怎么看，实际开发中必须和它打交道。这篇文章把异常的分类、处理机制、最佳实践一次讲清。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-07 00:00" pubdate>
+              2026-05-07
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/">#异常处理</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/06/Java-basic/06-genrics/" target="_self">
+          Java全貌(6) | 泛型：类型擦除、通配符与 PECS 原则
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/06/Java-basic/06-genrics/" target="_self">
+        <div>
+          前言泛型是 Java 类型系统中最容易让人困惑的部分——语法不难，但背后的类型擦除机制、通配符的边界规则、PECS 原则，不搞清楚就会在实际开发中反复碰壁。这篇文章从”泛型为什么存在”讲起，把这些概念一次理清。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-06 00:00" pubdate>
+              2026-05-06
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E6%B3%9B%E5%9E%8B/">#泛型</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/05/Java-basic/05-advanced-class/" target="_self">
+          Java全貌(5) | 继承与多态：extends、重写、抽象类与接口
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/05/Java-basic/05-advanced-class/" target="_self">
+        <div>
+          前言上一篇搞定了类与对象的基本机制，这篇进入面向对象的核心战场：继承和多态。这两个概念决定了 Java 代码如何组织复用和扩展，也是后面理解 Spring 等框架设计的基础。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-05 00:00" pubdate>
+              2026-05-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">#面向对象</a>
+            
+              <a href="/tags/%E7%BB%A7%E6%89%BF/">#继承</a>
+            
+              <a href="/tags/%E5%A4%9A%E6%80%81/">#多态</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/04/Java-basic/04-basic-class/" target="_self">
+          Java全貌(4) | 类与对象：构造方法、访问控制、static 与 final
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/04/Java-basic/04-basic-class/" target="_self">
+        <div>
+          前言Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 static 和 final 这两个高频关键字到底在干什么。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-04 00:00" pubdate>
+              2026-05-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">#面向对象</a>
+            
+              <a href="/tags/%E5%9F%BA%E7%A1%80/">#基础</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/03/Java-basic/03-collections/" target="_self">
+          Java全貌(3) | 集合框架：List、Set、Map 与队列全梳理
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/03/Java-basic/03-collections/" target="_self">
+        <div>
+          前言Java 的集合框架（Collections Framework）是日常开发中使用频率最高的 API，没有之一。这篇文章的目标是：快速回顾每种集合的用法，搞清楚它们之间的区别和选型依据。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-03 00:00" pubdate>
+              2026-05-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%9B%86%E5%90%88/">#集合</a>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">#数据结构</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/02/Java-basic/02-basic-types/" target="_self">
+          Java全貌(2) | 基本数据类型：八大原始类型与那些必踩的坑
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/02/Java-basic/02-basic-types/" target="_self">
+        <div>
+          前言Java 是一门强类型语言——每个变量在编译期就必须确定类型，不像 Python 可以随意赋值。这篇文章系统梳理 Java 的基本数据类型体系，重点放在容易混淆和实际开发中容易踩坑的地方。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-02 00:00" pubdate>
+              2026-05-02
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E5%9F%BA%E7%A1%80/">#基础</a>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">#数据类型</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/01/Java-basic/01-introduction/" target="_self">
+          Java全貌(1) | 从源码到运行：理解Java程序的一生
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/01/Java-basic/01-introduction/" target="_self">
+        <div>
+          前言作为一个写了几年 Python &#x2F; C++ 的人，回头重新审视 Java 的编译运行机制，会发现很多”入门时死记硬背”的东西——javac、.class、JVM、JRE、JDK——其实背后有一条非常清晰的设计逻辑链。这篇文章的目标是：用一个 Hello.java 的完整生命周期，把 Java 程序”从写下第一行代码到最终执行”的每个环节串起来。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-01 00:00" pubdate>
+              2026-05-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/JVM/">#JVM</a>
+            
+              <a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/">#字节码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
 
 
-  <nav aria-label="navigation">
-    <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
-    </span>
-  </nav>
 
 
 

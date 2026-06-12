@@ -1,0 +1,1345 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言Java 的 I&#x2F;O 体系庞大且历史悠久——从 Java 1.0 的字节流&#x2F;字符流（BIO），到 Java 1.4 的 NIO，再到 Java 7 的 NIO.2（Files&#x2F;Path），经历了三代演进。这篇文章按照”先会用、再理解模型”的思路，把日常开发中会用到的 I&#x2F;O 操作梳理清楚。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java全貌(9) | I&#x2F;O 与文件操作：从 BIO 到 NIO 与 Files 工具类">
+<meta property="og:url" content="https://rebibabo.github.io/2026/05/09/Java-basic/09-io/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言Java 的 I&#x2F;O 体系庞大且历史悠久——从 Java 1.0 的字节流&#x2F;字符流（BIO），到 Java 1.4 的 NIO，再到 Java 7 的 NIO.2（Files&#x2F;Path），经历了三代演进。这篇文章按照”先会用、再理解模型”的思路，把日常开发中会用到的 I&#x2F;O 操作梳理清楚。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-basic/bio-vs-nio-model.png">
+<meta property="article:published_time" content="2026-05-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-11T10:24:04.296Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="IO">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NIO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-basic/bio-vs-nio-model.png">
+  
+  
+  
+  <title>Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-09 00:00" pubdate>
+          2026年5月9日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          16k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          131 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Java 的 I&#x2F;O 体系庞大且历史悠久——从 Java 1.0 的字节流&#x2F;字符流（BIO），到 Java 1.4 的 NIO，再到 Java 7 的 NIO.2（Files&#x2F;Path），经历了三代演进。这篇文章按照”先会用、再理解模型”的思路，把日常开发中会用到的 I&#x2F;O 操作梳理清楚。</p>
+<span id="more"></span>
+
+<h2 id="1-传统-I-O（BIO）：流的体系"><a href="#1-传统-I-O（BIO）：流的体系" class="headerlink" title="1. 传统 I&#x2F;O（BIO）：流的体系"></a>1. 传统 I&#x2F;O（BIO）：流的体系</h2><blockquote>
+<p>传统 I&#x2F;O 是理解 Java I&#x2F;O 体系的基础，但日常开发中更推荐使用 NIO 的 <code>Files</code> 工具类。<br>了解装饰器模式和流的概念即可，重点看 2.x 节的 NIO 部分。</p>
+</blockquote>
+<h3 id="1-1-四大抽象基类"><a href="#1-1-四大抽象基类" class="headerlink" title="1.1 四大抽象基类"></a>1.1 四大抽象基类</h3><p>Java 的传统 I&#x2F;O 按两个维度分成四个基类：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>字节流（二进制）</th>
+<th>字符流（文本）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>输入</strong></td>
+<td><code>InputStream</code></td>
+<td><code>Reader</code></td>
+</tr>
+<tr>
+<td><strong>输出</strong></td>
+<td><code>OutputStream</code></td>
+<td><code>Writer</code></td>
+</tr>
+</tbody></table>
+<p><strong>什么时候用哪种？</strong> 文本文件（.txt, .csv, .json, .xml）用字符流，其他一切（图片、音频、视频、压缩包、序列化对象）用字节流。不确定时用字节流，总不会错。</p>
+<h3 id="1-2-字节流"><a href="#1-2-字节流" class="headerlink" title="1.2 字节流"></a>1.2 字节流</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 读文件（逐字节）</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">FileInputStream</span> <span class="hljs-variable">fis</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;data.bin&quot;</span>)) &#123;<br>    <span class="hljs-type">int</span> b;<br>    <span class="hljs-keyword">while</span> ((b = fis.read()) != -<span class="hljs-number">1</span>) &#123;  <span class="hljs-comment">// read() 返回 -1 表示读完</span><br>        System.out.print(b + <span class="hljs-string">&quot; &quot;</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 读文件（缓冲区，性能更好）</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">FileInputStream</span> <span class="hljs-variable">fis</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;data.bin&quot;</span>)) &#123;<br>    <span class="hljs-type">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">1024</span>];<br>    <span class="hljs-type">int</span> len;<br>    <span class="hljs-keyword">while</span> ((len = fis.read(buffer)) != -<span class="hljs-number">1</span>) &#123;<br>        <span class="hljs-comment">// buffer[0..len-1] 是本次读到的数据</span><br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 写文件</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">FileOutputStream</span> <span class="hljs-variable">fos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-string">&quot;output.bin&quot;</span>)) &#123;<br>    fos.write(<span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[]&#123;<span class="hljs-number">72</span>, <span class="hljs-number">101</span>, <span class="hljs-number">108</span>, <span class="hljs-number">108</span>, <span class="hljs-number">111</span>&#125;);  <span class="hljs-comment">// &quot;Hello&quot; 的 ASCII</span><br>&#125;<br><br><span class="hljs-comment">// 复制文件（经典写法）</span><br><span class="hljs-keyword">try</span> (<br>    <span class="hljs-type">FileInputStream</span> <span class="hljs-variable">fis</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;source.bin&quot;</span>);<br>    <span class="hljs-type">FileOutputStream</span> <span class="hljs-variable">fos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-string">&quot;target.bin&quot;</span>)<br>) &#123;<br>    <span class="hljs-type">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">8192</span>];<br>    <span class="hljs-type">int</span> len;<br>    <span class="hljs-keyword">while</span> ((len = fis.read(buffer)) != -<span class="hljs-number">1</span>) &#123;<br>        fos.write(buffer, <span class="hljs-number">0</span>, len);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-3-字符流"><a href="#1-3-字符流" class="headerlink" title="1.3 字符流"></a>1.3 字符流</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 读文本文件（逐行）</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">BufferedReader</span> <span class="hljs-variable">reader</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedReader</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileReader</span>(<span class="hljs-string">&quot;data.txt&quot;</span>))) &#123;<br>    String line;<br>    <span class="hljs-keyword">while</span> ((line = reader.readLine()) != <span class="hljs-literal">null</span>) &#123;<br>        System.out.println(line);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 写文本文件</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">BufferedWriter</span> <span class="hljs-variable">writer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedWriter</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileWriter</span>(<span class="hljs-string">&quot;output.txt&quot;</span>))) &#123;<br>    writer.write(<span class="hljs-string">&quot;第一行&quot;</span>);<br>    writer.newLine();<br>    writer.write(<span class="hljs-string">&quot;第二行&quot;</span>);<br>&#125;<br><br><span class="hljs-comment">// PrintWriter：更方便的写入，支持 println / printf</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">PrintWriter</span> <span class="hljs-variable">pw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PrintWriter</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileWriter</span>(<span class="hljs-string">&quot;output.txt&quot;</span>))) &#123;<br>    pw.println(<span class="hljs-string">&quot;Hello&quot;</span>);<br>    pw.printf(<span class="hljs-string">&quot;name: %s, age: %d%n&quot;</span>, <span class="hljs-string">&quot;Alice&quot;</span>, <span class="hljs-number">25</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-4-装饰器模式：流的嵌套"><a href="#1-4-装饰器模式：流的嵌套" class="headerlink" title="1.4 装饰器模式：流的嵌套"></a>1.4 装饰器模式：流的嵌套</h3><p>Java I&#x2F;O 大量使用装饰器模式——给基础流”套壳”增加功能：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// FileInputStream → 基础字节流</span><br><span class="hljs-comment">// BufferedInputStream → 加缓冲区，减少系统调用</span><br><span class="hljs-comment">// DataInputStream → 可以直接读 int/double/String 等类型</span><br><br><span class="hljs-keyword">try</span> (<span class="hljs-type">DataInputStream</span> <span class="hljs-variable">dis</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DataInputStream</span>(<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedInputStream</span>(<br>            <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;data.bin&quot;</span>)))) &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> dis.readInt();<br>    <span class="hljs-type">double</span> <span class="hljs-variable">d</span> <span class="hljs-operator">=</span> dis.readDouble();<br>    <span class="hljs-type">String</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> dis.readUTF();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>常用的装饰器组合：</p>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>组合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>高效读字节</td>
+<td><code>BufferedInputStream(FileInputStream)</code></td>
+</tr>
+<tr>
+<td>高效读文本</td>
+<td><code>BufferedReader(FileReader)</code></td>
+</tr>
+<tr>
+<td>读基本类型</td>
+<td><code>DataInputStream(BufferedInputStream(FileInputStream))</code></td>
+</tr>
+<tr>
+<td>读对象</td>
+<td><code>ObjectInputStream(BufferedInputStream(FileInputStream))</code></td>
+</tr>
+<tr>
+<td>指定编码读文本</td>
+<td><code>BufferedReader(InputStreamReader(FileInputStream, &quot;UTF-8&quot;))</code></td>
+</tr>
+</tbody></table>
+<h3 id="1-5-编码问题"><a href="#1-5-编码问题" class="headerlink" title="1.5 编码问题"></a>1.5 编码问题</h3><p><code>FileReader</code> &#x2F; <code>FileWriter</code> 使用系统默认编码，跨平台容易乱码。明确指定编码的写法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 读：指定 UTF-8</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">BufferedReader</span> <span class="hljs-variable">reader</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedReader</span>(<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">InputStreamReader</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;data.txt&quot;</span>), StandardCharsets.UTF_8))) &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">line</span> <span class="hljs-operator">=</span> reader.readLine();<br>&#125;<br><br><span class="hljs-comment">// 写：指定 UTF-8</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">BufferedWriter</span> <span class="hljs-variable">writer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedWriter</span>(<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutputStreamWriter</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-string">&quot;out.txt&quot;</span>), StandardCharsets.UTF_8))) &#123;<br>    writer.write(<span class="hljs-string">&quot;你好世界&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="2-NIO-2：现代文件操作（Java-7-）"><a href="#2-NIO-2：现代文件操作（Java-7-）" class="headerlink" title="2. NIO.2：现代文件操作（Java 7+）"></a>2. NIO.2：现代文件操作（Java 7+）</h2><h3 id="2-1-Path：文件路径对象"><a href="#2-1-Path：文件路径对象" class="headerlink" title="2.1 Path：文件路径对象"></a>2.1 Path：文件路径对象</h3><p><code>java.io.File</code> 是 Java 1.0 的路径类，设计有很多问题（比如删除失败只返回 false 不告诉你原因）。Java 7 引入了 <code>java.nio.file.Path</code> 作为替代，它只表示一个路径字符串，本身不操作文件，文件操作全交给 <code>Files</code> 工具类。</p>
+<p><strong>创建 Path</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Java 7+</span><br><span class="hljs-type">Path</span> <span class="hljs-variable">p1</span> <span class="hljs-operator">=</span> Paths.get(<span class="hljs-string">&quot;data.txt&quot;</span>);<br><span class="hljs-type">Path</span> <span class="hljs-variable">p2</span> <span class="hljs-operator">=</span> Paths.get(<span class="hljs-string">&quot;/home&quot;</span>, <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;data.txt&quot;</span>);   <span class="hljs-comment">// 多段拼接</span><br><br><span class="hljs-comment">// Java 11+ 可以直接用 Path.of（更简洁，推荐）</span><br><span class="hljs-type">Path</span> <span class="hljs-variable">p1</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;data.txt&quot;</span>);<br><span class="hljs-type">Path</span> <span class="hljs-variable">p2</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;/home&quot;</span>, <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;data.txt&quot;</span>);<br><br><span class="hljs-comment">// 两种写法完全等价，Path.of 底层就是调用 Paths.get</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>路径信息提取</strong>（对比 Python <code>os.path</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Path</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;/home/user/project/data.txt&quot;</span>);<br><br>p.getFileName();      <span class="hljs-comment">// data.txt        ← Python: os.path.basename()</span><br>p.getParent();        <span class="hljs-comment">// /home/user/project  ← Python: os.path.dirname()</span><br>p.getRoot();          <span class="hljs-comment">// /                   ← 根目录</span><br>p.toAbsolutePath();   <span class="hljs-comment">// 转为绝对路径       ← Python: os.path.abspath()</span><br>p.toString();         <span class="hljs-comment">// &quot;/home/user/project/data.txt&quot;（转为字符串）</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>路径拼接与变换</strong>（对比 Python <code>os.path.join</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Path</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;/home/user&quot;</span>);<br><br><span class="hljs-comment">// resolve：拼接子路径（= Python os.path.join）</span><br>base.resolve(<span class="hljs-string">&quot;project&quot;</span>);               <span class="hljs-comment">// /home/user/project</span><br>base.resolve(<span class="hljs-string">&quot;project&quot;</span>).resolve(<span class="hljs-string">&quot;src&quot;</span>); <span class="hljs-comment">// /home/user/project/src</span><br>base.resolve(<span class="hljs-string">&quot;project/src/Main.java&quot;</span>);  <span class="hljs-comment">// /home/user/project/src/Main.java</span><br><br><span class="hljs-comment">// resolveSibling：替换最后一段（同级替换）</span><br><span class="hljs-type">Path</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;/home/user/data.txt&quot;</span>);<br>file.resolveSibling(<span class="hljs-string">&quot;config.txt&quot;</span>);  <span class="hljs-comment">// /home/user/config.txt</span><br><br><span class="hljs-comment">// normalize：解析 . 和 ..</span><br>Path.of(<span class="hljs-string">&quot;/home/user/../admin/./config.txt&quot;</span>).normalize();<br><span class="hljs-comment">// /home/admin/config.txt</span><br><br><span class="hljs-comment">// relativize：计算相对路径</span><br><span class="hljs-type">Path</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;/home/user/project&quot;</span>);<br><span class="hljs-type">Path</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;/home/user/docs/readme.md&quot;</span>);<br>a.relativize(b);  <span class="hljs-comment">// ../../docs/readme.md</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>Path 和 File 互转</strong>（和老 API 对接时用）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">File</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> path.toFile();    <span class="hljs-comment">// Path → File</span><br><span class="hljs-type">Path</span> <span class="hljs-variable">path</span> <span class="hljs-operator">=</span> file.toPath();    <span class="hljs-comment">// File → Path</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-Files：一站式文件操作"><a href="#2-2-Files：一站式文件操作" class="headerlink" title="2.2 Files：一站式文件操作"></a>2.2 Files：一站式文件操作</h3><p><code>java.nio.file.Files</code> 是一个纯静态方法的工具类，覆盖了几乎所有文件操作。下面按用途分类，每个都和 Python 对标。</p>
+<p><strong>判断类</strong>（对比 Python <code>os.path.exists</code> 等）：</p>
+<table>
+<thead>
+<tr>
+<th>Java</th>
+<th>Python</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Files.exists(path)</code></td>
+<td><code>os.path.exists()</code></td>
+<td>路径是否存在</td>
+</tr>
+<tr>
+<td><code>Files.isDirectory(path)</code></td>
+<td><code>os.path.isdir()</code></td>
+<td>是否是目录</td>
+</tr>
+<tr>
+<td><code>Files.isRegularFile(path)</code></td>
+<td><code>os.path.isfile()</code></td>
+<td>是否是普通文件</td>
+</tr>
+<tr>
+<td><code>Files.isReadable(path)</code></td>
+<td><code>os.access(path, os.R_OK)</code></td>
+<td>是否可读</td>
+</tr>
+<tr>
+<td><code>Files.size(path)</code></td>
+<td><code>os.path.getsize()</code></td>
+<td>文件大小（字节）</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Path</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;data.txt&quot;</span>);<br>Files.exists(p);         <span class="hljs-comment">// true</span><br>Files.isDirectory(p);    <span class="hljs-comment">// false</span><br>Files.size(p);           <span class="hljs-comment">// 1024（字节）</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>创建类</strong>（对比 Python <code>os.mkdir</code> &#x2F; <code>os.makedirs</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 创建文件</span><br>Files.createFile(Path.of(<span class="hljs-string">&quot;newfile.txt&quot;</span>));         <span class="hljs-comment">// ← Python: open(&quot;newfile.txt&quot;, &quot;w&quot;)</span><br><br><span class="hljs-comment">// 创建单层目录（父目录必须存在，否则报错）</span><br>Files.createDirectory(Path.of(<span class="hljs-string">&quot;newdir&quot;</span>));         <span class="hljs-comment">// ← Python: os.mkdir()</span><br><br><span class="hljs-comment">// 创建多层目录（父目录不存在也能创建）</span><br>Files.createDirectories(Path.of(<span class="hljs-string">&quot;a/b/c&quot;</span>));        <span class="hljs-comment">// ← Python: os.makedirs()</span><br><br><span class="hljs-comment">// 创建临时文件</span><br><span class="hljs-type">Path</span> <span class="hljs-variable">tmp</span> <span class="hljs-operator">=</span> Files.createTempFile(<span class="hljs-string">&quot;prefix-&quot;</span>, <span class="hljs-string">&quot;.tmp&quot;</span>);<br><span class="hljs-comment">// /tmp/prefix-1234567890.tmp</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>复制 &#x2F; 移动 &#x2F; 删除</strong>（对比 Python <code>shutil.copy</code> &#x2F; <code>os.rename</code> &#x2F; <code>os.remove</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Path</span> <span class="hljs-variable">src</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;a.txt&quot;</span>);<br><span class="hljs-type">Path</span> <span class="hljs-variable">dst</span> <span class="hljs-operator">=</span> Path.of(<span class="hljs-string">&quot;b.txt&quot;</span>);<br><br><span class="hljs-comment">// 复制（目标存在则报错）</span><br>Files.copy(src, dst);                                          <span class="hljs-comment">// ← Python: shutil.copy()</span><br><span class="hljs-comment">// 复制（覆盖已存在的文件）</span><br>Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);<br><br><span class="hljs-comment">// 移动/重命名</span><br>Files.move(src, dst);                                          <span class="hljs-comment">// ← Python: os.rename()</span><br>Files.move(src, dst, StandardCopyOption.REPLACE_EXISTING);     <span class="hljs-comment">// 覆盖</span><br>Files.move(src, dst, StandardCopyOption.ATOMIC_MOVE);          <span class="hljs-comment">// 原子操作</span><br><br><span class="hljs-comment">// 删除</span><br>Files.delete(Path.of(<span class="hljs-string">&quot;tmp.txt&quot;</span>));           <span class="hljs-comment">// 不存在则抛异常    ← Python: os.remove()</span><br>Files.deleteIfExists(Path.of(<span class="hljs-string">&quot;tmp.txt&quot;</span>));   <span class="hljs-comment">// 不存在也不报错</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>读写文件</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 一行代码读整个文件</span><br><span class="hljs-type">String</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> Files.readString(Path.of(<span class="hljs-string">&quot;data.txt&quot;</span>));             <span class="hljs-comment">// Java 11+</span><br>List&lt;String&gt; lines = Files.readAllLines(Path.of(<span class="hljs-string">&quot;data.txt&quot;</span>));       <span class="hljs-comment">// Java 7+，全部行</span><br><span class="hljs-type">byte</span>[] bytes = Files.readAllBytes(Path.of(<span class="hljs-string">&quot;image.png&quot;</span>));            <span class="hljs-comment">// Java 7+，全部字节</span><br><br><span class="hljs-comment">// 一行代码写文件</span><br>Files.writeString(Path.of(<span class="hljs-string">&quot;out.txt&quot;</span>), <span class="hljs-string">&quot;Hello World&quot;</span>);               <span class="hljs-comment">// Java 11+</span><br>Files.write(Path.of(<span class="hljs-string">&quot;out.txt&quot;</span>), List.of(<span class="hljs-string">&quot;line1&quot;</span>, <span class="hljs-string">&quot;line2&quot;</span>));         <span class="hljs-comment">// Java 7+，写多行</span><br><br><span class="hljs-comment">// 追加写入</span><br>Files.writeString(Path.of(<span class="hljs-string">&quot;log.txt&quot;</span>), <span class="hljs-string">&quot;new line\n&quot;</span>,<br>    StandardOpenOption.CREATE, StandardOpenOption.APPEND);<br><br><span class="hljs-comment">// 大文件逐行处理（惰性 Stream，内存友好）</span><br><span class="hljs-keyword">try</span> (Stream&lt;String&gt; lines = Files.lines(Path.of(<span class="hljs-string">&quot;big.csv&quot;</span>))) &#123;<br>    lines.filter(l -&gt; l.contains(<span class="hljs-string">&quot;ERROR&quot;</span>))<br>         .forEach(System.out::println);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>遍历目录</strong>（对比 Python <code>os.listdir</code> &#x2F; <code>os.walk</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 列出直接子项（不递归）← Python: os.listdir()</span><br><span class="hljs-keyword">try</span> (Stream&lt;Path&gt; entries = Files.list(Path.of(<span class="hljs-string">&quot;.&quot;</span>))) &#123;<br>    entries.forEach(System.out::println);<br>&#125;<br><br><span class="hljs-comment">// 递归遍历所有文件（深度优先）← Python: os.walk()</span><br><span class="hljs-keyword">try</span> (Stream&lt;Path&gt; tree = Files.walk(Path.of(<span class="hljs-string">&quot;src&quot;</span>))) &#123;<br>    tree.filter(Files::isRegularFile)<br>        .filter(p -&gt; p.toString().endsWith(<span class="hljs-string">&quot;.java&quot;</span>))<br>        .forEach(System.out::println);<br>&#125;<br><br><span class="hljs-comment">// 递归查找（带匹配条件，第二个参数是最大深度）</span><br><span class="hljs-keyword">try</span> (Stream&lt;Path&gt; found = Files.find(Path.of(<span class="hljs-string">&quot;src&quot;</span>), <span class="hljs-number">10</span>,<br>        (path, attrs) -&gt; attrs.isRegularFile() &amp;&amp; path.toString().endsWith(<span class="hljs-string">&quot;.java&quot;</span>))) &#123;<br>    found.forEach(System.out::println);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>Files.list()</code>、<code>Files.walk()</code>、<code>Files.find()</code> 都返回 Stream，<strong>必须用 try-with-resources 关闭</strong>，否则会泄漏文件句柄。</p>
+</blockquote>
+<p><strong>Java vs Python 文件操作速查表</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>Java（NIO）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>os.path.join(a, b)</code></td>
+<td><code>path.resolve(b)</code></td>
+</tr>
+<tr>
+<td><code>os.path.basename(p)</code></td>
+<td><code>path.getFileName()</code></td>
+</tr>
+<tr>
+<td><code>os.path.dirname(p)</code></td>
+<td><code>path.getParent()</code></td>
+</tr>
+<tr>
+<td><code>os.path.abspath(p)</code></td>
+<td><code>path.toAbsolutePath()</code></td>
+</tr>
+<tr>
+<td><code>os.path.exists(p)</code></td>
+<td><code>Files.exists(path)</code></td>
+</tr>
+<tr>
+<td><code>os.path.isdir(p)</code></td>
+<td><code>Files.isDirectory(path)</code></td>
+</tr>
+<tr>
+<td><code>os.path.isfile(p)</code></td>
+<td><code>Files.isRegularFile(path)</code></td>
+</tr>
+<tr>
+<td><code>os.path.getsize(p)</code></td>
+<td><code>Files.size(path)</code></td>
+</tr>
+<tr>
+<td><code>os.mkdir(p)</code></td>
+<td><code>Files.createDirectory(path)</code></td>
+</tr>
+<tr>
+<td><code>os.makedirs(p)</code></td>
+<td><code>Files.createDirectories(path)</code></td>
+</tr>
+<tr>
+<td><code>os.listdir(p)</code></td>
+<td><code>Files.list(path)</code></td>
+</tr>
+<tr>
+<td><code>os.walk(p)</code></td>
+<td><code>Files.walk(path)</code></td>
+</tr>
+<tr>
+<td><code>os.remove(p)</code></td>
+<td><code>Files.delete(path)</code></td>
+</tr>
+<tr>
+<td><code>os.rename(a, b)</code></td>
+<td><code>Files.move(a, b)</code></td>
+</tr>
+<tr>
+<td><code>shutil.copy(a, b)</code></td>
+<td><code>Files.copy(a, b)</code></td>
+</tr>
+<tr>
+<td><code>open(f).read()</code></td>
+<td><code>Files.readString(path)</code></td>
+</tr>
+<tr>
+<td><code>open(f).readlines()</code></td>
+<td><code>Files.readAllLines(path)</code></td>
+</tr>
+<tr>
+<td><code>for line in open(f)</code></td>
+<td><code>Files.lines(path)</code>（惰性 Stream，大文件友好）</td>
+</tr>
+<tr>
+<td><code>open(f, &quot;rb&quot;).read()</code></td>
+<td><code>Files.readAllBytes(path)</code></td>
+</tr>
+<tr>
+<td><code>open(f, &quot;w&quot;).write(s)</code></td>
+<td><code>Files.writeString(path, s)</code></td>
+</tr>
+<tr>
+<td><code>open(f, &quot;a&quot;).write(s)</code></td>
+<td><code>Files.writeString(path, s, APPEND, CREATE)</code></td>
+</tr>
+<tr>
+<td><code>open(f, &quot;w&quot;).writelines(lst)</code></td>
+<td><code>Files.write(path, List.of(&quot;l1&quot;, &quot;l2&quot;))</code></td>
+</tr>
+<tr>
+<td><code>open(f, &quot;a&quot;).writelines(lst)</code></td>
+<td><code>Files.write(path, list, APPEND, CREATE)</code></td>
+</tr>
+<tr>
+<td><code>open(f, &quot;wb&quot;).write(b)</code></td>
+<td><code>Files.write(path, byteArray)</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>追加写入中的 <code>APPEND</code> 和 <code>CREATE</code> 是 <code>StandardOpenOption.APPEND</code> 和 <code>StandardOpenOption.CREATE</code> 的缩写，<code>CREATE</code> 表示文件不存在时自动创建。</p>
+</blockquote>
+<h3 id="2-3-用-Files-还是传统-IO？"><a href="#2-3-用-Files-还是传统-IO？" class="headerlink" title="2.3 用 Files 还是传统 IO？"></a>2.3 用 Files 还是传统 IO？</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>读写小文件（几 MB 以内）</td>
+<td><code>Files.readString()</code> &#x2F; <code>Files.writeString()</code> 最简洁</td>
+</tr>
+<tr>
+<td>逐行处理大文件</td>
+<td><code>Files.lines(path)</code> 返回惰性 Stream，内存友好</td>
+</tr>
+<tr>
+<td>二进制流处理</td>
+<td>传统 InputStream&#x2F;OutputStream</td>
+</tr>
+<tr>
+<td>需要精细控制缓冲区</td>
+<td>传统 BufferedReader&#x2F;BufferedWriter</td>
+</tr>
+<tr>
+<td>文件&#x2F;目录操作（创建、复制、遍历）</td>
+<td><code>Files</code> 一站式搞定</td>
+</tr>
+<tr>
+<td>网络 I&#x2F;O</td>
+<td>NIO Channel&#x2F;Selector（见下节）</td>
+</tr>
+</tbody></table>
+<h2 id="3-NIO-核心概念"><a href="#3-NIO-核心概念" class="headerlink" title="3. NIO 核心概念"></a>3. NIO 核心概念</h2><p>NIO（New I&#x2F;O，Java 1.4）引入了 Channel + Buffer + Selector 模型，主要面向<strong>高并发网络编程</strong>场景。日常文件操作用 Files 就够了，但理解 NIO 模型对后面学 Netty 等框架很重要。</p>
+<h3 id="3-1-BIO-vs-NIO-模型"><a href="#3-1-BIO-vs-NIO-模型" class="headerlink" title="3.1 BIO vs NIO 模型"></a>3.1 BIO vs NIO 模型</h3><p><img src="/images/Java-basic/bio-vs-nio-model.png" srcset="/img/loading.gif" lazyload alt="BIO vs NIO 模型对比"></p>
+<p><strong>BIO（同步阻塞）</strong>：每来一个客户端连接，服务端就分配一个专属线程。这个线程调用 <code>read()</code> 时会一直阻塞等待，直到客户端发来数据才继续执行。如果客户端迟迟不发数据，线程就干等着，什么也做不了。1000 个连接就需要 1000 个线程，而大部分线程都在空等，内存和 CPU 全浪费了。</p>
+<p><strong>NIO（同步非阻塞 + 多路复用）</strong>：所有客户端连接都注册到一个 Selector（多路复用器）上。单线程调用 <code>select()</code> 轮询，发现哪个 Channel 有数据就绪就去处理哪个，没有数据的直接跳过。1000 个连接只需要 1 个线程（或几个），线程永远不空等，资源利用率大幅提升。</p>
+<p>这也是为什么 Netty 等高性能网络框架都基于 NIO 模型——用少量线程就能处理上万个并发连接。</p>
+<h3 id="3-2-三大组件"><a href="#3-2-三大组件" class="headerlink" title="3.2 三大组件"></a>3.2 三大组件</h3><p>NIO 的核心就是三个东西，用快递站类比：</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>比喻</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Buffer</strong></td>
+<td>包裹箱</td>
+<td>数据的容器，所有读写都要经过它</td>
+</tr>
+<tr>
+<td><strong>Channel</strong></td>
+<td>快递通道</td>
+<td>连接数据源（文件&#x2F;网络），双向可读可写</td>
+</tr>
+<tr>
+<td><strong>Selector</strong></td>
+<td>调度员</td>
+<td>一个人盯着所有通道，哪个有包裹就处理哪个</td>
+</tr>
+</tbody></table>
+<p><strong>Buffer（缓冲区）</strong></p>
+<p>Buffer 本质是一块内存数组，有一个指针 <code>position</code> 记录当前读写到哪了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 创建一个能装 1024 字节的 Buffer</span><br><span class="hljs-type">ByteBuffer</span> <span class="hljs-variable">buffer</span> <span class="hljs-operator">=</span> ByteBuffer.allocate(<span class="hljs-number">1024</span>);<br><span class="hljs-comment">// 此时状态：[ _______________________ ]</span><br><span class="hljs-comment">//           ↑ position=0      capacity=1024</span><br><br><span class="hljs-comment">// 2. 写入数据</span><br>buffer.put(<span class="hljs-string">&quot;Hello&quot;</span>.getBytes());<br><span class="hljs-comment">// 此时状态：[ H e l l o _____________ ]</span><br><span class="hljs-comment">//                     ↑ position=5</span><br><br><span class="hljs-comment">// 3. 想要读数据？必须先调 flip() 切换为读模式</span><br><span class="hljs-comment">//    flip() 做的事：position 归零，limit 设为之前写到的位置</span><br>buffer.flip();<br><span class="hljs-comment">// 此时状态：[ H e l l o ]</span><br><span class="hljs-comment">//           ↑ position=0</span><br><span class="hljs-comment">//                     ↑ limit=5  </span><br><br><span class="hljs-comment">// 4. 读取数据</span><br><span class="hljs-keyword">while</span> (buffer.hasRemaining()) &#123;<br>    System.out.print((<span class="hljs-type">char</span>) buffer.get());  <span class="hljs-comment">// 输出 Hello</span><br>&#125;<br><br><span class="hljs-comment">// 5. 读完了，想重新写？调 clear() 重置</span><br>buffer.clear();<br><span class="hljs-comment">// 回到初始状态，可以重新写入</span><br></code></pre></td></tr></table></figure>
+
+<p>关键就一点：<strong>写完要 <code>flip()</code> 才能读，读完要 <code>clear()</code> 才能写</strong>。</p>
+<p><strong>Channel（通道）</strong></p>
+<p>Channel 类似传统的流（InputStream&#x2F;OutputStream），但有两个区别：</p>
+<ul>
+<li>双向的：同一个 Channel 既能读也能写</li>
+<li>必须通过 Buffer：不能直接读写字节，数据要先放进 Buffer</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 从文件读数据：Channel → Buffer → 你的代码</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">FileChannel</span> <span class="hljs-variable">fc</span> <span class="hljs-operator">=</span> FileChannel.open(Path.of(<span class="hljs-string">&quot;data.txt&quot;</span>), StandardOpenOption.READ)) &#123;<br>    <span class="hljs-type">ByteBuffer</span> <span class="hljs-variable">buffer</span> <span class="hljs-operator">=</span> ByteBuffer.allocate(<span class="hljs-number">1024</span>);<br>    <span class="hljs-keyword">while</span> (fc.read(buffer) != -<span class="hljs-number">1</span>) &#123;  <span class="hljs-comment">// Channel 把数据读进 Buffer</span><br>        buffer.flip();                <span class="hljs-comment">// 切换为读模式</span><br>        <span class="hljs-comment">// 从 buffer 里取数据处理</span><br>        buffer.clear();               <span class="hljs-comment">// 清空，准备下次读</span><br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// Channel 之间直接传输（零拷贝，跳过 Buffer，性能最好的文件复制方式）</span><br><span class="hljs-keyword">try</span> (<br>    <span class="hljs-type">FileChannel</span> <span class="hljs-variable">src</span> <span class="hljs-operator">=</span> FileChannel.open(Path.of(<span class="hljs-string">&quot;source.bin&quot;</span>), StandardOpenOption.READ);<br>    <span class="hljs-type">FileChannel</span> <span class="hljs-variable">dst</span> <span class="hljs-operator">=</span> FileChannel.open(Path.of(<span class="hljs-string">&quot;target.bin&quot;</span>),<br>        StandardOpenOption.CREATE, StandardOpenOption.WRITE)<br>) &#123;<br>    src.transferTo(<span class="hljs-number">0</span>, src.size(), dst);  <span class="hljs-comment">// 一行搞定文件复制</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>Selector（多路复用器）</strong></p>
+<p>Selector 是 NIO 实现高并发的核心，主要用于<strong>网络编程</strong>。上面 BIO vs NIO 图中的”调度员”就是它：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 简化的服务端示意（了解流程即可，实际项目用 Netty 不手写）</span><br><br><span class="hljs-comment">// 1. 创建 Selector（调度员上班）</span><br><span class="hljs-type">Selector</span> <span class="hljs-variable">selector</span> <span class="hljs-operator">=</span> Selector.open();<br><br><span class="hljs-comment">// 2. 创建 Channel 并设为非阻塞</span><br><span class="hljs-type">ServerSocketChannel</span> <span class="hljs-variable">server</span> <span class="hljs-operator">=</span> ServerSocketChannel.open();<br>server.bind(<span class="hljs-keyword">new</span> <span class="hljs-title class_">InetSocketAddress</span>(<span class="hljs-number">8080</span>));<br>server.configureBlocking(<span class="hljs-literal">false</span>);  <span class="hljs-comment">// 关键：非阻塞模式</span><br><br><span class="hljs-comment">// 3. 把 Channel 注册到 Selector（告诉调度员：帮我盯着这个通道）</span><br>server.register(selector, SelectionKey.OP_ACCEPT);  <span class="hljs-comment">// 关注&quot;新连接&quot;事件</span><br><br><span class="hljs-comment">// 4. 调度员开始工作：循环检查谁有事件</span><br><span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>    selector.select();  <span class="hljs-comment">// 阻塞等待，直到至少有一个 Channel 就绪</span><br>    Set&lt;SelectionKey&gt; keys = selector.selectedKeys();<br><br>    <span class="hljs-keyword">for</span> (SelectionKey key : keys) &#123;<br>        <span class="hljs-keyword">if</span> (key.isAcceptable()) &#123;<br>            <span class="hljs-comment">// 有新客户端连接进来了</span><br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (key.isReadable()) &#123;<br>            <span class="hljs-comment">// 某个客户端发来了数据</span><br>        &#125;<br>    &#125;<br>    keys.clear();  <span class="hljs-comment">// 处理完要清空，否则下次会重复处理</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>实际开发中不会手写 Selector，而是用 <strong>Netty</strong> 框架。但理解这个模型是读懂 Netty 源码的前提。</p>
+</blockquote>
+<h3 id="3-3-BIO-NIO-AIO-对比"><a href="#3-3-BIO-NIO-AIO-对比" class="headerlink" title="3.3 BIO &#x2F; NIO &#x2F; AIO 对比"></a>3.3 BIO &#x2F; NIO &#x2F; AIO 对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>BIO</th>
+<th>NIO</th>
+<th>AIO (NIO.2)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模型</td>
+<td>同步阻塞</td>
+<td>同步非阻塞 + 多路复用</td>
+<td>异步非阻塞</td>
+</tr>
+<tr>
+<td>线程模型</td>
+<td>一连接一线程</td>
+<td>少量线程 + Selector</td>
+<td>回调&#x2F;Future</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>连接数少、延迟低</td>
+<td>高并发、长连接</td>
+<td>理论最优，但 Linux 支持差</td>
+</tr>
+<tr>
+<td>实际使用</td>
+<td>简单场景</td>
+<td><strong>主流</strong>（Netty 基于 NIO）</td>
+<td>很少用</td>
+</tr>
+<tr>
+<td>编程复杂度</td>
+<td>低</td>
+<td>高（Buffer&#x2F;Channel&#x2F;Selector）</td>
+<td>中</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>实际开发中，很少直接写 NIO 代码，而是用 Netty 框架封装。但理解 NIO 的 Channel + Buffer + Selector 模型，是读懂 Netty 源码的前提。</p>
+</blockquote>
+<h2 id="4-序列化与反序列化"><a href="#4-序列化与反序列化" class="headerlink" title="4. 序列化与反序列化"></a>4. 序列化与反序列化</h2><h3 id="4-1-什么是序列化？"><a href="#4-1-什么是序列化？" class="headerlink" title="4.1 什么是序列化？"></a>4.1 什么是序列化？</h3><p>Java 对象存在于 JVM 内存中，程序结束就消失了。如果想把对象<strong>保存到文件</strong>、<strong>存进数据库</strong>、<strong>通过网络传给另一台机器</strong>，就需要把对象转成一串字节——这个过程叫<strong>序列化</strong>。反过来，把字节还原成对象叫<strong>反序列化</strong>。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">序列化：<span class="hljs-keyword">Java </span>对象  → 字节流（可以存储、传输）<br>反序列化：字节流   → <span class="hljs-keyword">Java </span>对象（还原回来继续用）<br></code></pre></td></tr></table></figure>
+
+<p>类比 Python：<code>pickle.dumps()</code> 就是序列化，<code>pickle.loads()</code> 就是反序列化。</p>
+<h3 id="4-2-什么可以被序列化？"><a href="#4-2-什么可以被序列化？" class="headerlink" title="4.2 什么可以被序列化？"></a>4.2 什么可以被序列化？</h3><p>必须实现 <code>Serializable</code> 接口的类才能序列化。这个接口没有任何方法，只是一个标记，告诉 JVM “这个类允许被序列化”：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// ✅ 可以序列化</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;<br>&#125;<br><br><span class="hljs-comment">// ❌ 没实现 Serializable，序列化时抛 NotSerializableException</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>不能被序列化的东西</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>没有实现 <code>Serializable</code> 的类</td>
+<td>JVM 拒绝序列化</td>
+</tr>
+<tr>
+<td><code>transient</code> 修饰的字段</td>
+<td>主动标记为不参与序列化</td>
+</tr>
+<tr>
+<td><code>static</code> 字段</td>
+<td>属于类不属于对象，不跟着对象走</td>
+</tr>
+<tr>
+<td>线程、数据库连接、Socket 等资源</td>
+<td>这些是运行时资源，序列化了也没意义</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-Java-原生序列化"><a href="#4-3-Java-原生序列化" class="headerlink" title="4.3 Java 原生序列化"></a>4.3 Java 原生序列化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">1L</span>;  <span class="hljs-comment">// 版本号（下面解释）</span><br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">transient</span> String password;  <span class="hljs-comment">// 密码不参与序列化</span><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">User</span><span class="hljs-params">(String name, <span class="hljs-type">int</span> age, String password)</span> &#123;<br>        <span class="hljs-built_in">this</span>.name = name;<br>        <span class="hljs-built_in">this</span>.age = age;<br>        <span class="hljs-built_in">this</span>.password = password;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">toString</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;User&#123;name=&quot;</span> + name + <span class="hljs-string">&quot;, age=&quot;</span> + age + <span class="hljs-string">&quot;, password=&quot;</span> + password + <span class="hljs-string">&quot;&#125;&quot;</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>序列化：对象 → 字节流 → 文件</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(<span class="hljs-string">&quot;Alice&quot;</span>, <span class="hljs-number">25</span>, <span class="hljs-string">&quot;123456&quot;</span>);<br><br><span class="hljs-keyword">try</span> (<span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">oos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-string">&quot;user.dat&quot;</span>))) &#123;<br>    oos.writeObject(user);<br>&#125;<br><span class="hljs-comment">// user.dat 文件中保存了 Alice 的对象数据（二进制格式）</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>反序列化：文件 → 字节流 → 对象</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">try</span> (<span class="hljs-type">ObjectInputStream</span> <span class="hljs-variable">ois</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;user.dat&quot;</span>))) &#123;<br>    <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> (User) ois.readObject();<br>    System.out.println(user);<br>    <span class="hljs-comment">// User&#123;name=Alice, age=25, password=null&#125;</span><br>    <span class="hljs-comment">//                           ↑ transient 字段没有被还原，变成默认值 null</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong><code>serialVersionUID</code> 是什么？</strong></p>
+<p>版本号，用于反序列化时校验类的版本是否一致：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">1L</span>;<br></code></pre></td></tr></table></figure>
+
+<p>比如你序列化时 User 有 <code>name</code> 和 <code>age</code> 两个字段，后来给 User 加了一个 <code>email</code> 字段。如果 <code>serialVersionUID</code> 没变，反序列化时 <code>email</code> 取默认值 <code>null</code>；如果 <code>serialVersionUID</code> 改了，反序列化直接抛 <code>InvalidClassException</code>，告诉你版本不兼容。</p>
+<h3 id="4-4-实际项目中的选择"><a href="#4-4-实际项目中的选择" class="headerlink" title="4.4 实际项目中的选择"></a>4.4 实际项目中的选择</h3><p>Java 原生序列化存在安全漏洞、性能差、跨语言不兼容等问题，实际项目中几乎不用。替代方案：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>格式</th>
+<th>优点</th>
+<th>常用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Jackson &#x2F; Gson</td>
+<td>JSON</td>
+<td>人类可读、跨语言、调试方便</td>
+<td>REST API、配置文件</td>
+</tr>
+<tr>
+<td>Protobuf</td>
+<td>二进制</td>
+<td>体积小、速度快、跨语言</td>
+<td>RPC、微服务通信</td>
+</tr>
+<tr>
+<td>Kryo</td>
+<td>二进制</td>
+<td>Java 生态内最快</td>
+<td>缓存、Spark</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 原生序列化（不推荐）</span><br>oos.writeObject(user);<br><span class="hljs-type">User</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> (User) ois.readObject();<br><br><span class="hljs-comment">// Jackson（推荐）：对象 ↔ JSON 字符串</span><br><span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">mapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br><span class="hljs-type">String</span> <span class="hljs-variable">json</span> <span class="hljs-operator">=</span> mapper.writeValueAsString(user);        <span class="hljs-comment">// 序列化：对象 → JSON</span><br><span class="hljs-type">User</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> mapper.readValue(json, User.class);          <span class="hljs-comment">// 反序列化：JSON → 对象</span><br></code></pre></td></tr></table></figure>
+
+<p>了解原生序列化的机制即可（面试会问 <code>Serializable</code>、<code>transient</code>、<code>serialVersionUID</code>），新项目直接用 Jackson。</p>
+<h2 id="5-小结"><a href="#5-小结" class="headerlink" title="5. 小结"></a>5. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>四大基类</td>
+<td>字节流 InputStream&#x2F;OutputStream，字符流 Reader&#x2F;Writer</td>
+</tr>
+<tr>
+<td>装饰器模式</td>
+<td>流的嵌套组合增加功能（Buffered、Data、Object）</td>
+</tr>
+<tr>
+<td>编码</td>
+<td>不要用 FileReader&#x2F;FileWriter 默认编码，用 InputStreamReader 指定 UTF-8</td>
+</tr>
+<tr>
+<td>Files 工具类</td>
+<td>现代 Java 首选，一行代码读写小文件，Stream 处理大文件</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>替代 File，用 <code>Path.of()</code> 创建（Java 11+），<code>Paths.get()</code>（Java 7+）</td>
+</tr>
+<tr>
+<td>NIO 三件套</td>
+<td>Channel（双向通道）、Buffer（数据容器）、Selector（多路复用）</td>
+</tr>
+<tr>
+<td>BIO vs NIO</td>
+<td>BIO 一连接一线程，NIO 少量线程 + Selector；实际用 Netty</td>
+</tr>
+<tr>
+<td>序列化</td>
+<td>原生 Serializable 了解即可，实际用 Jackson &#x2F; Protobuf</td>
+</tr>
+</tbody></table>
+<p><strong>传统 I&#x2F;O 类分类速查</strong>：</p>
+<p>所有类只有两层——<strong>基础流</strong>直接连数据源，<strong>装饰流</strong>套在外面增强功能：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>基础流（连接数据源）</th>
+<th>装饰流（增强功能）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>字节输入</strong></td>
+<td><code>FileInputStream</code></td>
+<td><code>BufferedInputStream</code>（加缓冲）、<code>DataInputStream</code>（读基本类型）、<code>ObjectInputStream</code>（读对象）</td>
+</tr>
+<tr>
+<td><strong>字节输出</strong></td>
+<td><code>FileOutputStream</code></td>
+<td><code>BufferedOutputStream</code>（加缓冲）、<code>DataOutputStream</code>（写基本类型）、<code>ObjectOutputStream</code>（写对象）</td>
+</tr>
+<tr>
+<td><strong>字符输入</strong></td>
+<td><code>FileReader</code>、<code>InputStreamReader</code>（指定编码）</td>
+<td><code>BufferedReader</code>（加缓冲 + readLine）</td>
+</tr>
+<tr>
+<td><strong>字符输出</strong></td>
+<td><code>FileWriter</code>、<code>OutputStreamWriter</code>（指定编码）</td>
+<td><code>BufferedWriter</code>（加缓冲）、<code>PrintWriter</code>（println&#x2F;printf）</td>
+</tr>
+</tbody></table>
+<p><strong>桥接流</strong>：<code>InputStreamReader</code> &#x2F; <code>OutputStreamWriter</code> 比较特殊，它们把字节流转成字符流，同时可以指定编码，是连接两个体系的桥梁：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">FileInputStream</span>（字节）→ InputStreamReader（桥接，指定UTF-<span class="hljs-number">8</span>）→ BufferedReader（装饰）<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 对应代码：从内向外一层一层套</span><br><span class="hljs-keyword">try</span> (<span class="hljs-type">BufferedReader</span> <span class="hljs-variable">reader</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedReader</span>(              <span class="hljs-comment">// 第三层：装饰，加缓冲 + readLine</span><br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">InputStreamReader</span>(                                <span class="hljs-comment">// 第二层：桥接，字节→字符 + 指定编码</span><br>            <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(<span class="hljs-string">&quot;data.txt&quot;</span>),                  <span class="hljs-comment">// 第一层：基础，连接文件</span><br>            StandardCharsets.UTF_8))) &#123;<br>    String line;<br>    <span class="hljs-keyword">while</span> ((line = reader.readLine()) != <span class="hljs-literal">null</span>) &#123;<br>        System.out.println(line);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：并发编程——线程基础、synchronized、线程池与 CompletableFuture</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/IO/" class="print-no-link">#IO</a>
+      
+        <a href="/tags/NIO/" class="print-no-link">#NIO</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</div>
+      <div>https://rebibabo.github.io/2026/05/09/Java-basic/09-io/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/10/Java-basic/10-concurrency/" title="Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/08/Java-basic/08-lambda-and-stream/" title="Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具">
+                        <span class="hidden-mobile">Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
