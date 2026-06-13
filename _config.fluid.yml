@@ -1,0 +1,7 @@
+post:
+  toc:
+    enable: true
+    expand_all: true
+    placement: right
+    headingSelector: "h1,h2,h3,h4,h5,h6"
+    collapse_depth: 0
