@@ -1,11 +1,11 @@
 ---
-title: 'Java全貌(7) | 异常体系：Checked vs Unchecked 与 try-with-resources'
+title: 'Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources'
 date: 2026-05-07
 tags:
   - Java
   - 异常处理
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

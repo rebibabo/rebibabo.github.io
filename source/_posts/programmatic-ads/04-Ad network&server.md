@@ -1,6 +1,6 @@
 ---
 title: 程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色
-date: 2026-06-10 10:00:00
+date: 2026-05-04
 categories:
   - 程序化广告
 tags:

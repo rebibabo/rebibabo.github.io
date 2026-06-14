@@ -1,5 +1,5 @@
 ---
-title: 'Java全貌(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用'
+title: 'Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用'
 date: 2026-05-22
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - RestTemplate
   - WebClient
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言
@@ -270,14 +270,28 @@ public RestTemplate restTemplate() {
 
 ### 3.1 依赖
 
+`WebClient` 来自 `spring-webflux` 模块，所以要引入 `spring-boot-starter-webflux`：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+```
+
+Gradle 写法：
+
 ```kotlin
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    // 如果只用 WebClient 不用响应式 Web，加 spring-boot-starter-web 也行
 }
 ```
 
+> **注意**：引入 `webflux` 不代表你的项目变成了"响应式项目"——你完全可以在一个普通的 Spring MVC（`spring-boot-starter-web`）项目里，只用 `WebClient` 来发请求，其他部分照常写同步代码。两个 starter 可以共存，互不冲突。
+
 ### 3.2 创建 WebClient
+
+`WebClient` 用 `WebClient.builder()` 这种"建造者模式"来配置——把所有公共配置（域名、默认请求头、日志/鉴权逻辑）在创建时一次性定好，之后每次发请求就不用重复写这些东西了。
 
 ```java
 @Configuration
@@ -301,7 +315,76 @@ public class WebClientConfig {
 }
 ```
 
+逐项拆解 `builder()` 上配置的几个方法：
+
+| 方法 | 作用 | 为什么要配置它 |
+|---|---|---|
+| `baseUrl("https://api.example.com")` | 设置这个 `WebClient` 实例的"基础域名" | 之后每次请求只需要写 `/users/{id}` 这种相对路径，不用每次都拼完整 URL；更重要的是，**域名可以做成配置项**（`@Value` 注入），不同环境（测试/预发/生产）指向不同的 DSP 地址，代码完全不用改 |
+| `defaultHeader(...)` | 给这个 `WebClient` 发出的**所有**请求都自动加上某个请求头 | 比如 `Content-Type: application/json`、自定义的 `X-App-Name` 标识——这些是"每次请求都一样"的信息，写一次，所有请求自动带上，避免每个方法里重复写 |
+| `.filter(...)` | 注册一个"请求/响应处理函数"，所有请求都会经过它 | 用于日志、鉴权、统一处理这类"横切逻辑"，下面单独讲 |
+
+#### ExchangeFilterFunction 是什么
+
+`ExchangeFilterFunction` 可以理解为 **WebClient 专属的"过滤器"**——和 [29 Tomcat 与 Servlet](/2026/05/29/Java-basic/29-tomcat-servlet/) 里讲的 `Filter` 是同一个思路：**每个请求发出去之前、响应回来之后，都会先经过这一层，可以在这里"加点东西"或者"看一眼"**。
+
+它本质上是一个函数式接口，长这样：
+
+```java
+Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next);
+```
+
+- `request`：即将发出的请求
+- `next`：调用 `next.exchange(request)` 才会真正把请求发出去
+- 返回值：最终的响应
+
+为了不用每次都写这么复杂的签名，Spring 提供了两个常用的静态工厂方法：
+
+| 方法 | 时机 | 典型用途 |
+|---|---|---|
+| `ExchangeFilterFunction.ofRequestProcessor(req -> ...)` | **请求发出前** | 打印请求日志、注入 token/签名、记录开始时间 |
+| `ExchangeFilterFunction.ofResponseProcessor(resp -> ...)` | **响应返回后** | 打印响应日志、记录耗时、统一处理某些状态码 |
+
+上面例子里的 `logFilter()` 用的是 `ofRequestProcessor`——每次请求发出前，打印一行 `HTTP GET /users/1` 的日志，然后 `return Mono.just(request)` 把请求原样传给下一环节（不修改它）。
+
+**什么时候调用？** 和 Filter 链一样，**注册了几个 `.filter(...)`，就有几层"包裹"**，按注册顺序依次执行"请求前"逻辑，再发出真实请求，响应回来后再按相反顺序执行"响应后"逻辑。日常最常见的用法就是**统一打日志**和**统一往请求头里塞鉴权 token**（比如调用第三方接口需要签名时）。
+
 ### 3.3 同步调用（block）
+
+#### 调用链每一步返回的是什么
+
+`webClient.get().uri(...).retrieve().bodyToMono(User.class).block()` 这一长串，**每个方法返回的对象都不一样**，是一步步"换挡"的过程：
+
+| 调用 | 返回类型 | 这一步在干什么 |
+|---|---|---|
+| `.get()` | `RequestHeadersUriSpec` | 声明这是一个 GET 请求，还没指定地址 |
+| `.uri("/users/{id}", id)` | `RequestHeadersSpec` | 指定了请求地址，可以继续加请求头，但**还没真正发出请求** |
+| `.retrieve()` | `ResponseSpec` | 表示"配置完了，准备发起请求并处理响应"——但这一步**返回的还不是响应数据**，而是一个"响应规格"，可以在它上面声明"4xx/5xx 时怎么处理"（即 3.5 节的 `onStatus`） |
+| `.bodyToMono(User.class)` | `Mono<User>` | **这一步才是真正"取数据"的关键**：告诉 WebClient"把响应体的 JSON 反序列化成 `User` 对象"，并包装成 `Mono<User>` |
+| `.block()` | `User` | 阻塞等待，把 `Mono<User>` 拆开，拿到真正的 `User` 对象 |
+
+**为什么 `retrieve()` 后面一定要接一个 `bodyTo...`？** 因为 `retrieve()` 本身只是"发起请求 + 准备好处理响应状态码"，它**不知道你想把响应体解析成什么类型**——是单个对象（`User`）还是列表（`List<User>`）、还是干脆不需要返回体（`Void`）。`bodyToMono(Class)` / `bodyToFlux(Class)` / `toBodilessEntity()` 这些方法的作用就是**告诉 WebClient 该用哪种方式解析响应体**，所以 `retrieve()` 必须搭配其中一个一起用，缺了它，请求虽然能发出去，但你拿不到任何结果。
+
+#### Mono 与 Flux 的区别
+
+可以类比"取餐小票"：请求刚发出去，菜还没做好，WebClient 先给你一张小票，等结果真的回来了，再把值"填"进这张小票里。区别在于**小票对应几份餐**：
+
+| | `Mono<T>` | `Flux<T>` |
+|---|---|---|
+| 代表多少个结果 | **0 或 1 个** | **0 到 N 个**（一个序列/数据流） |
+| 类比 | 一张小票，对应一份餐 | 一张小票，对应一筐餐——会一份一份地往外发 |
+| 典型用法 | 请求一个用户，响应体是单个 JSON 对象 → `bodyToMono(User.class)` | 请求用户列表，响应体是 JSON 数组 → `bodyToFlux(User.class)`，每个数组元素就是流里的一个元素 |
+| 拆出最终值 | `.block()` 拿到一个 `T`（或 `null`） | `.collectList().block()` 把流里所有元素收集成 `List<T>` 再拿出来；也可以 `.toStream()` 等方式逐个处理 |
+
+**为什么要区分这两种？** 因为"一个结果"和"一连串结果"在响应式编程里处理方式不同——`Mono` 只需要关心"有没有/到了没"，`Flux` 还需要关心"还有没有下一个、什么时候算结束"。把这两种情况用不同的类型表达出来，编译器和 API 就能帮你避免"把单个结果当成列表处理"之类的错误。
+
+| 方法 | 作用 |
+|---|---|
+| `.retrieve()` | 发起请求，并声明"我要处理这个响应"。如果响应是 4xx/5xx，`retrieve()` 会自动抛异常（3.5 节会细讲） |
+| `.bodyToMono(User.class)` | 把响应体的 JSON 反序列化成一个 `User` 对象，包装成 `Mono<User>` |
+| `.bodyToFlux(User.class)` | 响应是一个 JSON 数组时，反序列化成多个 `User`，包装成 `Flux<User>` |
+| `.block()` | **阻塞当前线程**，等待 `Mono`/`Flux` 真正拿到结果，再把值"拆出来"返回 |
+
+在传统的 Spring MVC 项目里（每个请求一个线程，本身就是同步模型），调用 `.block()` 把异步结果转换成同步返回值是很常见的——`Controller` 方法本身要 `return User`，不能返回一个"小票"给前端。
 
 ```java
 @Service
@@ -364,6 +447,8 @@ public class UserClient {
 
 ### 3.4 异步调用（不阻塞）
 
+如果项目本身是响应式的（比如用 WebFlux 写 Controller），就不应该调用 `.block()`——一旦 `block()`，当前线程就被"卡住"等结果，违背了响应式"不阻塞线程"的初衷。这种场景下，方法直接返回 `Mono`/`Flux`，把"什么时候要结果"的决定权交给调用者（最终由 WebFlux 框架在合适的时机去"拆小票"）。
+
 ```java
 // 返回 Mono / Flux，由调用者决定何时获取结果
 public Mono<User> getUserAsync(Long id) {
@@ -389,7 +474,11 @@ public Mono<UserPage> getUserPage(Long userId) {
 }
 ```
 
+`Mono.zip(...)` 的作用：手里有两张"小票"（两个还没到的结果），**等两张小票都兑换成功后**，用提供的函数把两个结果合并成一个新对象，再包成一张新的"小票"返回。两个请求是**并发发出**的，不是"等第一个完成再发第二个"——这正是异步调用相比 `block()` 的优势：不需要为了等第一个结果而占用线程。
+
 ### 3.5 异常处理
+
+`.retrieve()` 本身就有"默认的异常处理"——响应状态码是 4xx 或 5xx 时，会自动抛出 `WebClientResponseException`（不需要你手动判断状态码）。`.onStatus(...)` 是用来**覆盖默认行为**的：对特定的状态码，转换成你自己定义的异常类型，方便上层用 `catch` 区分处理。
 
 ```java
 public User getUser(Long id) {
@@ -411,6 +500,15 @@ public User getUser(Long id) {
 ```
 
 ### 3.6 超时设置
+
+超时其实分两个层次，作用范围不一样：
+
+| 层次 | 设置方式 | 含义 |
+|---|---|---|
+| **WebClient 级别**（创建时配置一次） | `HttpClient.create().option(CONNECT_TIMEOUT_MILLIS, ...)` + `.responseTimeout(...)` | 对这个 `WebClient` 发出的**所有**请求生效——`CONNECT_TIMEOUT`是"建立TCP连接"的超时，`responseTimeout`是"等响应头返回"的超时 |
+| **单次请求级别** | 在调用链上加 `.timeout(Duration...)` | 只对**这一次**调用生效，控制"从发出请求到拿到完整响应体"的端到端总时间 |
+
+实际项目里通常两者都配：WebClient 级别设置一个"兜底"的较大值，单次请求再根据具体接口的 SLA 设置更精确的超时（比如竞价请求要求 100ms 内必须返回，远小于全局默认值）。
 
 ```java
 @Bean

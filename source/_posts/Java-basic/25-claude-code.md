@@ -6,7 +6,7 @@ tags:
   - AI 工具
   - 开发效率
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

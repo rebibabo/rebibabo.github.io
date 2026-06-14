@@ -1,5 +1,5 @@
 ---
-title: 'Java全貌(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题'
+title: 'Java基础(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题'
 date: 2026-05-16
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - IoC
   - AOP
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

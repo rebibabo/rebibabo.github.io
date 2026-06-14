@@ -1,12 +1,12 @@
 ---
-title: 'Java全貌(21) | Redis 实战：Spring Data Redis 与缓存策略'
+title: 'Java基础(21) | Redis 实战：Spring Data Redis 与缓存策略'
 date: 2026-05-21
 tags:
   - Java
   - Redis
   - 缓存
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

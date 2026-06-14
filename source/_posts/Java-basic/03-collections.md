@@ -1,12 +1,12 @@
 ---
-title: 'Java全貌(3) | 集合框架：List、Set、Map 与队列全梳理'
+title: 'Java基础(3) | 集合框架：List、Set、Map 与队列全梳理'
 date: 2026-05-03
 tags:
   - Java
   - 集合
   - 数据结构
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

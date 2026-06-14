@@ -1,12 +1,12 @@
 ---
-title: 'Java全貌(4) | 类与对象：构造方法、访问控制、static 与 final'
+title: 'Java基础(4) | 类与对象：构造方法、访问控制、static 与 final'
 date: 2026-05-04
 tags:
   - Java
   - 面向对象
   - 基础
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

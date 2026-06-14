@@ -1,11 +1,11 @@
 ---
-title: 'Java全貌(13) | 枚举：不只是常量，还能做策略模式和单例'
+title: 'Java基础(13) | 枚举：不只是常量，还能做策略模式和单例'
 date: 2026-05-13
 tags:
   - Java
   - 枚举
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言

@@ -1,0 +1,644 @@
+---
+title: 'Java基础(24) | MySQL 原理与优化：事务、存储引擎、索引与锁'
+date: 2026-05-24
+tags:
+  - MySQL
+  - 数据库
+  - 索引
+  - 锁
+categories:
+  - Java基础
+---
+
+## 前言
+
+上一篇整理了 SQL 语法层面的工具（函数、CTE、窗口函数）。这一篇往下走一层——为什么有的 SQL 跑得快，有的跑得慢；为什么并发写入会互相阻塞甚至死锁；`EXPLAIN` 里那些字段到底在说什么。这些是面试高频问题，也是排查线上"慢查询""锁等待"问题时必须搞懂的内容。
+
+<!-- more -->
+
+## 1. 事务与隔离级别
+
+### 1.1 ACID
+
+| 特性 | 说明 |
+|---|---|
+| 原子性（Atomicity） | 事务是不可分割的最小操作单元，要么全部成功，要么全部失败 |
+| 一致性（Consistency） | 事务完成时，必须使所有数据都保持一致状态 |
+| 隔离性（Isolation） | 数据库提供的隔离机制，保证事务在不受外部并发操作影响的环境下运行 |
+| 持久性（Durability） | 事务一旦提交或回滚，对数据的改变就是永久的 |
+
+### 1.2 三种并发问题
+
+| 问题类型 | 定义 | 发生场景 | 危害性 |
+|---|---|---|---|
+| 脏读 | 读到其他事务**未提交**的数据 | 事务 A 修改数据未提交，事务 B 读到了这些未提交数据 | ⭐⭐⭐⭐ |
+| 不可重复读 | 同一事务内多次读取同一行数据，**值**不同 | 事务 A 读取数据后，事务 B 修改并提交了该数据，事务 A 再次读取发现值变了 | ⭐⭐⭐ |
+| 幻读 | 同一事务内多次查询，返回的**行数**不同 | 事务 A 查询某条件的数据后，事务 B 插入符合该条件的新数据并提交，事务 A 再次查询发现"多出"了行 | ⭐⭐ |
+
+### 1.3 隔离级别与解决方案
+
+| 隔离级别 | 脏读 | 不可重复读 | 幻读 |
+|---|---|---|---|
+| READ UNCOMMITTED | 会发生 | 会发生 | 会发生 |
+| READ COMMITTED | 已解决 | 会发生 | 会发生 |
+| REPEATABLE READ（MySQL 默认） | 已解决 | 已解决 | 基本解决（InnoDB 用 MVCC + 间隙锁） |
+| SERIALIZABLE | 已解决 | 已解决 | 已解决 |
+
+**脏读示例**（隔离级别 READ UNCOMMITTED 下才会发生）：
+
+```sql
+-- 事务 A
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE user_id = 1; -- 未提交
+
+-- 事务 B（看到未提交的修改）
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT balance FROM accounts WHERE user_id = 1; -- 读到脏数据
+
+-- 事务 A 回滚后，事务 B 读到的数据就是无效的
+```
+
+**不可重复读示例**（隔离级别 READ COMMITTED 下会发生）：
+
+```sql
+-- 事务 A
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN;
+SELECT balance FROM accounts WHERE user_id = 1; -- 第一次读取
+
+-- 事务 B
+UPDATE accounts SET balance = balance - 100 WHERE user_id = 1;
+COMMIT;
+
+-- 事务 A 再次读取
+SELECT balance FROM accounts WHERE user_id = 1; -- 发现值变了
+COMMIT;
+```
+
+**幻读示例**：
+
+```sql
+-- 事务 A
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN;
+SELECT COUNT(*) FROM orders WHERE amount > 1000; -- 第一次统计
+
+-- 事务 B
+INSERT INTO orders(amount) VALUES(1500);
+COMMIT;
+
+-- 事务 A 再次统计
+SELECT COUNT(*) FROM orders WHERE amount > 1000; -- 行数增加了！
+COMMIT;
+```
+
+## 2. 存储引擎
+
+存储引擎是"存储数据、建立索引、更新/查询数据"的具体实现方式，**基于表**——同一个数据库里不同表可以用不同的存储引擎（默认 InnoDB）：
+
+```sql
+CREATE TABLE t (
+    ...
+) ENGINE = InnoDB;
+```
+
+| 特点 | InnoDB | MyISAM | Memory |
+|---|---|---|---|
+| 存储限制 | 64TB | 大 | 受内存限制 |
+| 事务支持 | 支持 | 不支持 | 不支持 |
+| 锁机制 | 行锁 | 表锁 | 表锁 |
+| 外键 | 支持 | 不支持 | 不支持 |
+| 全文索引 | 支持（5.6+） | 支持 | 不支持 |
+| 空间/内存占用 | 较高 | 较低 | 内存占用中等，重启丢失 |
+| 批量插入速度 | 较低 | 较高 | 较高 |
+| 索引结构 | B+Tree | B+Tree | Hash（默认） |
+
+**怎么选**：
+- **InnoDB**：应用对事务完整性要求高、并发场景下需要数据一致性，且有较多更新/删除操作 —— 绝大多数业务表的默认选择
+- **MyISAM**：以读和插入为主，更新删除很少，对事务和并发要求不高
+- **Memory**：作为临时表或缓存，访问速度快，但受内存大小限制，且无法保证数据安全（断电丢失）
+
+### InnoDB 存储结构
+
+InnoDB 按"表空间 → 段 → 区 → 页 → 行"五个层级管理数据：
+
+| 层级 | 说明 |
+|---|---|
+| 表空间 | InnoDB 逻辑结构的最高层。开启 `innodb_file_per_table`（8.0 默认开启）后，每张表对应一个 `.ibd` 表空间文件 |
+| 段 | 数据段（B+树叶子节点）、索引段（B+树非叶子节点）、回滚段，用来管理多个区 |
+| 区 | 表空间的单元结构，每个区大小固定为 1MB |
+| 页 | InnoDB 磁盘管理的最小单元，默认 16KB；为保证连续性，每次申请 4-5 个区 |
+| 行 | 数据按行存放，是最小的存储单位 |
+
+## 3. 索引
+
+索引是帮助 MySQL **高效获取数据**的数据结构。优点是提升检索效率、降低 IO 成本；缺点是占用额外空间，且会降低写入（INSERT/UPDATE/DELETE）速度，因为每次写入都要同步维护索引结构。
+
+MySQL 的索引在**存储引擎层**实现，不同存储引擎支持的索引结构不同：
+
+| 索引结构 | 描述 | InnoDB | MyISAM | Memory |
+|---|---|---|---|---|
+| B+Tree 索引 | 最常见，大部分引擎都支持 | ✓ | ✓ | ✓ |
+| Hash 索引 | 底层是哈希表，只支持精确匹配（`=`/`IN`），不支持范围查询 | ✗（有自适应哈希） | ✗ | ✓（默认） |
+| R-tree 索引 | 空间索引，主要用于地理空间数据，使用较少 | ✗ | ✓ | ✗ |
+| Full-text 索引 | 倒排索引，类似 Lucene/Solr/ES | ✓ | ✓ | ✗ |
+
+### 3.1 B+Tree 索引结构
+
+- 非叶子节点（索引部分）只存储索引列的值和指向下层的指针，不存储数据
+- 叶子节点（数据部分）存储完整的行数据（聚集索引）或主键值（二级索引）
+- MySQL 在叶子节点之间增加了双向链表指针，形成"带顺序指针的 B+Tree"，提升区间范围查询的性能
+
+### 3.2 为什么 InnoDB 选 B+Tree 而不是其他结构
+
+| 对比对象 | B+Tree 的优势 |
+|---|---|
+| 二叉树 | 层级更少（每个节点可以有多个子节点），同样数据量下树的高度更低，搜索效率更高 |
+| B-Tree | B-Tree 的每个节点（包括非叶子节点）都存数据，导致一页能存的键值变少、指针变少；要存同样多的数据，只能增加树的高度。B+Tree 非叶子节点只存索引和指针，能容纳更多指针，树更"矮胖"，高度更小 |
+| Hash 索引 | B+Tree 的数据是有序存储的，天然支持范围查询（`BETWEEN`/`>`/`<`）和排序（`ORDER BY`），Hash 索引做不到 |
+
+Hash 索引的特点：只能用于等值比较（`=`/`IN`），查询效率通常比 B+Tree 高（一次哈希计算就能定位），但不支持范围查询，也无法利用索引排序。InnoDB 内部有"自适应哈希索引"作为补充，但不能手动创建。
+
+### 3.3 索引分类
+
+InnoDB 按存储形式把索引分为两种：
+
+| 分类 | 含义 | 特点 |
+|---|---|---|
+| 聚集索引（主键索引） | 数据和索引存在一起，叶子节点直接保存行数据 | 必须有且只有一个 |
+| 二级索引 | 数据和索引分开存储，叶子节点保存的是对应的**主键值** | 可以有多个 |
+
+聚集索引的选择规则：
+1. 如果表有主键，主键索引就是聚集索引
+2. 如果没有主键，使用第一个唯一（UNIQUE）索引作为聚集索引
+3. 如果都没有，InnoDB 会自动生成隐藏的 `rowid` 作为聚集索引
+
+**回表查询**：通过二级索引查询时，先用二级索引找到主键值，再用主键值去聚集索引里查完整的行数据——这两次查找的过程就叫"回表"。
+
+按用途，索引还可以细分为：
+
+| 类型 | 说明 | 示例 |
+|---|---|---|
+| 主键索引 | 基于主键创建，建表时自动生成，只能有一个 | - |
+| 唯一索引 | 保证某列值不重复，可以有多个 | `CREATE UNIQUE INDEX idx_user_phone ON tb_user(phone);` |
+| 前缀索引 | 只索引列值的前面部分字符，节省空间 | `CREATE INDEX idx_name ON t(name(10));` |
+| 组合索引 | 多个列组合的索引 | `CREATE INDEX idx_name ON t(col1, col2, col3);` |
+| 覆盖索引 | 查询只通过索引就能拿到全部所需字段，无需回表 | 见下方示例 |
+
+**前缀索引长度怎么选**：
+
+```sql
+SELECT
+    COUNT(DISTINCT LEFT(column_name, 3)) / COUNT(*) AS selectivity_3,
+    COUNT(DISTINCT LEFT(column_name, 5)) / COUNT(*) AS selectivity_5,
+    COUNT(DISTINCT LEFT(column_name, 7)) / COUNT(*) AS selectivity_7,
+    COUNT(DISTINCT column_name) / COUNT(*) AS full_selectivity
+FROM table_name;
+```
+
+"选择性"指"不同值的比例"，越接近 1 说明区分度越高。当某个前缀长度的选择性接近完整列选择性的 90% 以上时，就是合适的前缀长度——再加长收益不大，但索引体积会变大。
+
+**覆盖索引示例**：
+
+```sql
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(100),
+    age INT,
+    email VARCHAR(100),
+    INDEX idx_name_age (name, age)
+);
+
+-- 只查 name 和 age，二级索引 idx_name_age 的叶子节点里就有这两个字段，不需要回表
+EXPLAIN SELECT name, age FROM users WHERE name = '张三';
+```
+
+如果查询里还要 `email`（不在 `idx_name_age` 里），就必须先用索引找到满足条件的主键 `id`，再回到聚集索引查 `email`——也就是触发了回表。
+
+### 3.4 EXPLAIN 执行计划
+
+`EXPLAIN`（或 `DESC`）放在 `SELECT` 前面，可以查看 MySQL 打算怎么执行这条查询：
+
+```sql
+EXPLAIN SELECT 字段列表 FROM 表名 WHERE 条件;
+```
+
+| 字段 | 含义 |
+|---|---|
+| `id` | 查询的序列号；`id` 相同时执行顺序从上到下，`id` 不同时值越大越先执行 |
+| `select_type` | 查询类型：`SIMPLE`（不含子查询/连接的简单查询）、`PRIMARY`（最外层查询）、`UNION`、`SUBQUERY` 等 |
+| `type` | 连接类型，性能从好到差：`NULL` > `system` > `const` > `eq_ref` > `ref` > `range` > `index` > `ALL` |
+| `possible_keys` | 可能用到的索引（一个或多个） |
+| `key` | 实际使用的索引，`NULL` 表示没用索引 |
+| `key_len` | 实际使用的索引长度（字节数），不损失精度的前提下越短越好 |
+| `rows` | MySQL 预计需要扫描的行数（估计值，未必准确） |
+| `filtered` | 返回结果占需要读取行数的百分比，越大越好 |
+
+`type` 各档位含义：
+
+| type | 含义 |
+|---|---|
+| `system` | 表只有一行（系统表），`const` 的特例，几乎不会出现 |
+| `const` | 主键或唯一索引的等值查询，最多匹配一行，无需扫描 |
+| `eq_ref` | 多表连接时，内层表用主键/唯一索引匹配，外层表每一行在内层只匹配一行 |
+| `ref` | 普通二级索引的等值查询，可能匹配多行 |
+| `range` | 索引范围查询，如 `>`、`<`、`BETWEEN`、`IN`、`LIKE 'prefix%'` |
+| `index` | 遍历整个索引树（只读索引不读数据行），比全表扫描快但仍较慢 |
+| `ALL` | 全表扫描，通常意味着缺少合适的索引 |
+
+`key_len` 的计算规则：
+- 定长字段：`INT` 占 4 字节，`DATE` 占 3 字节，`CHAR(n)` 占 n × 字符集字节数
+- 变长字段：`VARCHAR(n)` 占 n × 字符集字节数 + 2 字节（存长度信息）
+- 字符集：`latin1` 每字符 1 字节，`gbk` 每字符 2 字节，`utf8` 每字符 3 字节
+- 字段允许为 `NULL`：额外 +1 字节
+
+### 3.5 最左前缀匹配原则
+
+假设有联合索引 `idx_id_name_age(id, name, age)`，其中：
+- `id` 是 `INT`、允许 NULL → 4 + 1 = 5 字节
+- `name` 是 `CHAR(10)`、允许 NULL、`latin1` 编码 → 10 + 1 = 11 字节
+- `age` 是 `INT`、允许 NULL → 4 + 1 = 5 字节
+
+这相当于同时建立了三个"前缀索引"：`(id)`、`(id, name)`、`(id, name, age)`，对应的 `key_len` 分别是 `5`、`16`、`21`。
+
+| 查询条件 | 能用到的索引部分 | key_len | 说明 |
+|---|---|---|---|
+| `WHERE id=? AND name=? AND age=?` | `(id, name, age)` 全部 | 21 | 全值匹配，`AND` 顺序不影响——查询优化器会自动调整顺序 |
+| `WHERE id=?` | `(id)` | 5 | 只命中最左列 |
+| `WHERE id=? AND name=?` | `(id, name)` | 16 | 从左到右连续命中两列 |
+| `WHERE id=? AND age=?`（跳过 name） | 仅 `(id)`，且通常退化为 `index` 类型扫描 | 5 | `age` 不满足"紧跟在已用列后面"，无法继续用索引过滤，效率远低于上一行 |
+| `WHERE name LIKE 'A%'` | 可用索引（前缀匹配） | - | 前缀是有序的，等价于范围查询 |
+| `WHERE name LIKE '%A%'` / `'%A'` | 全表扫描 | - | 中缀/后缀模糊查询无法利用索引的有序性 |
+| `WHERE id > 5 AND name = ?` | 仅 `(id)`，`range` 类型 | - | 遇到 `>`/`<` 之后，后面的列索引失效 |
+
+核心结论：
+1. **全值匹配**不依赖条件顺序，优化器会自动重排
+2. **从最左列开始，连续**使用索引列才能用到对应的联合索引前缀
+3. 一旦遇到 `>`/`<`/`<>` 等**范围条件**，该列**及之后**的索引列都会失效
+4. `LIKE` 只有"前缀匹配"（`'abc%'`）能用到索引，中缀/后缀模糊查询会全表扫描
+
+### 3.6 索引失效的常见场景
+
+| 场景 | 失效示例 | 解决方案 |
+|---|---|---|
+| 违反最左前缀 | 联合索引 `(a,b,c)`，但查询条件只有 `WHERE b=? AND c=?` | 调整查询条件包含 `a`，或单独为 `b`/`c` 建索引 |
+| 索引列上使用函数/运算 | `WHERE YEAR(create_time)=2026`、`WHERE price*1.1>100` | 改为范围查询 `create_time BETWEEN ... AND ...`；预先计算好阈值 `price > 100/1.1` |
+| 前模糊查询 | `WHERE name LIKE '%张'` | 改为后模糊查询，或用前缀索引 |
+| 隐式类型转换 | `phone` 是 `VARCHAR`，但写 `WHERE phone = 123456789`（数字） | 加引号写成字符串 `WHERE phone = '123456789'` |
+| `OR` 条件中有列无索引 | `WHERE name='张三' OR age=25`，`age` 无索引 | 给 `age` 也建索引，或改写成 `UNION` |
+| `!=` / `NOT` 等否定操作符 | `WHERE status != 'active'` | 尽量改写成等值/范围的正向查询 |
+| 数据分布不均 | `status` 有索引，但 95% 的行都是 `'active'` | 优化器可能主动放弃索引（走全表扫描反而更快），这是正常行为 |
+| `ORDER BY` 列顺序不对 | 索引是 `(a,b)`，但 `ORDER BY b, a` | 调整 `ORDER BY` 顺序与索引一致，或新建匹配的索引 |
+
+### 3.7 索引设计原则
+
+- 数据量大、查询频繁的表才需要建索引
+- 经常出现在 `WHERE`、`ORDER BY`、`GROUP BY` 中的字段适合建索引
+- 优先选择区分度高（选择性高）的列；尽量建唯一索引
+- 字符串字段较长时，用前缀索引代替全列索引
+- 优先用联合索引代替多个单列索引——联合索引常能形成覆盖索引，减少回表
+- 控制索引数量：索引越多，写操作（增删改）维护索引的代价越大
+- 索引列尽量加 `NOT NULL` 约束，让优化器更容易判断哪个索引最优
+
+## 4. SQL 优化
+
+### 4.1 插入数据优化
+
+- **批量插入**：一条 INSERT 插入多行，减少 SQL 解析和网络往返次数
+
+  ```sql
+  INSERT INTO tb_test VALUES (1,'TOM'), (2,'JERRY'), ...;
+  ```
+
+- **手动控制事务**：默认情况下每条 INSERT 都自动提交一次事务，开销较大；手动开启事务、批量提交可以显著提速
+
+  ```sql
+  START TRANSACTION;
+
+  INSERT INTO tb_test VALUES (1,'TOM'), (2,'JERRY'), ...;
+  INSERT INTO tb_test VALUES (3,'TaM'), (4,'JyRRY'), ...;
+  INSERT INTO tb_test VALUES (5,'TeM'), (6,'JiRRY'), ...;
+
+  COMMIT;
+  ```
+
+- **主键顺序插入**：按主键递增顺序插入，避免 B+Tree 频繁分裂、重新排序，速度更快
+
+- **大批量数据用 `LOAD DATA`**：比逐条 INSERT 快得多
+
+  ```sql
+  -- 客户端连接时加上 --local-infile 参数
+  mysql --local-infile -u root -p
+
+  -- 开启"从本地加载文件"的开关
+  SET GLOBAL local_infile = 1;
+
+  -- 加载本地文件到表中
+  LOAD DATA LOCAL INFILE '/root/sql1.log' INTO TABLE tb_user
+      FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
+  ```
+
+### 4.2 主键优化
+
+- 在满足业务需求的前提下，尽量缩短主键长度（主键会被所有二级索引的叶子节点引用，主键越长，二级索引越大）
+- 优先用 `AUTO_INCREMENT` 自增主键，配合顺序插入
+- 避免用 UUID、身份证号等"自然主键"——它们是无序的，会导致 B+Tree 频繁分裂
+- 业务运行期间避免修改主键值
+
+### 4.3 查询优化
+
+**ORDER BY**：两种排序方式
+
+| 方式 | 说明 |
+|---|---|
+| `Using filesort` | 索引或全表扫描拿到数据后，在排序缓冲区里完成排序——除了直接利用有序索引返回结果之外的排序都是这种 |
+| `Using index` | 直接按索引的顺序扫描返回有序数据，不需要额外排序，效率更高 |
+
+注意：索引默认是 `ASC` 升序排列，如果 `ORDER BY` 的排序方向和索引方向不一致，仍然会触发 `Using filesort`。
+
+**GROUP BY**：分组列符合最左前缀法则时可以用到索引，否则会走 `Using temporary` + `Using filesort`，性能较差。
+
+**LIMIT**：分页查询。`LIMIT offset, size` 的 `offset` 越大，MySQL 需要扫描并丢弃的行数也越多——深分页（如 `LIMIT 1000000, 10`）性能会明显下降，常见优化是用"上一页最后一条记录的 id"做条件查询代替大 offset。
+
+**COUNT**：
+
+| 用法 | 行为 |
+|---|---|
+| `COUNT(主键)` | InnoDB 遍历整张表，取出每行主键值（不可能为 `NULL`），按行累加 |
+| `COUNT(字段)` | 若字段无 `NOT NULL` 约束，引擎取出每行该字段值，服务层判断非 `NULL` 才计数 |
+| `COUNT(1)` | 引擎遍历整张表但不取值，服务层对每行放一个 `1` 累加 |
+| `COUNT(*)` | 引擎不取任何字段值，专门做了优化，直接按行累加 |
+
+效率排序：`COUNT(字段) < COUNT(主键) < COUNT(1) ≈ COUNT(*)`——尽量用 `COUNT(*)`。
+
+### 4.4 UPDATE 优化
+
+InnoDB 的行锁是**加在索引记录上**的，不是加在物理行上——如果 `UPDATE` 的 `WHERE` 条件没有用到索引（或索引失效），行锁就会升级为**表锁**，导致整张表在这次更新期间都无法被其他事务修改。所以 `UPDATE` 语句的 `WHERE` 条件一定要能命中索引。
+
+## 5. 锁
+
+按粒度分为三类：
+
+| 锁类型 | 粒度 | 并发度 |
+|---|---|---|
+| 全局锁 | 锁住整个数据库实例 | 最低 |
+| 表级锁 | 每次操作锁住整张表 | 中等 |
+| 行级锁 | 每次操作只锁住涉及的行 | 最高 |
+
+### 5.1 全局锁
+
+对整个数据库实例加锁后，整个实例进入只读状态，所有写操作（DML/DDL/事务提交）都会被阻塞。典型场景是**全库逻辑备份**——锁住所有表以获取一致性视图。
+
+```sql
+-- 加全局锁
+FLUSH TABLES WITH READ LOCK;
+
+-- 进行备份
+mysqldump -uroot -p123456 itcast > itcast.sql
+
+-- 释放锁
+UNLOCK TABLES;
+```
+
+### 5.2 表级锁
+
+#### 表锁
+
+| 类型 | 行为 |
+|---|---|
+| 表共享读锁 | 所有客户端可读，但都不可写 |
+| 表独占写锁 | 当前客户端可读可写，其他客户端都不可操作 |
+
+```sql
+-- 加锁
+LOCK TABLES 表名 ... READ/WRITE;
+
+-- 释放锁
+UNLOCK TABLES; -- 或断开客户端连接
+```
+
+读锁不阻塞其他读，但阻塞其他写；写锁会阻塞其他所有读写。
+
+#### 元数据锁（MDL）
+
+由系统自动加锁，无需显式使用，访问表时自动获得。作用是：保证表结构变更（DDL）和正在进行的事务（DML）互不冲突——某张表有未提交事务时，不能修改这张表的表结构。
+
+| 锁类型 | 简称 | 描述 | 兼容性 |
+|---|---|---|---|
+| 共享锁 | MDL_SHARED | 普通查询（如 SELECT）获取 | 与其他共享锁兼容 |
+| 共享读锁 | MDL_SHARED_READ | 类似共享锁，允许更高并发 | 与大多数操作兼容 |
+| 共享写锁 | MDL_SHARED_WRITE | INSERT/UPDATE/DELETE 等 DML 获取 | 与 DDL 不兼容 |
+| 排他锁 | MDL_EXCLUSIVE | DDL 操作获取（如 `ALTER TABLE`） | 不兼容任何其他 MDL 锁 |
+
+```sql
+-- 查询会阻塞 DDL：
+-- 会话1
+START TRANSACTION;
+SELECT * FROM users;  -- 获取 MDL_SHARED_READ
+
+-- 会话2（被阻塞，直到会话1提交/回滚）
+ALTER TABLE users ADD COLUMN age INT;  -- 需要 MDL_EXCLUSIVE
+```
+
+#### 意向锁
+
+由 InnoDB 自动管理，开发者无法直接控制。含义是"事务打算在表中某些行上加某种行锁"——目的是避免每次加表锁前都要扫描全表检查是否有行锁，提升性能。
+
+| 类型 | 简称 | 描述 |
+|---|---|---|
+| 意向共享锁 | IS | 事务打算在某些行上加共享锁 |
+| 意向排他锁 | IX | 事务打算在某些行上加排他锁 |
+
+加表级锁时，先检查是否有冲突的意向锁，而不需要逐行检查：
+
+| 请求锁 \ 已持有 | IS | IX | S | X |
+|---|---|---|---|---|
+| IS | 兼容 | 兼容 | 兼容 | 不兼容 |
+| IX | 兼容 | 兼容 | 不兼容 | 不兼容 |
+| S | 兼容 | 不兼容 | 兼容 | 不兼容 |
+| X | 不兼容 | 不兼容 | 不兼容 | 不兼容 |
+
+### 5.3 行级锁
+
+InnoDB 的数据按索引组织，行锁实际上是**加在索引项**上的，而不是物理行本身。
+
+#### 行锁
+
+| 类型 | 类比 | 效果 | SQL 示例 |
+|---|---|---|---|
+| 共享锁（S 锁） | "只读"标签 | 允许其他事务读，但不能改 | `SELECT ... LOCK IN SHARE MODE` |
+| 排他锁（X 锁） | "维修中"标签 | 禁止其他事务的任何读写 | `UPDATE` / `DELETE` / `SELECT ... FOR UPDATE` |
+
+```sql
+-- 事务 A：修改 1 号记录，自动加 X 锁
+BEGIN;
+UPDATE patients SET diagnosis = '感冒' WHERE patient_id = 1;
+
+-- 事务 B：也想修改 1 号记录，必须等待事务 A 提交/回滚
+UPDATE patients SET diagnosis = '流感' WHERE patient_id = 1;
+
+-- 事务 C：查看 2 号记录不受影响，正常执行
+SELECT * FROM patients WHERE patient_id = 2;
+```
+
+#### 间隙锁（Gap Lock）
+
+锁定索引记录之间的"间隙"（不包含记录本身），阻止其他事务在这个间隙里插入新记录，从而防止幻读。仅在 `REPEATABLE READ` 隔离级别下生效。
+
+```sql
+-- 假设现有 id: 1, 5, 10
+-- 这会锁定 (5,10) 这个区间，阻止其他事务插入 id=6/7/8/9 的记录
+SELECT * FROM users WHERE id BETWEEN 5 AND 10 FOR UPDATE;
+```
+
+#### 临键锁（Next-Key Lock）
+
+行锁 + 间隙锁的组合：锁住记录本身，同时锁住该记录前面的间隙。这是 `REPEATABLE READ` 下 InnoDB **默认**的行锁实现方式，同时解决了不可重复读和幻读。
+
+```sql
+-- 假设现有 id: 1, 5, 10
+SELECT * FROM users WHERE id > 5 FOR UPDATE;
+```
+
+会锁定：
+- `id = 10` 这条已有记录（行锁）
+- `(5, 10)` 和 `(10, +∞)` 两个区间（间隙锁）
+
+## 6. 视图
+
+视图（View）是一种虚拟表——本身不存储数据，只保存查询的 SQL 逻辑，使用时动态生成结果。
+
+```sql
+CREATE [OR REPLACE] VIEW 视图名称[(列名列表)] AS
+    SELECT语句
+    [WITH [CASCADED | LOCAL] CHECK OPTION];
+```
+
+`WITH ... CHECK OPTION` 会在 INSERT/UPDATE/DELETE 视图时检查每一行是否仍符合视图的 `WHERE` 条件：
+
+```sql
+-- view1 没有设置 CHECK
+CREATE VIEW table_view1 AS SELECT id, age FROM t WHERE age > 20;
+
+-- view2 基于 view1 再过滤，并设置 CASCADED CHECK
+CREATE VIEW table_view2 AS SELECT id, age FROM t WHERE age < 25
+    WITH CASCADED CHECK OPTION;
+
+-- CASCADED：插入数据时，不仅检查 view2 的条件 age<25，还会级联检查 view1 的条件 age>20
+INSERT INTO table_view2 VALUES (1, 23); -- 23 同时满足 >20 和 <25，成功
+
+-- 如果是 LOCAL CHECK OPTION，则只检查当前视图的条件，不会向上级联检查 view1
+```
+
+| 选项 | 检查范围 |
+|---|---|
+| `CASCADED`（默认） | 检查当前视图条件 + 所有依赖视图的条件 |
+| `LOCAL` | 只检查当前视图的条件 |
+
+视图中含有以下任意一项时**不可更新**（不能 INSERT/UPDATE/DELETE）：聚合函数/窗口函数（`SUM`/`MAX`/...）、`DISTINCT`、`GROUP BY`、`HAVING`、`UNION`/`UNION ALL`。
+
+视图的作用：
+- **简化**：把常用的复杂查询定义成视图，使用时不用每次重写条件
+- **安全**：数据库权限只能授权到表/列级别，无法授权到"行"级别，通过视图可以让用户只能看到他们该看的行
+- **数据独立**：底层表结构变化时，只需调整视图定义，不影响使用方
+- **数据联合展示**：把多表 join 的结果包装成一张"表"，方便阅读和复用
+
+## 7. 触发器
+
+触发器（Trigger）是一种特殊的存储过程，在指定表发生 `INSERT`/`UPDATE`/`DELETE` 时自动执行。
+
+```sql
+CREATE TRIGGER trigger_name
+{BEFORE | AFTER} {INSERT | UPDATE | DELETE}
+ON table_name FOR EACH ROW
+[trigger_order]
+trigger_body
+```
+
+| 关键字 | 含义 |
+|---|---|
+| `BEFORE` / `AFTER` | 触发时机：事件发生前/后 |
+| `INSERT`/`UPDATE`/`DELETE` | 触发事件 |
+| `FOR EACH ROW` | 行级触发器——每影响一行就执行一次 |
+| `trigger_order` | 多个同类型触发器之间的执行顺序（`FOLLOWS`/`PRECEDES`） |
+| `trigger_body` | 触发时执行的 SQL 语句块 |
+
+触发器内可以通过 `OLD`/`NEW` 访问触发该事件的行数据：
+
+| 事件 | `OLD` | `NEW` |
+|---|---|---|
+| `INSERT` | 无 | 新插入的行 |
+| `UPDATE` | 更新前的行 | 更新后的行 |
+| `DELETE` | 被删除的行 | 无 |
+
+**审计日志示例**——每次 `UPDATE` 自动记录一条审计记录：
+
+```sql
+CREATE TRIGGER update_audit
+AFTER UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_log
+    VALUES(NULL, 'employees', OLD.id, 'update', NOW(), USER());
+END;
+```
+
+## 8. SQL 语句执行顺序
+
+写 SQL 时关键字的顺序是 `SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT`，但**真正的执行顺序**完全不同：
+
+1. `FROM` / `JOIN`：确定数据来源表，执行连接
+2. `WHERE`：对行数据做筛选
+3. `GROUP BY`：分组
+4. `HAVING`：对分组后的结果做筛选
+5. 窗口函数：计算窗口函数结果（逻辑上在此阶段，详见 [26 节](/2026/05/26/Java-basic/26-sql-advanced-syntax/)）
+6. `SELECT`：选择输出列
+7. `DISTINCT`：去重
+8. `ORDER BY`：排序
+9. `LIMIT` / `OFFSET`：限制返回行数
+
+**实例**：
+
+```sql
+SELECT
+    department_id,
+    COUNT(*) AS emp_count,
+    RANK() OVER(ORDER BY COUNT(*) DESC) AS dept_rank
+FROM employees
+WHERE hire_date > '2020-01-01'
+GROUP BY department_id
+HAVING COUNT(*) > 5
+ORDER BY emp_count DESC
+LIMIT 10;
+```
+
+实际执行顺序：
+
+1. `FROM employees`：取出员工表数据
+2. `WHERE hire_date > '2020-01-01'`：按入职日期过滤
+3. `GROUP BY department_id`：按部门分组
+4. `HAVING COUNT(*) > 5`：保留员工数 > 5 的部门
+5. 计算窗口函数 `RANK()`
+6. `SELECT`：选择输出列并设置别名
+7. `ORDER BY emp_count DESC`：按员工数降序
+8. `LIMIT 10`：返回前 10 条
+
+由此可以解释两个常见问题：
+- **`WHERE` vs `HAVING`**：`WHERE` 在分组**之前**过滤行（不能用聚合函数），`HAVING` 在分组**之后**过滤组（可以用聚合函数）
+- **窗口函数为什么能引用 `SELECT` 里的别名**：虽然 `OVER()` 写在 `SELECT` 子句里，但它的计算逻辑上发生在 `GROUP BY`/`HAVING` 之后、最终输出列之前
+
+## 9. 小结
+
+| 主题 | 关键要点 |
+|---|---|
+| 事务 | ACID；REPEATABLE READ 是 MySQL 默认隔离级别，基本解决脏读/不可重复读/幻读 |
+| 存储引擎 | InnoDB 支持事务+行锁，是绝大多数业务表的默认选择；MyISAM/Memory 用于特殊场景 |
+| B+Tree 索引 | 数据有序、支持范围查询，叶子节点带链表指针；InnoDB 的聚集索引/二级索引都基于它 |
+| 最左前缀 | 联合索引 `(a,b,c)` 要从 `a` 开始连续使用；遇到范围条件后面的列失效 |
+| 索引失效 | 函数运算、前模糊查询、隐式类型转换、`!=`、`OR` 缺索引列、`ORDER BY` 顺序不一致 |
+| EXPLAIN | `type` 从好到差 `const > eq_ref > ref > range > index > ALL`；`key_len` 越短越好 |
+| 锁 | 全局锁（备份用）；表锁/MDL/意向锁；行锁/间隙锁/临键锁（InnoDB 默认） |
+| 视图 | 不存数据只存查询逻辑；含聚合/DISTINCT/GROUP BY 等的视图不可更新 |
+| 触发器 | `BEFORE/AFTER` + `INSERT/UPDATE/DELETE`，用 `OLD`/`NEW` 访问行数据 |
+| 执行顺序 | `FROM → WHERE → GROUP BY → HAVING → 窗口函数 → SELECT → DISTINCT → ORDER BY → LIMIT` |

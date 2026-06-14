@@ -1,11 +1,11 @@
 ---
-title: 'Java全貌(14) | 日期时间 API：java.time 全梳理'
+title: 'Java基础(14) | 日期时间 API：java.time 全梳理'
 date: 2026-05-14
 tags:
   - Java
   - 日期时间
 categories:
-  - Java全貌
+  - Java基础
 ---
 
 ## 前言
