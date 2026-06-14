@@ -1,0 +1,1226 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言前面 27 篇基本都是”一个应用、一个数据库”的视角——写 Controller、Service、Mapper，连上 MySQL&#x2F;Redis 就能跑。但当系统越来越大（比如一个完整的广告投放平台，要做投放管理、计费、报表、用户中心），继续把所有功能塞进一个项目，会越来越难维护。这篇文章站在初学者的角度，梳理”微服务”到底是什么、为什么要拆、拆了之后会冒出哪些新问题，以及 Spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶">
+<meta property="og:url" content="https://rebibabo.github.io/2026/05/01/Java-advanced/01-microservices-intro/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言前面 27 篇基本都是”一个应用、一个数据库”的视角——写 Controller、Service、Mapper，连上 MySQL&#x2F;Redis 就能跑。但当系统越来越大（比如一个完整的广告投放平台，要做投放管理、计费、报表、用户中心），继续把所有功能塞进一个项目，会越来越难维护。这篇文章站在初学者的角度，梳理”微服务”到底是什么、为什么要拆、拆了之后会冒出哪些新问题，以及 Spring">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-13T15:01:45.294Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring Cloud">
+<meta property="article:tag" content="微服务">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-01 00:00" pubdate>
+          2026年5月1日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          83 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面 27 篇基本都是”一个应用、一个数据库”的视角——写 Controller、Service、Mapper，连上 MySQL&#x2F;Redis 就能跑。但当系统越来越大（比如一个完整的广告投放平台，要做投放管理、计费、报表、用户中心），继续把所有功能塞进一个项目，会越来越难维护。这篇文章站在初学者的角度，梳理”微服务”到底是什么、为什么要拆、拆了之后会冒出哪些新问题，以及 Spring Cloud 生态里对应的解决方案——目标是建立一个完整的概念地图，不深挖某一个组件的所有细节。</p>
+<span id="more"></span>
+
+<h2 id="1-为什么需要微服务"><a href="#1-为什么需要微服务" class="headerlink" title="1. 为什么需要微服务"></a>1. 为什么需要微服务</h2><h3 id="1-1-单体应用：一开始很香"><a href="#1-1-单体应用：一开始很香" class="headerlink" title="1.1 单体应用：一开始很香"></a>1.1 单体应用：一开始很香</h3><p>把”广告投放平台”的所有功能——用户管理、广告投放、计费结算、数据报表——都写在<strong>一个项目</strong>里，打包成一个 jar，部署成一个进程。这就是<strong>单体架构（Monolith）</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发简单：一个项目，一次启动，本地调试方便</td>
+<td>代码越大越难维护：改一个小功能，可能要重新理解一大片代码</td>
+</tr>
+<tr>
+<td>部署简单：一个 jar，一台服务器</td>
+<td>牵一发动全身：改了报表模块的代码，整个应用都要重新打包、重新部署</td>
+</tr>
+<tr>
+<td>调用简单：模块间是 Java 方法调用，没有网络开销</td>
+<td>扩展不灵活：报表模块需要更多 CPU，但只能把整个应用一起扩容</td>
+</tr>
+<tr>
+<td></td>
+<td>技术栈绑定：整个项目只能用一种语言、一套框架</td>
+</tr>
+</tbody></table>
+<p>团队小、业务简单的时候，单体应用是最优选择——<strong>不要为了”赶时髦”而过早拆微服务</strong>，拆分本身是有代价的（后面会讲）。但当团队变大、业务模块变多，单体的”缺点”那一列会越来越明显：几十个人同时改一个项目，光是合并代码冲突就能耗费大量时间。</p>
+<h3 id="1-2-微服务：按业务拆成多个独立的应用"><a href="#1-2-微服务：按业务拆成多个独立的应用" class="headerlink" title="1.2 微服务：按业务拆成多个独立的应用"></a>1.2 微服务：按业务拆成多个独立的应用</h3><p><strong>微服务架构（Microservices）</strong> 把单体应用按业务拆成多个<strong>独立部署、独立运行</strong>的小应用，每个小应用：</p>
+<ul>
+<li>只负责一块业务（用户服务、投放服务、计费服务、报表服务……）</li>
+<li>有自己的代码仓库、可以独立开发和部署</li>
+<li>一般有自己独立的数据库（不共享表）</li>
+<li>服务之间通过<strong>网络请求</strong>（HTTP&#x2F;RPC）通信，不再是 Java 方法调用</li>
+</ul>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs excel">单体架构：<br>┌─────────────────────────────┐<br>│         广告平台 (一个进程)         │<br>│  用户模块 | 投放模块 | 计费模块 | 报表模块  │<br>│              MySQL                │<br>└─────────────────────────────┘<br><br>微服务架构：<br>┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐<br>│ 用户服务  │  │ 投放服务  │  │ 计费服务  │  │ 报表服务  │<br>│  + <span class="hljs-built_in">DB</span>    │  │  + <span class="hljs-built_in">DB</span>    │  │  + <span class="hljs-built_in">DB</span>    │  │  + <span class="hljs-built_in">DB</span>    │<br>└────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘<br>     └─────────────┴──── 网络调用 ────┴─────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-3-微服务不是免费的午餐"><a href="#1-3-微服务不是免费的午餐" class="headerlink" title="1.3 微服务不是免费的午餐"></a>1.3 微服务不是免费的午餐</h3><p>拆分之后，<strong>每个模块内部</strong>确实变简单了——投放服务只用关心投放逻辑。但<strong>模块之间</strong>的复杂度从”方法调用”变成了”网络调用”，这就引入了一整套单体应用里根本不存在的新问题：</p>
+<table>
+<thead>
+<tr>
+<th>单体应用里</th>
+<th>微服务里</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模块 A 调用模块 B：一次本地方法调用，几乎不耗时，不会失败</td>
+<td>服务 A 调用服务 B：要先知道 B 在哪台机器上、走网络请求，可能超时、可能失败</td>
+</tr>
+<tr>
+<td>一个数据库事务搞定多表更新</td>
+<td>跨服务的数据一致性，本地事务管不到别的服务</td>
+</tr>
+<tr>
+<td>改配置改完重启一下就行</td>
+<td>几十个服务实例，配置怎么统一改、统一生效</td>
+</tr>
+<tr>
+<td>一个日志文件，出错了直接搜关键字</td>
+<td>一个请求经过 5 个服务，日志分散在 5 个地方，怎么串起来排查</td>
+</tr>
+</tbody></table>
+<p>接下来每一节，都是在回答”拆分之后冒出来的这个新问题，业界是怎么解决的”。</p>
+<h2 id="2-微服务要解决的核心问题：总览"><a href="#2-微服务要解决的核心问题：总览" class="headerlink" title="2. 微服务要解决的核心问题：总览"></a>2. 微服务要解决的核心问题：总览</h2><p>把上面的问题对应到具体技术方案，先建立一张”地图”，后面每一节展开讲一个：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>一句话描述</th>
+<th>常见方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>服务怎么找到对方</td>
+<td>投放服务想调用计费服务，但计费服务部署在哪台机器、哪个端口？</td>
+<td>注册中心（Eureka &#x2F; Nacos）</td>
+</tr>
+<tr>
+<td>服务之间怎么调用</td>
+<td>找到了地址，怎么发起调用、怎么少写重复代码？</td>
+<td>OpenFeign &#x2F; RestTemplate</td>
+</tr>
+<tr>
+<td>请求量大了怎么分摊</td>
+<td>计费服务部署了 3 个实例，请求该打给哪一个？</td>
+<td>负载均衡（LoadBalancer）</td>
+</tr>
+<tr>
+<td>外部请求怎么进来</td>
+<td>手机 App 不会直接调用内部几十个服务，应该打到哪？</td>
+<td>API 网关（Spring Cloud Gateway）</td>
+</tr>
+<tr>
+<td>配置怎么统一管理</td>
+<td>几十个服务的数据库地址、开关配置，难道一个个改？</td>
+<td>配置中心（Nacos Config）</td>
+</tr>
+<tr>
+<td>某个服务挂了怎么办</td>
+<td>计费服务卡死，会不会拖垮调用它的所有服务？</td>
+<td>熔断与降级（Sentinel）</td>
+</tr>
+<tr>
+<td>跨服务的数据一致性</td>
+<td>“扣费成功但投放记录创建失败”，怎么保证两边一致？</td>
+<td>分布式事务（Seata）</td>
+</tr>
+<tr>
+<td>出问题了怎么排查</td>
+<td>一个慢请求，经过了 5 个服务，慢在哪一环？</td>
+<td>链路追踪（Sleuth + Zipkin）</td>
+</tr>
+<tr>
+<td>怎么部署这么多服务</td>
+<td>几十个服务，手动一个个启动、升级，根本管不过来</td>
+<td>容器化（Docker + Kubernetes）</td>
+</tr>
+</tbody></table>
+<p>下面按这张表的顺序，逐个用最简单的例子讲清楚”是什么、为什么需要、长什么样”。</p>
+<h2 id="3-服务注册与发现"><a href="#3-服务注册与发现" class="headerlink" title="3. 服务注册与发现"></a>3. 服务注册与发现</h2><h3 id="3-1-为什么需要"><a href="#3-1-为什么需要" class="headerlink" title="3.1 为什么需要"></a>3.1 为什么需要</h3><p>假设投放服务要调用计费服务的接口 <code>POST /billing/charge</code>。在单体应用里这就是一次方法调用；现在计费服务是独立部署的，投放服务必须知道：<strong>计费服务现在跑在哪台机器、哪个端口</strong>。</p>
+<p>最朴素的办法是把地址写死在配置文件里：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">billing-service:</span><br>  <span class="hljs-attr">url:</span> <span class="hljs-string">http://192.168.1.100:8081</span><br></code></pre></td></tr></table></figure>
+
+<p>问题来了：</p>
+<ul>
+<li>计费服务扩容到 3 个实例，写一个地址够吗？</li>
+<li>某个实例重启后 IP 变了，配置文件要不要手动改？</li>
+<li>服务越来越多，每个服务都要维护一份”别人的地址表”</li>
+</ul>
+<h3 id="3-2-注册中心：服务的”电话簿”"><a href="#3-2-注册中心：服务的”电话簿”" class="headerlink" title="3.2 注册中心：服务的”电话簿”"></a>3.2 注册中心：服务的”电话簿”</h3><p><strong>注册中心</strong>就是一个所有服务都能访问的”电话簿”：</p>
+<ol>
+<li><strong>服务注册</strong>：计费服务启动时，把自己的”名字 + IP + 端口”报告给注册中心</li>
+<li><strong>心跳续约</strong>：计费服务定期向注册中心发心跳，证明自己还活着；注册中心如果一段时间没收到心跳，就把这个实例摘除</li>
+<li><strong>服务发现</strong>：投放服务要调用计费服务时，先问注册中心”计费服务现在有哪些可用实例”，拿到一个地址列表</li>
+</ol>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs nix">            ① 注册 <span class="hljs-operator">+</span> 心跳<br>计费服务实例<span class="hljs-number">1</span> ──────────┐<br>计费服务实例<span class="hljs-number">2</span> ──────────┤──→  注册中心 (Nacos <span class="hljs-symbol">/</span> Eureka)<br>计费服务实例<span class="hljs-number">3</span> ──────────┘          │<br>                                   │ ② 查询<span class="hljs-string">&quot;计费服务&quot;</span>的地址列表<br>                                   ↓<br>                              投放服务<br></code></pre></td></tr></table></figure>
+
+<p>常见注册中心：Netflix Eureka（Spring Cloud 早期默认）、阿里 Nacos（同时支持注册中心 + 配置中心，国内更主流）。</p>
+<h3 id="3-3-最简示例（Spring-Cloud-Alibaba-Nacos）"><a href="#3-3-最简示例（Spring-Cloud-Alibaba-Nacos）" class="headerlink" title="3.3 最简示例（Spring Cloud Alibaba + Nacos）"></a>3.3 最简示例（Spring Cloud Alibaba + Nacos）</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- pom.xml：让服务接入 Nacos 注册中心 --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-discovery<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># application.yml</span><br><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">application:</span><br>    <span class="hljs-attr">name:</span> <span class="hljs-string">billing-service</span>     <span class="hljs-comment"># 注册到 Nacos 的服务名</span><br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">nacos:</span><br>      <span class="hljs-attr">discovery:</span><br>        <span class="hljs-attr">server-addr:</span> <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span><span class="hljs-string">:8848</span>   <span class="hljs-comment"># Nacos 服务器地址</span><br></code></pre></td></tr></table></figure>
+
+<p>服务启动后，就会自动注册到 Nacos——不需要写任何代码，靠的是 Spring Boot 的自动装配机制（参考 <a href="/2026/05/17/Java-basic/17-springboot/">17 节 Spring Boot</a>）。</p>
+<h2 id="4-服务间调用：OpenFeign"><a href="#4-服务间调用：OpenFeign" class="headerlink" title="4. 服务间调用：OpenFeign"></a>4. 服务间调用：OpenFeign</h2><h3 id="4-1-用-RestTemplate-调用：能跑，但很啰嗦"><a href="#4-1-用-RestTemplate-调用：能跑，但很啰嗦" class="headerlink" title="4.1 用 RestTemplate 调用：能跑，但很啰嗦"></a>4.1 用 RestTemplate 调用：能跑，但很啰嗦</h3><p>22 节介绍过 <code>RestTemplate</code>（参考 <a href="/2026/05/22/Java-basic/22-http-client/">22 节 HTTP 客户端</a>），调用别的服务时可以这样写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;http://billing-service/billing/charge&quot;</span>; <span class="hljs-comment">// billing-service 是注册中心里的服务名</span><br><span class="hljs-type">ChargeResult</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> restTemplate.postForObject(url, request, ChargeResult.class);<br></code></pre></td></tr></table></figure>
+
+<p>每次调用都要手写 URL、手动拼参数、手动处理返回值——服务调用一多，代码里到处都是这种字符串拼接。</p>
+<h3 id="4-2-OpenFeign：把远程调用”伪装”成本地方法"><a href="#4-2-OpenFeign：把远程调用”伪装”成本地方法" class="headerlink" title="4.2 OpenFeign：把远程调用”伪装”成本地方法"></a>4.2 OpenFeign：把远程调用”伪装”成本地方法</h3><p><strong>OpenFeign</strong> 的思路：定义一个 Java 接口，加上注解描述”调用哪个服务的哪个接口”，剩下的事情（拼 URL、发 HTTP 请求、解析响应）框架自动完成——业务代码里调用这个接口，就像调用本地的 Service 一样。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-openfeign<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 定义接口：声明&quot;我要调用 billing-service 的 /billing/charge&quot;</span><br><span class="hljs-meta">@FeignClient(name = &quot;billing-service&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">BillingClient</span> &#123;<br><br>    <span class="hljs-meta">@PostMapping(&quot;/billing/charge&quot;)</span><br>    ChargeResult <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-meta">@RequestBody</span> ChargeRequest request)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 2. 像调用普通 Service 一样使用</span><br><span class="hljs-meta">@Service</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AdService</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BillingClient billingClient;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">launchAd</span><span class="hljs-params">(Long adId)</span> &#123;<br>        <span class="hljs-type">ChargeResult</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> billingClient.charge(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ChargeRequest</span>(adId, <span class="hljs-number">100</span>));<br>        <span class="hljs-comment">// ... 后续逻辑</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>@FeignClient(name = &quot;billing-service&quot;)</code> 里的 <code>billing-service</code> 就是 3.3 节里计费服务注册到 Nacos 时用的名字——OpenFeign 会自动去注册中心查这个名字对应的地址列表，调用方完全不用关心具体 IP。</p>
+<h2 id="5-负载均衡"><a href="#5-负载均衡" class="headerlink" title="5. 负载均衡"></a>5. 负载均衡</h2><h3 id="5-1-为什么需要"><a href="#5-1-为什么需要" class="headerlink" title="5.1 为什么需要"></a>5.1 为什么需要</h3><p>计费服务为了扛住更大流量，部署了 3 个实例。投放服务通过注册中心拿到的是一个<strong>地址列表</strong>（3 个地址），每次调用该选哪一个？</p>
+<h3 id="5-2-负载均衡器：在多个实例间分配请求"><a href="#5-2-负载均衡器：在多个实例间分配请求" class="headerlink" title="5.2 负载均衡器：在多个实例间分配请求"></a>5.2 负载均衡器：在多个实例间分配请求</h3><p><strong>负载均衡（Load Balancing）</strong> 就是按某种策略，把请求分摊到多个服务实例上：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>轮询（Round Robin）</td>
+<td>依次轮流分配给每个实例，最简单也最常用</td>
+</tr>
+<tr>
+<td>随机（Random）</td>
+<td>随机选一个实例</td>
+</tr>
+<tr>
+<td>加权（Weighted）</td>
+<td>性能好的机器配置更高权重，分配更多请求</td>
+</tr>
+</tbody></table>
+<p>Spring Cloud 里，OpenFeign（4 节）和 <code>RestTemplate</code> 都可以直接集成 <code>spring-cloud-starter-loadbalancer</code>——你在 4.2 节写的 <code>BillingClient</code> 调用，背后实际上已经经过了负载均衡器，<strong>业务代码完全无感知</strong>。这也是注册中心 + 负载均衡组合的核心价值：调用方只写”服务名”，”该打给哪个实例”完全交给框架处理。</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs 1c">投放服务 → BillingClient.charge<span class="hljs-punctuation">(</span>...<span class="hljs-punctuation">)</span><br>              │<br>              ▼<br>        负载均衡器（轮询）<br>         /    <span class="hljs-string">|    \</span><br>   实例<span class="hljs-number">1</span>   实例<span class="hljs-number">2</span>   实例<span class="hljs-number">3</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="6-API-网关"><a href="#6-API-网关" class="headerlink" title="6. API 网关"></a>6. API 网关</h2><h3 id="6-1-为什么需要"><a href="#6-1-为什么需要" class="headerlink" title="6.1 为什么需要"></a>6.1 为什么需要</h3><p>现在系统内部有用户服务、投放服务、计费服务、报表服务……前端（网页&#x2F;App）要调用这些接口时，难道要分别记住每个服务的地址吗？而且像”登录校验””限流””统一加密”这些逻辑，难道每个服务都要重复写一遍？</p>
+<h3 id="6-2-网关：所有外部请求的统一入口"><a href="#6-2-网关：所有外部请求的统一入口" class="headerlink" title="6.2 网关：所有外部请求的统一入口"></a>6.2 网关：所有外部请求的统一入口</h3><p><strong>API 网关</strong>是部署在最外层的一个独立服务，所有外部请求<strong>先经过网关</strong>，再由网关转发给内部对应的服务：</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs nix">        ┌────────────────────────┐<br>前端 ──→│   API 网关 (Gateway)     │<br>        │  统一鉴权 <span class="hljs-symbol">/</span> 限流 <span class="hljs-symbol">/</span> 日志    │<br>        └──┬─────┬─────┬─────┬───┘<br>           ▼     ▼     ▼     ▼<br>         用户   投放   计费   报表<br>         服务   服务   服务   服务<br></code></pre></td></tr></table></figure>
+
+<p>网关的核心能力：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>路由</td>
+<td>根据请求路径，把 <code>/api/users/**</code> 转发给用户服务，<code>/api/ads/**</code> 转发给投放服务</td>
+</tr>
+<tr>
+<td>统一鉴权</td>
+<td>在网关层校验 Token，校验失败直接拒绝，内部服务不用每个都写一遍登录校验</td>
+</tr>
+<tr>
+<td>限流</td>
+<td>控制每秒最多放行多少请求，保护后端服务</td>
+</tr>
+<tr>
+<td>日志&#x2F;监控</td>
+<td>统一记录每个请求的耗时、状态码</td>
+</tr>
+</tbody></table>
+<p>Spring Cloud Gateway 的路由配置示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">routes:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">id:</span> <span class="hljs-string">ad-service-route</span><br>          <span class="hljs-attr">uri:</span> <span class="hljs-string">lb://ad-service</span>        <span class="hljs-comment"># lb:// 表示走负载均衡，ad-service 是注册中心里的服务名</span><br>          <span class="hljs-attr">predicates:</span><br>            <span class="hljs-bullet">-</span> <span class="hljs-string">Path=/api/ads/**</span>         <span class="hljs-comment"># 匹配这个路径前缀的请求</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">id:</span> <span class="hljs-string">billing-service-route</span><br>          <span class="hljs-attr">uri:</span> <span class="hljs-string">lb://billing-service</span><br>          <span class="hljs-attr">predicates:</span><br>            <span class="hljs-bullet">-</span> <span class="hljs-string">Path=/api/billing/**</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="7-配置中心"><a href="#7-配置中心" class="headerlink" title="7. 配置中心"></a>7. 配置中心</h2><h3 id="7-1-为什么需要"><a href="#7-1-为什么需要" class="headerlink" title="7.1 为什么需要"></a>7.1 为什么需要</h3><p>每个服务都有 <code>application.yml</code>——数据库地址、Redis 地址、第三方接口的开关。当服务数量变多，或者同一个服务部署了几十个实例：</p>
+<ul>
+<li>改一个配置（比如把某个开关从 <code>false</code> 改成 <code>true</code>），要逐个服务、逐个实例去改配置文件再重启吗？</li>
+<li>测试环境和生产环境的配置经常不一样，怎么管理？</li>
+</ul>
+<h3 id="7-2-配置中心：配置集中存储，动态推送"><a href="#7-2-配置中心：配置集中存储，动态推送" class="headerlink" title="7.2 配置中心：配置集中存储，动态推送"></a>7.2 配置中心：配置集中存储，动态推送</h3><p><strong>配置中心</strong>把配置文件统一存放在一个中心服务里，各个服务启动时从配置中心拉取自己的配置；配置中心修改配置后，还能<strong>实时推送</strong>给正在运行的服务，不用重启。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># bootstrap.yml：告诉服务去 Nacos 拉取配置</span><br><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">application:</span><br>    <span class="hljs-attr">name:</span> <span class="hljs-string">billing-service</span><br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">nacos:</span><br>      <span class="hljs-attr">config:</span><br>        <span class="hljs-attr">server-addr:</span> <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span><span class="hljs-string">:8848</span><br>        <span class="hljs-attr">file-extension:</span> <span class="hljs-string">yaml</span>   <span class="hljs-comment"># 对应 Nacos 上的 billing-service.yaml</span><br></code></pre></td></tr></table></figure>
+
+<p>配合 <code>@RefreshScope</code> 注解，被它标注的 Bean 在配置中心的值变化时会自动刷新，不需要重启服务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><br><span class="hljs-meta">@RefreshScope</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FeatureController</span> &#123;<br><br>    <span class="hljs-meta">@Value(&quot;$&#123;feature.new-billing-enabled:false&#125;&quot;)</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> newBillingEnabled;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Nacos 同时承担”注册中心”（3 节）和”配置中心”两个角色，是它在国内 Spring Cloud Alibaba 生态里很受欢迎的原因之一。</p>
+<h2 id="8-服务容错：熔断、降级、限流"><a href="#8-服务容错：熔断、降级、限流" class="headerlink" title="8. 服务容错：熔断、降级、限流"></a>8. 服务容错：熔断、降级、限流</h2><h3 id="8-1-为什么需要：一个服务挂了，不能拖垮所有人"><a href="#8-1-为什么需要：一个服务挂了，不能拖垮所有人" class="headerlink" title="8.1 为什么需要：一个服务挂了，不能拖垮所有人"></a>8.1 为什么需要：一个服务挂了，不能拖垮所有人</h3><p>假设报表服务调用计费服务查询账单数据，但计费服务因为数据库慢查询卡住了，每个请求都要等 30 秒才超时。这时：</p>
+<ul>
+<li>报表服务的所有请求都卡在等计费服务的调用上</li>
+<li>报表服务的线程池被这些”卡住的请求”占满</li>
+<li>报表服务自己也变得不可用了——<strong>故障从一个服务扩散到了调用它的所有服务</strong>，这就是”雪崩”</li>
+</ul>
+<h3 id="8-2-三个关键手段"><a href="#8-2-三个关键手段" class="headerlink" title="8.2 三个关键手段"></a>8.2 三个关键手段</h3><table>
+<thead>
+<tr>
+<th>手段</th>
+<th>含义</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>限流</td>
+<td>限制单位时间内允许通过的请求数量，超出的直接拒绝</td>
+<td>景区限制每天入园人数</td>
+</tr>
+<tr>
+<td>熔断</td>
+<td>监控调用失败率，失败率过高时<strong>暂时停止调用</strong>这个服务一段时间，直接返回失败&#x2F;默认值，不再傻等</td>
+<td>家里的保险丝，电流过大就跳闸</td>
+</tr>
+<tr>
+<td>降级</td>
+<td>调用失败&#x2F;熔断时，返回一个”兜底”结果（比如缓存数据、默认值），而不是直接报错给用户</td>
+<td>高速路口堵车时，导航改走备用路线</td>
+</tr>
+</tbody></table>
+<h3 id="8-3-熔断器的三种状态"><a href="#8-3-熔断器的三种状态" class="headerlink" title="8.3 熔断器的三种状态"></a>8.3 熔断器的三种状态</h3><figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs inform7">关闭 (<span class="hljs-keyword">Closed</span>) ──失败率超过阈值──→ 打开 (<span class="hljs-keyword">Open</span>)<br>   ↑                                  │<br>   │                              等待一段时间<br>   │                                  ↓<br>   └──── 试探请求成功 ──── 半开 (Half-<span class="hljs-keyword">Open</span>)<br>                              │<br>                          试探请求失败<br>                              ↓<br>                           打开 (<span class="hljs-keyword">Open</span>)<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>关闭</strong>：正常状态，请求正常发给计费服务</li>
+<li><strong>打开</strong>：失败率超过阈值后，熔断器”跳闸”，后续请求<strong>不再真正调用</strong>计费服务，直接走降级逻辑（比如返回”账单暂不可用，请稍后重试”）</li>
+<li><strong>半开</strong>：经过一段冷却时间后，放一小部分请求”试探”计费服务是否恢复——如果成功就回到”关闭”状态，否则继续保持”打开”</li>
+</ul>
+<p>常见组件：Sentinel（阿里，支持限流+熔断+降级，有可视化控制台）、Resilience4j（轻量级库）。Netflix Hystrix 是早期的代表，但已停止维护。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Resilience4j 风格的熔断示例（伪代码示意，实际配置以注解/配置文件为主）</span><br><span class="hljs-meta">@CircuitBreaker(name = &quot;billingService&quot;, fallbackMethod = &quot;fallbackGetBill&quot;)</span><br><span class="hljs-keyword">public</span> Bill <span class="hljs-title function_">getBill</span><span class="hljs-params">(Long adId)</span> &#123;<br>    <span class="hljs-keyword">return</span> billingClient.getBill(adId);<br>&#125;<br><br><span class="hljs-comment">// 熔断或异常时的降级方法，方法签名要和原方法一致（多一个 Throwable 参数）</span><br><span class="hljs-keyword">public</span> Bill <span class="hljs-title function_">fallbackGetBill</span><span class="hljs-params">(Long adId, Throwable t)</span> &#123;<br>    <span class="hljs-keyword">return</span> Bill.unavailable(); <span class="hljs-comment">// 返回一个表示&quot;暂不可用&quot;的默认对象</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="9-分布式事务"><a href="#9-分布式事务" class="headerlink" title="9. 分布式事务"></a>9. 分布式事务</h2><h3 id="9-1-为什么需要"><a href="#9-1-为什么需要" class="headerlink" title="9.1 为什么需要"></a>9.1 为什么需要</h3><p>广告”投放”操作需要同时做两件事：</p>
+<ol>
+<li>计费服务：给广告主账户扣费</li>
+<li>投放服务：创建一条投放记录</li>
+</ol>
+<p>在单体应用里，这两步在一个 <code>@Transactional</code> 方法里，要么都成功要么都回滚（参考 MyBatis&#x2F;Spring 事务管理）。但现在这是<strong>两个服务、两个独立数据库</strong>——本地事务管不到另一个服务的数据库。如果”扣费成功”但”创建投放记录”失败了，钱扣了但广告没投出去，数据就不一致了。</p>
+<h3 id="9-2-几种常见方案（了解即可，不深入）"><a href="#9-2-几种常见方案（了解即可，不深入）" class="headerlink" title="9.2 几种常见方案（了解即可，不深入）"></a>9.2 几种常见方案（了解即可，不深入）</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>思路</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2PC（两阶段提交）</td>
+<td>协调者先问所有参与者”能不能提交”，都说能才真正提交</td>
+<td>强一致，但所有参与者要互相等待，性能差，很少在微服务里直接用</td>
+</tr>
+<tr>
+<td>TCC（Try-Confirm-Cancel）</td>
+<td>每个操作拆成”预留资源(Try)”、”确认执行(Confirm)”、”取消释放(Cancel)”三步</td>
+<td>性能较好，但每个业务都要写三套接口，开发成本高</td>
+</tr>
+<tr>
+<td>Saga</td>
+<td>把一个大事务拆成一串本地事务，每一步失败时执行对应的”补偿操作”（比如”扣费”对应的补偿是”退款”）</td>
+<td>不要求强一致，适合电商&#x2F;广告这类”最终一致”场景</td>
+</tr>
+<tr>
+<td>本地消息表 &#x2F; 消息队列</td>
+<td>先在本地数据库记一条”待发送”消息，本地事务提交后再异步通知其他服务，失败可重试</td>
+<td>实现简单，对最终一致性场景很常用</td>
+</tr>
+</tbody></table>
+<p>实际项目中，这部分常用阿里的 <strong>Seata</strong> 框架封装了上述模式（尤其是 AT 模式，类似自动化的 2PC），业务代码改动很小。<strong>初学阶段记住一个结论</strong>：分布式事务追求的通常是<strong>最终一致性</strong>（过程中可能短暂不一致，但最终会达成一致），而不是单体应用里的强一致性。</p>
+<h2 id="10-链路追踪与日志聚合"><a href="#10-链路追踪与日志聚合" class="headerlink" title="10. 链路追踪与日志聚合"></a>10. 链路追踪与日志聚合</h2><h3 id="10-1-为什么需要"><a href="#10-1-为什么需要" class="headerlink" title="10.1 为什么需要"></a>10.1 为什么需要</h3><p>一个”创建广告投放”的请求，可能依次经过：网关 → 投放服务 → 计费服务 → 用户服务（查询广告主余额）→ 报表服务（记录一条投放日志）。如果这个请求总共耗时 2 秒，<strong>慢在哪一步</strong>？如果报错了，<strong>是哪个服务报的错</strong>？</p>
+<p>每个服务的日志都是独立文件，单看一个服务的日志，看不到完整的调用链路。</p>
+<h3 id="10-2-链路追踪：给每个请求一个”身份证号”"><a href="#10-2-链路追踪：给每个请求一个”身份证号”" class="headerlink" title="10.2 链路追踪：给每个请求一个”身份证号”"></a>10.2 链路追踪：给每个请求一个”身份证号”</h3><p><strong>链路追踪</strong>的核心思路很简单：请求进入网关时，生成一个全局唯一的 <strong>TraceId</strong>；这个 TraceId 会随着请求（通过 HTTP Header）一路传递给后续调用的每个服务；每个服务打日志时，都把这个 TraceId 一起打印出来。</p>
+<figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs inform7">TraceId: abc123<br>  网关       <span class="hljs-comment">[abc123]</span> 收到请求 /api/ads/launch<br>  投放服务   <span class="hljs-comment">[abc123]</span> 处理投放请求，调用计费服务<br>  计费服务   <span class="hljs-comment">[abc123]</span> 扣费成功，耗时 800ms   ← 原来慢在这里！<br>  投放服务   <span class="hljs-comment">[abc123]</span> 创建投放记录成功<br></code></pre></td></tr></table></figure>
+
+<p>排查问题时，只要拿着这个 TraceId 去日志系统里搜索，就能把分散在 4 个服务里的日志串成一条完整的调用链，并看到每一步的耗时。</p>
+<p>常见组合：</p>
+<ul>
+<li><strong>Spring Cloud Sleuth</strong>（生成和传递 TraceId）+ <strong>Zipkin</strong>（可视化展示调用链路和耗时）</li>
+<li><strong>SkyWalking</strong>：国产 APM 工具，功能更全（链路追踪 + 性能监控 + 告警），接入时几乎不用改代码</li>
+<li><strong>ELK（Elasticsearch + Logstash + Kibana）</strong>：把所有服务的日志统一收集、索引，支持按 TraceId 搜索</li>
+</ul>
+<h2 id="11-容器化与部署简介"><a href="#11-容器化与部署简介" class="headerlink" title="11. 容器化与部署简介"></a>11. 容器化与部署简介</h2><h3 id="11-1-为什么需要"><a href="#11-1-为什么需要" class="headerlink" title="11.1 为什么需要"></a>11.1 为什么需要</h3><p>微服务拆分之后，服务数量从 1 个变成几十个。每个服务可能用了不同版本的 JDK、不同的依赖库版本——在物理机&#x2F;虚拟机上手动部署、手动处理”环境不一致”的问题，几十个服务根本管不过来。</p>
+<h3 id="11-2-Docker：把”运行环境”打包进去"><a href="#11-2-Docker：把”运行环境”打包进去" class="headerlink" title="11.2 Docker：把”运行环境”打包进去"></a>11.2 Docker：把”运行环境”打包进去</h3><p><strong>Docker</strong> 把应用代码、运行时依赖（JDK 版本、系统库）、配置文件，一起打包成一个<strong>镜像（Image）</strong>。这个镜像在任何装了 Docker 的机器上，运行出来的**容器（Container）**行为都完全一致——彻底解决”在我电脑上能跑”的问题。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dockerfile"><span class="hljs-comment"># Dockerfile：描述如何构建 billing-service 的镜像</span><br><span class="hljs-keyword">FROM</span> eclipse-temurin:<span class="hljs-number">17</span>-jre<br><span class="hljs-keyword">COPY</span><span class="language-bash"> target/billing-service.jar app.jar</span><br><span class="hljs-keyword">ENTRYPOINT</span><span class="language-bash"> [<span class="hljs-string">&quot;java&quot;</span>, <span class="hljs-string">&quot;-jar&quot;</span>, <span class="hljs-string">&quot;/app.jar&quot;</span>]</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 构建镜像</span><br>docker build -t billing-service:1.0 .<br><br><span class="hljs-comment"># 运行容器</span><br>docker run -d -p 8081:8081 billing-service:1.0<br></code></pre></td></tr></table></figure>
+
+<h3 id="11-3-Kubernetes：管理大量容器"><a href="#11-3-Kubernetes：管理大量容器" class="headerlink" title="11.3 Kubernetes：管理大量容器"></a>11.3 Kubernetes：管理大量容器</h3><p>几十个服务、每个服务还要部署多个实例，光靠 <code>docker run</code> 一个个启动也不现实。<strong>Kubernetes（K8s）</strong> 是容器编排平台，负责：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>自动调度</td>
+<td>把容器分配到集群里资源充足的机器上运行</td>
+</tr>
+<tr>
+<td>自动扩缩容</td>
+<td>根据 CPU&#x2F;内存使用率，自动增加或减少服务实例数量</td>
+</tr>
+<tr>
+<td>自动恢复</td>
+<td>容器挂了自动重启，机器挂了自动迁移到其他机器</td>
+</tr>
+<tr>
+<td>服务发现</td>
+<td>K8s 内置了类似 3 节”注册中心”的能力</td>
+</tr>
+<tr>
+<td>滚动更新</td>
+<td>发布新版本时逐个替换旧实例，过程中服务不中断</td>
+</tr>
+</tbody></table>
+<p>初学阶段不需要精通 K8s 的所有概念，知道”它是用来管理大量容器的”就足够建立起完整的认知地图了——后续可以专门写一篇深入。</p>
+<h2 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>核心问题</th>
+<th>关键方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>服务注册与发现</td>
+<td>服务怎么找到对方</td>
+<td>Nacos &#x2F; Eureka：注册 + 心跳 + 发现</td>
+</tr>
+<tr>
+<td>服务调用</td>
+<td>调用代码怎么写得简洁</td>
+<td>OpenFeign：把远程调用伪装成接口方法</td>
+</tr>
+<tr>
+<td>负载均衡</td>
+<td>多个实例怎么分摊请求</td>
+<td>LoadBalancer：轮询&#x2F;随机&#x2F;加权，对调用方透明</td>
+</tr>
+<tr>
+<td>API 网关</td>
+<td>外部请求统一入口在哪</td>
+<td>Spring Cloud Gateway：路由 + 鉴权 + 限流</td>
+</tr>
+<tr>
+<td>配置中心</td>
+<td>配置怎么集中管理、动态生效</td>
+<td>Nacos Config + <code>@RefreshScope</code></td>
+</tr>
+<tr>
+<td>服务容错</td>
+<td>一个服务挂了怎么不拖垮全部</td>
+<td>限流&#x2F;熔断&#x2F;降级，Sentinel &#x2F; Resilience4j</td>
+</tr>
+<tr>
+<td>分布式事务</td>
+<td>跨服务数据一致性</td>
+<td>追求最终一致性：Saga &#x2F; 消息队列 &#x2F; Seata</td>
+</tr>
+<tr>
+<td>链路追踪</td>
+<td>一个慢请求慢在哪一步</td>
+<td>TraceId 贯穿全链路，Sleuth + Zipkin &#x2F; SkyWalking</td>
+</tr>
+<tr>
+<td>容器化部署</td>
+<td>几十个服务怎么管</td>
+<td>Docker 打包 + Kubernetes 编排</td>
+</tr>
+</tbody></table>
+<p><strong>给初学者的建议</strong>：不要一上来就想着把所有组件都用上——先理解”单体的痛点 → 拆分之后冒出的新问题 → 每个新问题对应的方案”这条逻辑链，再结合实际项目规模决定要不要引入某个组件。Mini-SSP 这类中小型项目，初期甚至可以先不拆微服务，把”按业务模块划分代码包”做好（参考 <a href="/2026/05/16/Java-basic/16-spring-ioc-aop/">16 节 Spring IoC&#x2F;AOP</a> 的分层思想），等真的遇到”一个团队改一个项目互相阻塞”的问题时再考虑拆分。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E8%BF%9B%E9%98%B6/" class="category-chain-item">Java进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" class="print-no-link">#微服务</a>
+      
+        <a href="/tags/Spring-Cloud/" class="print-no-link">#Spring Cloud</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶</div>
+      <div>https://rebibabo.github.io/2026/05/01/Java-advanced/01-microservices-intro/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/02/Java-basic/02-basic-types/" title="Java基础(2) | 基本数据类型：八大原始类型与那些必踩的坑">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(2) | 基本数据类型：八大原始类型与那些必踩的坑</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/01/programmatic-ads/01-DSP/" title="程序化广告 (1)：DSP——广告主的&#34;代理人&#34;">
+                        <span class="hidden-mobile">程序化广告 (1)：DSP——广告主的&#34;代理人&#34;</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

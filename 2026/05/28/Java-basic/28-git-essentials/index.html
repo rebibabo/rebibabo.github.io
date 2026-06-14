@@ -1,0 +1,1212 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言26 开发规范全集 里讲过 Git 的”团队规范”——分支怎么命名、commit message 怎么写、PR 模板长什么样。但很多刚入职的同学缺的不是规范，而是命令本身：遇到一个具体场景，该敲哪条命令、为什么。 这篇就专门聊操作层面：日常提交、分支协作、冲突解决、撤销回退，全部用”场景 → 命令”的方式来讲，尽量少讲理论。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java基础(番外) | Git 日常操作实战：从提交到协作全流程">
+<meta property="og:url" content="https://rebibabo.github.io/2026/05/28/Java-basic/28-git-essentials/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言26 开发规范全集 里讲过 Git 的”团队规范”——分支怎么命名、commit message 怎么写、PR 模板长什么样。但很多刚入职的同学缺的不是规范，而是命令本身：遇到一个具体场景，该敲哪条命令、为什么。 这篇就专门聊操作层面：日常提交、分支协作、冲突解决、撤销回退，全部用”场景 → 命令”的方式来讲，尽量少讲理论。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-14T00:08:14.592Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Git">
+<meta property="article:tag" content="团队协作">
+<meta property="article:tag" content="版本控制">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java基础(番外) | Git 日常操作实战：从提交到协作全流程 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java基础(番外) | Git 日常操作实战：从提交到协作全流程"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-28 00:00" pubdate>
+          2026年5月28日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          64 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java基础(番外) | Git 日常操作实战：从提交到协作全流程</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><a href="/2026/05/26/Java-basic/26-dev-conventions/">26 开发规范全集</a> 里讲过 Git 的”团队规范”——分支怎么命名、commit message 怎么写、PR 模板长什么样。但很多刚入职的同学缺的不是规范，而是<strong>命令本身</strong>：遇到一个具体场景，该敲哪条命令、为什么。</p>
+<p>这篇就专门聊操作层面：日常提交、分支协作、冲突解决、撤销回退，全部用”场景 → 命令”的方式来讲，尽量少讲理论。</p>
+<span id="more"></span>
+
+<h2 id="1-核心概念：三个区域-一次提交的旅程"><a href="#1-核心概念：三个区域-一次提交的旅程" class="headerlink" title="1. 核心概念：三个区域 + 一次提交的旅程"></a>1. 核心概念：三个区域 + 一次提交的旅程</h2><p>理解 Git 最关键的一步，是搞清楚一份代码在提交过程中会经过哪几个”区域”：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">工作区 (Working Directory)<br>   │  git <span class="hljs-keyword">add</span><br>   ▼<br>暂存区 (Staging Area / <span class="hljs-keyword">Index</span>)<br>   │  git <span class="hljs-keyword">commit</span><br>   ▼<br>本地仓库 (<span class="hljs-keyword">Local</span> Repository)<br>   │  git push<br>   ▼<br>远程仓库 (Remote Repository, 如 GitHub/GitLab)<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>是什么</th>
+<th>对应命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>工作区</td>
+<td>你在编辑器里看到、修改的文件</td>
+<td>直接编辑文件</td>
+</tr>
+<tr>
+<td>暂存区</td>
+<td>“下一次提交将会包含哪些改动”的草稿</td>
+<td><code>git add</code> 加入，<code>git restore --staged</code> 移出</td>
+</tr>
+<tr>
+<td>本地仓库</td>
+<td>你电脑上的 commit 历史</td>
+<td><code>git commit</code> 写入</td>
+</tr>
+<tr>
+<td>远程仓库</td>
+<td>团队共享的仓库（GitHub&#x2F;GitLab&#x2F;Gitee）</td>
+<td><code>git push</code> &#x2F; <code>git pull</code> 同步</td>
+</tr>
+</tbody></table>
+<p><strong>为什么要有”暂存区”这一层？</strong></p>
+<p>因为你改了 5 个文件，但这次只想提交其中 2 个文件的改动（比如另外 3 个还没改完）。暂存区让你可以<strong>精确挑选</strong>这次 commit 包含哪些改动，而不是”一锤子全部提交”。</p>
+<h2 id="2-日常基本操作"><a href="#2-日常基本操作" class="headerlink" title="2. 日常基本操作"></a>2. 日常基本操作</h2><h3 id="2-1-初始化与克隆"><a href="#2-1-初始化与克隆" class="headerlink" title="2.1 初始化与克隆"></a>2.1 初始化与克隆</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 在已有目录里初始化一个新仓库（很少用，新人多数是 clone）</span><br>git init<br><br><span class="hljs-comment"># 克隆远程仓库到本地</span><br>git <span class="hljs-built_in">clone</span> https://github.com/xxx/project.git<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-查看状态与差异"><a href="#2-2-查看状态与差异" class="headerlink" title="2.2 查看状态与差异"></a>2.2 查看状态与差异</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git status</code></td>
+<td>看哪些文件被修改&#x2F;新增&#x2F;删除，分别处于工作区还是暂存区</td>
+<td>每次操作前先看一眼，养成习惯</td>
+</tr>
+<tr>
+<td><code>git diff</code></td>
+<td>对比”工作区”与”暂存区”的差异</td>
+<td>看看自己改了啥，还没 add</td>
+</tr>
+<tr>
+<td><code>git diff --staged</code></td>
+<td>对比”暂存区”与”上次 commit”的差异</td>
+<td>add 之后，commit 之前再确认一遍</td>
+</tr>
+<tr>
+<td><code>git diff HEAD</code></td>
+<td>对比”工作区+暂存区”与”上次 commit”的差异</td>
+<td>想看本次所有改动（不管有没有 add）</td>
+</tr>
+<tr>
+<td><code>git log</code></td>
+<td>查看提交历史</td>
+<td>排查”这段代码是谁、什么时候改的”</td>
+</tr>
+<tr>
+<td><code>git log --oneline --graph --all</code></td>
+<td>用一行+图形展示所有分支的提交历史</td>
+<td>看分支结构、合并关系，<strong>强烈建议常用</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>小技巧</strong>：<code>git diff</code> 系列三个命令的区别，记一个口诀——<strong>“diff 看工作区改动，diff –staged 看暂存区改动，diff HEAD 看全部改动”</strong>。</p>
+</blockquote>
+<h3 id="2-3-提交"><a href="#2-3-提交" class="headerlink" title="2.3 提交"></a>2.3 提交</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">git add file1.java file2.java   <span class="hljs-comment"># 只加这两个文件</span><br>git add .                        <span class="hljs-comment"># 加当前目录下所有改动（小心误加不该提交的文件）</span><br>git commit -m <span class="hljs-string">&quot;feat: 添加用户注册接口&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>如果只是想”修改上一次的 commit message”或者”把刚才漏掉的小改动并进上一次 commit”：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">git commit --amend<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>--amend</code> 会改写上一次 commit 的哈希值。如果这个 commit <strong>已经 push 到远程</strong>，且别人可能已经拉取过，就不要用 <code>--amend</code>，否则会导致历史冲突（后面 rebase 部分会再提一次这个原则）。</p>
+</blockquote>
+<h2 id="3-分支管理"><a href="#3-分支管理" class="headerlink" title="3. 分支管理"></a>3. 分支管理</h2><h3 id="3-1-创建、切换分支"><a href="#3-1-创建、切换分支" class="headerlink" title="3.1 创建、切换分支"></a>3.1 创建、切换分支</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">git branch                     <span class="hljs-comment"># 列出本地所有分支</span><br>git branch feature/login       <span class="hljs-comment"># 创建新分支（不切换过去）</span><br>git checkout feature/login     <span class="hljs-comment"># 切换到该分支</span><br>git checkout -b feature/login  <span class="hljs-comment"># 创建并立即切换（等价于上面两行）</span><br><br><span class="hljs-comment"># Git 2.23+ 推荐用 switch / restore 替代 checkout 的部分功能，语义更清晰</span><br>git switch feature/login        <span class="hljs-comment"># 切换分支</span><br>git switch -c feature/login     <span class="hljs-comment"># 创建并切换</span><br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>历史地位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git checkout</code></td>
+<td>老命令，功能”过载”——既能切换分支，又能恢复文件，容易搞混</td>
+</tr>
+<tr>
+<td><code>git switch</code> &#x2F; <code>git restore</code></td>
+<td>新命令，把”切分支”和”恢复文件”拆成两个职责更清晰的命令</td>
+</tr>
+</tbody></table>
+<p>新项目可以优先用 <code>switch</code>&#x2F;<code>restore</code>，但老项目、老教程里 <code>checkout</code> 还是随处可见，<strong>两套都要认识</strong>。</p>
+<h3 id="3-2-合并分支：fast-forward-vs-merge-commit"><a href="#3-2-合并分支：fast-forward-vs-merge-commit" class="headerlink" title="3.2 合并分支：fast-forward vs merge commit"></a>3.2 合并分支：fast-forward vs merge commit</h3><p>假设 <code>main</code> 分支没有新提交，你在 <code>feature/login</code> 上开发完了，合并回 <code>main</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git switch main<br>git merge feature/login<br></code></pre></td></tr></table></figure>
+
+<p>这时会发生两种情况之一：</p>
+<p><strong>情况一：Fast-forward（快进合并）</strong></p>
+<p>如果 <code>main</code> 在你开发期间<strong>没有任何新 commit</strong>，Git 会发现”其实只是把 main 的指针往前移到 feature&#x2F;login 的最新提交就行了”，不需要产生新的合并节点：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs less">合并前:  <span class="hljs-selector-tag">main</span> ──<span class="hljs-selector-tag">A</span>──<span class="hljs-selector-tag">B</span><br>                  \<br>         <span class="hljs-selector-tag">feature</span>   <span class="hljs-selector-tag">C</span>──<span class="hljs-selector-tag">D</span><br><br>合并后:  <span class="hljs-selector-tag">main</span> ──<span class="hljs-selector-tag">A</span>──<span class="hljs-selector-tag">B</span>──<span class="hljs-selector-tag">C</span>──<span class="hljs-selector-tag">D</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>情况二：产生 Merge Commit</strong></p>
+<p>如果 <code>main</code> 在你开发期间<strong>也有新 commit</strong>（比如别人合并了别的功能），Git 没办法简单”快进”，会自动创建一个新的”合并提交”，把两条线汇合：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs less">合并前:  <span class="hljs-selector-tag">main</span> ──<span class="hljs-selector-tag">A</span>──<span class="hljs-selector-tag">B</span>──────<span class="hljs-selector-tag">E</span><br>                  \<br>         <span class="hljs-selector-tag">feature</span>   <span class="hljs-selector-tag">C</span>──<span class="hljs-selector-tag">D</span><br><br>合并后:  <span class="hljs-selector-tag">main</span> ──<span class="hljs-selector-tag">A</span>──<span class="hljs-selector-tag">B</span>──────<span class="hljs-selector-tag">E</span>──<span class="hljs-selector-tag">M</span><br>                  \         /<br>                   <span class="hljs-selector-tag">C</span>────────<span class="hljs-selector-tag">D</span><br></code></pre></td></tr></table></figure>
+
+<p><code>M</code> 就是 merge commit，它有两个父提交（E 和 D）。</p>
+<h3 id="3-3-删除分支"><a href="#3-3-删除分支" class="headerlink" title="3.3 删除分支"></a>3.3 删除分支</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">git branch -d feature/login        <span class="hljs-comment"># 删除本地分支（已合并才能删，安全）</span><br>git branch -D feature/login        <span class="hljs-comment"># 强制删除本地分支（未合并也删，危险）</span><br>git push origin --delete feature/login  <span class="hljs-comment"># 删除远程分支</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="4-远程协作"><a href="#4-远程协作" class="headerlink" title="4. 远程协作"></a>4. 远程协作</h2><h3 id="4-1-fetch-vs-pull：很多人搞混的两个命令"><a href="#4-1-fetch-vs-pull：很多人搞混的两个命令" class="headerlink" title="4.1 fetch vs pull：很多人搞混的两个命令"></a>4.1 fetch vs pull：很多人搞混的两个命令</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>做了什么</th>
+<th>会不会改动你本地的代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git fetch</code></td>
+<td>只从远程下载最新的提交信息到本地（更新 <code>origin/main</code> 这种”远程分支指针”）</td>
+<td><strong>不会</strong>，你的工作区和本地分支完全不变</td>
+</tr>
+<tr>
+<td><code>git pull</code></td>
+<td>等价于 <code>git fetch</code> + <code>git merge</code>（或 <code>rebase</code>，取决于配置）</td>
+<td><strong>会</strong>，会把远程的新提交合并到你当前分支</td>
+</tr>
+</tbody></table>
+<p><strong>为什么有时候推荐先 fetch 再 merge，而不是直接 pull？</strong></p>
+<p>因为 <code>pull</code> 是”自动合并”，如果远程有新提交且和你本地冲突，会直接在你工作区炸出冲突，打断你的思路。先 <code>fetch</code> 看看远程改了什么（<code>git log origin/main</code>），再决定要不要合并&#x2F;怎么合并，会更可控。</p>
+<p>不过日常开发中，直接 <code>git pull</code> 也完全够用，没必要每次都分两步。</p>
+<h3 id="4-2-推送到远程"><a href="#4-2-推送到远程" class="headerlink" title="4.2 推送到远程"></a>4.2 推送到远程</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git push                  <span class="hljs-comment"># 推送到已关联的远程分支</span><br>git push -u origin feature/login  <span class="hljs-comment"># 第一次推送新分支，-u 设置&quot;上游分支&quot;关联关系</span><br></code></pre></td></tr></table></figure>
+
+<p>设置了 <code>-u</code>（即 <code>--set-upstream</code>）之后，以后这个分支直接 <code>git push</code>&#x2F;<code>git pull</code> 就知道该推到&#x2F;拉取哪个远程分支了，不用每次都写全 <code>origin feature/login</code>。</p>
+<h3 id="4-3-典型协作流程"><a href="#4-3-典型协作流程" class="headerlink" title="4.3 典型协作流程"></a>4.3 典型协作流程</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> git switch main<br><span class="hljs-bullet">2.</span> git pull                     # 同步最新代码<br><span class="hljs-bullet">3.</span> git switch -c feature/xxx    # 开新分支开发<br><span class="hljs-bullet">4.</span> ... 写代码、commit ...<br><span class="hljs-bullet">5.</span> git push -u origin feature/xxx<br><span class="hljs-bullet">6.</span> 在 GitHub/GitLab 上发起 PR/MR<br><span class="hljs-bullet">7.</span> 代码评审通过后合并到 main<br><span class="hljs-bullet">8.</span> git switch main &amp;&amp; git pull  # 合并后再同步一次本地 main<br><span class="hljs-bullet">9.</span> git branch -d feature/xxx    # 清理本地分支<br></code></pre></td></tr></table></figure>
+
+<h2 id="5-合并冲突怎么处理"><a href="#5-合并冲突怎么处理" class="headerlink" title="5. 合并冲突怎么处理"></a>5. 合并冲突怎么处理</h2><p>冲突的本质：<strong>同一个文件的同一处代码，两条分支都改了，Git 不知道该听谁的</strong>。</p>
+<p>当 <code>merge</code>&#x2F;<code>pull</code>&#x2F;<code>rebase</code> 过程中遇到冲突，Git 会在文件里插入冲突标记：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendNotice</span><span class="hljs-params">()</span> &#123;<br>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>    smsService.send(user.getPhone(), <span class="hljs-string">&quot;您的订单已发货&quot;</span>);<br>=======<br>    emailService.send(user.getEmail(), <span class="hljs-string">&quot;您的订单已发货&quot;</span>);<br>&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/email-notice<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 到 <code>=======</code> 之间：**当前分支（你这边）**的内容</li>
+<li><code>=======</code> 到 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/email-notice</code> 之间：<strong>被合并进来的分支</strong>的内容</li>
+</ul>
+<h3 id="解决步骤"><a href="#解决步骤" class="headerlink" title="解决步骤"></a>解决步骤</h3><ol>
+<li>打开文件，看清楚两边各改了什么</li>
+<li>手动编辑成你想要的最终结果（比如两个通知都发，或者只保留一个），<strong>删除所有 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>&#x2F;<code>=======</code>&#x2F;<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 标记</strong></li>
+<li><code>git add</code> 这个文件，标记”冲突已解决”</li>
+<li>如果是 <code>merge</code>：<code>git commit</code> 完成合并；如果是 <code>rebase</code>：<code>git rebase --continue</code></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 解决完所有冲突文件后</span><br>git add NoticeService.java<br>git commit          <span class="hljs-comment"># merge 场景</span><br><span class="hljs-comment"># 或</span><br>git rebase --<span class="hljs-built_in">continue</span>  <span class="hljs-comment"># rebase 场景</span><br></code></pre></td></tr></table></figure>
+
+<p>如果发现这次合并太乱，想放弃整个合并过程，回到合并之前的状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git merge --abort     <span class="hljs-comment"># 放弃 merge</span><br>git rebase --abort    <span class="hljs-comment"># 放弃 rebase</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="6-rebase-vs-merge"><a href="#6-rebase-vs-merge" class="headerlink" title="6. rebase vs merge"></a>6. rebase vs merge</h2><p>这是新人最容易迷惑的一对概念，先看图：</p>
+<p><strong>Merge</strong>：保留两条线的真实历史，会多一个 merge commit。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs css"><span class="hljs-selector-tag">main</span>     ──<span class="hljs-selector-tag">A</span>──<span class="hljs-selector-tag">B</span>──────────M<br>              \          /<br>feature        C────D────<br></code></pre></td></tr></table></figure>
+
+<p><strong>Rebase</strong>：把 <code>feature</code> 分支的提交”重新接到” <code>main</code> 最新的提交后面，<strong>历史变成一条直线</strong>，看起来好像 feature 是从最新的 main 上才开始开发的：</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">rebase</span> 前<span class="hljs-operator">:</span><br><span class="hljs-variable">main</span>     ──<span class="hljs-variable">A</span>──<span class="hljs-variable">B</span>──<span class="hljs-built_in">E</span><br>              \<br><span class="hljs-variable">feature</span>        <span class="hljs-built_in">C</span>──<span class="hljs-built_in">D</span><br><br><span class="hljs-variable">rebase</span> 后<span class="hljs-operator">:</span><br><span class="hljs-variable">main</span>     ──<span class="hljs-variable">A</span>──<span class="hljs-variable">B</span>──<span class="hljs-built_in">E</span><br>                   \<br><span class="hljs-variable">feature</span>             <span class="hljs-built_in">C</span><span class="hljs-operator">&#x27;</span>──<span class="hljs-built_in">D</span><span class="hljs-operator">&#x27;</span>   <span class="hljs-punctuation">(</span><span class="hljs-built_in">C</span><span class="hljs-operator">&#x27;</span>、<span class="hljs-built_in">D</span><span class="hljs-operator">&#x27;</span> 是 <span class="hljs-built_in">C</span>、<span class="hljs-built_in">D</span> 的<span class="hljs-string">&quot;重写版&quot;</span>，哈希值变了<span class="hljs-punctuation">)</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="什么时候用哪个？"><a href="#什么时候用哪个？" class="headerlink" title="什么时候用哪个？"></a>什么时候用哪个？</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>把别人最新的 <code>main</code> 同步到自己<strong>还没 push</strong> 的功能分支</td>
+<td><code>rebase</code></td>
+<td>让历史保持线性、干净，方便 review</td>
+</tr>
+<tr>
+<td>把功能分支合并回 <code>main</code>（团队协作，多人共享分支）</td>
+<td><code>merge</code></td>
+<td>保留真实的协作历史，且不会改写已共享的 commit</td>
+</tr>
+<tr>
+<td>个人本地分支整理 commit（比如把 5 个”修bug”的小 commit 合并成 1 个）</td>
+<td><code>rebase -i</code>（交互式）</td>
+<td>提交历史更清晰</td>
+</tr>
+</tbody></table>
+<h3 id="黄金原则：不要-rebase-已经-push、且别人可能已经拉取的分支"><a href="#黄金原则：不要-rebase-已经-push、且别人可能已经拉取的分支" class="headerlink" title="黄金原则：不要 rebase 已经 push、且别人可能已经拉取的分支"></a>黄金原则：不要 rebase 已经 push、且别人可能已经拉取的分支</h3><p>因为 rebase 会<strong>改写 commit 的哈希值</strong>（上图里的 C → C’）。如果别人已经基于 C 做了开发，你 rebase 之后把 C 变成了 C’，远程历史和别人本地历史就”分叉”了，会导致非常混乱的冲突。</p>
+<p>简化记忆：<strong>“自己的、还没分享出去的历史，可以随便 rebase 整理；已经分享给别人的历史，别动它，用 merge。”</strong></p>
+<h2 id="7-撤销与回退"><a href="#7-撤销与回退" class="headerlink" title="7. 撤销与回退"></a>7. 撤销与回退</h2><p>这部分最实用，也最容易出事故。核心思路是：<strong>先看你的改动”走到了哪一步”，再选对应的撤销命令</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>改了文件，还没 <code>add</code>，想恢复成上次提交的样子</td>
+<td><code>git restore &lt;file&gt;</code>（旧：<code>git checkout -- &lt;file&gt;</code>）</td>
+<td>工作区改动直接丢弃，<strong>慎用，不可恢复</strong></td>
+</tr>
+<tr>
+<td>已经 <code>add</code> 了，想撤销 add（但保留改动）</td>
+<td><code>git restore --staged &lt;file&gt;</code></td>
+<td>文件回到”已修改但未暂存”状态</td>
+</tr>
+<tr>
+<td>已经 <code>commit</code>，但还没 <code>push</code>，想撤销这次提交</td>
+<td><code>git reset --soft HEAD^</code></td>
+<td>撤销 commit，<strong>改动回到暂存区</strong>，代码不丢</td>
+</tr>
+<tr>
+<td>同上，但想把改动也退回工作区（取消 add）</td>
+<td><code>git reset --mixed HEAD^</code>（默认模式）</td>
+<td>撤销 commit + 撤销 add，改动还在工作区</td>
+</tr>
+<tr>
+<td>同上，但想<strong>连改动都丢弃</strong>，完全回到上次提交</td>
+<td><code>git reset --hard HEAD^</code></td>
+<td><strong>危险</strong>，改动彻底丢失，不可恢复（除非用 reflog）</td>
+</tr>
+<tr>
+<td>已经 <code>push</code> 到远程，别人可能已经拉取，想撤销</td>
+<td><code>git revert &lt;commit&gt;</code></td>
+<td><strong>不改写历史</strong>，而是新建一个”反向提交”来抵消之前的改动，安全</td>
+</tr>
+</tbody></table>
+<h3 id="reset-三种模式图解"><a href="#reset-三种模式图解" class="headerlink" title="reset 三种模式图解"></a>reset 三种模式图解</h3><p><code>HEAD^</code> 表示”上一个提交”。三种模式的区别在于：撤销 commit 之后，<strong>改动内容回到哪一层</strong>：</p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs scss">                soft          <span class="hljs-built_in">mixed</span>(默认)      hard<br>本地仓库(commit)  撤销           撤销            撤销<br>暂存区            保留改动        清空 ←撤销了add  清空<br>工作区            保留改动        保留改动 ←代码还在  清空 ←代码丢失<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>--soft</code>：只撤销 commit 这一步，改动还乖乖待在暂存区，<strong>最温和</strong></li>
+<li><code>--mixed</code>（默认不写参数就是这个）：撤销 commit + 撤销 add，改动回到工作区，文件内容不丢</li>
+<li><code>--hard</code>：连工作区的改动也一起清空，<strong>相当于”穿越回上一次提交的瞬间”</strong></li>
+</ul>
+<h3 id="reset-vs-revert：本质区别"><a href="#reset-vs-revert：本质区别" class="headerlink" title="reset vs revert：本质区别"></a>reset vs revert：本质区别</h3><ul>
+<li><code>reset</code>：<strong>移动 HEAD 指针</strong>，让分支”假装”这次提交没发生过——会改写历史，适合<strong>还没分享出去</strong>的提交</li>
+<li><code>revert</code>：<strong>新增一个提交</strong>，内容是”撤销上一个提交的改动”——不改写历史，历史上仍能看到”做了什么、又撤销了什么”两条记录，适合<strong>已经分享出去</strong>的提交</li>
+</ul>
+<h3 id="reflog：后悔药"><a href="#reflog：后悔药" class="headerlink" title="reflog：后悔药"></a>reflog：后悔药</h3><p>如果不小心 <code>reset --hard</code> 丢了改动，或者删错了分支，<strong>先别慌</strong>，Git 在一段时间内不会真的删除这些 commit，用 <code>reflog</code> 还能找回来：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git reflog              <span class="hljs-comment"># 查看所有 HEAD 移动的记录，包括&quot;丢失&quot;的 commit</span><br>git reset --hard &lt;<span class="hljs-built_in">hash</span>&gt; <span class="hljs-comment"># 找到丢失前的那个 commit 哈希，恢复回去</span><br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>reflog</code> 是本地仓库的”操作历史”，记录了 HEAD 曾经指向过的每一个位置，是新手误操作后最值得先尝试的救命命令。</p>
+</blockquote>
+<h2 id="8-暂存与清理"><a href="#8-暂存与清理" class="headerlink" title="8. 暂存与清理"></a>8. 暂存与清理</h2><h3 id="8-1-stash：临时收起改动"><a href="#8-1-stash：临时收起改动" class="headerlink" title="8.1 stash：临时收起改动"></a>8.1 stash：临时收起改动</h3><p>场景：你正在 <code>feature/a</code> 分支改代码，改了一半，突然要切到 <code>main</code> 修一个紧急 bug，但当前改动还不想 commit：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">git stash              <span class="hljs-comment"># 把当前改动&quot;收起来&quot;，工作区恢复干净</span><br>git switch main<br><span class="hljs-comment"># ... 修复 bug、提交、push ...</span><br>git switch feature/a<br>git stash pop          <span class="hljs-comment"># 把刚才收起的改动还原回来</span><br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git stash</code></td>
+<td>暂存当前改动</td>
+</tr>
+<tr>
+<td><code>git stash list</code></td>
+<td>查看所有暂存记录（可以暂存多次）</td>
+</tr>
+<tr>
+<td><code>git stash pop</code></td>
+<td>恢复最近一次暂存，并从列表中删除</td>
+</tr>
+<tr>
+<td><code>git stash apply</code></td>
+<td>恢复最近一次暂存，但<strong>保留</strong>在列表中（可以多次应用）</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-clean：清理未跟踪的文件"><a href="#8-2-clean：清理未跟踪的文件" class="headerlink" title="8.2 clean：清理未跟踪的文件"></a>8.2 clean：清理未跟踪的文件</h3><p>场景：本地有一堆构建产物、临时文件（不在 <code>.gitignore</code> 里），想一键清理：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">git clean -n     <span class="hljs-comment"># 先 dry-run，看看会删掉哪些文件（强烈建议先跑这个）</span><br>git clean -f     <span class="hljs-comment"># 真正删除未跟踪的文件</span><br>git clean -fd    <span class="hljs-comment"># 连未跟踪的目录也一起删</span><br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>危险操作</strong>：<code>git clean</code> 删除的文件<strong>不会进回收站，也不在 Git 历史里</strong>，删了就是真的没了。务必先 <code>-n</code> 确认。</p>
+</blockquote>
+<h2 id="9-cherry-pick-与-tag"><a href="#9-cherry-pick-与-tag" class="headerlink" title="9. cherry-pick 与 tag"></a>9. cherry-pick 与 tag</h2><h3 id="9-1-cherry-pick：摘一个-commit-到当前分支"><a href="#9-1-cherry-pick：摘一个-commit-到当前分支" class="headerlink" title="9.1 cherry-pick：摘一个 commit 到当前分支"></a>9.1 cherry-pick：摘一个 commit 到当前分支</h3><p>典型场景：<code>main</code> 分支上有个 hotfix commit，你的 <code>release</code> 分支也需要这个修复，但不想把 <code>main</code> 的其他改动也带过来：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git switch release<br>git cherry-pick &lt;commit-hash&gt;<br></code></pre></td></tr></table></figure>
+
+<p>效果：把指定的那一个 commit 的改动，复制一份应用到当前分支，生成一个新的 commit（哈希值不同，内容相同）。</p>
+<h3 id="9-2-tag：标记版本"><a href="#9-2-tag：标记版本" class="headerlink" title="9.2 tag：标记版本"></a>9.2 tag：标记版本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">git tag v1.0.0                  <span class="hljs-comment"># 给当前 commit 打标签</span><br>git tag -a v1.0.0 -m <span class="hljs-string">&quot;发布说明&quot;</span>  <span class="hljs-comment"># 带注释的标签（推荐，可以记录发布信息）</span><br>git push origin v1.0.0           <span class="hljs-comment"># 推送标签到远程</span><br>git push origin --tags           <span class="hljs-comment"># 推送所有标签</span><br></code></pre></td></tr></table></figure>
+
+<p><code>tag</code> 常用于标记”这是某个正式发布的版本”，方便以后快速定位到当时的代码状态。</p>
+<h2 id="10-速查表：我想做-X，该敲什么"><a href="#10-速查表：我想做-X，该敲什么" class="headerlink" title="10. 速查表：我想做 X，该敲什么"></a>10. 速查表：我想做 X，该敲什么</h2><table>
+<thead>
+<tr>
+<th>我想…</th>
+<th>命令</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>看现在有哪些改动还没提交</td>
+<td><code>git status</code></td>
+</tr>
+<tr>
+<td>看具体改了什么内容</td>
+<td><code>git diff</code></td>
+</tr>
+<tr>
+<td>创建并切换到新分支</td>
+<td><code>git switch -c &lt;branch&gt;</code></td>
+</tr>
+<tr>
+<td>把本地分支推到远程并建立关联</td>
+<td><code>git push -u origin &lt;branch&gt;</code></td>
+</tr>
+<tr>
+<td>同步远程最新代码到当前分支</td>
+<td><code>git pull</code></td>
+</tr>
+<tr>
+<td>把 main 的最新改动同步到我的功能分支（线性历史）</td>
+<td><code>git rebase main</code></td>
+</tr>
+<tr>
+<td>撤销最后一次 commit，但代码不丢</td>
+<td><code>git reset --soft HEAD^</code></td>
+</tr>
+<tr>
+<td>撤销已经 push 的某次提交</td>
+<td><code>git revert &lt;commit&gt;</code></td>
+</tr>
+<tr>
+<td>临时切分支但当前改动还没提交完</td>
+<td><code>git stash</code> → 切分支 → <code>git stash pop</code></td>
+</tr>
+<tr>
+<td>找回误删的 commit&#x2F;分支</td>
+<td><code>git reflog</code></td>
+</tr>
+<tr>
+<td>把某个 commit 摘到当前分支</td>
+<td><code>git cherry-pick &lt;commit&gt;</code></td>
+</tr>
+<tr>
+<td>看分支结构和合并关系</td>
+<td><code>git log --oneline --graph --all</code></td>
+</tr>
+</tbody></table>
+<h2 id="11-小结"><a href="#11-小结" class="headerlink" title="11. 小结"></a>11. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>核心要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>三个区域</td>
+<td>工作区 → 暂存区 → 本地仓库 → 远程仓库，<code>add</code>&#x2F;<code>commit</code>&#x2F;<code>push</code> 分别对应三次”提交”</td>
+</tr>
+<tr>
+<td>分支合并</td>
+<td>fast-forward（无新增节点）vs merge commit（产生汇合节点）</td>
+</tr>
+<tr>
+<td>fetch vs pull</td>
+<td>fetch 只下载不合并，pull &#x3D; fetch + merge</td>
+</tr>
+<tr>
+<td>rebase vs merge</td>
+<td>没 push 的历史可以 rebase 整理成直线；已分享的历史用 merge，别 rebase</td>
+</tr>
+<tr>
+<td>撤销操作</td>
+<td>没 add 用 <code>restore</code>，没 push 用 <code>reset</code>，已 push 用 <code>revert</code>，丢了用 <code>reflog</code> 找</td>
+</tr>
+<tr>
+<td>stash&#x2F;clean</td>
+<td>stash 临时收起改动；clean 删除未跟踪文件，操作前务必 <code>-n</code> 预览</td>
+</tr>
+</tbody></table>
+<p>新人入职第一周，把第 2、3、4、5 节的命令练熟（status&#x2F;diff&#x2F;commit&#x2F;branch&#x2F;merge&#x2F;pull&#x2F;push + 解决一次真实冲突），基本就能跟上团队协作的节奏了。第 6、7 节(rebase&#x2F;reset)可以慢慢用、慢慢理解，<strong>遇到不确定的操作，先 <code>git status</code> 看清楚现状，拿不准就先 <code>git stash</code> 或者复制一份代码备份再操作</strong>，这样即使搞错了也有退路。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%9F%BA%E7%A1%80/" class="category-chain-item">Java基础</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C/" class="print-no-link">#团队协作</a>
+      
+        <a href="/tags/Git/" class="print-no-link">#Git</a>
+      
+        <a href="/tags/%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6/" class="print-no-link">#版本控制</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java基础(番外) | Git 日常操作实战：从提交到协作全流程</div>
+      <div>https://rebibabo.github.io/2026/05/28/Java-basic/28-git-essentials/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/29/Java-basic/29-tomcat-servlet/" title="Java基础(番外) | Tomcat 与 Servlet：Spring Boot 背后的请求处理流程">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(番外) | Tomcat 与 Servlet：Spring Boot 背后的请求处理流程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/27/Java-basic/27-dev-workflow/" title="Java基础(番外) | 团队开发全流程：从需求到上线的完整链路">
+                        <span class="hidden-mobile">Java基础(番外) | 团队开发全流程：从需求到上线的完整链路</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

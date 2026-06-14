@@ -21,14 +21,14 @@
   
     <meta name="description" content="前言Java 的 I&#x2F;O 体系庞大且历史悠久——从 Java 1.0 的字节流&#x2F;字符流（BIO），到 Java 1.4 的 NIO，再到 Java 7 的 NIO.2（Files&#x2F;Path），经历了三代演进。这篇文章按照”先会用、再理解模型”的思路，把日常开发中会用到的 I&#x2F;O 操作梳理清楚。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Java全貌(9) | I&#x2F;O 与文件操作：从 BIO 到 NIO 与 Files 工具类">
+<meta property="og:title" content="Java基础(9) | I&#x2F;O 与文件操作：从 BIO 到 NIO 与 Files 工具类">
 <meta property="og:url" content="https://rebibabo.github.io/2026/05/09/Java-basic/09-io/index.html">
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="前言Java 的 I&#x2F;O 体系庞大且历史悠久——从 Java 1.0 的字节流&#x2F;字符流（BIO），到 Java 1.4 的 NIO，再到 Java 7 的 NIO.2（Files&#x2F;Path），经历了三代演进。这篇文章按照”先会用、再理解模型”的思路，把日常开发中会用到的 I&#x2F;O 操作梳理清楚。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-basic/bio-vs-nio-model.png">
 <meta property="article:published_time" content="2026-05-08T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-11T10:24:04.296Z">
+<meta property="article:modified_time" content="2026-06-13T15:00:09.263Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="IO">
 <meta property="article:tag" content="Java">
@@ -38,7 +38,7 @@
   
   
   
-  <title>Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类 - AI Infra</title>
+  <title>Java基础(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类 - AI Infra</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -307,7 +307,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类"></span>
+            <span id="subtitle" data-typed-text="Java基础(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类"></span>
           
         </div>
 
@@ -330,7 +330,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          16k 字
+          19k 字
         
       </span>
     
@@ -341,7 +341,7 @@
         
         
         
-          131 分钟
+          160 分钟
         
       </span>
     
@@ -380,7 +380,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</h1>
+            <h1 id="seo-header">Java基础(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</h1>
             
             
               <div class="markdown-body">
@@ -827,6 +827,78 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 原生序列化（不推荐）</span><br>oos.writeObject(user);<br><span class="hljs-type">User</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> (User) ois.readObject();<br><br><span class="hljs-comment">// Jackson（推荐）：对象 ↔ JSON 字符串</span><br><span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">mapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br><span class="hljs-type">String</span> <span class="hljs-variable">json</span> <span class="hljs-operator">=</span> mapper.writeValueAsString(user);        <span class="hljs-comment">// 序列化：对象 → JSON</span><br><span class="hljs-type">User</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> mapper.readValue(json, User.class);          <span class="hljs-comment">// 反序列化：JSON → 对象</span><br></code></pre></td></tr></table></figure>
 
 <p>了解原生序列化的机制即可（面试会问 <code>Serializable</code>、<code>transient</code>、<code>serialVersionUID</code>），新项目直接用 Jackson。</p>
+<h3 id="4-5-Jackson：JSON-序列化实战"><a href="#4-5-Jackson：JSON-序列化实战" class="headerlink" title="4.5 Jackson：JSON 序列化实战"></a>4.5 Jackson：JSON 序列化实战</h3><p>Spring Boot 默认集成了 Jackson——Controller 返回对象自动转 JSON、<code>@RequestBody</code> 接收 JSON 自动转对象，背后都是 Jackson 在工作。核心类是 <code>ObjectMapper</code>，手动操作的场景（缓存、消息队列、调用第三方接口）也是用它。</p>
+<h4 id="基本用法：对象-↔-JSON"><a href="#基本用法：对象-↔-JSON" class="headerlink" title="基本用法：对象 ↔ JSON"></a>基本用法：对象 ↔ JSON</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">mapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br><br><span class="hljs-comment">// 序列化：对象 → JSON 字符串</span><br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(<span class="hljs-number">1L</span>, <span class="hljs-string">&quot;Alice&quot;</span>, <span class="hljs-string">&quot;alice@example.com&quot;</span>);<br><span class="hljs-type">String</span> <span class="hljs-variable">json</span> <span class="hljs-operator">=</span> mapper.writeValueAsString(user);<br><span class="hljs-comment">// &#123;&quot;id&quot;:1,&quot;name&quot;:&quot;Alice&quot;,&quot;email&quot;:&quot;alice@example.com&quot;&#125;</span><br><br><span class="hljs-comment">// 反序列化：JSON 字符串 → 对象</span><br><span class="hljs-type">User</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> mapper.readValue(json, User.class);<br></code></pre></td></tr></table></figure>
+
+<h4 id="集合-泛型的反序列化：TypeReference"><a href="#集合-泛型的反序列化：TypeReference" class="headerlink" title="集合&#x2F;泛型的反序列化：TypeReference"></a>集合&#x2F;泛型的反序列化：TypeReference</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">json</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;[&#123;\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;Alice\&quot;&#125;,&#123;\&quot;id\&quot;:2,\&quot;name\&quot;:\&quot;Bob\&quot;&#125;]&quot;</span>;<br><br><span class="hljs-comment">// ❌ 错的：List.class 无法表达&quot;装的是 User&quot;，结果变成 List&lt;LinkedHashMap&gt;</span><br>List&lt;User&gt; list = mapper.readValue(json, List.class);<br><br><span class="hljs-comment">// ✅ 对的：用 TypeReference 保留完整的泛型信息</span><br>List&lt;User&gt; list = mapper.readValue(json, <span class="hljs-keyword">new</span> <span class="hljs-title class_">TypeReference</span>&lt;List&lt;User&gt;&gt;() &#123;&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>为什么 <code>List.class</code> 不行？Java 的泛型在运行时会被擦除——<code>List&lt;User&gt;</code> 和 <code>List&lt;String&gt;</code> 在运行时是同一个 <code>List.class</code>，Jackson 拿到 <code>List.class</code> 根本不知道该把每个元素转成什么类型，只能用默认的 <code>LinkedHashMap</code> 兜底。<code>TypeReference&lt;List&lt;User&gt;&gt;</code> 是一个匿名内部类技巧：Jackson 通过反射读取这个匿名类的父类泛型参数，从而拿到完整的 <code>List&lt;User&gt;</code> 类型信息。</p>
+<h4 id="Object-↔-具体类型转换：convertValue"><a href="#Object-↔-具体类型转换：convertValue" class="headerlink" title="Object ↔ 具体类型转换：convertValue"></a>Object ↔ 具体类型转换：convertValue</h4><p>如果手里已经是一个反序列化好的 <code>Object</code>（比如从 Redis 取出来的值，类型是 <code>LinkedHashMap</code>），想转换成具体的实体类，不需要先转回 JSON 字符串再 <code>readValue</code>，可以直接用 <code>convertValue</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Object</span> <span class="hljs-variable">cached</span> <span class="hljs-operator">=</span> redisTemplate.opsForValue().get(key);  <span class="hljs-comment">// 实际类型是 LinkedHashMap</span><br><br><span class="hljs-comment">// 单个对象</span><br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> mapper.convertValue(cached, User.class);<br><br><span class="hljs-comment">// List：同样不能直接用 List.class，用 TypeFactory 构造带泛型的集合类型</span><br>List&lt;User&gt; list = mapper.convertValue(cached,<br>    mapper.getTypeFactory().constructCollectionType(List.class, User.class));<br></code></pre></td></tr></table></figure>
+
+<p><code>convertValue</code> 本质是”先序列化成中间表示，再反序列化成目标类型”，比手动转 JSON 字符串再解析更直接。</p>
+<h4 id="常用注解"><a href="#常用注解" class="headerlink" title="常用注解"></a>常用注解</h4><table>
+<thead>
+<tr>
+<th>注解</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@JsonProperty(&quot;user_name&quot;)</code></td>
+<td>指定这个字段对应的 JSON 字段名</td>
+</tr>
+<tr>
+<td><code>@JsonIgnore</code></td>
+<td>序列化和反序列化时都忽略这个字段</td>
+</tr>
+<tr>
+<td><code>@JsonInclude(JsonInclude.Include.NON_NULL)</code></td>
+<td>字段为 <code>null</code> 时不出现在 JSON 里</td>
+</tr>
+<tr>
+<td><code>@JsonFormat(pattern = &quot;yyyy-MM-dd HH:mm:ss&quot;)</code></td>
+<td>指定日期时间的格式</td>
+</tr>
+<tr>
+<td><code>@JsonAlias({&quot;user_name&quot;, &quot;uname&quot;})</code></td>
+<td>反序列化时，这些字段名都映射到同一个属性</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">private</span> Long id;<br><br>    <span class="hljs-meta">@JsonProperty(&quot;user_name&quot;)</span><br>    <span class="hljs-keyword">private</span> String name;<br><br>    <span class="hljs-meta">@JsonInclude(JsonInclude.Include.NON_NULL)</span><br>    <span class="hljs-keyword">private</span> String email;          <span class="hljs-comment">// email 为 null 时，JSON 里不会有这个字段</span><br><br>    <span class="hljs-meta">@JsonFormat(pattern = &quot;yyyy-MM-dd HH:mm:ss&quot;)</span><br>    <span class="hljs-keyword">private</span> LocalDateTime createdAt;<br><br>    <span class="hljs-meta">@JsonIgnore</span><br>    <span class="hljs-keyword">private</span> String password;        <span class="hljs-comment">// 永远不会出现在 JSON 里</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="LocalDateTime：JavaTimeModule"><a href="#LocalDateTime：JavaTimeModule" class="headerlink" title="LocalDateTime：JavaTimeModule"></a>LocalDateTime：JavaTimeModule</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">mapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br>mapper.registerModule(<span class="hljs-keyword">new</span> <span class="hljs-title class_">JavaTimeModule</span>());<br></code></pre></td></tr></table></figure>
+
+<p>Jackson 默认不认识 Java 8 的 <code>LocalDateTime</code>&#x2F;<code>LocalDate</code>&#x2F;<code>Instant</code>，不注册 <code>JavaTimeModule</code> 直接序列化会报错，或者把时间序列化成 <code>[2026,5,21,10,30,0]</code> 这种数组。</p>
+<p><strong>Spring Boot 项目里通常不用手动注册</strong>——只要 classpath 里有 <code>jackson-datatype-jsr310</code>（<code>spring-boot-starter-web</code> 默认带），Spring Boot 自动配置的 <code>ObjectMapper</code> 已经注册好了。只有自己 <code>new ObjectMapper()</code>（比如 21 节 Redis 的 <code>RedisTemplate</code> 配置里）才需要手动注册一次。</p>
+<h4 id="命名策略：camelCase-↔-snake-case"><a href="#命名策略：camelCase-↔-snake-case" class="headerlink" title="命名策略：camelCase ↔ snake_case"></a>命名策略：camelCase ↔ snake_case</h4><p>Java 属性习惯驼峰 <code>userName</code>，但有些前端约定或第三方接口用下划线 <code>user_name</code>，可以全局配置命名策略，不用在每个字段上加 <code>@JsonProperty</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JacksonConfig</span> &#123;<br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> ObjectMapper <span class="hljs-title function_">objectMapper</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">mapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br>        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);<br>        <span class="hljs-keyword">return</span> mapper;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>配置后，Java 属性 <code>userName</code> 自动对应 JSON 字段 <code>&quot;user_name&quot;</code>，序列化和反序列化都生效。</p>
+<h4 id="常见异常"><a href="#常见异常" class="headerlink" title="常见异常"></a>常见异常</h4><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>UnrecognizedPropertyException</code></td>
+<td>JSON 里有 Java 类没声明的字段</td>
+<td>类上加 <code>@JsonIgnoreProperties(ignoreUnknown = true)</code></td>
+</tr>
+<tr>
+<td><code>InvalidDefinitionException</code></td>
+<td>类没有无参构造方法，Jackson 无法实例化</td>
+<td>加一个无参构造方法</td>
+</tr>
+<tr>
+<td><code>MismatchedInputException</code></td>
+<td>字段类型不匹配（JSON 是字符串，Java 字段是 <code>Integer</code>）</td>
+<td>检查两边的字段类型是否一致</td>
+</tr>
+</tbody></table>
 <h2 id="5-小结"><a href="#5-小结" class="headerlink" title="5. 小结"></a>5. 小结</h2><table>
 <thead>
 <tr>
@@ -865,6 +937,10 @@
 <tr>
 <td>序列化</td>
 <td>原生 Serializable 了解即可，实际用 Jackson &#x2F; Protobuf</td>
+</tr>
+<tr>
+<td>Jackson 实战</td>
+<td><code>ObjectMapper</code> 读写 JSON；<code>TypeReference</code> 处理泛型；<code>convertValue</code> 转换 Object；<code>JavaTimeModule</code> 处理 LocalDateTime</td>
 </tr>
 </tbody></table>
 <p><strong>传统 I&#x2F;O 类分类速查</strong>：</p>
@@ -924,7 +1000,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Java%E5%85%A8%E8%B2%8C/" class="category-chain-item">Java全貌</a>
+  <a href="/categories/Java%E5%9F%BA%E7%A1%80/" class="category-chain-item">Java基础</a>
   
   
 
@@ -955,7 +1031,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Java全貌(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</div>
+      <div>Java基础(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类</div>
       <div>https://rebibabo.github.io/2026/05/09/Java-basic/09-io/</div>
     </div>
     <div class="license-meta">
@@ -1000,9 +1076,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/10/Java-basic/10-concurrency/" title="Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture">
+                      <a href="/2026/05/10/Java-basic/10-concurrency/" title="Java基础(10) | 并发编程：线程、锁、线程池与 CompletableFuture">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Java全貌(10) | 并发编程：线程、锁、线程池与 CompletableFuture</span>
+                        <span class="hidden-mobile">Java基础(10) | 并发编程：线程、锁、线程池与 CompletableFuture</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -1010,8 +1086,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/08/Java-basic/08-lambda-and-stream/" title="Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具">
-                        <span class="hidden-mobile">Java全貌(8) | Lambda 与 Stream API：函数式编程核心工具</span>
+                      <a href="/2026/05/08/Java-basic/08-lambda-and-stream/" title="Java基础(8) | Lambda 与 Stream API：函数式编程核心工具">
+                        <span class="hidden-mobile">Java基础(8) | Lambda 与 Stream API：函数式编程核心工具</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

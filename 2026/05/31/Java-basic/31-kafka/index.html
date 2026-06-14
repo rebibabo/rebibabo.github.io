@@ -1,0 +1,1221 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言30 消息队列入门 讲的是以 RabbitMQ 为代表的”传统”消息队列模型——Exchange 路由、Queue 收件箱。Kafka 虽然也叫”消息队列”，但它的底层设计思路完全不同：Kafka 本质上是一个”分布式的、可持久化的日志（Log）系统”，消息队列只是它最常见的使用方式之一。 这种设计差异，决定了 Kafka 在吞吐量、消息保留方式、消费模型上和 RabbitMQ 有本质区别——">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java基础(番外) | Kafka 入门：分区、副本与消费者组原理">
+<meta property="og:url" content="https://rebibabo.github.io/2026/05/31/Java-basic/31-kafka/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言30 消息队列入门 讲的是以 RabbitMQ 为代表的”传统”消息队列模型——Exchange 路由、Queue 收件箱。Kafka 虽然也叫”消息队列”，但它的底层设计思路完全不同：Kafka 本质上是一个”分布式的、可持久化的日志（Log）系统”，消息队列只是它最常见的使用方式之一。 这种设计差异，决定了 Kafka 在吞吐量、消息保留方式、消费模型上和 RabbitMQ 有本质区别——">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-14T09:15:21.748Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Kafka">
+<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="消息队列">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java基础(番外) | Kafka 入门：分区、副本与消费者组原理 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java基础(番外) | Kafka 入门：分区、副本与消费者组原理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-31 00:00" pubdate>
+          2026年5月31日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          83 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java基础(番外) | Kafka 入门：分区、副本与消费者组原理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><a href="/2026/05/30/Java-basic/30-message-queue/">30 消息队列入门</a> 讲的是以 RabbitMQ 为代表的”传统”消息队列模型——Exchange 路由、Queue 收件箱。Kafka 虽然也叫”消息队列”，但它的底层设计思路完全不同：<strong>Kafka 本质上是一个”分布式的、可持久化的日志（Log）系统”</strong>，消息队列只是它最常见的使用方式之一。</p>
+<p>这种设计差异，决定了 Kafka 在<strong>吞吐量</strong>、<strong>消息保留方式</strong>、<strong>消费模型</strong>上和 RabbitMQ 有本质区别——这也是面试里”Kafka 和 RabbitMQ 有什么区别”这道题的根源。这篇就把这些原理讲清楚。</p>
+<span id="more"></span>
+
+<h2 id="1-核心概念"><a href="#1-核心概念" class="headerlink" title="1. 核心概念"></a>1. 核心概念</h2><p>先建立一张全景图，再逐个解释每个名词：</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">Kafka</span> 集群（多个 <span class="hljs-variable">Broker</span>）<br> └── <span class="hljs-variable">Topic</span><span class="hljs-operator">:</span> <span class="hljs-string">&quot;order-events&quot;</span><br>      ├── <span class="hljs-built_in">Partition</span> <span class="hljs-number">0</span>  <span class="hljs-punctuation">[</span><span class="hljs-variable">msg0</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg1</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg2</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg3</span><span class="hljs-operator">,</span> <span class="hljs-operator">...</span><span class="hljs-punctuation">]</span>   ← 每个分区内部是一个有序的<span class="hljs-string">&quot;日志文件&quot;</span><br>      ├── <span class="hljs-built_in">Partition</span> <span class="hljs-number">1</span>  <span class="hljs-punctuation">[</span><span class="hljs-variable">msg0</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg1</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg2</span><span class="hljs-operator">,</span> <span class="hljs-operator">...</span><span class="hljs-punctuation">]</span><br>      └── <span class="hljs-built_in">Partition</span> <span class="hljs-number">2</span>  <span class="hljs-punctuation">[</span><span class="hljs-variable">msg0</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg1</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg2</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg3</span><span class="hljs-operator">,</span> <span class="hljs-variable">msg4</span><span class="hljs-operator">,</span> <span class="hljs-operator">...</span><span class="hljs-punctuation">]</span><br><br><span class="hljs-variable">Producer</span> ──写入──► <span class="hljs-variable">Topic</span> 的某个 <span class="hljs-built_in">Partition</span><br><br><span class="hljs-variable">Consumer</span> <span class="hljs-variable">Group</span> <span class="hljs-string">&quot;points-service-group&quot;</span><br> ├── <span class="hljs-variable">Consumer</span> <span class="hljs-variable">A</span> ──消费── <span class="hljs-built_in">Partition</span> <span class="hljs-number">0</span><br> ├── <span class="hljs-variable">Consumer</span> <span class="hljs-variable">B</span> ──消费── <span class="hljs-built_in">Partition</span> <span class="hljs-number">1</span><br> └── <span class="hljs-variable">Consumer</span> <span class="hljs-built_in">C</span> ──消费── <span class="hljs-built_in">Partition</span> <span class="hljs-number">2</span><br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Broker</strong></td>
+<td>Kafka 集群中的一台服务器，一个集群通常由多台 Broker 组成</td>
+</tr>
+<tr>
+<td><strong>Topic</strong></td>
+<td>消息的逻辑分类，类似 RabbitMQ 的 Queue，但<strong>只是一个名字</strong>，真正存数据的是下面的 Partition</td>
+</tr>
+<tr>
+<td><strong>Partition（分区）</strong></td>
+<td>Topic 被切分成多个分区，<strong>每个分区是一个独立的、按写入顺序排列的日志文件</strong>，是 Kafka 并行处理的基本单位</td>
+</tr>
+<tr>
+<td><strong>Offset（偏移量）</strong></td>
+<td>消息在分区内的”序号”，从0开始递增，类似数组下标——一旦写入，<strong>永不改变</strong></td>
+</tr>
+<tr>
+<td><strong>Producer</strong></td>
+<td>生产者，决定一条消息写到 Topic 的哪个 Partition</td>
+</tr>
+<tr>
+<td><strong>Consumer</strong></td>
+<td>消费者，从某个 Partition 按 Offset 顺序读取消息</td>
+</tr>
+<tr>
+<td><strong>Consumer Group（消费者组）</strong></td>
+<td>多个 Consumer 组成一个组，<strong>一起消费同一个 Topic</strong>，组内每个分区只会被组内一个 Consumer 消费</td>
+</tr>
+</tbody></table>
+<h2 id="2-为什么-Kafka-吞吐量这么高"><a href="#2-为什么-Kafka-吞吐量这么高" class="headerlink" title="2. 为什么 Kafka 吞吐量这么高"></a>2. 为什么 Kafka 吞吐量这么高</h2><p>这是 Kafka 区别于 RabbitMQ 最核心的部分——RabbitMQ 设计目标是”灵活的路由 + 低延迟的小规模消息”，Kafka 设计目标是”海量数据的高吞吐写入与读取”。靠的是几个底层技巧：</p>
+<h3 id="2-1-顺序写磁盘"><a href="#2-1-顺序写磁盘" class="headerlink" title="2.1 顺序写磁盘"></a>2.1 顺序写磁盘</h3><p>很多人以为”写磁盘&#x3D;慢”，但慢的是<strong>随机写</strong>（磁头来回寻道）。Kafka 的每个 Partition 在磁盘上就是一个<strong>只追加（append-only）的文件</strong>——新消息永远写在文件末尾，这种<strong>顺序写</strong>的速度可以接近内存写入速度，甚至比某些”随机写”的内存操作还快。</p>
+<figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs inform7">Partition 0 对应的日志文件:<br><span class="hljs-comment">[msg0]</span><span class="hljs-comment">[msg1]</span><span class="hljs-comment">[msg2]</span><span class="hljs-comment">[msg3]</span> ← 新消息永远追加在这里，不会修改/删除中间的内容<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-页缓存（Page-Cache）-零拷贝（Zero-Copy）"><a href="#2-2-页缓存（Page-Cache）-零拷贝（Zero-Copy）" class="headerlink" title="2.2 页缓存（Page Cache）+ 零拷贝（Zero Copy）"></a>2.2 页缓存（Page Cache）+ 零拷贝（Zero Copy）</h3><p><strong>写入时</strong>：Kafka 调用 <code>write()</code> 把消息写到操作系统的页缓存（Page Cache，可以理解成内存里的一块缓冲区）就立刻返回，<strong>不等真正写入磁盘</strong>。剩下的事交给操作系统——操作系统会在后台找合适的时机（比如数据积累到一定量、或者过了一段时间），把这些内存里的数据批量刷到磁盘上。</p>
+<blockquote>
+<p>你可以理解成：Kafka 只负责”把数据递给操作系统”，至于操作系统什么时候真正落盘，Kafka 不关心、也不用等。这一步省掉的，就是”每条消息都要等磁盘真正写完才能继续”的等待时间。</p>
+</blockquote>
+<p><strong>读取时</strong>：消费者来读消息，正常流程是”磁盘 → 操作系统内存 → 应用程序内存 → 网络发送缓冲区 → 网卡”，数据要被来回搬好几次。Kafka 用了 <code>sendfile</code> 这个系统调用后，<strong>数据可以从操作系统内存直接送到网卡，不用先搬进 Kafka 进程自己的内存里再搬出去</strong>——少了一趟”进出应用程序”的搬运过程，这就是”零拷贝”。</p>
+<blockquote>
+<p>简化理解：原来是”快递先卸到你家客厅，你再搬上车”；零拷贝相当于”快递直接从仓库装上车”，省掉了”卸到客厅”这一步多余的搬运。</p>
+</blockquote>
+<h3 id="2-3-批量发送与压缩"><a href="#2-3-批量发送与压缩" class="headerlink" title="2.3 批量发送与压缩"></a>2.3 批量发送与压缩</h3><p>Producer 不会”来一条消息就发一次网络请求”，而是先把消息放进一个<strong>本地缓冲区</strong>，攒成一批（batch）之后再一次性发出去，并且可以对整个批次进行压缩（如 Snappy&#x2F;LZ4）。批量+压缩既减少了网络请求次数，又减少了传输的数据量。</p>
+<h4 id="什么时候触发发送"><a href="#什么时候触发发送" class="headerlink" title="什么时候触发发送"></a>什么时候触发发送</h4><p>缓冲区里的消息满足下面<strong>任一</strong>条件，就会被打包发送：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>batch.size</code></td>
+<td>这一批消息攒够了多少字节（默认16KB），攒够就发</td>
+</tr>
+<tr>
+<td><code>linger.ms</code></td>
+<td>即使没攒够，最多再等多久也要发出去（默认0，可以调大让”攒批”效果更明显）</td>
+</tr>
+</tbody></table>
+<p>可以理解成”攒够一车货 or 等到发车时间，哪个先到就先发车”——<code>batch.size</code> 是”装满”的条件，<code>linger.ms</code> 是”超时”的条件，避免消息因为一直凑不够一批而迟迟发不出去。</p>
+<blockquote>
+<p><strong>小结一句话</strong>：RabbitMQ 为了支持灵活路由和复杂特性，设计更”重”；Kafka 把模型简化成”顺序写的日志文件”，用最朴素的数据结构换取了极高的吞吐量。</p>
+</blockquote>
+<h2 id="3-Partition-与顺序性"><a href="#3-Partition-与顺序性" class="headerlink" title="3. Partition 与顺序性"></a>3. Partition 与顺序性</h2><h3 id="3-1-一条消息写到哪个-Partition"><a href="#3-1-一条消息写到哪个-Partition" class="headerlink" title="3.1 一条消息写到哪个 Partition"></a>3.1 一条消息写到哪个 Partition</h3><p>Producer 发送消息时，可以指定一个 <code>key</code>（比如 <code>orderId</code>），Kafka 会用 <code>hash(key) % 分区数</code> 来决定写入哪个分区——这和 <a href="/2026/06/01/Java-basic/31-data-structure-internals/">31 数据结构底层原理</a> 里 HashMap 用 <code>hash &amp; (capacity-1)</code> 决定桶位置是同一个思路：<strong>相同的 key，永远落到同一个分区</strong>。</p>
+<p>如果不指定 key，Kafka 会<strong>轮询</strong>各个分区，尽量让数据均匀分布。</p>
+<h3 id="3-2-顺序性：分区内有序，分区间不保证"><a href="#3-2-顺序性：分区内有序，分区间不保证" class="headerlink" title="3.2 顺序性：分区内有序，分区间不保证"></a>3.2 顺序性：分区内有序，分区间不保证</h3><p>这是 Kafka 顺序性的关键结论，也是面试常考点：</p>
+<table>
+<thead>
+<tr>
+<th>范围</th>
+<th>是否保证顺序</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同一个 Partition 内</td>
+<td><strong>保证</strong>——消息严格按写入顺序排列，Offset 递增</td>
+</tr>
+<tr>
+<td>跨 Partition</td>
+<td><strong>不保证</strong>——Partition 0 和 Partition 1 之间的消息没有先后关系</td>
+</tr>
+</tbody></table>
+<p><strong>实际应用</strong>：如果要求”同一个订单的多条消息必须按顺序处理”，给消息指定 <code>key = orderId</code>，这样这个订单的所有消息都会进入<strong>同一个分区</strong>，分区内天然有序。这正是 <a href="/2026/05/30/Java-basic/30-message-queue/">30 消息队列</a> 第8节里提到的”用分区Key保证局部顺序”的具体实现方式。</p>
+<h2 id="4-Consumer-Group：消费者组"><a href="#4-Consumer-Group：消费者组" class="headerlink" title="4. Consumer Group：消费者组"></a>4. Consumer Group：消费者组</h2><h3 id="4-1-分区与消费者的分配关系"><a href="#4-1-分区与消费者的分配关系" class="headerlink" title="4.1 分区与消费者的分配关系"></a>4.1 分区与消费者的分配关系</h3><p>一个 Topic 的多个 Partition，会被<strong>分配</strong>给同一个 Consumer Group 内的多个 Consumer——<strong>一个分区只能被组内一个消费者消费</strong>（但一个消费者可以消费多个分区）。</p>
+<p>下面以 Topic <code>order-events</code>（3 个 Partition）为例，看三种不同的 Consumer 数量会怎样分配：</p>
+<div style="font-family:'Courier New',monospace;font-size:14px;line-height:1.6;margin:20px 0;">
+
+<div style="font-weight:bold;color:#555;margin-bottom:8px;">场景一：Group 内有 3 个 Consumer（刚好等于分区数）</div>
+<div style="display:flex;gap:30px;align-items:center;margin-bottom:8px;">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 0</div>
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 1</div>
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 2</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;color:#999;font-size:18px;">
+    <div style="border:1px solid transparent;padding:8px 16px;text-align:center;box-sizing:border-box;">→</div>
+    <div style="border:1px solid transparent;padding:8px 16px;text-align:center;box-sizing:border-box;">→</div>
+    <div style="border:1px solid transparent;padding:8px 16px;text-align:center;box-sizing:border-box;">→</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer A</div>
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer B</div>
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer C</div>
+  </div>
+</div>
+<div style="color:#666;margin-bottom:24px;">并行度最高，每个分区独立消费</div>
+
+<div style="font-weight:bold;color:#555;margin-bottom:8px;">场景二：Group 内有 5 个 Consumer（比分区数多）</div>
+<div style="display:flex;gap:30px;align-items:flex-start;margin-bottom:8px;">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 0</div>
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 1</div>
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 2</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;color:#999;font-size:18px;">
+    <div style="border:1px solid transparent;padding:8px 16px;text-align:center;box-sizing:border-box;">→</div>
+    <div style="border:1px solid transparent;padding:8px 16px;text-align:center;box-sizing:border-box;">→</div>
+    <div style="border:1px solid transparent;padding:8px 16px;text-align:center;box-sizing:border-box;">→</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer A</div>
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer B</div>
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer C</div>
+    <div style="border:1px dashed #BBB;border-radius:6px;padding:8px 16px;background:#F5F5F5;color:#AAA;text-align:center;">Consumer D（闲置）</div>
+    <div style="border:1px dashed #BBB;border-radius:6px;padding:8px 16px;background:#F5F5F5;color:#AAA;text-align:center;">Consumer E（闲置）</div>
+  </div>
+</div>
+<div style="color:#666;margin-bottom:24px;">D、E 分不到分区，不会消费任何消息</div>
+
+<div style="font-weight:bold;color:#555;margin-bottom:8px;">场景三：Group 内只有 1 个 Consumer</div>
+<div style="display:flex;gap:30px;align-items:center;margin-bottom:8px;">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 0</div>
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 1</div>
+    <div style="border:1px solid #4A90D9;border-radius:6px;padding:8px 16px;background:#EBF2FA;text-align:center;">Partition 2</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;color:#999;font-size:18px;text-align:center;">
+    <div>↘</div>
+    <div>→</div>
+    <div>↗</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="border:1px solid transparent;padding:8px 16px;visibility:hidden;">Consumer A</div>
+    <div style="border:1px solid #2EAD6B;border-radius:6px;padding:8px 16px;background:#EEFBF3;text-align:center;">Consumer A</div>
+    <div style="border:1px solid transparent;padding:8px 16px;visibility:hidden;">Consumer A</div>
+  </div>
+</div>
+<div style="color:#666;">三个分区全部由这一个 Consumer 消费，并行度最低，但消息仍能被完整消费</div>
+
+</div>
+
+<p><strong>结论</strong>：<strong>分区数决定了一个 Consumer Group 内最大的并行消费能力</strong>——消费者数量超过分区数，多出来的消费者会空闲。这也是为什么 Kafka 的 Topic 在创建时就要规划好分区数，后续增加分区相对麻烦（且会打乱原有的 key→分区映射）。</p>
+<h4 id="小贴士"><a href="#小贴士" class="headerlink" title="小贴士"></a>小贴士</h4><p><strong>分区数是不是等于消费者数才最好？</strong> 不一定——更推荐<strong>分区数略多于当前消费者数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>关系</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分区数 &#x3D; 消费者数</td>
+<td>并行度刚好打满，没有闲置，但没有扩容空间</td>
+</tr>
+<tr>
+<td>分区数 &gt; 消费者数</td>
+<td>仍能打满当前并行度，未来加机器时新消费者可以直接分走多余分区</td>
+</tr>
+<tr>
+<td>分区数 &lt; 消费者数</td>
+<td>多出来的消费者闲置，浪费资源</td>
+</tr>
+</tbody></table>
+<p>因为分区数创建后<strong>很难修改</strong>（改了会打乱 key→分区的映射，破坏顺序性），所以一般按”未来可能扩到多少台机器”留出冗余，而不是卡死在”刚好相等”。</p>
+<p><strong>一个 Consumer 能同时消费不同的 Topic 吗？</strong> 可以。一个消费者实例可以订阅多个 Topic：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@KafkaListener(topics = &#123;&quot;order-events&quot;, &quot;payment-events&quot;&#125;, groupId = &quot;points-service&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(ConsumerRecord&lt;String, Object&gt; record)</span> &#123;<br>    <span class="hljs-comment">// 根据 record.topic() 判断是哪个 Topic 的消息，分别处理</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>比如积分服务既要关心”订单创建”，也要关心”支付成功”，两种事件都会影响积分计算——一个消费者订阅两个 Topic 即可，不需要为每个 Topic 单独起一个消费者实例。</p>
+<h3 id="4-2-多个-Consumer-Group：广播效果"><a href="#4-2-多个-Consumer-Group：广播效果" class="headerlink" title="4.2 多个 Consumer Group：广播效果"></a>4.2 多个 Consumer Group：广播效果</h3><h4 id="Consumer-Group-到底是什么"><a href="#Consumer-Group-到底是什么" class="headerlink" title="Consumer Group 到底是什么"></a>Consumer Group 到底是什么</h4><p>回到 8.3 节的代码，<code>@KafkaListener(groupId = &quot;points-service&quot;)</code> 里的 <code>groupId</code> 就是 Consumer Group 的”名字”。Kafka 并不关心这个名字背后有几个实例、叫什么——它只记录一件事：<strong>这个 <code>groupId</code> 在每个分区上，消费到第几条（Offset）了</strong>，记在 <code>__consumer_offsets</code> 里（5.1节）。</p>
+<p>所以本质上，<strong>Consumer Group &#x3D; 一个独立的”消费进度”</strong>。多个 Consumer 实例如果填了<strong>同一个 <code>groupId</code></strong>，Kafka 就认为它们是”一伙的”，会把分区分给它们、共享同一份消费进度（4.1节的分配逻辑）；如果填了<strong>不同的 <code>groupId</code></strong>，Kafka 就认为这是完全独立的另一拨消费者，会给它<strong>单独维护一份消费进度</strong>，从头开始读。</p>
+<h4 id="为什么需要这个设计"><a href="#为什么需要这个设计" class="headerlink" title="为什么需要这个设计"></a>为什么需要这个设计</h4><p>因为 Kafka 的消息<strong>消费后不会被删除</strong>（7节提到，按 <code>retention</code> 保留一段时间）。这意味着同一条消息，理论上可以被读很多次——但”读到第几条了”这个进度，必须有人来记录，否则每次都不知道该从哪开始读。</p>
+<p><code>groupId</code> 就是用来回答”这是谁在读、读到哪了”——<strong>不同的下游服务（积分、短信、数据分析）各自起一个不同的 <code>groupId</code>，就能各自独立地、完整地消费同一份消息流，互不影响</strong>。这正好呼应 <a href="/2026/05/30/Java-basic/30-message-queue/">30 消息队列</a> 第1节讲的”解耦”——下游服务的数量、是否在线，生产者完全不用关心。</p>
+<p>如果有<strong>多个不同的 Consumer Group</strong> 都订阅了同一个 Topic，<strong>每个 Group 最终都会读到完整的一份消息</strong>：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs gradle">Topic <span class="hljs-string">&quot;order-events&quot;</span><br> ├── Consumer <span class="hljs-keyword">Group</span> <span class="hljs-string">&quot;points-service&quot;</span>  ← 自己的消费进度，最终会读完所有消息<br> ├── Consumer <span class="hljs-keyword">Group</span> <span class="hljs-string">&quot;sms-service&quot;</span>     ← 自己的消费进度，最终会读完所有消息<br> └── Consumer <span class="hljs-keyword">Group</span> <span class="hljs-string">&quot;analytics&quot;</span>       ← 自己的消费进度，最终会读完所有消息<br></code></pre></td></tr></table></figure>
+
+<h4 id="不同的-Group-是”同时”收到消息的吗？"><a href="#不同的-Group-是”同时”收到消息的吗？" class="headerlink" title="不同的 Group 是”同时”收到消息的吗？"></a>不同的 Group 是”同时”收到消息的吗？</h4><p><strong>不是”同时”，而是”各自独立、各按各的节奏”</strong>。消息写入 Topic 后，<strong>一直躺在磁盘的日志文件里</strong>，谁来读、什么时候读，完全取决于每个 Group 自己的消费进度：</p>
+<ul>
+<li><code>points-service</code> 处理很快，可能消息一来就立刻读到了</li>
+<li><code>analytics</code> 这个 Group 如果是”每小时批量跑一次”，那它可能等一小时后才一次性读取这期间积累的所有消息</li>
+<li>两者读的是<strong>同一份数据</strong>，但读取的<strong>时间点完全不相关</strong>——这就是为什么说 Kafka 更像”数据管道”：数据放在那，谁什么时候来取、取多快，是消费者自己的事，和生产者、和其他消费者都没关系</li>
+</ul>
+<p><strong>记忆方式</strong>：<strong>组内是”竞争消费”（分区分配给组内成员，各消费各的一部分）；组间是”各自独立的完整副本”（每个组都能读到全部消息，但读取时机互不相关，不是广播意义上的”同时推送”）。</strong></p>
+<h3 id="4-3-Rebalance（重平衡）"><a href="#4-3-Rebalance（重平衡）" class="headerlink" title="4.3 Rebalance（重平衡）"></a>4.3 Rebalance（重平衡）</h3><p>当 Consumer Group 内的消费者数量发生变化（比如新增一个实例、或者某个实例宕机），Kafka 会重新分配分区和消费者的对应关系，这个过程叫 <strong>Rebalance</strong>。Rebalance 期间该 Group 内的消费会短暂停止——这也是为什么 Kafka 消费者实例不建议频繁重启。</p>
+<h2 id="5-Offset：消费进度怎么记录"><a href="#5-Offset：消费进度怎么记录" class="headerlink" title="5. Offset：消费进度怎么记录"></a>5. Offset：消费进度怎么记录</h2><p>Offset 是消息在分区内的”序号”。Consumer 消费消息后，需要记录”我已经消费到第几条了”，这样下次重启时才能从正确的位置继续，而不是从头消费一遍。</p>
+<h3 id="5-1-Offset-存在哪"><a href="#5-1-Offset-存在哪" class="headerlink" title="5.1 Offset 存在哪"></a>5.1 Offset 存在哪</h3><p>Kafka 自己维护了一个特殊的内部 Topic，叫 <code>__consumer_offsets</code>，专门用来存储<strong>每个 Consumer Group 在每个 Partition 上消费到的 Offset</strong>。</p>
+<p>记录的形式大致是 <code>(groupId, partition) → offset</code>，比如：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs routeros">(<span class="hljs-attribute">groupId</span>=<span class="hljs-string">&quot;points-service&quot;</span>, <span class="hljs-attribute">partition</span>=0) → <span class="hljs-attribute">offset</span>=105<br>(<span class="hljs-attribute">groupId</span>=<span class="hljs-string">&quot;points-service&quot;</span>, <span class="hljs-attribute">partition</span>=1) → <span class="hljs-attribute">offset</span>=98<br>(<span class="hljs-attribute">groupId</span>=<span class="hljs-string">&quot;points-service&quot;</span>, <span class="hljs-attribute">partition</span>=2) → <span class="hljs-attribute">offset</span>=112<br></code></pre></td></tr></table></figure>
+
+<p><strong>关键点：每个分区只有一条进度记录，记录是和 <code>groupId</code> 绑定的，不是和某个具体的 Consumer 实例绑定</strong>。组内哪个实例当前负责这个分区，就由哪个实例去更新这条记录——如果发生 Rebalance（比如某个实例宕机，分区被重新分配给另一个实例），新实例会接着上次记录的 offset 继续读，不会重复也不会跳过（前提是之前正确提交了）。</p>
+<p>不同的 <code>groupId</code> 则是完全独立的一套记录，互不影响——这也是为什么 4.2 节里不同的 Consumer Group 可以各自独立地、完整地消费同一个 Topic。</p>
+<h3 id="5-2-自动提交-vs-手动提交"><a href="#5-2-自动提交-vs-手动提交" class="headerlink" title="5.2 自动提交 vs 手动提交"></a>5.2 自动提交 vs 手动提交</h3><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>配置</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>自动提交</strong></td>
+<td><code>enable.auto.commit=true</code>（默认），每隔一段时间自动提交当前已读取到的 Offset</td>
+<td>如果消息”读取到了”但<strong>还没处理完</strong>就自动提交了 Offset，随后处理失败&#x2F;进程宕机，重启后这条消息<strong>不会被重新消费</strong>——消息丢失</td>
+</tr>
+<tr>
+<td><strong>手动提交</strong></td>
+<td><code>enable.auto.commit=false</code>，业务处理完成后调用 <code>consumer.commitSync()</code></td>
+<td>处理完才提交，更可靠；但如果提交之前处理完了又宕机，重启后会<strong>重复消费</strong>这条消息</td>
+</tr>
+</tbody></table>
+<p>这和 <a href="/2026/05/30/Java-basic/30-message-queue/">30 消息队列</a> 第7节讲的”幂等性”是同一个问题——<strong>Kafka 默认提供的是”至少一次”语义</strong>，业务侧仍然需要处理重复消费。</p>
+<h2 id="6-副本机制：数据可靠性"><a href="#6-副本机制：数据可靠性" class="headerlink" title="6. 副本机制：数据可靠性"></a>6. 副本机制：数据可靠性</h2><h3 id="6-1-Leader-与-Follower"><a href="#6-1-Leader-与-Follower" class="headerlink" title="6.1 Leader 与 Follower"></a>6.1 Leader 与 Follower</h3><p>为了防止某台 Broker 宕机导致数据丢失，每个 Partition 会有多个<strong>副本（Replica）</strong>，分布在不同的 Broker 上：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Partition</span> <span class="hljs-number">0</span>:<br>  <span class="hljs-attribute">Broker</span> <span class="hljs-number">1</span>: Leader   ← Producer/Consumer 只和 Leader 交互<br>  <span class="hljs-attribute">Broker</span> <span class="hljs-number">2</span>: Follower ← 被动从 Leader 同步数据<br>  <span class="hljs-attribute">Broker</span> <span class="hljs-number">3</span>: Follower ← 被动从 Leader 同步数据<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>所有读写请求只打到 <strong>Leader</strong></li>
+<li>Follower 持续从 Leader 拉取数据，保持同步</li>
+<li>如果 Leader 所在的 Broker 宕机，Kafka 会从 Follower 中选出一个新的 Leader（前提是这个 Follower 数据是同步的）</li>
+</ul>
+<blockquote>
+<p><strong>旁注</strong>：这种”一个 Leader 处理写入、Follower 同步数据、达到一定数量才算安全”的模式，和 ZooKeeper 的 ZAB 协议、Raft 是同一类思想。但这里的 Leader&#x2F;Follower 同步是 <strong>Kafka 自己实现的</strong>，针对每个 Partition；ZooKeeper（老版本 Kafka 依赖它，2.8+ 的 KRaft 模式已替换）解决的是另一件事——集群元数据管理和”谁来决定每个 Partition 的 Leader 是谁”（即 Controller 选举）。两者思路相通，但层次不同。</p>
+</blockquote>
+<h3 id="6-2-ISR（In-Sync-Replicas）"><a href="#6-2-ISR（In-Sync-Replicas）" class="headerlink" title="6.2 ISR（In-Sync Replicas）"></a>6.2 ISR（In-Sync Replicas）</h3><p>ISR 指的是”和 Leader 数据保持同步的副本集合”（包括 Leader 自己）。如果某个 Follower 因为网络问题、处理太慢，<strong>长时间落后于 Leader</strong>，会被踢出 ISR——这意味着它暂时不参与”选举新 Leader”和”判断消息是否写入成功”的过程，直到追上进度重新加入。</p>
+<h3 id="6-3-acks-参数：生产者的可靠性级别"><a href="#6-3-acks-参数：生产者的可靠性级别" class="headerlink" title="6.3 acks 参数：生产者的可靠性级别"></a>6.3 acks 参数：生产者的可靠性级别</h3><p>Producer 发送消息时，<code>acks</code> 参数决定”Broker 返回成功响应”的时机，直接影响<strong>可靠性 vs 延迟</strong>的权衡：</p>
+<table>
+<thead>
+<tr>
+<th><code>acks</code> 值</th>
+<th>含义</th>
+<th>可靠性</th>
+<th>延迟</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>acks=0</code></td>
+<td>Producer 发出去就不管了，不等任何确认</td>
+<td>最低，可能丢消息</td>
+<td>最低</td>
+</tr>
+<tr>
+<td><code>acks=1</code>（默认）</td>
+<td>只要 Leader 写入成功就返回确认</td>
+<td>中等——如果 Leader 刚写完就挂了，还没同步给 Follower，消息丢失</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><code>acks=all</code>（或<code>-1</code>）</td>
+<td>等 ISR 中所有副本都写入成功才返回确认</td>
+<td>最高——只要 ISR 中有一个副本存活，消息就不会丢</td>
+<td>最高</td>
+</tr>
+</tbody></table>
+<p>配合 <code>min.insync.replicas</code>（ISR 最少要有几个副本）一起使用，<code>acks=all</code> + <code>min.insync.replicas=2</code> 是金融级场景常见的配置组合——即使丢了一台 Broker，数据依然安全。</p>
+<h4 id="一个更通用的视角"><a href="#一个更通用的视角" class="headerlink" title="一个更通用的视角"></a>一个更通用的视角</h4><p><code>acks</code> 这个参数，其实是<strong>分布式系统里一个通用权衡的具体体现</strong>：<strong>副本数越多、要求确认的副本越多 → 数据越不容易丢（可靠性高），但要等更多机器写完才能返回（延迟越高）</strong>。这个权衡在很多地方都能看到同样的影子：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>“多确认&#x3D;可靠但慢” 的体现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Kafka <code>acks</code></td>
+<td><code>acks=0</code>最快但可能丢；<code>acks=all</code>最慢但最安全</td>
+</tr>
+<tr>
+<td>MySQL 主从复制</td>
+<td>异步复制最快但主库宕机可能丢数据；半同步复制（至少1个从库确认）更安全但主库要等从库 ack</td>
+</tr>
+<tr>
+<td>分布式锁&#x2F;选举（ZooKeeper&#x2F;Raft）</td>
+<td>写入需要”过半节点确认”才算成功，本质也是用延迟换安全</td>
+</tr>
+<tr>
+<td>微服务里的同步调用 vs 异步消息（<a href="/2026/05/28/Java-basic/28-microservices-intro/">28 微服务入门</a>）</td>
+<td>同步调用能立刻知道结果但要等下游处理完；异步发消息快但”成功”只代表”消息发出去了”</td>
+</tr>
+</tbody></table>
+<p><strong>一句话</strong>：分布式系统里几乎所有”可靠性保证”，代价都是”多等一会儿”——<code>acks=all</code> 只是这个通用原则在 Kafka 里的一个具体参数化体现。</p>
+<h2 id="7-Kafka-vs-RabbitMQ：原理层面的对比"><a href="#7-Kafka-vs-RabbitMQ：原理层面的对比" class="headerlink" title="7. Kafka vs RabbitMQ：原理层面的对比"></a>7. Kafka vs RabbitMQ：原理层面的对比</h2><p>结合前面的原理，重新总结两者的核心差异：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RabbitMQ</th>
+<th>Kafka</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>底层模型</td>
+<td>Exchange 路由 + Queue（内存&#x2F;磁盘结构相对复杂）</td>
+<td>分区日志文件（顺序写，结构极简）</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>万级&#x2F;秒</td>
+<td>百万级&#x2F;秒</td>
+</tr>
+<tr>
+<td>消息有序性</td>
+<td>单个 Queue 内有序</td>
+<td>单个 Partition 内有序</td>
+</tr>
+<tr>
+<td>消息消费后</td>
+<td>默认被删除（ACK后）</td>
+<td><strong>不会删除</strong>，按配置的保留时间&#x2F;大小保留，多个消费者组可重复消费同一份数据</td>
+</tr>
+<tr>
+<td>消费方式</td>
+<td>Broker 主动推送给 Consumer</td>
+<td>Consumer 主动拉取（pull），自己控制消费速度</td>
+</tr>
+<tr>
+<td>路由灵活性</td>
+<td>高（Direct&#x2F;Topic&#x2F;Fanout 多种 Exchange）</td>
+<td>低（基本就是按 key 分区）</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>业务系统间解耦、任务队列</td>
+<td>日志采集、埋点数据、流处理、大数据管道</td>
+</tr>
+</tbody></table>
+<p><strong>一个常被忽略但很重要的区别</strong>：RabbitMQ 的消息一旦被消费确认，就从 Queue 里删除了；<strong>Kafka 的消息消费后依然保留在磁盘上</strong>（根据 <code>retention</code> 配置，比如保留7天）。这意味着 Kafka 里<strong>同一条消息可以被多个不同的消费者组在不同时间重复读取</strong>——这也是为什么 Kafka 常被用作”数据管道”：上游写一次，下游各个系统按自己的节奏各读各的。</p>
+<h2 id="8-Spring-Boot-基本使用"><a href="#8-Spring-Boot-基本使用" class="headerlink" title="8. Spring Boot 基本使用"></a>8. Spring Boot 基本使用</h2><h3 id="8-1-依赖"><a href="#8-1-依赖" class="headerlink" title="8.1 依赖"></a>8.1 依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.kafka<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-kafka<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="8-2-生产者"><a href="#8-2-生产者" class="headerlink" title="8.2 生产者"></a>8.2 生产者</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderEventProducer</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> KafkaTemplate&lt;String, Order&gt; kafkaTemplate;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendOrderCreated</span><span class="hljs-params">(Order order)</span> &#123;<br>        <span class="hljs-comment">// 第一个参数是 Topic，第二个参数是 key（决定分区），第三个是消息内容</span><br>        kafkaTemplate.send(<span class="hljs-string">&quot;order-events&quot;</span>, String.valueOf(order.getId()), order);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>key</code> 传的是 <code>order.getId()</code>——保证同一个订单的多条消息（创建、支付、发货）会进入同一个分区，分区内有序。</p>
+<h3 id="8-3-消费者"><a href="#8-3-消费者" class="headerlink" title="8.3 消费者"></a>8.3 消费者</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderEventConsumer</span> &#123;<br><br>    <span class="hljs-meta">@KafkaListener(topics = &quot;order-events&quot;, groupId = &quot;points-service&quot;)</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(Order order)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;收到订单事件，处理积分逻辑：&quot;</span> + order.getId());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>groupId = &quot;points-service&quot;</code> 就是 Consumer Group 的名字——如果另一个服务（比如短信服务）也订阅这个 Topic，但用了不同的 <code>groupId</code>（如 <code>&quot;sms-service&quot;</code>），两个服务会<strong>各自收到完整的消息流</strong>，互不影响（对应第4.2节”组间广播”）。</p>
+<h3 id="8-4-配置"><a href="#8-4-配置" class="headerlink" title="8.4 配置"></a>8.4 配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">kafka:</span><br>    <span class="hljs-attr">bootstrap-servers:</span> <span class="hljs-string">localhost:9092</span><br>    <span class="hljs-attr">producer:</span><br>      <span class="hljs-attr">acks:</span> <span class="hljs-string">all</span>                     <span class="hljs-comment"># 对应第6.3节</span><br>    <span class="hljs-attr">consumer:</span><br>      <span class="hljs-attr">group-id:</span> <span class="hljs-string">points-service</span><br>      <span class="hljs-attr">auto-offset-reset:</span> <span class="hljs-string">earliest</span>   <span class="hljs-comment"># 该 group 第一次消费时，从最早的消息开始读</span><br>      <span class="hljs-attr">enable-auto-commit:</span> <span class="hljs-literal">false</span>     <span class="hljs-comment"># 对应第5.2节，手动提交更可靠</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="9-小结"><a href="#9-小结" class="headerlink" title="9. 小结"></a>9. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>核心要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心模型</td>
+<td>Kafka &#x3D; 分布式的、可持久化的日志文件；Topic 是逻辑名字，Partition 是真正存数据的单位</td>
+</tr>
+<tr>
+<td>高吞吐原因</td>
+<td>顺序写磁盘 + 页缓存&#x2F;零拷贝 + 批量发送压缩</td>
+</tr>
+<tr>
+<td>顺序性</td>
+<td>分区内严格有序，分区间不保证；用 key 让同一业务实体的消息进同一分区</td>
+</tr>
+<tr>
+<td>Consumer Group</td>
+<td>组内竞争消费（一个分区只给一个消费者），组间广播（每个组拿到完整数据）</td>
+</tr>
+<tr>
+<td>分区数的意义</td>
+<td>决定一个 Group 内的最大并行度，消费者数 &gt; 分区数时会有消费者闲置</td>
+</tr>
+<tr>
+<td>Offset</td>
+<td>记录消费进度，存在 <code>__consumer_offsets</code>；自动提交可能丢消息，手动提交可能重复消费</td>
+</tr>
+<tr>
+<td>副本与可靠性</td>
+<td>Leader&#x2F;Follower + ISR；<code>acks=0/1/all</code> 决定生产者侧的可靠性与延迟权衡</td>
+</tr>
+<tr>
+<td>vs RabbitMQ</td>
+<td>Kafka吞吐量更高、消费后消息不删除、可被多组重复消费；RabbitMQ路由更灵活、消费后即删除</td>
+</tr>
+</tbody></table>
+<p><strong>面试高频组合</strong>：Kafka 和 RabbitMQ 的区别、Partition 与顺序性、Consumer Group 的分配关系、<code>acks</code> 参数的权衡——这几个点把”原理”讲透了，基本就能应对大部分关于 Kafka 的提问。具体的运维（如何扩分区、如何调优页缓存）属于”用到时再查”的范畴，新人不必现在深究。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%9F%BA%E7%A1%80/" class="category-chain-item">Java基础</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" class="print-no-link">#消息队列</a>
+      
+        <a href="/tags/Kafka/" class="print-no-link">#Kafka</a>
+      
+        <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="print-no-link">#分布式</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java基础(番外) | Kafka 入门：分区、副本与消费者组原理</div>
+      <div>https://rebibabo.github.io/2026/05/31/Java-basic/31-kafka/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月31日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/01/Java-basic/32-data-structure-internals/" title="Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/30/Java-basic/30-RabbitMQ/" title="Java基础(番外) | 消息队列入门：为什么用、怎么用、踩坑点">
+                        <span class="hidden-mobile">Java基础(番外) | 消息队列入门：为什么用、怎么用、踩坑点</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
