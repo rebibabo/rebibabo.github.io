@@ -1,6 +1,6 @@
 ---
 title: speculative-decoding
-date: 2026-06-05 10:31:28
+date: 2026-04-05
 mathjax: true
 categories:
     llm-inference

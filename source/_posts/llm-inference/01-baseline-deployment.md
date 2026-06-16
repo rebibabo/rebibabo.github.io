@@ -1,6 +1,6 @@
 ---
 title: baseline-deployment
-date: 2026-06-03 10:39:09
+date: 2026-04-01
 categories:
     llm-inference
 tags:

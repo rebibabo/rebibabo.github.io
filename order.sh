@@ -1,6 +1,6 @@
 #!/bin/bash                                                                                                                                                          [16:01:34]
 
-START_DATE="2026-05-01"
+START_DATE="2026-06-02"
 
 for f in *.md; do
     num=$(echo "$f" | cut -d'-' -f1)

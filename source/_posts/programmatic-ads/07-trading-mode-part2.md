@@ -1,6 +1,6 @@
 ---
 title: 程序化广告 (6)：交易模式（下）——Header Bidding 的革命
-date: 2026-05-06
+date: 2026-06-12
 categories:
   - 程序化广告
 tags:

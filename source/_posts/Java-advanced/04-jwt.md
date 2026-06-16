@@ -53,7 +53,7 @@ categories:
 ```
 单机时：Session 存在这台服务器内存里，没问题
 
-多机时（你的 SSP 部署了 3 个实例）：
+多机时：
   请求第一次打到 服务器A，Session 存在 A 的内存
   下次请求被负载均衡打到 服务器B
   → B 的内存里没有这个 Session → 认为你没登录！
@@ -87,7 +87,7 @@ JWT（JSON Web Token）反过来——**把用户信息直接编码进 token 本
 | 注销/失效 | 简单，删 Session 即可 | 麻烦，token 有效期内一直有效 |
 | 安全性 | sessionId 泄露风险 | token 泄露风险，且无法主动失效 |
 
-无状态、天然支持多机，是 JWT 在微服务架构里流行的主要原因——这也契合你 SSP 多实例部署的场景。
+无状态、天然支持多机，是 JWT 在微服务架构里流行的主要原因。
 
 ---
 
@@ -99,8 +99,8 @@ JWT（JSON Web Token）反过来——**把用户信息直接编码进 token 本
 
 ```
 eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMDAxIiwicm9sZSI6ImFkbWluIn0.dQw4w9WgXcQ
-└──── Header ────┘ └──────── Payload ────────┘ └─ Signature ─┘
-      头部                   载荷                     签名
+ └──── Header ────┘         └──────── Payload ────────┘    └─ Signature ─┘
+       头部                             载荷                     签名
 ```
 
 | 部分 | 内容 | 说明 |
@@ -144,10 +144,10 @@ Spring Security 的工作方式是在请求到达 Controller **之前**，先经
 HTTP 请求
    │
    ▼
-┌──────────────────────────────────┐
-│      Spring Security 过滤器链       │
+┌───────────────────────────────────┐
+│      Spring Security 过滤器链      │
 │  过滤器1 → 过滤器2 → ... → JWT过滤器 │  ← 在这里做认证授权检查
-└──────────────────────────────────┘
+└───────────────────────────────────┘
    │ 检查通过
    ▼
 Controller（你的业务代码）
