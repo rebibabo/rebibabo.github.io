@@ -1,0 +1,1157 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：到底慢在哪一步？ 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？ 指标回答不了这个问题，因为它是”聚合后的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java进阶(7) | 链路追踪入门：一个请求是怎么被&quot;全程跟拍&quot;的">
+<meta property="og:url" content="https://rebibabo.github.io/2026/05/07/Java-advanced/07-tracing/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：到底慢在哪一步？ 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？ 指标回答不了这个问题，因为它是”聚合后的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-06T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-16T00:50:06.282Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="OpenTelemetry">
+<meta property="article:tag" content="Tracing">
+<meta property="article:tag" content="可观测性">
+<meta property="article:tag" content="微服务">
+<meta property="article:tag" content="链路追踪">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java进阶(7) | 链路追踪入门：一个请求是怎么被&#34;全程跟拍&#34;的 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java进阶(7) | 链路追踪入门：一个请求是怎么被&#34;全程跟拍&#34;的"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-07 00:00" pubdate>
+          2026年5月7日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          78 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java进阶(7) | 链路追踪入门：一个请求是怎么被&#34;全程跟拍&#34;的</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面两篇——<a href="/2026/05/05/Java-advanced/05-metric/">指标</a> 和 <a href="/2026/05/06/Java-advanced/06-grafana/">Grafana 大盘</a>——已经把可观测性三大支柱里的 <strong>Metrics（指标）</strong> 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：<strong>到底慢在哪一步？</strong> 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？</p>
+<p>指标回答不了这个问题，因为它是”聚合后的数字”，丢掉了单次请求的细节。这就轮到第三根支柱 <strong>Tracing（链路追踪）</strong> 登场了。这篇不堆代码，重点把”一个请求是怎么被全程跟拍下来的”这件事的原理讲透——它其实没那么玄，核心思想用一个快递单号就能解释清楚。</p>
+<span id="more"></span>
+
+<h2 id="1-先感受痛点：微服务把”排查”变难了"><a href="#1-先感受痛点：微服务把”排查”变难了" class="headerlink" title="1. 先感受痛点：微服务把”排查”变难了"></a>1. 先感受痛点：微服务把”排查”变难了</h2><h3 id="1-1-单体时代，排查很简单"><a href="#1-1-单体时代，排查很简单" class="headerlink" title="1.1 单体时代，排查很简单"></a>1.1 单体时代，排查很简单</h3><p>回到只有一个应用、一个数据库的时代。一个请求进来，从 Controller 到 Service 到 Mapper，全在<strong>同一个进程、同一个线程</strong>里跑完。出了问题怎么办？</p>
+<ul>
+<li>看日志：所有日志都在一个文件里，按时间顺序往下翻就行</li>
+<li>看耗时：在方法前后打两个时间戳，相减就知道哪段慢</li>
+<li>看堆栈：报错了直接有完整的异常堆栈，一眼看到是哪行代码</li>
+</ul>
+<p>本质原因是：<strong>所有事情都发生在一个地方，天然就是连贯的。</strong></p>
+<h3 id="1-2-微服务时代，请求被”打散”了"><a href="#1-2-微服务时代，请求被”打散”了" class="headerlink" title="1.2 微服务时代，请求被”打散”了"></a>1.2 微服务时代，请求被”打散”了</h3><p>现在一个”用户下单”的请求，可能要经过这样一条链路：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs">用户 → API 网关 → 订单服务 → 库存服务 → 支付服务 → 数据库<br>                      │<br>                      └→ 优惠券服务<br></code></pre></td></tr></table></figure>
+
+<p>同一个请求，被拆到了 5、6 个<strong>不同的进程</strong>里执行，这些进程可能还跑在不同的机器上。这时候原来的排查手段全部失灵了：</p>
+<table>
+<thead>
+<tr>
+<th>单体里好用的手段</th>
+<th>到了微服务里</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>翻一个日志文件</td>
+<td>日志分散在 6 台机器、6 个文件里，怎么知道哪几条属于同一个请求？</td>
+</tr>
+<tr>
+<td>方法前后打时间戳</td>
+<td>每个服务只知道自己花了多久，谁也不知道”整条链路”的全貌</td>
+</tr>
+<tr>
+<td>完整异常堆栈</td>
+<td>支付服务报错了，订单服务只收到一个”调用失败”，看不到根因</td>
+</tr>
+</tbody></table>
+<p>一个很形象的说法：单体时代你在<strong>追一个人</strong>，他从头到尾在你眼前；微服务时代你在<strong>追一个在六个房间之间穿梭的人</strong>，每个房间的监控只拍到他在本房间的片段，你需要一种办法把这些片段<strong>按同一个人、按先后顺序拼起来</strong>。</p>
+<p>链路追踪要解决的，就是这件”把碎片拼回完整故事”的事。</p>
+<hr>
+<h2 id="2-核心思想：给每个请求发一张”快递单号”"><a href="#2-核心思想：给每个请求发一张”快递单号”" class="headerlink" title="2. 核心思想：给每个请求发一张”快递单号”"></a>2. 核心思想：给每个请求发一张”快递单号”</h2><p>链路追踪的整个体系，建立在一个朴素到不能再朴素的想法上：</p>
+<blockquote>
+<p><strong>给每一个进入系统的请求，发一个全局唯一的编号；这个编号跟着请求一路传下去，每个服务做任何事都带上它。</strong></p>
+</blockquote>
+<p>这个编号就叫 <strong>TraceId</strong>（追踪 ID）。</p>
+<p>想象你网购寄一个快递。快递单号 <code>SF123456</code> 从你下单那一刻生成，之后无论包裹到了哪个中转站、上了哪辆车、由哪个快递员派送，<strong>每一条流转记录都带着这个单号</strong>。最后你在 App 里输入单号，就能看到一条完整的物流时间线：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">SF123456</span><br>  <span class="hljs-number">10</span>:<span class="hljs-number">00</span>  已揽收（深圳）<br>  <span class="hljs-number">14</span>:<span class="hljs-number">30</span>  到达中转中心（深圳）<br>  <span class="hljs-number">22</span>:<span class="hljs-number">00</span>  已发出（深圳 → 北京）<br>  次日 <span class="hljs-number">08</span>:<span class="hljs-number">00</span>  到达派送点（北京）<br>  次日 <span class="hljs-number">11</span>:<span class="hljs-number">00</span>  已签收<br></code></pre></td></tr></table></figure>
+
+<p>链路追踪干的就是一模一样的事——只不过把”快递单号”换成 TraceId，把”中转站、快递车”换成”网关、订单服务、支付服务”。<strong>TraceId 就是把分散在各处的记录串成一条线的那根线。</strong></p>
+<p>但只有一个 TraceId 还不够。物流时间线里每一行是一个”环节”，链路追踪里也需要把一次请求里的每一段操作单独记下来——这就引出了第二个核心概念：<strong>Span</strong>。</p>
+<hr>
+<h2 id="3-两个核心概念：Trace-与-Span"><a href="#3-两个核心概念：Trace-与-Span" class="headerlink" title="3. 两个核心概念：Trace 与 Span"></a>3. 两个核心概念：Trace 与 Span</h2><p>这是整个链路追踪里最需要理解清楚的两个词，理解了它俩，后面全是水到渠成。</p>
+<h3 id="3-1-Span：一段”有起止时间的工作”"><a href="#3-1-Span：一段”有起止时间的工作”" class="headerlink" title="3.1 Span：一段”有起止时间的工作”"></a>3.1 Span：一段”有起止时间的工作”</h3><p><strong>Span（跨度）</strong> 表示一次操作、一段工作。它最核心的信息就是：<strong>做了什么 + 从什么时候开始 + 到什么时候结束</strong>。</p>
+<p>比如这些都可以是一个 Span：</p>
+<ul>
+<li>网关处理这个请求（从收到到转发出去）</li>
+<li>订单服务执行下单逻辑</li>
+<li>订单服务调用支付服务的这次远程调用</li>
+<li>一次数据库查询</li>
+</ul>
+<p>每个 Span 至少包含这些字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+<th>类比快递</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>spanId</code></td>
+<td>这一段操作自己的唯一 ID</td>
+<td>这一条流转记录的行号</td>
+</tr>
+<tr>
+<td><code>traceId</code></td>
+<td>它属于哪一次完整请求</td>
+<td>快递单号（同一单的所有行都一样）</td>
+</tr>
+<tr>
+<td><code>parentSpanId</code></td>
+<td>它是被谁触发的（上一段是谁）</td>
+<td>“我是从哪个环节流转过来的”</td>
+</tr>
+<tr>
+<td>操作名</td>
+<td>做了什么，如 <code>POST /order</code></td>
+<td>“到达中转中心”</td>
+</tr>
+<tr>
+<td>开始 &#x2F; 结束时间</td>
+<td>这段花了多久</td>
+<td>10:00 揽收、14:30 到站</td>
+</tr>
+<tr>
+<td>tags &#x2F; 属性</td>
+<td>附加信息，如状态码、SQL 语句</td>
+<td>备注</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-Trace：一堆-Span-组成的”一棵树”"><a href="#3-2-Trace：一堆-Span-组成的”一棵树”" class="headerlink" title="3.2 Trace：一堆 Span 组成的”一棵树”"></a>3.2 Trace：一堆 Span 组成的”一棵树”</h3><p><strong>Trace（一条追踪）</strong> &#x3D; 一次完整请求里产生的<strong>所有 Span 的集合</strong>。它们靠 <code>traceId</code> 相同绑在一起，又靠 <code>parentSpanId</code> 形成<strong>父子关系</strong>，最终拼成一棵树（或者说一张调用关系图）。</p>
+<p>还是用下单的例子，一次请求产生的 Span 树长这样：</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-built_in">Trace</span><span class="hljs-operator">:</span> <span class="hljs-variable">traceId</span> <span class="hljs-operator">=</span> <span class="hljs-variable">abc123</span><br>│<br>└─ <span class="hljs-built_in">Span</span> <span class="hljs-variable">A</span>  网关处理请求            <span class="hljs-punctuation">[</span><span class="hljs-number">0</span><span class="hljs-variable">ms</span> ────────────────── <span class="hljs-number">850</span><span class="hljs-variable">ms</span><span class="hljs-punctuation">]</span><br>   └─ <span class="hljs-built_in">Span</span> <span class="hljs-variable">B</span>  订单服务下单          <span class="hljs-punctuation">[</span><span class="hljs-number">20</span><span class="hljs-variable">ms</span> ──────────────── <span class="hljs-number">840</span><span class="hljs-variable">ms</span><span class="hljs-punctuation">]</span><br>      ├─ <span class="hljs-built_in">Span</span> <span class="hljs-built_in">C</span>  调用库存服务        <span class="hljs-punctuation">[</span><span class="hljs-number">50</span><span class="hljs-variable">ms</span> ──── <span class="hljs-number">180</span><span class="hljs-variable">ms</span><span class="hljs-punctuation">]</span><br>      ├─ <span class="hljs-built_in">Span</span> <span class="hljs-built_in">D</span>  调用优惠券服务      <span class="hljs-punctuation">[</span><span class="hljs-number">60</span><span class="hljs-variable">ms</span> ── <span class="hljs-number">120</span><span class="hljs-variable">ms</span><span class="hljs-punctuation">]</span><br>      └─ <span class="hljs-built_in">Span</span> <span class="hljs-built_in">E</span>  调用支付服务        <span class="hljs-punctuation">[</span><span class="hljs-number">200</span><span class="hljs-variable">ms</span> ─────────── <span class="hljs-number">800</span><span class="hljs-variable">ms</span><span class="hljs-punctuation">]</span>  ← 慢！<br>         └─ <span class="hljs-built_in">Span</span> <span class="hljs-variable">F</span>  支付服务查数据库  <span class="hljs-punctuation">[</span><span class="hljs-number">250</span><span class="hljs-variable">ms</span> ──── <span class="hljs-number">780</span><span class="hljs-variable">ms</span><span class="hljs-punctuation">]</span>  ← 根因在这<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>所有 Span 的 <code>traceId</code> 都是 <code>abc123</code>（同一次请求）</li>
+<li>Span B 的 <code>parentSpanId</code> 指向 Span A，C&#x2F;D&#x2F;E 的 parent 指向 B……父子关系就是这么连起来的</li>
+<li>每个 Span 自带起止时间，画在时间轴上就成了上面这种”甘特图”</li>
+</ul>
+<p><strong>看懂这张图，你一眼就能得出结论</strong>：整条链路 850ms，其中调用支付服务花了 600ms（200→800），而支付服务里又有 530ms 耗在数据库查询上。慢的根因，定位到了。</p>
+<p>这正是链路追踪最大的价值：<strong>它不只告诉你”慢”，还把”慢在哪、为什么慢”用一张图摆在你面前。</strong></p>
+<blockquote>
+<p>小结一句话区分：<strong>Trace 是整次请求，Span 是其中的一步；一个 Trace 由多个 Span 按父子关系组成。</strong></p>
+</blockquote>
+<hr>
+<h2 id="4-最关键的原理：上下文是怎么”跨服务传递”的"><a href="#4-最关键的原理：上下文是怎么”跨服务传递”的" class="headerlink" title="4. 最关键的原理：上下文是怎么”跨服务传递”的"></a>4. 最关键的原理：上下文是怎么”跨服务传递”的</h2><p>到这里你可能有个疑问：道理我懂了，但<strong>订单服务怎么知道自己的 traceId 是 <code>abc123</code>？它又怎么把这个 traceId 告诉下游的支付服务？</strong> 这是整个链路追踪最核心、也最容易被忽略的机制，叫 <strong>上下文传播（Context Propagation）</strong>。</p>
+<p>它要解决两个层面的传递：<strong>一个进程内部</strong>怎么传，<strong>跨进程&#x2F;跨服务</strong>怎么传。</p>
+<h3 id="4-1-进程内传递：靠-ThreadLocal-“悄悄带着走”"><a href="#4-1-进程内传递：靠-ThreadLocal-“悄悄带着走”" class="headerlink" title="4.1 进程内传递：靠 ThreadLocal “悄悄带着走”"></a>4.1 进程内传递：靠 ThreadLocal “悄悄带着走”</h3><p>在<strong>同一个服务内部</strong>，一个请求通常由<strong>同一个线程</strong>从头处理到尾（Controller → Service → Mapper）。那这个请求的 traceId、当前 spanId 存哪？</p>
+<p>答案是存在 <strong>ThreadLocal</strong> 里——这是 Java 里”线程私有变量”的机制，可以理解成”每个线程身上挂着的一个小口袋”。请求一进来，框架就把当前的追踪上下文（traceId、当前 spanId）塞进这个线程的小口袋里。之后这个线程跑到任何一层代码，想用的时候伸手到口袋里一掏就有了，<strong>不需要在每个方法的参数里一层层传 traceId</strong>。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs routeros">请求进入 → 线程 T1 的口袋里放入 &#123;<span class="hljs-attribute">traceId</span>=abc123, <span class="hljs-attribute">spanId</span>=A&#125;<br>   ↓ T1 一路执行<br>Controller 想打日志 → 从口袋掏出 <span class="hljs-attribute">traceId</span>=abc123<span class="hljs-built_in"></span><br><span class="hljs-built_in">Service </span>要建子 Span → 从口袋掏出当前 <span class="hljs-attribute">spanId</span>=A 作为新 Span 的 parent<br>   ↓<br>请求结束 → 清空 T1 的口袋（很重要，否则会<span class="hljs-string">&quot;串味&quot;</span>影响下一个请求）<br></code></pre></td></tr></table></figure>
+
+<p>这也解释了一个常见的坑（第 8 节细讲）：一旦你把活儿丢到<strong>线程池&#x2F;异步线程</strong>里执行，新线程是另一个口袋，里面是空的，上下文就”丢”了。</p>
+<h3 id="4-2-跨进程传递：把上下文塞进-HTTP-请求头"><a href="#4-2-跨进程传递：把上下文塞进-HTTP-请求头" class="headerlink" title="4.2 跨进程传递：把上下文塞进 HTTP 请求头"></a>4.2 跨进程传递：把上下文塞进 HTTP 请求头</h3><p>进程内靠口袋，可一旦订单服务要通过 HTTP <strong>调用支付服务</strong>，那就是两个进程、两个线程、两个完全独立的”口袋系统”了。口袋里的东西没法隔着网络自动跑过去。</p>
+<p>办法很直接：<strong>调用方在发出 HTTP 请求时，把追踪上下文写进请求头（Header）里带过去；被调用方收到请求时，再从请求头里把它读出来，放进自己的口袋。</strong></p>
+<p>这就像快递包裹从深圳的车转到北京的车，工作人员会把”单号 + 来源”这张小标签<strong>贴在包裹外面</strong>一起交接，新一站撕下来登记，继续往下贴。</p>
+<p>具体传什么？业界已经有了统一标准 <strong>W3C Trace Context</strong>，它规定用一个叫 <code>traceparent</code> 的请求头来携带：</p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs subunit">请求头里多了这么一行：<br>traceparent: 00-abc123def456...<span class="hljs-string">-00</span>f067aa0ba902b7<span class="hljs-string">-01</span><br>             │  │                │                │<br>            版本  traceId         parentSpanId    采样标志<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>调用方（订单服务）发请求前，把”我的 traceId + 我当前的 spanId”编码进 <code>traceparent</code> 头</li>
+<li>被调用方（支付服务）一收到请求，解析这个头，就知道了：”哦，我属于 traceId&#x3D;abc123 这条链路，我的上游 span 是那个,我要新建一个 span 并把 parent 指向它”</li>
+</ul>
+<p>整个传递链路串起来就是：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs routeros">网关        生成 <span class="hljs-attribute">traceId</span>=abc123, <span class="hljs-attribute">spanId</span>=A<br>  │  HTTP 请求头带上 traceparent: <span class="hljs-built_in">..</span>.abc123-A<span class="hljs-built_in">..</span>.<br>  ▼<br>订单服务    从头里读出 <span class="hljs-attribute">traceId</span>=abc123, <span class="hljs-attribute">parent</span>=A → 自己新建 <span class="hljs-attribute">spanId</span>=B<br>  │  调用支付时，HTTP 头带上 traceparent: <span class="hljs-built_in">..</span>.abc123-B<span class="hljs-built_in">..</span>.<br>  ▼<br>支付服务    从头里读出 <span class="hljs-attribute">traceId</span>=abc123, <span class="hljs-attribute">parent</span>=B → 自己新建 <span class="hljs-attribute">spanId</span>=E<br></code></pre></td></tr></table></figure>
+
+<p><strong>注意全程 traceId 始终是 abc123 没变</strong>（这是把所有 Span 绑在一起的关键），变的是每一跳新建自己的 spanId、并把 parent 指向上一跳。</p>
+<blockquote>
+<p>划重点：链路追踪能”跨服务”，靠的不是什么黑魔法，就是<strong>在每次远程调用的请求头里夹带 traceId 这张小标签</strong>。换成 RPC、消息队列也一样——RPC 把它放进调用的元数据里，消息队列把它放进消息的 header 里，原理完全相同。</p>
+</blockquote>
+<hr>
+<h2 id="5-数据是怎么被收集起来的：埋点与上报"><a href="#5-数据是怎么被收集起来的：埋点与上报" class="headerlink" title="5. 数据是怎么被收集起来的：埋点与上报"></a>5. 数据是怎么被收集起来的：埋点与上报</h2><p>上下文传播解决了”每个服务都知道自己属于哪条链路”。但这些 Span 数据产生之后，得有人<strong>收集、汇总、存起来、画成图</strong>，你才能看到第 3 节那张漂亮的树。这一节讲数据是怎么从代码里”冒出来”再”汇集”的。</p>
+<h3 id="5-1-埋点（Instrumentation）：Span-是在哪儿产生的"><a href="#5-1-埋点（Instrumentation）：Span-是在哪儿产生的" class="headerlink" title="5.1 埋点（Instrumentation）：Span 是在哪儿产生的"></a>5.1 埋点（Instrumentation）：Span 是在哪儿产生的</h3><p>“埋点”就是在代码的关键位置插入”开始一个 Span &#x2F; 结束一个 Span”的逻辑。有两种方式：</p>
+<p><strong>① 手动埋点</strong>——你自己在代码里写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Span</span> <span class="hljs-variable">span</span> <span class="hljs-operator">=</span> tracer.spanBuilder(<span class="hljs-string">&quot;查询用户信用分&quot;</span>).startSpan();<br><span class="hljs-keyword">try</span> &#123;<br>    <span class="hljs-comment">// ... 你的业务逻辑</span><br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    span.end();   <span class="hljs-comment">// 结束，记录耗时</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>灵活，但要一处处自己写，容易漏。一般只用来标记<strong>业务上你特别关心的关键步骤</strong>。</p>
+<p><strong>② 自动埋点</strong>——这才是主力。你<strong>几乎不用改代码</strong>，框架&#x2F;探针会自动在这些地方帮你开始和结束 Span：</p>
+<ul>
+<li>收到一个 HTTP 请求（Spring MVC 的拦截器层）</li>
+<li>发起一次 HTTP&#x2F;RPC 调用（HTTP 客户端层）</li>
+<li>执行一条 SQL（JDBC 驱动层）</li>
+<li>操作一次 Redis、发一条 MQ 消息</li>
+</ul>
+<p>它是怎么做到”不改代码”的？常见手段是 <strong>Java Agent + 字节码增强</strong>：启动时加一个 <code>-javaagent</code> 参数，探针会在类加载的瞬间，往这些常用框架的方法里”悄悄织入”埋点代码（思路和你学过的 AOP 很像，只不过织得更底层）。所以你看到很多接入文档就一句话——启动命令加个 agent jar，链路就自动有了，原因就在这。</p>
+<h3 id="5-2-采样（Sampling）：不是每个请求都记"><a href="#5-2-采样（Sampling）：不是每个请求都记" class="headerlink" title="5.2 采样（Sampling）：不是每个请求都记"></a>5.2 采样（Sampling）：不是每个请求都记</h3><p>生产环境 QPS 可能几万几十万，如果<strong>每一个请求</strong>都完整记录 Span 再上报存储，数据量会大到存不下、也太贵。所以引入<strong>采样</strong>——只记录一部分请求。</p>
+<p>最常见两种策略：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>怎么决定记不记</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>头部采样（Head-based）</td>
+<td>请求<strong>一进来</strong>就掷个骰子决定，比如”只记 10%”，决定后整条链路统一遵守</td>
+<td>简单、开销小，但可能恰好漏掉那个出错的请求</td>
+</tr>
+<tr>
+<td>尾部采样（Tail-based）</td>
+<td>等整条链路<strong>跑完</strong>再决定，比如”出错的、慢的一定记，正常的只留一点”</td>
+<td>能保住有价值的链路，但要先把所有 Span 缓存起来，复杂、占内存</td>
+</tr>
+</tbody></table>
+<p>那个 <code>traceparent</code> 头最后一位（<code>01</code>&#x2F;<code>00</code>）就是采样标志位：网关在头部采样时一旦决定”这条要记”，就把标志位设成 <code>01</code> 带下去，<strong>保证一条链路要么整条都记、要么整条都不记</strong>，不会出现半截的残链。</p>
+<h3 id="5-3-上报与汇总：Span-怎么从各服务汇到一处"><a href="#5-3-上报与汇总：Span-怎么从各服务汇到一处" class="headerlink" title="5.3 上报与汇总：Span 怎么从各服务汇到一处"></a>5.3 上报与汇总：Span 怎么从各服务汇到一处</h3><p>每个服务把自己产生的 Span 先在内存里攒一小批（buffer），然后<strong>异步</strong>发给一个集中的收集器（Collector）。注意是异步——绝不能让”上报这件事”阻塞你的业务请求，这和上一篇讲指标时强调的”埋点不能拖慢主流程”是同一个道理。</p>
+<p>收集器把来自各个服务、但 traceId 相同的 Span <strong>按 traceId 归拢到一起</strong>，根据 parentSpanId 重建出父子树，存进后端存储，最后由 UI 查询展示。</p>
+<hr>
+<h2 id="6-整体架构：从产生到看见的全景图"><a href="#6-整体架构：从产生到看见的全景图" class="headerlink" title="6. 整体架构：从产生到看见的全景图"></a>6. 整体架构：从产生到看见的全景图</h2><p>把上面几节串起来，一条 Span 数据从”产生”到”被你看见”，要走完这条流水线：</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">①各个服务（埋点产生 <span class="hljs-built_in">Span</span>）<br>   订单服务 ─┐<br>   支付服务 ─┤  异步上报（同一 <span class="hljs-variable">traceId</span> 的 <span class="hljs-built_in">Span</span> 分散在各服务）<br>   库存服务 ─┘<br>        │<br>        ▼<br>②<span class="hljs-variable">Collector</span> 收集器<br>   按 <span class="hljs-variable">traceId</span> 把散落的 <span class="hljs-built_in">Span</span> 归拢、重建成树<br>        │<br>        ▼<br>③存储（时序<span class="hljs-operator">/</span>检索数据库）<br>   存下所有 <span class="hljs-built_in">Trace</span>，支持按 <span class="hljs-variable">traceId</span>、按耗时、按服务检索<br>        │<br>        ▼<br>④<span class="hljs-variable">UI</span> 可视化<br>   画成第 <span class="hljs-number">3</span> 节那种甘特图，让你一眼看出慢在哪<br></code></pre></td></tr></table></figure>
+
+<p>这套流水线，市面上的主流工具基本都是这个骨架，只是分工和侧重不同：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>定位</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>OpenTelemetry（OTel）</strong></td>
+<td>标准 + 工具集</td>
+<td>当下事实标准，定义了 API、数据格式、传播协议；负责”产生和传输”</td>
+</tr>
+<tr>
+<td><strong>Jaeger</strong></td>
+<td>后端 + UI</td>
+<td>Uber 开源，负责收集、存储、展示，常和 OTel 搭配</td>
+</tr>
+<tr>
+<td><strong>Zipkin</strong></td>
+<td>后端 + UI</td>
+<td>Twitter 开源，元老，轻量</td>
+</tr>
+<tr>
+<td><strong>SkyWalking</strong></td>
+<td>一体化 APM</td>
+<td>国产，自带 Agent（自动埋点强）+ 存储 + UI，还含指标告警</td>
+</tr>
+</tbody></table>
+<p><strong>这里有个重要趋势要记住</strong>：早期各家数据格式、传播协议互不相通，换工具就得重新接入。现在 <strong>OpenTelemetry 把”怎么埋点、上下文怎么传、数据长什么样”统一成了标准</strong>——你的应用只对接 OTel 这套标准 API，后端想用 Jaeger 还是别的，随时能换，业务代码不用动。这和指标那篇里 Micrometer 当”监控门面”是完全一样的思路：<strong>用一层统一标准，把业务代码和具体的后端实现解耦。</strong></p>
+<hr>
+<h2 id="7-在-Spring-Boot-里怎么落地（少量代码）"><a href="#7-在-Spring-Boot-里怎么落地（少量代码）" class="headerlink" title="7. 在 Spring Boot 里怎么落地（少量代码）"></a>7. 在 Spring Boot 里怎么落地（少量代码）</h2><p>原理懂了，落地其实很轻。现在 Spring Boot 生态推荐 <strong>Micrometer Tracing</strong>（前身是 Spring Cloud Sleuth）作为门面，底层对接 OpenTelemetry。</p>
+<p><strong>第一步，加依赖</strong>（门面 + 一个具体的上报实现，比如上报给 Zipkin&#x2F;OTel）：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>io.micrometer<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>micrometer-tracing-bridge-otel<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>io.opentelemetry<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>opentelemetry-exporter-zipkin<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>第二步，配一下采样率和上报地址</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">management:</span><br>  <span class="hljs-attr">tracing:</span><br>    <span class="hljs-attr">sampling:</span><br>      <span class="hljs-attr">probability:</span> <span class="hljs-number">0.1</span>        <span class="hljs-comment"># 采样 10%，生产别设 1.0</span><br>  <span class="hljs-attr">zipkin:</span><br>    <span class="hljs-attr">tracing:</span><br>      <span class="hljs-attr">endpoint:</span> <span class="hljs-string">http://localhost:9411/api/v2/spans</span>   <span class="hljs-comment"># 上报到哪</span><br></code></pre></td></tr></table></figure>
+
+<p>就这样——<strong>HTTP 请求、远程调用、数据库查询的 Span 都自动产生了</strong>，traceparent 头自动在服务间传递，你基本不用写埋点代码。只有想标记某段特殊业务时，才手动补一个 Span。</p>
+<p><strong>第三步，也是最实用的一步：让日志带上 traceId。</strong> 这一步把”链路追踪”和你已有的”日志”打通了。在日志格式里加上 traceId&#x2F;spanId（Micrometer Tracing 会自动放进日志的 MDC，你只要在 pattern 里引用）：</p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs subunit">日志格式里加 [%X&#123;traceId:-&#125;,%X&#123;spanId:-&#125;]，打出来就是：<br><br>[abc123,B] 2026<span class="hljs-string">-05</span><span class="hljs-string">-06</span> 13:05:01  订单服务  开始处理下单<br>[abc123,E] 2026<span class="hljs-string">-05</span><span class="hljs-string">-06</span> 13:05:01  支付服务  调用支付网关超时<br></code></pre></td></tr></table></figure>
+
+<p>这样一来，你在追踪 UI 上发现某条 trace 出错，<strong>直接拿这个 traceId 去日志系统一搜，6 个服务里属于这次请求的日志全都跳出来了</strong>。指标 → 链路 → 日志，三层就这么串通了。</p>
+<hr>
+<h2 id="8-几个一定会踩的坑（深入原理）"><a href="#8-几个一定会踩的坑（深入原理）" class="headerlink" title="8. 几个一定会踩的坑（深入原理）"></a>8. 几个一定会踩的坑（深入原理）</h2><p>这一节挑几个”原理上不讲清楚就一定会出问题”的点，理解了能少走很多弯路。</p>
+<h3 id="8-1-异步-线程池里，上下文会”丢”"><a href="#8-1-异步-线程池里，上下文会”丢”" class="headerlink" title="8.1 异步 &#x2F; 线程池里，上下文会”丢”"></a>8.1 异步 &#x2F; 线程池里，上下文会”丢”</h3><p>回到第 4.1 节那个”线程口袋”。上下文存在<strong>当前线程</strong>的 ThreadLocal 里，一旦你这样写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">threadPool.submit(() -&gt; &#123;<br>    callPaymentService();   <span class="hljs-comment">// 这里 traceId 没了！</span><br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>任务被丢进线程池，由<strong>另一个线程</strong>执行，那个线程的口袋是空的，traceId&#x2F;spanId 全丢了。结果就是：异步那一段的 Span 要么挂不到原来的树上（变成一棵孤立的小树），要么干脆没记录，链路断了。</p>
+<p><strong>原理上的解法</strong>叫”上下文搬运”：在提交任务前，把当前线程口袋里的上下文<strong>拷贝一份</strong>，等任务在新线程开始执行时<strong>先把它放进新线程的口袋</strong>，结束再清掉。好在主流框架都提供了包装好的工具（比如包一层 <code>ContextSnapshot</code>、或用框架提供的 <code>TraceableExecutorService</code>），你只要记住一条原则：<strong>凡是跨线程，就要主动把追踪上下文带过去。</strong></p>
+<h3 id="8-2-跨机器的”时钟不一致”"><a href="#8-2-跨机器的”时钟不一致”" class="headerlink" title="8.2 跨机器的”时钟不一致”"></a>8.2 跨机器的”时钟不一致”</h3><p>第 3 节那张甘特图，是把不同服务、不同机器上 Span 的开始&#x2F;结束时间画在<strong>同一根时间轴</strong>上的。但不同机器的系统时钟并不完全一致（哪怕都装了 NTP 对时，也可能差几毫秒到几十毫秒）。</p>
+<p>这会导致一些”反直觉”的画面：子 Span 的开始时间看起来比父 Span 还早、或者两段调用的先后顺序看起来不对。<strong>这不是 bug，是物理上的时钟漂移。</strong> 理解这一点后，看链路图时要明白：<strong>跨服务的绝对时间点有少量误差是正常的，真正可靠的是每个 Span “自己机器上测出的持续时长”</strong>。排查耗时优先看每段 Span 的 duration，而不是死抠绝对时间点的对齐。</p>
+<h3 id="8-3-采样率和”按需追踪”的矛盾"><a href="#8-3-采样率和”按需追踪”的矛盾" class="headerlink" title="8.3 采样率和”按需追踪”的矛盾"></a>8.3 采样率和”按需追踪”的矛盾</h3><p>采样 10% 省了资源，但万一用户投诉的那次请求，恰好是没被采样的 90%，你就查无此 trace 了。这就是头部采样的天然缺陷。</p>
+<p>实践中的折中思路：</p>
+<ul>
+<li>对<strong>出错&#x2F;超时</strong>的请求强制采样（尾部采样的思想，宁可贵点也要留住有问题的）</li>
+<li>支持”<strong>按 traceId 透传强制采样</strong>“：从入口带一个强制标志，让某一类重点请求 100% 记录</li>
+<li>普通正常流量低采样率，够看趋势就行</li>
+</ul>
+<p>记住这是个<strong>成本 vs 完整性</strong>的权衡，没有银弹，按业务重要性调。</p>
+<hr>
+<h2 id="9-三大支柱怎么配合：Metrics、Tracing、Logging"><a href="#9-三大支柱怎么配合：Metrics、Tracing、Logging" class="headerlink" title="9. 三大支柱怎么配合：Metrics、Tracing、Logging"></a>9. 三大支柱怎么配合：Metrics、Tracing、Logging</h2><p>到这里，可观测性三件套你就齐了。它们不是三选一，而是<strong>分工协作、层层下钻</strong>：</p>
+<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs haxe">①Metrics  指标大盘告警：<span class="hljs-string">&quot;下单接口 P99 从 200ms 涨到 2s 了！&quot;</span><br>              │ 知道<span class="hljs-string">&quot;有问题&quot;</span>，但不知道<span class="hljs-string">&quot;为什么&quot;</span><br>              ▼<br>②Tracing  翻出几条慢的 <span class="hljs-built_in">trace</span>：<span class="hljs-string">&quot;原来都卡在调用支付服务那一段&quot;</span><br>              │ 知道<span class="hljs-string">&quot;卡在哪一步&quot;</span>，但不知道<span class="hljs-string">&quot;那一步内部发生了啥&quot;</span><br>              ▼<br>③Logging  拿 traceId 搜日志：<span class="hljs-string">&quot;支付服务那条日志写着 数据库连接池耗尽&quot;</span><br>              │<br>              ▼<br>            根因找到 ✅<br></code></pre></td></tr></table></figure>
+
+<p>一句话记住三者的角色：</p>
+<table>
+<thead>
+<tr>
+<th>支柱</th>
+<th>回答的问题</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Metrics</strong></td>
+<td>系统<strong>整体</strong>健康吗？有没有异常趋势？</td>
+<td>体检报告上的各项数值</td>
+</tr>
+<tr>
+<td><strong>Tracing</strong></td>
+<td><strong>这一次请求</strong>经过了哪些环节，慢&#x2F;错在哪一环？</td>
+<td>一次就诊的完整流程单</td>
+</tr>
+<tr>
+<td><strong>Logging</strong></td>
+<td>那个出问题的环节<strong>内部具体</strong>发生了什么？</td>
+<td>医生写的详细诊断记录</td>
+</tr>
+</tbody></table>
+<p>它们靠 <strong>traceId 这根线</strong>穿起来：指标发现异常 → 跳到对应的 trace 看链路 → 用 traceId 下钻到日志看细节。三层打通，排查效率是质的飞跃。</p>
+<hr>
+<h2 id="10-小结"><a href="#10-小结" class="headerlink" title="10. 小结"></a>10. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>为什么需要</td>
+<td>微服务把一个请求打散到多个进程，传统”翻一个日志、打两个时间戳”的排查全失灵</td>
+</tr>
+<tr>
+<td>核心思想</td>
+<td>给每个请求发一个全局唯一 <strong>TraceId</strong>（像快递单号），跟着请求一路传，把碎片串成线</td>
+</tr>
+<tr>
+<td>Span</td>
+<td>一段有起止时间的操作，带 spanId &#x2F; traceId &#x2F; parentSpanId</td>
+</tr>
+<tr>
+<td>Trace</td>
+<td>一次请求的所有 Span 按父子关系拼成的一棵树，画出来就是甘特图</td>
+</tr>
+<tr>
+<td>上下文传播</td>
+<td>进程内靠 <strong>ThreadLocal</strong>（线程口袋）；跨服务靠把 traceId 塞进 <strong>HTTP 头</strong>（W3C <code>traceparent</code>）</td>
+</tr>
+<tr>
+<td>数据收集</td>
+<td>自动埋点（Java Agent 字节码增强）产生 Span → 采样 → 异步上报给 Collector → 存储 → UI</td>
+</tr>
+<tr>
+<td>采样</td>
+<td>头部采样简单省资源，尾部采样能保住出错链路；本质是成本 vs 完整性的权衡</td>
+</tr>
+<tr>
+<td>生态</td>
+<td>OpenTelemetry 是统一标准（门面思想），后端可选 Jaeger &#x2F; Zipkin &#x2F; SkyWalking</td>
+</tr>
+<tr>
+<td>落地</td>
+<td>Spring Boot 用 Micrometer Tracing，自动埋点为主；关键是让<strong>日志带上 traceId</strong></td>
+</tr>
+<tr>
+<td>常见坑</td>
+<td>异步&#x2F;线程池丢上下文、跨机器时钟漂移、采样可能漏掉关键请求</td>
+</tr>
+<tr>
+<td>三大支柱</td>
+<td>Metrics 发现异常 → Tracing 定位环节 → Logging 看细节，靠 traceId 串通</td>
+</tr>
+</tbody></table>
+<p>链路追踪听起来高大上，剥开看核心就一句话：<strong>给请求发个单号，每一跳都带着它、并记下自己这段的起止时间，最后按单号拼成一棵树。</strong> 想清楚这条主线，剩下的采样、上报、各种工具，都只是围着它做工程优化而已。</p>
+<hr>
+<blockquote>
+<p>到这里，可观测性三大支柱——<a href="/2026/05/05/Java-advanced/05-metric/">指标</a>、<a href="/2026/05/06/Java-advanced/06-grafana/">Grafana 大盘</a>、链路追踪——就凑齐了。实际项目里它们往往整合在同一套平台（比如在 Grafana 里从一个变慢的指标点，直接跳到对应的 trace，再下钻到日志），三层联动，排查一气呵成。</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E8%BF%9B%E9%98%B6/" class="category-chain-item">Java进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" class="print-no-link">#微服务</a>
+      
+        <a href="/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/" class="print-no-link">#可观测性</a>
+      
+        <a href="/tags/%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/" class="print-no-link">#链路追踪</a>
+      
+        <a href="/tags/Tracing/" class="print-no-link">#Tracing</a>
+      
+        <a href="/tags/OpenTelemetry/" class="print-no-link">#OpenTelemetry</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java进阶(7) | 链路追踪入门：一个请求是怎么被&#34;全程跟拍&#34;的</div>
+      <div>https://rebibabo.github.io/2026/05/07/Java-advanced/07-tracing/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月7日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/08/Java-basic/08-lambda-and-stream/" title="Java基础(8) | Lambda 与 Stream API：函数式编程核心工具">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(8) | Lambda 与 Stream API：函数式编程核心工具</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/07/Java-basic/07-exception/" title="Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources">
+                        <span class="hidden-mobile">Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1313 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="切换到供给方视角，详解 SSP 如何帮媒体把广告位卖出最高价，ADX 如何撮合 DSP 和 SSP 的实时交易。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="程序化广告 (3)：SSP 和 ADX——媒体方的&quot;商业化中枢&quot;与&quot;交易所&quot;">
+<meta property="og:url" content="https://rebibabo.github.io/2026/06/09/programmatic-ads/04-SSP/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="切换到供给方视角，详解 SSP 如何帮媒体把广告位卖出最高价，ADX 如何撮合 DSP 和 SSP 的实时交易。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/programmatic-ads/workflow.png">
+<meta property="article:published_time" content="2026-06-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-16T01:15:07.467Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="ADX">
+<meta property="article:tag" content="SSP">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="广告">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/programmatic-ads/workflow.png">
+  
+  
+  
+  <title>程序化广告 (3)：SSP 和 ADX——媒体方的&#34;商业化中枢&#34;与&#34;交易所&#34; - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="程序化广告 (3)：SSP 和 ADX——媒体方的&#34;商业化中枢&#34;与&#34;交易所&#34;"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-09 00:00" pubdate>
+          2026年6月9日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          47 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">程序化广告 (3)：SSP 和 ADX——媒体方的&#34;商业化中枢&#34;与&#34;交易所&#34;</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>前几篇我们一直站在”需求方”的视角看程序化广告——<br>广告主、DSP、4 个服务平台，所有角色都围绕”怎么帮广告主把钱花得更好”。</p>
+<p>这一篇切换视角，看<strong>供给方</strong>：</p>
+<ul>
+<li><strong>SSP（Supply Side Platform，供给方平台）</strong>：媒体方的”商业化中枢”</li>
+<li><strong>ADX（Ad Exchange，广告交易平台）</strong>：撮合 DSP 和 SSP 的”交易所”</li>
+</ul>
+<p>这两个角色合起来，回答了一个核心问题：</p>
+<blockquote>
+<p><strong>媒体方有了流量，怎么把每一个广告位卖出最高价？</strong></p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="一、先看清楚三者的定位"><a href="#一、先看清楚三者的定位" class="headerlink" title="一、先看清楚三者的定位"></a>一、先看清楚三者的定位</h2><p>在深入 SSP 和 ADX 之前，先把整个程序化广告生态里的三个核心技术角色摆在一起对比：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th><strong>DSP</strong>（Demand Side Platform，需求方平台）</th>
+<th><strong>SSP</strong>（Supply Side Platform，供给方平台）</th>
+<th><strong>ADX</strong>（Ad Exchange，广告交易平台）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>服务对象</td>
+<td>广告主</td>
+<td>媒体方</td>
+<td>双方</td>
+</tr>
+<tr>
+<td>核心目标</td>
+<td><strong>低价</strong>买到对的流量</td>
+<td><strong>高价</strong>卖出广告位</td>
+<td>公平撮合交易</td>
+</tr>
+<tr>
+<td>核心算法</td>
+<td>出价算法、CTR 预估</td>
+<td>底价策略、流量分配</td>
+<td>竞价规则、决策机制</td>
+</tr>
+<tr>
+<td>数据资产</td>
+<td>跨媒体用户画像</td>
+<td>第一方用户行为</td>
+<td>海量交易数据</td>
+</tr>
+<tr>
+<td>角色比喻</td>
+<td>股票买方</td>
+<td>股票卖方</td>
+<td>股票交易所</td>
+</tr>
+</tbody></table>
+<p><strong>三者是一个完整的博弈生态</strong>：</p>
+<blockquote>
+<p>DSP 想压价（少花钱）</p>
+<p>SSP 想抬价（多收钱）</p>
+<p>ADX 是裁判（公平撮合）</p>
+</blockquote>
+<p>可以用<strong>股票市场</strong>做类比：</p>
+<ul>
+<li>买方（DSP）想用最低价买股票</li>
+<li>卖方（SSP）想用最高价卖股票</li>
+<li>交易所（ADX）撮合双方，按规则决定谁成交、按什么价格</li>
+</ul>
+<p>每一次广告曝光，就像一只”股票”被实时拍卖——<br><strong>每秒发生几十万次</strong>，全程 100 毫秒内完成。</p>
+<p>这就是程序化广告的真实运作方式。</p>
+<h2 id="二、SSP：媒体方的商业化中枢"><a href="#二、SSP：媒体方的商业化中枢" class="headerlink" title="二、SSP：媒体方的商业化中枢"></a>二、SSP：媒体方的商业化中枢</h2><h3 id="2-1-SSP-是什么"><a href="#2-1-SSP-是什么" class="headerlink" title="2.1 SSP 是什么"></a>2.1 SSP 是什么</h3><p><strong>SSP（Supply Side Platform，供给方平台）</strong> 是服务媒体方的技术平台。</p>
+<p>它的核心目标只有一个：</p>
+<blockquote>
+<p><strong>帮媒体方把每一个广告位卖出最高的价钱。</strong></p>
+</blockquote>
+<p><strong>类比 DSP</strong>：</p>
+<ul>
+<li>DSP 是广告主的”代理人”，帮广告主投广告</li>
+<li>SSP 是媒体方的”代理人”，帮媒体卖流量</li>
+</ul>
+<p>两者的关系<strong>完全对称</strong>——但目标相反。</p>
+<h3 id="2-2-SSP-要做的-4-件事"><a href="#2-2-SSP-要做的-4-件事" class="headerlink" title="2.2 SSP 要做的 4 件事"></a>2.2 SSP 要做的 4 件事</h3><h4 id="1-最大化收益：提升-eCPM"><a href="#1-最大化收益：提升-eCPM" class="headerlink" title="1. 最大化收益：提升 eCPM"></a>1. 最大化收益：提升 eCPM</h4><p><strong>eCPM（Effective Cost Per Mille，有效千次曝光成本）</strong> 是媒体方最关心的指标，含义是”每 1000 次曝光能赚多少钱”。</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">eCPM</span> <span class="hljs-operator">=</span> (总收入 / 总曝光数) × <span class="hljs-number">1000</span><br></code></pre></td></tr></table></figure>
+
+<p>举例：</p>
+<ul>
+<li>媒体有 100 万次曝光机会</li>
+<li>总共赚了 5000 元</li>
+<li>eCPM &#x3D; (5000 &#x2F; 1,000,000) × 1000 &#x3D; <strong>5 元</strong></li>
+</ul>
+<p><strong>eCPM 是衡量”流量值钱程度”的核心指标</strong>。</p>
+<p>同一个广告位，不同 SSP 的优化能力，可能让 eCPM 相差 30-50%。</p>
+<p>SSP 怎么提升 eCPM？</p>
+<ul>
+<li>引入更多竞价方（人多价高）</li>
+<li>优化底价策略（不让广告位贱卖）</li>
+<li>精准匹配广告与用户（CTR 高，广告主愿意多付）</li>
+<li>数据增值（提供更详细的用户标签，溢价销售）</li>
+</ul>
+<h4 id="2-提升填充率：Fill-Rate"><a href="#2-提升填充率：Fill-Rate" class="headerlink" title="2. 提升填充率：Fill Rate"></a>2. 提升填充率：Fill Rate</h4><p><strong>Fill Rate（填充率）</strong> 是另一个核心指标，含义是”广告位被填充的比例”。</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf">Fill Rate <span class="hljs-operator">=</span> 实际展示的广告数 / 总广告请求数<br></code></pre></td></tr></table></figure>
+
+<p>举例：</p>
+<ul>
+<li>媒体有 100 万次广告请求</li>
+<li>其中 80 万次实际展示了广告</li>
+<li>20 万次因为”没人出价”或”出价低于底价”而空着</li>
+<li>Fill Rate &#x3D; <strong>80%</strong></li>
+</ul>
+<p><strong>填充率每提升 5%，媒体收入直接提升 5%</strong>——空着的广告位是纯粹的浪费。</p>
+<p>SSP 怎么提升填充率？</p>
+<ul>
+<li>接入更多广告源（多个 ADX、多个 DSP）</li>
+<li>设置兜底广告（实在没人买就放品牌广告或公益广告）</li>
+<li>优化广告源调度顺序（哪个源响应快就先用谁）</li>
+</ul>
+<h4 id="3-保证用户体验"><a href="#3-保证用户体验" class="headerlink" title="3. 保证用户体验"></a>3. 保证用户体验</h4><p>媒体方有一个独特的两难处境：</p>
+<ul>
+<li>广告太少 → 收入低</li>
+<li>广告太多 → 用户烦 → 用户流失 → 长期收入更低</li>
+</ul>
+<p><strong>SSP 必须帮媒体平衡”短期收入”和”长期留存”</strong>：</p>
+<ul>
+<li>控制广告频次（同一用户一天看几次）</li>
+<li>过滤低质广告（不让恶心广告投出来）</li>
+<li>优化广告时机（不在用户最重要的操作时打扰）</li>
+</ul>
+<p>这是 SSP 比 DSP 更复杂的地方——<br><strong>SSP 不能只看眼前的钱</strong>。</p>
+<h4 id="4-多渠道变现"><a href="#4-多渠道变现" class="headerlink" title="4. 多渠道变现"></a>4. 多渠道变现</h4><p>媒体方不能只接一个 ADX、一个 DSP——<br><strong>接得越多，竞价越激烈，价格越高</strong>。</p>
+<p>SSP 通常会同时对接：</p>
+<ul>
+<li>多个公开 ADX（Google AdX、字节穿山甲、Meta Audience Network 等）</li>
+<li>多个直接对接的 DSP</li>
+<li>自营广告系统（媒体方自己的广告库）</li>
+<li>私有交易市场（和大客户直接签合约）</li>
+</ul>
+<p><strong>谁出价高用谁</strong>——这是 SSP 最核心的工作之一。</p>
+<h3 id="2-3-SSP-的核心构成"><a href="#2-3-SSP-的核心构成" class="headerlink" title="2.3 SSP 的核心构成"></a>2.3 SSP 的核心构成</h3><p>SSP 内部是一套相当复杂的系统：</p>
+<h4 id="1-广告位管理"><a href="#1-广告位管理" class="headerlink" title="1. 广告位管理"></a>1. 广告位管理</h4><ul>
+<li>媒体方在 SSP 后台注册所有广告位</li>
+<li>每个广告位有自己的属性：尺寸、位置、类型（Banner &#x2F; Native &#x2F; Video）</li>
+<li>媒体方可以设置每个广告位的规则（屏蔽哪些行业、设置底价）</li>
+</ul>
+<h4 id="2-流量分发引擎"><a href="#2-流量分发引擎" class="headerlink" title="2. 流量分发引擎"></a>2. 流量分发引擎</h4><ul>
+<li>接收来自媒体的广告请求</li>
+<li>解析请求信息：用户 ID、设备、地域、上下文</li>
+<li>决定”这次请求送到哪些广告源去竞价”</li>
+</ul>
+<h4 id="3-多渠道竞价管理（核心）"><a href="#3-多渠道竞价管理（核心）" class="headerlink" title="3. 多渠道竞价管理（核心）"></a>3. 多渠道竞价管理（核心）</h4><ul>
+<li>同时向多个 ADX&#x2F;DSP 发起竞价请求</li>
+<li>设置超时时间（一般 80-100ms）</li>
+<li>收集所有出价结果</li>
+</ul>
+<h4 id="4-决策引擎"><a href="#4-决策引擎" class="headerlink" title="4. 决策引擎"></a>4. 决策引擎</h4><ul>
+<li>在收到的多个出价中决定”谁中标”</li>
+<li>不只是简单的”价高者得”，还要综合：<ul>
+<li>广告主优先级（合约客户优先）</li>
+<li>频次控制（用户今天看过这个广告了吗？）</li>
+<li>创意质量</li>
+<li>用户体验规则</li>
+</ul>
+</li>
+</ul>
+<h4 id="5-数据回流与报表"><a href="#5-数据回流与报表" class="headerlink" title="5. 数据回流与报表"></a>5. 数据回流与报表</h4><ul>
+<li>收集”投放后发生了什么”：曝光、点击、转化</li>
+<li>实时统计 eCPM、Fill Rate、CTR 等关键指标</li>
+<li>生成报表给媒体方</li>
+</ul>
+<h4 id="6-反作弊保障"><a href="#6-反作弊保障" class="headerlink" title="6. 反作弊保障"></a>6. 反作弊保障</h4><ul>
+<li>识别假流量、机器人</li>
+<li>过滤恶意点击</li>
+<li>保护媒体方和广告主双方的利益</li>
+</ul>
+<h3 id="2-4-SSP-给媒体方提供什么"><a href="#2-4-SSP-给媒体方提供什么" class="headerlink" title="2.4 SSP 给媒体方提供什么"></a>2.4 SSP 给媒体方提供什么</h3><p>媒体方选择 SSP 时，关心 5 个维度：</p>
+<h4 id="1-流量变现能力"><a href="#1-流量变现能力" class="headerlink" title="1. 流量变现能力"></a>1. 流量变现能力</h4><ul>
+<li>SSP 接入了多少广告源？</li>
+<li>在媒体的目标地域&#x2F;行业有没有优势资源？</li>
+<li>历史 eCPM 数据如何？</li>
+</ul>
+<h4 id="2-多渠道接入"><a href="#2-多渠道接入" class="headerlink" title="2. 多渠道接入"></a>2. 多渠道接入</h4><ul>
+<li>SSP 帮媒体一次性接入几十个广告源</li>
+<li>媒体不需要自己一个个对接</li>
+<li><strong>这是 SSP 最核心的价值之一</strong></li>
+</ul>
+<h4 id="3-数据分析报表"><a href="#3-数据分析报表" class="headerlink" title="3. 数据分析报表"></a>3. 数据分析报表</h4><ul>
+<li>详细的多维度数据看板</li>
+<li>帮助媒体方理解”哪些流量值钱、哪些不值钱”</li>
+<li>指导媒体方做产品决策</li>
+</ul>
+<h4 id="4-反作弊保障"><a href="#4-反作弊保障" class="headerlink" title="4. 反作弊保障"></a>4. 反作弊保障</h4><ul>
+<li>SSP 帮媒体过滤掉低质量的需求方（避免被低价欺诈）</li>
+<li>维护媒体的品牌形象</li>
+</ul>
+<h4 id="5-服务模式"><a href="#5-服务模式" class="headerlink" title="5. 服务模式"></a>5. 服务模式</h4><p>和 DSP 一样，SSP 也有三种服务模式（在第 1 篇里详细对比过）：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>全称</th>
+<th>中文</th>
+<th>适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SaaS</td>
+<td>Software-as-a-Service</td>
+<td>软件即服务</td>
+<td>中小媒体</td>
+</tr>
+<tr>
+<td>PaaS</td>
+<td>Platform-as-a-Service</td>
+<td>平台即服务</td>
+<td>中大型媒体</td>
+</tr>
+<tr>
+<td>IaaS</td>
+<td>Infrastructure-as-a-Service</td>
+<td>基础设施即服务</td>
+<td>超大型媒体</td>
+</tr>
+</tbody></table>
+<p>大型媒体通常会选 PaaS 或 IaaS——<br>因为它们有自己的技术团队，希望深度定制、数据自留。</p>
+<h2 id="三、ADX：广告交易平台"><a href="#三、ADX：广告交易平台" class="headerlink" title="三、ADX：广告交易平台"></a>三、ADX：广告交易平台</h2><h3 id="3-1-ADX-是什么"><a href="#3-1-ADX-是什么" class="headerlink" title="3.1 ADX 是什么"></a>3.1 ADX 是什么</h3><p><strong>ADX（Ad Exchange，广告交易平台）</strong> 是程序化广告生态的”交易所”。</p>
+<p>它的核心作用：<strong>撮合 DSP 和 SSP 的交易</strong>。</p>
+<h3 id="3-2-ADX-的核心功能"><a href="#3-2-ADX-的核心功能" class="headerlink" title="3.2 ADX 的核心功能"></a>3.2 ADX 的核心功能</h3><p>ADX 干的事情很纯粹：</p>
+<ol>
+<li><p><strong>接收 SSP 的流量请求</strong></p>
+<ul>
+<li>SSP 把广告位信息送过来</li>
+<li>“我这有一个广告位，想卖”</li>
+</ul>
+</li>
+<li><p><strong>向所有签约 DSP 发起竞价</strong></p>
+<ul>
+<li>ADX 把信息广播给所有 DSP</li>
+<li>“有广告位卖，谁出价？时间 80ms”</li>
+</ul>
+</li>
+<li><p><strong>收集所有 DSP 的出价</strong></p>
+<ul>
+<li>DSP 们在 80ms 内回复出价</li>
+<li>ADX 把所有出价汇总</li>
+</ul>
+</li>
+<li><p><strong>按规则决定中标</strong></p>
+<ul>
+<li>用”一价”或”二价”机制决出胜者</li>
+<li>（具体竞价机制留到第 4 篇详细讲）</li>
+</ul>
+</li>
+<li><p><strong>把中标广告返回给 SSP</strong></p>
+<ul>
+<li>SSP 再返回给媒体方</li>
+<li>用户看到广告</li>
+</ul>
+</li>
+</ol>
+<p>整个过程 <strong>100ms 内完成</strong>。</p>
+<h3 id="3-3-ADX-的价值"><a href="#3-3-ADX-的价值" class="headerlink" title="3.3 ADX 的价值"></a>3.3 ADX 的价值</h3><p>为什么需要 ADX？为什么不让 DSP 和 SSP 直接对接？</p>
+<h4 id="价值-1：标准化交易"><a href="#价值-1：标准化交易" class="headerlink" title="价值 1：标准化交易"></a>价值 1：标准化交易</h4><p>如果没有 ADX：</p>
+<ul>
+<li>一个 DSP 要对接 1000 个 SSP → 1000 次对接</li>
+<li>一个 SSP 要对接 1000 个 DSP → 1000 次对接</li>
+<li>总共需要 100 万次对接</li>
+</ul>
+<p>有了 ADX：</p>
+<ul>
+<li>一个 DSP 对接 N 个 ADX</li>
+<li>一个 SSP 对接 N 个 ADX</li>
+<li>ADX 在中间统一标准（用 OpenRTB 协议）</li>
+<li><strong>大幅降低对接成本</strong></li>
+</ul>
+<h4 id="价值-2：公平撮合"><a href="#价值-2：公平撮合" class="headerlink" title="价值 2：公平撮合"></a>价值 2：公平撮合</h4><ul>
+<li>ADX 用透明的规则（如二价机制）决定中标</li>
+<li>所有 DSP 在同样的规则下竞争</li>
+<li>避免”暗箱操作”</li>
+</ul>
+<h4 id="价值-3：规模效应"><a href="#价值-3：规模效应" class="headerlink" title="价值 3：规模效应"></a>价值 3：规模效应</h4><ul>
+<li>流量越大，越多 DSP 来竞价</li>
+<li>越多 DSP 来竞价，最高价越高</li>
+<li>最高价越高，SSP 越愿意把流量给这个 ADX</li>
+<li>形成正向循环——<strong>大者恒大</strong></li>
+</ul>
+<p>这就是为什么 Google AdX 能成为全球最大的 ADX——<br>它的规模本身就是壁垒。</p>
+<h3 id="3-4-一个生动的比喻：股票交易所"><a href="#3-4-一个生动的比喻：股票交易所" class="headerlink" title="3.4 一个生动的比喻：股票交易所"></a>3.4 一个生动的比喻：股票交易所</h3><p>ADX 和股票交易所惊人地相似：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>股票交易所</th>
+<th>ADX</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>买方</td>
+<td>股票投资者</td>
+<td>DSP（代表广告主）</td>
+</tr>
+<tr>
+<td>卖方</td>
+<td>股票发行公司</td>
+<td>SSP（代表媒体方）</td>
+</tr>
+<tr>
+<td>交易品</td>
+<td>股票（公司的所有权）</td>
+<td>广告位（用户的注意力）</td>
+</tr>
+<tr>
+<td>交易频率</td>
+<td>秒级</td>
+<td><strong>毫秒级</strong></td>
+</tr>
+<tr>
+<td>撮合方式</td>
+<td>集合竞价 &#x2F; 连续竞价</td>
+<td>实时竞价（RTB）</td>
+</tr>
+<tr>
+<td>价格机制</td>
+<td>市价 &#x2F; 限价</td>
+<td>一价 &#x2F; 二价</td>
+</tr>
+</tbody></table>
+<p><strong>一个有趣的观察</strong>：</p>
+<p>广告位的”交易频率”比股票还高——<br>全球每秒发生<strong>几百万次</strong>广告位拍卖，<br>比纽交所、纳斯达克加起来的交易笔数还多几个量级。</p>
+<p>这是为什么程序化广告系统的工程挑战如此巨大——<br><strong>它本质上是一个比股市规模大得多的实时交易系统</strong>。</p>
+<h2 id="四、DSP、SSP、ADX-三者的交互"><a href="#四、DSP、SSP、ADX-三者的交互" class="headerlink" title="四、DSP、SSP、ADX 三者的交互"></a>四、DSP、SSP、ADX 三者的交互</h2><h3 id="4-1-完整流程图"><a href="#4-1-完整流程图" class="headerlink" title="4.1 完整流程图"></a>4.1 完整流程图</h3><p><img src="/images/programmatic-ads/workflow.png" srcset="/img/loading.gif" lazyload 
+     alt="DSP/ADX/SSP 交互流程" 
+     style="width: 40%; max-width: 700px; display: block; margin: 0 auto;"></p>
+<h3 id="4-2-一次广告请求的完整流程"><a href="#4-2-一次广告请求的完整流程" class="headerlink" title="4.2 一次广告请求的完整流程"></a>4.2 一次广告请求的完整流程</h3><p>把上面的图翻译成具体步骤：</p>
+<ol>
+<li><strong>用户</strong>打开一个 APP 或浏览器页面</li>
+<li><strong>媒体方</strong>检测到”这里要展示一个广告”，向 SSP 发起广告请求</li>
+<li><strong>SSP</strong> 接到请求后，做一些预处理（用户画像、广告位规则），然后把流量信息送到 ADX</li>
+<li><strong>ADX</strong> 把流量信息广播给所有签约 DSP，设定 80ms 的回复时间</li>
+<li><strong>每个 DSP</strong> 在 80ms 内做决策：<ul>
+<li>这个用户值不值得我出价？</li>
+<li>出多少合适？</li>
+<li>出价 + 广告创意一起返回给 ADX</li>
+</ul>
+</li>
+<li><strong>ADX</strong> 收到所有 DSP 的出价后，按规则决定中标</li>
+<li><strong>ADX</strong> 把中标的广告返回给 SSP</li>
+<li><strong>SSP</strong> 再返回给媒体方，媒体方展示广告</li>
+<li><strong>用户</strong>看到广告</li>
+</ol>
+<p><strong>全程 100ms 内</strong>。</p>
+<blockquote>
+<p>这里只讲了”基本流程”。更详细的时序图（每个步骤具体在哪些毫秒发生）会留到第 6 篇”一次实时竞价的完整复盘”。</p>
+</blockquote>
+<h3 id="4-3-钱怎么流"><a href="#4-3-钱怎么流" class="headerlink" title="4.3 钱怎么流"></a>4.3 钱怎么流</h3><p>广告投放完成后，钱的流向和广告流向是<strong>相反</strong>的：</p>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs tap">广告主付钱<span class="hljs-number"> 100 </span>元<br>       ↓<br>    DSP 抽<span class="hljs-number"> 15 </span>元服务费 → DSP 拿<span class="hljs-number"> 15 </span>元<br>       ↓ 还剩<span class="hljs-number"> 85 </span>元<br>    ADX 抽<span class="hljs-number"> 10 </span>元撮合费 → ADX 拿<span class="hljs-number"> 10 </span>元<br>       ↓ 还剩<span class="hljs-number"> 75 </span>元<br>    SSP 抽<span class="hljs-number"> 10 </span>元服务费 → SSP 拿<span class="hljs-number"> 10 </span>元<br>       ↓ 还剩<span class="hljs-number"> 65 </span>元<br>    媒体方最终拿到<span class="hljs-number"> 65 </span>元<br></code></pre></td></tr></table></figure>
+
+<p>广告主付出的钱，<strong>只有 65% 真正到了媒体方手里</strong>——<br>中间 35% 被各路”中间商”分掉了。</p>
+<p>但这些中间商不是单纯抽水——<br>他们都提供了<strong>真实的价值</strong>：</p>
+<ul>
+<li>DSP：用算法帮广告主精准投放</li>
+<li>ADX：用规则保证公平、透明的撮合</li>
+<li>SSP：用技术帮媒体卖出更高价</li>
+</ul>
+<p>每个中间环节都让”整体效率”提升——<br>这就是程序化广告生态能够存在并持续繁荣的根本原因。</p>
+<h2 id="五、SSP-和-ADX-的关系"><a href="#五、SSP-和-ADX-的关系" class="headerlink" title="五、SSP 和 ADX 的关系"></a>五、SSP 和 ADX 的关系</h2><p>讲到这里你可能有个疑问：</p>
+<blockquote>
+<p>SSP 和 ADX 分得这么清楚，现实中真的是两个独立的公司吗？</p>
+</blockquote>
+<p>答案是：<strong>很多时候不是</strong>。</p>
+<h3 id="简化版理解"><a href="#简化版理解" class="headerlink" title="简化版理解"></a>简化版理解</h3><ul>
+<li>SSP &#x3D; 卖方代理（站在媒体那边）</li>
+<li>ADX &#x3D; 市场（中立平台）</li>
+</ul>
+<p>理论上它们是两个角色。</p>
+<h3 id="现实中的融合"><a href="#现实中的融合" class="headerlink" title="现实中的融合"></a>现实中的融合</h3><p>但在实际行业里，<strong>很多公司同时做 SSP 和 ADX</strong>：</p>
+<ul>
+<li><strong>Google Ad Manager</strong> 既是 SSP 也是 ADX（最大的例子）</li>
+<li><strong>字节穿山甲</strong> 既是 SSP 也是 ADX</li>
+<li><strong>腾讯优量汇</strong> 同样</li>
+</ul>
+<p>为什么会融合？</p>
+<h4 id="原因-1：减少链路损耗"><a href="#原因-1：减少链路损耗" class="headerlink" title="原因 1：减少链路损耗"></a>原因 1：减少链路损耗</h4><p>每多一个中间环节，就多一次网络延迟、多一次抽佣。</p>
+<p>SSP + ADX 合一，可以：</p>
+<ul>
+<li>减少一次网络跳转（节省 10-20ms）</li>
+<li>减少一层抽佣（媒体多赚钱）</li>
+</ul>
+<h4 id="原因-2：提升竞价效率"><a href="#原因-2：提升竞价效率" class="headerlink" title="原因 2：提升竞价效率"></a>原因 2：提升竞价效率</h4><p>如果 SSP 和 ADX 是同一家公司：</p>
+<ul>
+<li>数据可以无缝流转</li>
+<li>决策可以更快做出</li>
+<li>不需要跨公司的协议适配</li>
+</ul>
+<h4 id="原因-3：增强议价能力"><a href="#原因-3：增强议价能力" class="headerlink" title="原因 3：增强议价能力"></a>原因 3：增强议价能力</h4><p>一个同时是 SSP + ADX 的公司：</p>
+<ul>
+<li>对媒体说：”我帮你接所有需求方”</li>
+<li>对 DSP 说：”我有最大的流量池”</li>
+<li><strong>议价权远超单独的 SSP 或 ADX</strong></li>
+</ul>
+<h3 id="怎么判断一家公司是-SSP-还是-ADX？"><a href="#怎么判断一家公司是-SSP-还是-ADX？" class="headerlink" title="怎么判断一家公司是 SSP 还是 ADX？"></a>怎么判断一家公司是 SSP 还是 ADX？</h3><p><strong>看它服务谁、解决什么问题</strong>：</p>
+<ul>
+<li>主要服务媒体方、帮媒体卖流量 → 偏 SSP</li>
+<li>主要做撮合、对外开放接 DSP → 偏 ADX</li>
+<li>两者都做 → 是融合体（如 Google Ad Manager）</li>
+</ul>
+<p><strong>理解这个融合趋势比死记定义更重要</strong>。</p>
+<h2 id="六、真实世界的玩家"><a href="#六、真实世界的玩家" class="headerlink" title="六、真实世界的玩家"></a>六、真实世界的玩家</h2><h3 id="国外"><a href="#国外" class="headerlink" title="国外"></a>国外</h3><h4 id="Google-Ad-Manager"><a href="#Google-Ad-Manager" class="headerlink" title="Google Ad Manager"></a>Google Ad Manager</h4><ul>
+<li>全球最大的 SSP + ADX 融合体</li>
+<li>服务从大型出版商到中小网站</li>
+<li>是程序化广告的”事实标准”</li>
+</ul>
+<h4 id="Magnite"><a href="#Magnite" class="headerlink" title="Magnite"></a>Magnite</h4><ul>
+<li>全球最大的独立 SSP（不依附于巨头）</li>
+<li>纳斯达克上市</li>
+<li>主打”独立、中立”的定位</li>
+</ul>
+<h4 id="PubMatic"><a href="#PubMatic" class="headerlink" title="PubMatic"></a>PubMatic</h4><ul>
+<li>另一家上市独立 SSP</li>
+<li>在程序化视频广告上有优势</li>
+</ul>
+<h4 id="Xandr"><a href="#Xandr" class="headerlink" title="Xandr"></a>Xandr</h4><ul>
+<li>原 AT&amp;T 旗下，2022 年被微软收购</li>
+<li>现在是微软广告业务的核心 SSP&#x2F;ADX</li>
+</ul>
+<h3 id="国内"><a href="#国内" class="headerlink" title="国内"></a>国内</h3><h4 id="巨量引擎（字节跳动）"><a href="#巨量引擎（字节跳动）" class="headerlink" title="巨量引擎（字节跳动）"></a>巨量引擎（字节跳动）</h4><ul>
+<li>字节系流量的核心商业化平台</li>
+<li>覆盖抖音、今日头条、西瓜视频等</li>
+<li>既做 SSP 又做 DSP，是一个”自循环”的生态</li>
+</ul>
+<h4 id="优量汇（腾讯）"><a href="#优量汇（腾讯）" class="headerlink" title="优量汇（腾讯）"></a>优量汇（腾讯）</h4><ul>
+<li>原名”广点通”</li>
+<li>覆盖腾讯系流量 + 大量外部 APP</li>
+<li>国内最早的 SSP&#x2F;ADX 之一</li>
+</ul>
+<h4 id="穿山甲（字节跳动）"><a href="#穿山甲（字节跳动）" class="headerlink" title="穿山甲（字节跳动）"></a>穿山甲（字节跳动）</h4><ul>
+<li>字节旗下的”对外联盟”</li>
+<li>主打中长尾 APP 流量变现</li>
+<li>给中小 APP 提供广告 SDK</li>
+</ul>
+<h4 id="百青藤（百度）"><a href="#百青藤（百度）" class="headerlink" title="百青藤（百度）"></a>百青藤（百度）</h4><ul>
+<li>百度旗下的联盟广告平台</li>
+<li>主要服务百度系内容生态</li>
+</ul>
+<h3 id="一个有趣的观察"><a href="#一个有趣的观察" class="headerlink" title="一个有趣的观察"></a>一个有趣的观察</h3><p><strong>国外 SSP&#x2F;ADX 的格局</strong>：</p>
+<ul>
+<li>巨头（Google）+ 独立第三方（Magnite、PubMatic）并存</li>
+<li>媒体方有较多选择</li>
+</ul>
+<p><strong>国内 SSP&#x2F;ADX 的格局</strong>：</p>
+<ul>
+<li>几乎全部被几家互联网巨头垄断</li>
+<li>独立第三方很少能做大</li>
+</ul>
+<p><strong>背后的差异</strong>：</p>
+<ul>
+<li>国外广告生态成熟，”独立”是一种被认可的商业模式</li>
+<li>国内流量高度集中，独立平台很难获得规模</li>
+</ul>
+<p>理解这个差异，对理解整个程序化广告行业的演化很有帮助。</p>
+<h2 id="下一篇预告"><a href="#下一篇预告" class="headerlink" title="下一篇预告"></a>下一篇预告</h2><p>讲完了 SSP 和 ADX，我们已经看完了程序化广告生态里<strong>所有的核心角色</strong>。</p>
+<p>但还有一个核心问题没回答：</p>
+<blockquote>
+<p><strong>这些角色之间，到底是按什么”规则”在交易？</strong></p>
+</blockquote>
+<p>下一篇我们讲<strong>交易模式</strong>——程序化广告的”游戏规则”：</p>
+<ul>
+<li>早期的瀑布流（Waterfall）模式是怎么样的？</li>
+<li>实时竞价（RTB，Real-Time Bidding）是怎么诞生的？</li>
+<li>为什么会有一价竞价和二价竞价（GSP）的区别？</li>
+<li>Header Bidding（头部竞价）又是怎样革命性地改变了行业？</li>
+</ul>
+<p>理解了交易模式，你才真正理解了程序化广告的”心脏”。</p>
+<p>下一篇见。</p>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>《程序化广告：个性化精准投放实用手册》梁丽丽 著，电子工业出版社</li>
+</ol>
+<hr>
+<blockquote>
+<p>本文是「程序化广告学习笔记」系列第 3 篇。<br>系列目录：</p>
+<ul>
+<li>(0) 先看清楚整个江湖</li>
+<li>(1) DSP：广告主的”代理人”</li>
+<li>(2) DSP 身边的 4 个帮手</li>
+<li>(3) SSP 和 ADX ← 当前</li>
+<li>(4) 交易模式：从瀑布流到 Header Bidding（待发布）</li>
+<li>(5) DMP 深入：数据是怎么打标签的（待发布）</li>
+<li>(6) 一次实时竞价的完整复盘（待发布）</li>
+</ul>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%A8%8B%E5%BA%8F%E5%8C%96%E5%B9%BF%E5%91%8A/" class="category-chain-item">程序化广告</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%B9%BF%E5%91%8A/" class="print-no-link">#广告</a>
+      
+        <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="print-no-link">#学习笔记</a>
+      
+        <a href="/tags/SSP/" class="print-no-link">#SSP</a>
+      
+        <a href="/tags/ADX/" class="print-no-link">#ADX</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>程序化广告 (3)：SSP 和 ADX——媒体方的&#34;商业化中枢&#34;与&#34;交易所&#34;</div>
+      <div>https://rebibabo.github.io/2026/06/09/programmatic-ads/04-SSP/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/10/programmatic-ads/05-Ad%20network&amp;server/" title="程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/08/programmatic-ads/03-DSP-helper/" title="程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解">
+                        <span class="hidden-mobile">程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -27,7 +27,7 @@
 <meta property="og:description" content="前言到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事的标准方案，JWT 是目前最主流的认证凭证格式。这篇用尽量少的代码、尽量多的图表，讲清楚它们怎么配合工作。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-13T15:02:53.700Z">
+<meta property="article:modified_time" content="2026-06-15T09:36:13.685Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JWT">
 <meta property="article:tag" content="Spring Boot">
@@ -422,7 +422,7 @@
 <h2 id="2-为什么用-JWT？先看传统-Session-的问题"><a href="#2-为什么用-JWT？先看传统-Session-的问题" class="headerlink" title="2. 为什么用 JWT？先看传统 Session 的问题"></a>2. 为什么用 JWT？先看传统 Session 的问题</h2><h3 id="2-1-传统-Session-方案"><a href="#2-1-传统-Session-方案" class="headerlink" title="2.1 传统 Session 方案"></a>2.1 传统 Session 方案</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">用户登录成功后：<br>  服务端创建一个 <span class="hljs-keyword">Session</span>（存用户信息），生成一个 sessionId<br>  把 sessionId 通过 Cookie 返回给浏览器<br>  <br>之后每次请求：<br>  浏览器自动带上 sessionId<br>  服务端用 sessionId 在【自己的内存/Redis】里找到对应的 <span class="hljs-keyword">Session</span><br>  → 知道是哪个用户<br></code></pre></td></tr></table></figure>
 
 <p>核心特点：<strong>用户信息存在服务端</strong>，客户端只拿一个 sessionId。</p>
-<h3 id="2-2-Session-在分布式下的麻烦"><a href="#2-2-Session-在分布式下的麻烦" class="headerlink" title="2.2 Session 在分布式下的麻烦"></a>2.2 Session 在分布式下的麻烦</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs css">单机时：Session 存在这台服务器内存里，没问题<br><br>多机时（你的 SSP 部署了 <span class="hljs-number">3</span> 个实例）：<br>  请求第一次打到 服务器<span class="hljs-selector-tag">A</span>，Session 存在 <span class="hljs-selector-tag">A</span> 的内存<br>  下次请求被负载均衡打到 服务器<span class="hljs-selector-tag">B</span><br>  → <span class="hljs-selector-tag">B</span> 的内存里没有这个 Session → 认为你没登录！<br></code></pre></td></tr></table></figure>
+<h3 id="2-2-Session-在分布式下的麻烦"><a href="#2-2-Session-在分布式下的麻烦" class="headerlink" title="2.2 Session 在分布式下的麻烦"></a>2.2 Session 在分布式下的麻烦</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs css">单机时：Session 存在这台服务器内存里，没问题<br><br>多机时：<br>  请求第一次打到 服务器<span class="hljs-selector-tag">A</span>，Session 存在 <span class="hljs-selector-tag">A</span> 的内存<br>  下次请求被负载均衡打到 服务器<span class="hljs-selector-tag">B</span><br>  → <span class="hljs-selector-tag">B</span> 的内存里没有这个 Session → 认为你没登录！<br></code></pre></td></tr></table></figure>
 
 <p>解决办法是把 Session 集中存到 Redis 让多台共享，但这又引入了额外依赖和网络开销。</p>
 <h3 id="2-3-JWT-方案：信息存在客户端"><a href="#2-3-JWT-方案：信息存在客户端" class="headerlink" title="2.3 JWT 方案：信息存在客户端"></a>2.3 JWT 方案：信息存在客户端</h3><p>JWT（JSON Web Token）反过来——<strong>把用户信息直接编码进 token 本身</strong>，服务端不存任何东西：</p>
@@ -467,10 +467,10 @@
 <td>token 泄露风险，且无法主动失效</td>
 </tr>
 </tbody></table>
-<p>无状态、天然支持多机，是 JWT 在微服务架构里流行的主要原因——这也契合你 SSP 多实例部署的场景。</p>
+<p>无状态、天然支持多机，是 JWT 在微服务架构里流行的主要原因。</p>
 <hr>
 <h2 id="3-JWT-长什么样"><a href="#3-JWT-长什么样" class="headerlink" title="3. JWT 长什么样"></a>3. JWT 长什么样</h2><h3 id="3-1-三段式结构"><a href="#3-1-三段式结构" class="headerlink" title="3.1 三段式结构"></a>3.1 三段式结构</h3><p>一个 JWT 就是一个用两个点分隔的字符串：</p>
-<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">eyJhbGciOiJIUzI1NiJ9<span class="hljs-selector-class">.eyJzdWIiOiIxMDAxIiwicm9sZSI6ImFkbWluIn0</span><span class="hljs-selector-class">.dQw4w9WgXcQ</span><br>└──── Header ────┘ └──────── Payload ────────┘ └─ Signature ─┘<br>      头部                   载荷                     签名<br></code></pre></td></tr></table></figure>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">eyJhbGciOiJIUzI1NiJ9<span class="hljs-selector-class">.eyJzdWIiOiIxMDAxIiwicm9sZSI6ImFkbWluIn0</span><span class="hljs-selector-class">.dQw4w9WgXcQ</span><br> └──── Header ────┘         └──────── Payload ────────┘    └─ Signature ─┘<br>       头部                             载荷                     签名<br></code></pre></td></tr></table></figure>
 
 <table>
 <thead>
@@ -505,7 +505,7 @@
 
 <hr>
 <h2 id="4-Spring-Security-核心概念"><a href="#4-Spring-Security-核心概念" class="headerlink" title="4. Spring Security 核心概念"></a>4. Spring Security 核心概念</h2><p>Spring Security 的工作方式是在请求到达 Controller <strong>之前</strong>，先经过一条”过滤器链”层层检查。</p>
-<h3 id="4-1-过滤器链（Filter-Chain）"><a href="#4-1-过滤器链（Filter-Chain）" class="headerlink" title="4.1 过滤器链（Filter Chain）"></a>4.1 过滤器链（Filter Chain）</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">HTTP 请求<br>   │<br>   ▼<br>┌──────────────────────────────────┐<br>│      Spring Security 过滤器链       │<br>│  过滤器1 → 过滤器2 → <span class="hljs-string">...</span> → JWT过滤器 │  ← 在这里做认证授权检查<br>└──────────────────────────────────┘<br>   │ 检查通过<br>   ▼<br>Controller（你的业务代码）<br></code></pre></td></tr></table></figure>
+<h3 id="4-1-过滤器链（Filter-Chain）"><a href="#4-1-过滤器链（Filter-Chain）" class="headerlink" title="4.1 过滤器链（Filter Chain）"></a>4.1 过滤器链（Filter Chain）</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">HTTP 请求<br>   │<br>   ▼<br>┌───────────────────────────────────┐<br>│      Spring Security 过滤器链      │<br>│  过滤器1 → 过滤器2 → <span class="hljs-string">...</span> → JWT过滤器 │  ← 在这里做认证授权检查<br>└───────────────────────────────────┘<br>   │ 检查通过<br>   ▼<br>Controller（你的业务代码）<br></code></pre></td></tr></table></figure>
 
 <p>我们做 JWT 认证，就是往这条链里加一个<strong>自定义过滤器</strong>，专门负责解析和验证请求里的 JWT。</p>
 <h3 id="4-2-几个核心组件"><a href="#4-2-几个核心组件" class="headerlink" title="4.2 几个核心组件"></a>4.2 几个核心组件</h3><table>
@@ -796,8 +796,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/04/programmatic-ads/04-Ad%20network&amp;server/" title="程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色">
-                        <span class="hidden-mobile">程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色</span>
+                      <a href="/2026/05/04/Java-basic/04-basic-class/" title="Java基础(4) | 类与对象：构造方法、访问控制、static 与 final">
+                        <span class="hidden-mobile">Java基础(4) | 类与对象：构造方法、访问控制、static 与 final</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
