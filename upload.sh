@@ -1,1 +1,1 @@
-git add . && git commit -m "new post" && git push
+git add . && git commit -m "new post" && git push original master
