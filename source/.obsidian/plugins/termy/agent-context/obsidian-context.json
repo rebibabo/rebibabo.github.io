@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T14:44:22.406Z",
+  "updatedAt": "2026-07-06T14:44:41.408Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-basic/03-collections.md",
     "vaultPath": "_posts/Java-basic/03-collections.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-basic/03-collections.md",
-    "hasFocus": false
+    "hasFocus": true
   },
   "openFiles": [
     {
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 10,
-      "ch": 0,
-      "offset": 125
+      "line": 518,
+      "ch": 3,
+      "offset": 12786
     },
     "to": {
-      "line": 10,
-      "ch": 0,
-      "offset": 125
+      "line": 518,
+      "ch": 3,
+      "offset": 12786
     }
   }
 }
