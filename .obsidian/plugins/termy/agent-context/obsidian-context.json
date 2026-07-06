@@ -1,19 +1,13 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T14:24:22.578Z",
+  "updatedAt": "2026-07-06T14:25:26.578Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
   ],
   "activeFile": null,
   "openFiles": [
-    {
-      "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-      "vaultPath": "hello-world.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
-      "isActive": false
-    },
     {
       "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
       "vaultPath": "source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",

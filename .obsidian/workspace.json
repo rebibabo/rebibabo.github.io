@@ -8,20 +8,6 @@
         "type": "tabs",
         "children": [
           {
-            "id": "e29f4814173ac6fe",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "hello-world.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "hello-world"
-            }
-          },
-          {
             "id": "c7493faae6c822d6",
             "type": "leaf",
             "state": {
@@ -55,8 +41,7 @@
               "title": "新标签页"
             }
           }
-        ],
-        "currentTab": 3
+        ]
       }
     ],
     "direction": "vertical"
@@ -217,8 +202,9 @@
       "termy:打开Termy终端": false
     }
   },
-  "active": "1510b785dcb5ce20",
+  "active": "c7493faae6c822d6",
   "lastOpenFiles": [
+    "hello-world.md",
     "source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
     "db.json",
     "public/images/programmatic-ads/ecosystem.png",
@@ -240,7 +226,6 @@
     "public/wiki/glossary/programmatic-ads/CPM.html",
     "public/wiki/glossary/programmatic-ads/CPA.html",
     "public/wiki/glossary/programmatic-ads/竞价响应.html",
-    "hello-world.md",
     "未命名.md",
     "source/_posts/concurrency/01-计算机是如何执行Java程序的.md"
   ]

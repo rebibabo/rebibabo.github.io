@@ -29,6 +29,8 @@ category_dir: categories
 code_dir: downloads/code
 i18n_dir: :lang
 skip_render:
+  - "wiki/**"
+  - "schema/**"
 
 # Writing
 new_post_name: :title.md # File name of new posts
@@ -113,8 +115,3 @@ mathjax:
   normal_width: 0.6
   append_css: true
   every_page: false
-
-
-skip_render:
-  - "llm-wiki/**"
-  - "images/raw/**"
