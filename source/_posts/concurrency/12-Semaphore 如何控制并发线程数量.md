@@ -43,20 +43,19 @@ Semaphore semaphore = new Semaphore(3);
 
 可以把它理解为当前有三张通行证。前三个线程调用 `acquire()` 时，可以分别拿走一张许可证；第四个线程再调用 `acquire()` 时，发现许可证已经用完，就需要等待。
 
-```text
-Initial permits = 3
-
-Thread A acquire: 3 -> 2
-Thread B acquire: 2 -> 1
-Thread C acquire: 1 -> 0
-Thread D acquire: wait
+```mermaid
+graph TD
+    Init["初始: 3 张许可证"] --> A["线程 A acquire: 3 → 2"]
+    A --> B["线程 B acquire: 2 → 1"]
+    B --> C["线程 C acquire: 1 → 0"]
+    C --> D["线程 D acquire: 等待"]
 ```
 
 当某个线程执行完受限任务并调用 `release()` 后，许可证数量增加，等待线程才有机会重新尝试获取许可证。
 
-```text
-Thread A release: 0 -> 1
-Thread D acquire: 1 -> 0
+```mermaid
+graph LR
+    A["线程 A release: 0 → 1"] --> D["线程 D acquire: 1 → 0"]
 ```
 
 这里需要注意，`release()` 并不是把许可证直接指定给某个等待线程。它只是增加可用许可证，并通知等待线程重新参与竞争。最终哪个线程成功，还要看它是否重新执行获取逻辑并成功减少许可证数量。
@@ -97,17 +96,16 @@ release(): state increases
 
 这个交错过程可以表示为：
 
-```text
-Thread A                     Thread B
-┌──────────────────┐         ┌──────────────────┐
-│ read state = 1   │         │ read state = 1   │
-│ compute 1 - 1    │         │ compute 1 - 1    │
-└─────────┬────────┘         └─────────┬────────┘
-          │                            │
-┌─────────↓────────┐         ┌─────────↓────────┐
-│ write state = 0  │         │ write state = 0  │
-│ acquire success  │         │ acquire success  │
-└──────────────────┘         └──────────────────┘
+```mermaid
+graph TD
+    subgraph A["线程 A"]
+        A1["读取 state = 1"] --> A2["计算 1 - 1"]
+        A2 --> A3["写入 state = 0 / 获取成功"]
+    end
+    subgraph B["线程 B"]
+        B1["读取 state = 1"] --> B2["计算 1 - 1"]
+        B2 --> B3["写入 state = 0 / 获取成功"]
+    end
 ```
 
 这会破坏并发数量限制。`Semaphore` 因此使用 CAS 循环修改 `state`。可以简化理解为：
@@ -136,10 +134,9 @@ for (;;) {
 
 当线程调用 `acquire()` 时，如果发现 `state == 0`，它不会一直空转重试。AQS 会把它加入等待队列，并暂停线程执行。等其他线程调用 `release()` 增加许可证后，等待线程会被唤醒，再重新尝试获取许可证。
 
-```text
-AQS shared queue
-
-head -> Thread D -> Thread E -> Thread F
+```mermaid
+graph LR
+    Head["head"] --> D["线程 D"] --> E["线程 E"] --> F["线程 F"]
 ```
 
 被唤醒不等于已经取得许可证。线程醒来后仍然要重新读取 `state`，并通过 CAS 尝试减少许可证数量。只有成功减少 `state`，才算真正通过 `acquire()`。
@@ -175,18 +172,15 @@ Thread C acquire: 1 -> 0
 
 `CountDownLatch` 的计数只能减少，到达 `0` 后不会恢复，因此只能使用一轮。`Semaphore` 的 `state` 既会因为 `acquire()` 减少，也会因为 `release()` 增加，所以它可以在长期运行的程序中反复控制并发数量。
 
-```text
-Initial state = 3
-
-A acquire: 3 -> 2
-B acquire: 2 -> 1
-C acquire: 1 -> 0
-
-A release: 0 -> 1
-D acquire: 1 -> 0
-
-B release: 0 -> 1
-E acquire: 1 -> 0
+```mermaid
+graph TD
+    Init["初始 state = 3"] --> A["A 获取: 3 → 2"]
+    A --> B["B 获取: 2 → 1"]
+    B --> C["C 获取: 1 → 0"]
+    C --> AR["A 释放: 0 → 1"]
+    AR --> D["D 获取: 1 → 0"]
+    D --> BR["B 释放: 0 → 1"]
+    BR --> E["E 获取: 1 → 0"]
 ```
 
 这也是它适合做限流、资源池并发控制的原因：许可证不会因为用完一次就永久失效，而是在获取和归还之间循环流动。

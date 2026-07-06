@@ -228,22 +228,19 @@ return futureTask;
 
 也就是说，工作线程执行的对象和提交线程拿到的 `Future`，通常是同一个堆对象。
 
-```text
-Submitting Thread                 Worker Thread
-┌──────────────────┐              ┌──────────────────┐
-│ future = 0x1000  │              │ task = 0x1000    │
-└─────────┬────────┘              └─────────┬────────┘
-          │                                 │
-          └──────────────┬──────────────────┘
-                         ↓
-Heap
-┌────────────────────────────────┐
-│ FutureTask @ 0x1000            │
-├────────────────────────────────┤
-│ callable = original task       │
-│ state    = task state          │
-│ outcome  = result or exception │
-└────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Sub["提交线程"]
+        future["future = 0x1000"]
+    end
+    subgraph Worker["工作线程"]
+        task["task = 0x1000"]
+    end
+    subgraph Heap["堆"]
+        ft["FutureTask @ 0x1000<br>callable = 原始任务<br>state = 任务状态<br>outcome = 结果或异常"]
+    end
+    future --> ft
+    task --> ft
 ```
 
 提交线程和工作线程各自有独立的线程栈，但它们都持有同一个 `FutureTask` 引用。工作线程通过这个对象执行任务并写入结果，提交线程通过这个对象等待并读取结果。
@@ -557,31 +554,34 @@ for (Future<Integer> future : futures) {
 
 把前面的内容合在一起，一次 `submit()` 调用可以概括为：
 
-```text
-submit callable
-create FutureTask
-execute FutureTask as Runnable
-return same FutureTask as Future
+```mermaid
+graph TD
+    Submit["提交 Callable"] --> Create["创建 FutureTask"]
+    Create --> Exec["作为 Runnable 执行"]
+    Exec --> Return["返回 FutureTask"]
 ```
 
 工作线程一侧：
 
-```text
-Worker gets FutureTask
-run calls callable.call
-save result or exception
-publish final state
-wake waiting get callers
+```mermaid
+graph TD
+    W["工作线程拿到 FutureTask"] --> Call["调用 callable.call"]
+    Call --> Save["保存结果或异常"]
+    Save --> Publish["发布最终状态"]
+    Publish --> Wake["唤醒等待 get 的线程"]
 ```
 
 提交线程一侧：
 
-```text
-get checks state
-wait if not completed
-return outcome if NORMAL
-throw ExecutionException if failed
-throw CancellationException if cancelled
+```mermaid
+graph TD
+    Get["get 检查状态"] --> Check{"已完成?"}
+    Check -->|否| Wait["阻塞等待"]
+    Wait --> Check
+    Check -->|是| Result{"结果类型?"}
+    Result -->|正常| Return["返回结果"]
+    Result -->|异常| Ex["抛出 ExecutionException"]
+    Result -->|取消| Cancel["抛出 CancellationException"]
 ```
 
 `FutureTask` 的核心价值就在于它连接了两个线程：工作线程负责执行任务并写入结果，提交线程负责等待并读取结果。任务的返回值和异常不能直接跨线程返回，但可以通过同一个堆上的 `FutureTask` 对象完成传递。
