@@ -211,7 +211,7 @@ flowchart TD
 出队时取的不是 `head`，而是 `head.next`。假设当前第一个真实节点是 `A`，`take()` 会读取 `A.item`，然后把 `head` 移动到 `A`，并把 `A.item` 置为 `null`。这样原来的 `A` 节点变成新的哨兵节点，`B` 成为新的第一个真实元素。
 
 ```mermaid
-flowchart LR
+flowchart TD
     oldHead["旧 head<br>item = null"] --> newHead["新 head（原 A 节点）<br>item = null"] --> b["节点 B<br>item = B"]
     last["last"] --> b
 ```

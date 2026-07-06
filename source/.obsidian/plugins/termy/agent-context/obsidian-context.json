@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T16:26:36.184Z",
+  "updatedAt": "2026-07-06T16:27:32.201Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
-    "vaultPath": "_posts/concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/26-ForkJoinPool%20%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%B7%A5%E4%BD%9C%E7%AA%83%E5%8F%96%E6%89%A7%E8%A1%8C%E4%BB%BB%E5%8A%A1.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+    "vaultPath": "_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85.md",
     "hasFocus": false
   },
   "openFiles": [
@@ -20,9 +20,9 @@
       "isActive": false
     },
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
-      "vaultPath": "_posts/concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/26-ForkJoinPool%20%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%B7%A5%E4%BD%9C%E7%AA%83%E5%8F%96%E6%89%A7%E8%A1%8C%E4%BB%BB%E5%8A%A1.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+      "vaultPath": "_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85.md",
       "isActive": true
     }
   ],
@@ -32,12 +32,12 @@
     "from": {
       "line": 11,
       "ch": 0,
-      "offset": 153
+      "offset": 164
     },
     "to": {
       "line": 11,
       "ch": 0,
-      "offset": 153
+      "offset": 164
     }
   }
 }
