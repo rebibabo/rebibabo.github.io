@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T14:00:47.562Z",
+  "updatedAt": "2026-07-06T14:01:54.573Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-    "vaultPath": "hello-world.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/未命名.md",
+    "vaultPath": "未命名.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/%E6%9C%AA%E5%91%BD%E5%90%8D.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-      "vaultPath": "hello-world.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/未命名.md",
+      "vaultPath": "未命名.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/%E6%9C%AA%E5%91%BD%E5%90%8D.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 39,
-      "ch": 3,
-      "offset": 842
+      "line": 0,
+      "ch": 5,
+      "offset": 5
     },
     "to": {
-      "line": 39,
-      "ch": 3,
-      "offset": 842
+      "line": 0,
+      "ch": 5,
+      "offset": 5
     }
   }
 }
