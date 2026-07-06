@@ -48,20 +48,19 @@ Thread threadB = new Thread(() -> {
 
 两个线程的栈中保存的是同一个对象地址，真正的 `State` 对象只有一份：
 
-```text
-Thread A Stack              Thread B Stack
-┌──────────────────┐        ┌──────────────────┐
-│ state = 0x1000   │        │ state = 0x1000   │
-└──────────────────┘        └──────────────────┘
-          ↘                       ↙
-
-Heap
-┌───────────────────────────┐
-│ State @ 0x1000            │
-├───────────────────────────┤
-│ data  = 0                 │
-│ ready = false             │
-└───────────────────────────┘
+```mermaid
+graph TD
+    subgraph Thread_A[Thread A Stack]
+        state_a[state = 0x1000]
+    end
+    subgraph Thread_B[Thread B Stack]
+        state_b[state = 0x1000]
+    end
+    subgraph Heap
+        obj[State @ 0x1000<br/>data = 0<br/>ready = false]
+    end
+    state_a --> obj
+    state_b --> obj
 ```
 
 线程 A 修改的不是线程 B 的变量副本，而是 Heap 中同一个对象的字段。线程 B 之所以可能看不到最新值，不是因为 Heap 中真的存在两份 `State` 对象，而是因为一次写入从当前线程执行完成，到被另一个线程观察到，中间还要经过寄存器、Store Buffer、Cache、JIT 优化和 CPU 指令调度。
@@ -74,30 +73,12 @@ Heap
 
 这个过程跨越了内存层级，因此可以画出传播路径：
 
-```text
-Core A
-┌────────────┐
-│ Register   │
-└─────┬──────┘
-      │ 执行写入
-      ↓
-┌────────────┐
-│ Store      │
-│ Buffer     │
-└─────┬──────┘
-      │ 提交到本 Core 的缓存体系
-      ↓
-┌────────────┐
-│ Cache Line │
-└─────┬──────┘
-      │ 通过一致性协议传播
-      ↓
-┌────────────┐
-│ Other Core │
-│ Cache      │
-└────────────┘
-
-更低层 Cache / DRAM 可能在之后才被写回
+```mermaid
+graph TD
+    Register[Register] -->|执行写入| StoreBuffer[Store Buffer]
+    StoreBuffer -->|提交到本 Core 缓存体系| CacheLine[Cache Line]
+    CacheLine -->|通过一致性协议传播| OtherCache[Other Core Cache]
+    OtherCache --> Lower[更低层 Cache / DRAM<br/>可能在之后才被写回]
 ```
 
 这里至少有三个不同时间点：当前 Core 认为写操作已经执行、写操作对其他 Core 可见、数据最终写回 DRAM。Java 并发主要关心第二个时间点。只要另一个 Core 能通过缓存一致性协议取得最新 Cache Line，就不需要先等待数据写回 DRAM。
@@ -163,27 +144,15 @@ program order 只能连接线程内部。要让一个线程的写入对另一个
 
 所以线程 B 读到 `ready == true` 后，必须能够看到 `data = 42`。这里不是 `volatile ready` 把 `data` 也变成了 volatile，而是 `ready` 在两个线程之间建立了一座桥，把线程 A 中 volatile 写之前的内存效果传递给线程 B 中 volatile 读之后的操作。
 
-```
-Thread A                              Thread B
-┌──────────────────────┐
-│ 写 data = 42         │
-└──────────┬───────────┘
-           │ program order
-┌──────────↓───────────┐
-│ volatile 写 ready    │
-└──────────┬───────────┘
-           │ synchronizes-with
-           └──────────────────────────┐
-                                      ↓
-                            ┌──────────────────────┐
-                            │ volatile 读 ready    │
-                            └──────────┬───────────┘
-                                       │ program order
-                            ┌──────────↓───────────┐
-                            │ 读 data              │
-                            └──────────────────────┘
-
-传递性结果：写 data = 42 happens-before 读 data
+```mermaid
+graph TD
+    subgraph Thread_A[Thread A]
+        A1[写 data = 42] -->|program order| A2[volatile 写 ready]
+    end
+    subgraph Thread_B[Thread B]
+        B1[volatile 读 ready] -->|program order| B2[读 data]
+    end
+    A2 -->|synchronizes-with| B1
 ```
 
 ## 七、volatile 的保证范围有多大
@@ -280,19 +249,18 @@ int r2 = x;
 
 这个场景涉及两个线程和两个 Core 的交错时序，因此可以画图：
 
-```text
-Thread A / Core A                         Thread B / Core B
-┌──────────────────────────┐              ┌──────────────────────────┐
-│ execute x = 1            │              │ execute y = 1            │
-│ write to Store Buffer A  │              │ write to Store Buffer B  │
-└────────────┬─────────────┘              └────────────┬─────────────┘
-             │                                         │
-             │ x not visible to Core B                  │ y not visible to Core A
-             │                                         │
-┌────────────↓─────────────┐              ┌────────────↓─────────────┐
-│ read y, get 0            │              │ read x, get 0            │
-│ r1 = 0                   │              │ r2 = 0                   │
-└──────────────────────────┘              └──────────────────────────┘
+```mermaid
+graph TD
+    subgraph Core_A[Thread A / Core A]
+        A1[execute x = 1] --> A2[write to Store Buffer A]
+        A2 --> A3[x not visible to Core B]
+        A3 --> A4[read y, get 0 / r1 = 0]
+    end
+    subgraph Core_B[Thread B / Core B]
+        B1[execute y = 1] --> B2[write to Store Buffer B]
+        B2 --> B3[y not visible to Core A]
+        B3 --> B4[read x, get 0 / r2 = 0]
+    end
 ```
 
 JMM 不要求程序判断究竟是 JIT 重排、CPU 乱序执行，还是 Store Buffer 传播延迟造成了结果。因为两个线程之间没有 happens-before，双方都读到初始值就是合法结果。
@@ -384,19 +352,19 @@ User user = sharedUser;
 
 线程 A 把对象地址写入共享字段 `sharedUser`，线程 B 通过这个字段得到同一个地址：
 
-```text
-Thread A Stack              Thread B Stack
-┌──────────────────┐        ┌──────────────────┐
-│ user = 0x1000    │        │ user = 0x1000    │
-└──────────────────┘        └──────────────────┘
-          ↘                       ↙
-
-Heap
-┌───────────────────────────┐
-│ User @ 0x1000             │
-├───────────────────────────┤
-│ age = 18                  │
-└───────────────────────────┘
+```mermaid
+graph TD
+    subgraph Thread_A[Thread A Stack]
+        user_a[user = 0x1000]
+    end
+    subgraph Thread_B[Thread B Stack]
+        user_b[user = 0x1000]
+    end
+    subgraph Heap
+        obj[User @ 0x1000<br/>age = 18]
+    end
+    user_a --> obj
+    user_b --> obj
 ```
 
 发布的是对象引用，不是复制对象。把引用写入共享字段、放入共享集合、传入线程任务或返回给其他代码，都可能构成对象发布。
@@ -426,21 +394,9 @@ class User {
 
 这个场景涉及对象引用在堆上的提前暴露，可以用引用关系表达：
 
-```text
-构造尚未结束时
-
-Static Field
-┌─────────────────────┐
-│ sharedUser = 0x1000 │
-└──────────┬──────────┘
-           ↓
-
-Heap
-┌───────────────────────────┐
-│ User @ 0x1000             │
-├───────────────────────────┤
-│ age = 0                   │
-└───────────────────────────┘
+```mermaid
+graph TD
+    Static[Static Field<br/>sharedUser = 0x1000] --> Heap[Heap: User @ 0x1000<br/>age = 0]
 ```
 
 正确做法是：完成全部字段初始化，构造函数正常结束之后，再向其他线程发布对象引用。构造函数内部启动线程、注册回调、把 `this` 放入静态字段或共享集合，都可能造成 `this` 逃逸。
