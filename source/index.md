@@ -9,13 +9,19 @@ layout: page
 
 系统整理 Java 并发、JMM、AQS、线程池、Future、CompletableFuture 等底层原理。
 
-[进入系列](/categories/Java-高并发底层原理/)
+[进入系列](/categories/Java高并发底层原理/)
 
-## Java Basic
+## Java 基础
 
 整理 Java 基础、Redis、MySQL、HTTP Client、Kafka、RabbitMQ 等工程基础。
 
-[进入系列](/categories/Java-basic/)
+[进入系列](/categories/Java基础/)
+
+## Java 进阶
+
+整理 JVM、MySQL 底层、数据结构、工程规范、开发流程等进阶内容。
+
+[进入系列](/categories/Java进阶/)
 
 ## LLM Inference
 
@@ -27,7 +33,7 @@ layout: page
 
 整理广告系统、竞价、投放链路和工程实践。
 
-[进入系列](/categories/programmatic-ads/)
+[进入系列](/categories/程序化广告/)
 
 ## 全部文章
 

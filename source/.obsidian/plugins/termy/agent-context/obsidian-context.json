@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T15:16:05.012Z",
+  "updatedAt": "2026-07-06T15:19:14.406Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/schema/update-workflow.md",
-    "vaultPath": "schema/update-workflow.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/schema/update-workflow.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/index.md",
+    "vaultPath": "index.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/index.md",
     "hasFocus": false
   },
   "openFiles": [
@@ -17,8 +17,27 @@
       "filePath": "/Users/zs.yuan/Documents/blogs/source/schema/update-workflow.md",
       "vaultPath": "schema/update-workflow.md",
       "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/schema/update-workflow.md",
+      "isActive": false
+    },
+    {
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/index.md",
+      "vaultPath": "index.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/index.md",
       "isActive": true
     }
   ],
-  "selection": null
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 4,
+      "ch": 0,
+      "offset": 37
+    },
+    "to": {
+      "line": 4,
+      "ch": 0,
+      "offset": 37
+    }
+  }
 }
