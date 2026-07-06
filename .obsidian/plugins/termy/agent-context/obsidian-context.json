@@ -1,12 +1,24 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T13:40:25.560Z",
+  "updatedAt": "2026-07-06T13:44:36.561Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
   ],
-  "activeFile": null,
-  "openFiles": [],
+  "activeFile": {
+    "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
+    "vaultPath": "hello-world.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
+    "hasFocus": false
+  },
+  "openFiles": [
+    {
+      "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
+      "vaultPath": "hello-world.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
+      "isActive": true
+    }
+  ],
   "selection": null
 }
