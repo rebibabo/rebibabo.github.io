@@ -105,6 +105,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -114,7 +115,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "01-计算机是如何执行Java程序的 的反向链接列表"
             }
           },
           {
@@ -123,11 +124,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "出链"
+              "title": "01-计算机是如何执行Java程序的 的出链列表"
             }
           },
           {
@@ -165,12 +167,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "大纲"
+              "title": "01-计算机是如何执行Java程序的 的大纲"
             }
           }
         ]
