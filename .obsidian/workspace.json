@@ -47,12 +47,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "hello-world.md",
+                "file": "_config.yml",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "hello-world"
+              "title": "_config"
             }
           }
         ],
@@ -129,7 +129,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "hello-world.md",
+                "file": "_config.yml",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -139,7 +139,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "hello-world 的反向链接列表"
+              "title": "_config 的反向链接列表"
             }
           },
           {
@@ -148,12 +148,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "hello-world.md",
+                "file": "_config.yml",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "hello-world 的出链列表"
+              "title": "_config 的出链列表"
             }
           },
           {
@@ -191,13 +191,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "hello-world.md",
+                "file": "_config.yml",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "hello-world 的大纲"
+              "title": "_config 的大纲"
             }
           }
         ]
@@ -222,6 +222,9 @@
   },
   "active": "91826179cf05f851",
   "lastOpenFiles": [
+    "_config.landscape.yml",
+    "_config.fluid.yml",
+    "_config.yml",
     "hello-world.md",
     "db.json",
     "public/img/default.png",
@@ -234,8 +237,6 @@
     "public/categories/Java基础/index.html",
     "public/css/main.css",
     "public/css/gitalk.css",
-    "public/css/highlight.css",
-    "public/css/highlight-dark.css",
     "public/wiki/maps/java-concurrency.md",
     "public/schema/README.md",
     "public/wiki/series/concurrency.md",
@@ -262,7 +263,6 @@
     "public/wiki/glossary/programmatic-ads/广告创意.md",
     "public/wiki/glossary/programmatic-ads/定向.md",
     "public/wiki/glossary/programmatic-ads/头部竞价.md",
-    "public/wiki/glossary/programmatic-ads/填充率.md",
     "public/images/programmatic-ads/trade-workflow.png",
     "public/images/programmatic-ads/workflow.png",
     "public/images/programmatic-ads/traditional-mode.png",

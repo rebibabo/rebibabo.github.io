@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T14:30:50.579Z",
+  "updatedAt": "2026-07-06T14:32:38.588Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-    "vaultPath": "hello-world.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/_config.yml",
+    "vaultPath": "_config.yml",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/_config.yml",
+    "hasFocus": true
   },
   "openFiles": [
     {
@@ -20,11 +20,24 @@
       "isActive": false
     },
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-      "vaultPath": "hello-world.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/_config.yml",
+      "vaultPath": "_config.yml",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/_config.yml",
       "isActive": true
     }
   ],
-  "selection": null
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 30,
+      "ch": 12,
+      "offset": 787
+    },
+    "to": {
+      "line": 30,
+      "ch": 12,
+      "offset": 787
+    }
+  }
 }

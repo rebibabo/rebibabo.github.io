@@ -1,5 +1,5 @@
 {
-  "showUnsupportedFiles": true,
+  "showUnsupportedFiles": false,
   "userIgnoreFilters": [
     "node_modules/",
     "scaffolds/",
