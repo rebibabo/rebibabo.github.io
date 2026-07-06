@@ -1,3 +1,11 @@
 {
-  "showUnsupportedFiles": true
+  "showUnsupportedFiles": true,
+  "userIgnoreFilters": [
+    "node_modules/",
+    "scaffolds/",
+    "themes/",
+    "source/2026/",
+    "source/附件/",
+    "public/"
+  ]
 }
