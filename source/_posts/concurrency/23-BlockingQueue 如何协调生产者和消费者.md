@@ -195,7 +195,7 @@ last = node;
 第一句是把新节点接到旧尾节点后面，第二句是把尾指针移动到新节点。放入 `A` 后，`last` 指向 `A`，而不是让 `A.next` 指向自己。
 
 ```mermaid
-flowchart LR
+flowchart TD
     head["head"] --> sentinel["哨兵节点<br>item = null"] --> a["节点 A<br>item = A"]
     last["last"] --> a
 ```
@@ -203,7 +203,7 @@ flowchart LR
 继续放入 `B`，就是把 `B` 接到旧尾节点 `A` 后面，再把 `last` 移到 `B`。
 
 ```mermaid
-flowchart LR
+flowchart TD
     head["head"] --> sentinel["哨兵节点<br>item = null"] --> a["节点 A<br>item = A"] --> b["节点 B<br>item = B"]
     last["last"] --> b
 ```
