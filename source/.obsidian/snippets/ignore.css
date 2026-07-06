@@ -1,12 +1,4 @@
-div[data-path="node_modules"],
-div[data-path="public"],
-div[data-path=".git"],
-div[data-path=".deploy_git"],
-div[data-path="themes"],
-div[data-path^="source/20"],
-div[data-path^="source/_posts/20"],
-div[data-path^="scaffolds"],
-div[data-path="package-lock.json"],
-div[data-path="package.json"] {
+div[data-path^="20"],
+div[data-path^="_posts/20"]{
   display: none;
 }
