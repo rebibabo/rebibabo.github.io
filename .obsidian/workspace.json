@@ -48,7 +48,7 @@
               "type": "markdown",
               "state": {
                 "file": "_config.yml",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
