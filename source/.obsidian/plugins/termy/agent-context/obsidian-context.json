@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T16:20:40.987Z",
+  "updatedAt": "2026-07-06T16:24:58.169Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/20-ReentrantReadWriteLock 与 StampedLock.md",
-    "vaultPath": "_posts/concurrency/20-ReentrantReadWriteLock 与 StampedLock.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/20-ReentrantReadWriteLock%20%E4%B8%8E%20StampedLock.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+    "vaultPath": "_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85.md",
     "hasFocus": false
   },
   "openFiles": [
@@ -20,9 +20,9 @@
       "isActive": false
     },
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/20-ReentrantReadWriteLock 与 StampedLock.md",
-      "vaultPath": "_posts/concurrency/20-ReentrantReadWriteLock 与 StampedLock.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/20-ReentrantReadWriteLock%20%E4%B8%8E%20StampedLock.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+      "vaultPath": "_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85.md",
       "isActive": true
     }
   ],
@@ -30,14 +30,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 0,
+      "line": 11,
       "ch": 0,
-      "offset": 0
+      "offset": 164
     },
     "to": {
-      "line": 0,
+      "line": 11,
       "ch": 0,
-      "offset": 0
+      "offset": 164
     }
   }
 }
