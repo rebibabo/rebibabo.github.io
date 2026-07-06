@@ -1,6 +1,6 @@
 ---
 title: 关于
-layout: about
+layout: page
 ---
 
 <div class="markdown-body">
