@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T14:35:50.768Z",
+  "updatedAt": "2026-07-06T14:35:54.904Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/_config.yml",
     "vaultPath": "_config.yml",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/_config.yml",
-    "hasFocus": true
+    "hasFocus": false
   },
   "openFiles": [
     {
