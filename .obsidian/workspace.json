@@ -30,6 +30,20 @@
               "icon": "terminal",
               "title": "Terminal"
             }
+          },
+          {
+            "id": "3e3f12f79bd77543",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择"
+            }
           }
         ],
         "currentTab": 1
@@ -105,7 +119,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "hello-world.md",
+                "file": "source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -115,7 +129,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "hello-world 的反向链接列表"
+              "title": "29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择 的反向链接列表"
             }
           },
           {
@@ -124,12 +138,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "hello-world.md",
+                "file": "source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "hello-world 的出链列表"
+              "title": "29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择 的出链列表"
             }
           },
           {
@@ -167,13 +181,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "hello-world.md",
+                "file": "source/_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "hello-world 的大纲"
+              "title": "29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择 的大纲"
             }
           }
         ]
@@ -202,25 +216,25 @@
     "public/images/programmatic-ads/ecosystem.png",
     "public/img/default.png",
     "public/images/programmatic-ads/programmatic-mode.png",
-    "public/images/programmatic-ads/trade-workflow.png",
-    "public/images/programmatic-ads/workflow.png",
-    "public/images/Java-basic/arraydeque-methods.png",
-    "public/images/programmatic-ads/ad-network.png",
     "public/images/llm-inference/pagedattention.png",
-    "public/images/programmatic-ads/traditional-mode.png",
-    "public/images/programmatic-ads/service-types.jpg",
+    "public/images/programmatic-ads/workflow.png",
+    "public/images/programmatic-ads/ad-network.png",
+    "public/images/programmatic-ads/trade-workflow.png",
+    "public/images/Java-basic/arraydeque-methods.png",
+    "public/img/random/default.png",
     "public/img/random",
-    "public/tags/高并发/page/3/index.html",
-    "public/tags/高并发/page/3",
-    "public/tags/Java/page/5/index.html",
-    "public/tags/Java/page/5",
-    "public/tags/Java/page/6/index.html",
-    "public/tags/Java/page/6",
-    "public/tags/Java/page/4/index.html",
-    "public/tags/Java/page/4",
-    "public/categories/Java基础/page/3/index.html",
-    "未命名.md",
+    "public/images/programmatic-ads/traditional-mode.png",
+    "public/tags/高并发/index.html",
+    "public/tags/Java/index.html",
+    "public/categories/Java基础/index.html",
+    "public/categories/Java高并发底层原理/index.html",
+    "public/wiki/concepts/concurrency/Future.html",
+    "public/wiki/glossary/programmatic-ads/CPM.html",
+    "public/wiki/glossary/programmatic-ads/CPA.html",
+    "public/wiki/glossary/programmatic-ads/竞价响应.html",
+    "public/wiki/glossary/programmatic-ads/第二价格拍卖.html",
     "hello-world.md",
+    "未命名.md",
     "source/_posts/concurrency/01-计算机是如何执行Java程序的.md"
   ]
 }
