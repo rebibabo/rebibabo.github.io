@@ -251,15 +251,15 @@ int r2 = x;
 
 ```mermaid
 graph TD
-    subgraph Core_A[Thread A / Core A]
-        A1[execute x = 1] --> A2[write to Store Buffer A]
-        A2 --> A3[x not visible to Core B]
-        A3 --> A4[read y, get 0 / r1 = 0]
+    subgraph Core_A["Thread A / Core A"]
+        A1["x = 1"] --> A2["Store Buffer A"]
+        A2 --> A3["x 对 B 不可见"]
+        A3 --> A4["read y → 0"]
     end
-    subgraph Core_B[Thread B / Core B]
-        B1[execute y = 1] --> B2[write to Store Buffer B]
-        B2 --> B3[y not visible to Core A]
-        B3 --> B4[read x, get 0 / r2 = 0]
+    subgraph Core_B["Thread B / Core B"]
+        B1["y = 1"] --> B2["Store Buffer B"]
+        B2 --> B3["y 对 A 不可见"]
+        B3 --> B4["read x → 0"]
     end
 ```
 
