@@ -82,17 +82,21 @@ count = next；            // 写
 
 假设 `count` 初始为 `0`，A、B 两个线程各执行一次 `count++`。下面是一种真实可能发生的执行顺序:
 
-```text
-┌──────┬────────────────────────┬────────────────────────┬───────────┐
-│ Step │        Thread A        │        Thread B        │   Heap    │
-├──────┼────────────────────────┼────────────────────────┼───────────┤
-│  1   │ Read count = 0         │                        │ count = 0 │
-│  2   │ Calculate next = 1     │                        │ count = 0 │
-│  3   │                        │ Read count = 0         │ count = 0 │
-│  4   │                        │ Calculate next = 1     │ count = 0 │
-│  5   │ Write count = 1        │                        │ count = 1 │
-│  6   │                        │ Write count = 1        │ count = 1 │
-└──────┴────────────────────────┴────────────────────────┴───────────┘
+```mermaid
+sequenceDiagram
+    participant A as Thread A
+    participant Heap
+    participant B as Thread B
+
+    Note over Heap: count = 0
+    A->>Heap: 1. Read count = 0
+    Note right of A: 2. Calculate next = 1
+    B->>Heap: 3. Read count = 0
+    Note right of B: 4. Calculate next = 1
+    A->>Heap: 5. Write count = 1
+    Note over Heap: count = 1
+    B->>Heap: 6. Write count = 1
+    Note over Heap: count = 1（A 的更新被覆盖）
 ```
 
 A 和 B 各自的三步都执行得很正常，没有任何一步出错。问题出在第 3 步:B 读 `count` 的时候，A 已经算完了 `1`，但还没来得及写回去，所以 B 看到的还是旧值 `0`。两边各自算出 `1`，分别写回，B 的写操作发生在最后，直接把 A 的结果覆盖掉了。A 那次自增，相当于白做了——这就是**丢失更新(Lost Update)**。

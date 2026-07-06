@@ -39,16 +39,19 @@ static class Counter {
 
 假设有四个线程不断调用 `increment()`，执行关系可能是：
 
-```text
-┌──────────┬──────────────────────────────────────────────┐
-│ Thread A │ Acquire → Execute → Release                  │
-├──────────┼──────────────────────────────────────────────┤
-│ Thread B │ Wait                → Acquire → Execute      │
-├──────────┼──────────────────────────────────────────────┤
-│ Thread C │ Wait                          → Wait         │
-├──────────┼──────────────────────────────────────────────┤
-│ Thread D │ Wait                          → Wait         │
-└──────────┴──────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant A as Thread A
+    participant Lock
+    participant B as Thread B
+    participant CD as Thread C/D
+
+    A->>Lock: Acquire → Execute → Release
+    B-->>Lock: Wait
+    CD-->>Lock: Wait
+    A->>Lock: Release
+    B->>Lock: Acquire → Execute
+    Note over CD: Still waiting
 ```
 
 程序虽然创建了多个线程，但临界区仍然只能串行执行。并发线程越多，并不意味着临界区的处理能力越高；当锁成为唯一入口时，系统吞吐量最终受单线程执行速度限制。
@@ -103,28 +106,16 @@ public void runTask() {
 
 从简化模型看，竞争过程可以表示为：
 
-```text
-┌───────────────┐
-│   Runnable    │
-└───────────────┘
-        ↓
-┌───────────────┐
-│  Try Acquire  │
-└───────────────┘
-        ↓
-┌───────────────┐
-│ Lock Acquired?│
-└───────────────┘
-     ↓       ↓
-    Yes      No
-     ↓       ↓
-┌─────────┐ ┌───────────────┐
-│ Running │ │    Blocked    │
-└─────────┘ └───────────────┘
-                 ↓
-          Lock Released
-                 ↓
-          Compete Again
+```mermaid
+graph TD
+    Runnable --> TryAcquire["Try Acquire"]
+    TryAcquire --> Check["Lock Acquired?"]
+    Check -->|Yes| Running
+    Check -->|No| Blocked
+    Blocked --> Released["Lock Released"]
+    Released --> Compete["Compete Again"]
+    Compete --> TryAcquire
+```
 ```
 
 Java 线程状态中的 `BLOCKED`，专门表示线程正在等待进入某个 `synchronized` 保护的区域。线程处于 `BLOCKED` 状态时，并没有执行临界区中的业务代码，也不会因为等待时间变长而自动获得锁。锁释放以后，它只是重新获得了参与竞争的机会。
@@ -159,26 +150,10 @@ Java 线程状态中的 `BLOCKED`，专门表示线程正在等待进入某个 `
 
 线程的执行现场包括程序执行位置、寄存器内容、栈指针等信息。只有保存这些内容，Thread A 下次获得 CPU 时才能从原来的位置继续执行。
 
-```text
-┌────────────────────┐
-│      Thread A      │
-│ Register Snapshot  │
-│ Program Position   │
-│ Stack Pointer      │
-└────────────────────┘
-          ↓ Save
-
-┌────────────────────┐
-│      CPU Core      │
-└────────────────────┘
-          ↓ Restore
-
-┌────────────────────┐
-│      Thread B      │
-│ Register Snapshot  │
-│ Program Position   │
-│ Stack Pointer      │
-└────────────────────┘
+```mermaid
+graph TD
+    A["Thread A<br>Register Snapshot<br>Program Position<br>Stack Pointer"] -->|Save| CPU["CPU Core"]
+    CPU -->|Restore| B["Thread B<br>Register Snapshot<br>Program Position<br>Stack Pointer"]
 ```
 
 保存和恢复上下文需要时间，但这不是上下文切换的全部成本。线程切换后，CPU Cache 和分支预测中原本适合 Thread A 的内容，未必适合 Thread B。Thread B 可能需要重新加载数据和指令，导致更多 Cache Miss。切换次数过多时，CPU 花在恢复执行环境上的时间会增加，真正用于业务计算的时间则会减少。
@@ -313,10 +288,10 @@ class Counter {
 
 可以把任务大致分成两部分：
 
-```text
-Total Work
-├── Parallel Part
-└── Serialized Part
+```mermaid
+graph TD
+    Work["Total Work"] --> Parallel["Parallel Part"]
+    Work --> Serial["Serialized Part"]
 ```
 
 并行部分可以分配给多个 Core 同时执行，串行部分则受锁保护，只能由一个线程执行。当串行部分占比很高时，继续增加线程数量带来的收益会迅速降低，甚至出现性能下降。
