@@ -5,6 +5,10 @@ post:
     placement: right
     headingSelector: "h1,h2,h3,h4,h5,h6"
     collapse_depth: 0
+  mermaid:
+    enable: true
+    specific: false
+    options: { theme: 'default' }
 
 index:
   slogan:
