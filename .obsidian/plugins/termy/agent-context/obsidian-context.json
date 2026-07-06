@@ -1,24 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T13:44:36.561Z",
+  "updatedAt": "2026-07-06T13:45:23.562Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-    "vaultPath": "hello-world.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
+    "vaultPath": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/01-%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8CJava%E7%A8%8B%E5%BA%8F%E7%9A%84.md",
     "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/hello-world.md",
-      "vaultPath": "hello-world.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/hello-world.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
+      "vaultPath": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/01-%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8CJava%E7%A8%8B%E5%BA%8F%E7%9A%84.md",
       "isActive": true
     }
   ],
-  "selection": null
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 320,
+      "ch": 0,
+      "offset": 5885
+    },
+    "to": {
+      "line": 320,
+      "ch": 0,
+      "offset": 5885
+    }
+  }
 }
