@@ -57,7 +57,7 @@ graph TD
         state_b[state = 0x1000]
     end
     subgraph Heap
-        obj[State @ 0x1000<br/>data = 0<br/>ready = false]
+        obj["State @ 0x1000<br>data = 0<br>ready = false"]
     end
     state_a --> obj
     state_b --> obj
@@ -78,7 +78,7 @@ graph TD
     Register[Register] -->|执行写入| StoreBuffer[Store Buffer]
     StoreBuffer -->|提交到本 Core 缓存体系| CacheLine[Cache Line]
     CacheLine -->|通过一致性协议传播| OtherCache[Other Core Cache]
-    OtherCache --> Lower[更低层 Cache / DRAM<br/>可能在之后才被写回]
+    OtherCache --> Lower["更低层 Cache / DRAM<br>可能在之后才被写回"]
 ```
 
 这里至少有三个不同时间点：当前 Core 认为写操作已经执行、写操作对其他 Core 可见、数据最终写回 DRAM。Java 并发主要关心第二个时间点。只要另一个 Core 能通过缓存一致性协议取得最新 Cache Line，就不需要先等待数据写回 DRAM。
@@ -354,14 +354,14 @@ User user = sharedUser;
 
 ```mermaid
 graph TD
-    subgraph Thread_A[Thread A Stack]
-        user_a[user = 0x1000]
+    subgraph Thread_A["Thread A Stack"]
+        user_a["user = 0x1000"]
     end
-    subgraph Thread_B[Thread B Stack]
-        user_b[user = 0x1000]
+    subgraph Thread_B["Thread B Stack"]
+        user_b["user = 0x1000"]
     end
     subgraph Heap
-        obj[User @ 0x1000<br/>age = 18]
+        obj["User @ 0x1000<br>age = 18"]
     end
     user_a --> obj
     user_b --> obj
@@ -396,7 +396,7 @@ class User {
 
 ```mermaid
 graph TD
-    Static[Static Field<br/>sharedUser = 0x1000] --> Heap[Heap: User @ 0x1000<br/>age = 0]
+    Static["Static Field<br>sharedUser = 0x1000"] --> Heap["Heap: User @ 0x1000<br>age = 0"]
 ```
 
 正确做法是：完成全部字段初始化，构造函数正常结束之后，再向其他线程发布对象引用。构造函数内部启动线程、注册回调、把 `this` 放入静态字段或共享集合，都可能造成 `this` 逃逸。
