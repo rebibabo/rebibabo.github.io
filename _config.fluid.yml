@@ -5,3 +5,8 @@ post:
     placement: right
     headingSelector: "h1,h2,h3,h4,h5,h6"
     collapse_depth: 0
+
+index:
+  slogan:
+    enable: true
+    text: 记录 Java 高并发、AI 后端、系统设计与工程实践
