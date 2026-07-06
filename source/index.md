@@ -37,6 +37,6 @@ layout: page
 
 ## 全部文章
 
-[查看全部文章](/posts/)
+[查看全部文章](/_posts/)
 
 </div>
