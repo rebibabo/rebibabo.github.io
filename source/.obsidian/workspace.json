@@ -192,8 +192,18 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "2d3291a039fa99be",
+  "active": "65aff21f3d59f825",
   "lastOpenFiles": [
+    "categories/index.md",
+    "schema/update-workflow.md",
+    "about/index-1.md",
+    "tags/index.md",
+    "tags",
+    "categories/index-1.md",
+    "about/index.md",
+    "about",
+    "categories",
+    "index.md",
     "skills/写作_Skill_claude.md",
     "skills/写作_Skill_chatgpt.md",
     "skills",
@@ -229,16 +239,6 @@
     "wiki/concepts/programmatic-ads/角色总图.md",
     "wiki/concepts/programmatic-ads/原生广告规范.md",
     "wiki/concepts/programmatic-ads/指标与归因.md",
-    "wiki/concepts/programmatic-ads/指标.md",
-    "wiki/concepts/programmatic-ads/曝光.md",
-    "wiki/concepts/programmatic-ads/头部竞价.md",
-    "wiki/concepts/programmatic-ads/优先查看.md",
-    "wiki/concepts/programmatic-ads/底价.md",
-    "wiki/concepts/programmatic-ads/填充率.md",
-    "wiki/concepts/programmatic-ads/交易ID.md",
-    "wiki/glossary/java-basic/equals-和-==.md.tmp.39825.f0b10b7b6118",
-    "wiki/concepts/java-basic",
-    "wiki/glossary/java-basic/DI.md.tmp.39825.443ed64b5498",
-    "wiki/glossary/java-basic/老年代.md.tmp.39825.15bd48fb946e"
+    "wiki/glossary/java-basic/equals-和-==.md.tmp.39825.f0b10b7b6118"
   ]
 }
