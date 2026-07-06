@@ -20,8 +20,19 @@
               "icon": "lucide-file",
               "title": "01-计算机是如何执行Java程序的"
             }
+          },
+          {
+            "id": "c7493faae6c822d6",
+            "type": "leaf",
+            "state": {
+              "type": "terminal-view",
+              "state": {},
+              "icon": "terminal",
+              "title": "Terminal"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -94,7 +105,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +114,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "01-计算机是如何执行Java程序的 的反向链接列表"
+              "title": "反向链接"
             }
           },
           {
@@ -113,12 +123,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "01-计算机是如何执行Java程序的 的出链列表"
+              "title": "出链"
             }
           },
           {
@@ -156,13 +165,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "01-计算机是如何执行Java程序的 的大纲"
+              "title": "大纲"
             }
           }
         ]
@@ -185,8 +193,9 @@
       "termy:打开Termy终端": false
     }
   },
-  "active": "e29f4814173ac6fe",
+  "active": "c7493faae6c822d6",
   "lastOpenFiles": [
+    "source/_posts/concurrency/01-计算机是如何执行Java程序的.md",
     "hello-world.md"
   ]
 }
