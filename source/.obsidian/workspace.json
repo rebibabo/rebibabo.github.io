@@ -13,8 +13,8 @@
             "state": {
               "type": "terminal-view",
               "state": {},
-              "icon": "terminal",
-              "title": "Terminal"
+              "icon": "lucide-ghost",
+              "title": "terminal-view"
             }
           },
           {
@@ -199,7 +199,7 @@
       "templates:插入模板": false,
       "bases:新建数据库": false,
       "termy:打开Termy终端": false,
-      "templater-obsidian:Templater": false
+      "obsidian-git:Open Git source control": false
     }
   },
   "active": "aab9df49785523ea",
