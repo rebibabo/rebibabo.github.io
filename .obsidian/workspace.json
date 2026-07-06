@@ -195,11 +195,11 @@
       "termy:打开Termy终端": false
     }
   },
-  "active": "aea7a7cdba9c5bec",
+  "active": "3e3f12f79bd77543",
   "lastOpenFiles": [
+    "scaffolds/draft.md",
     "scaffolds/post.md",
     "scaffolds/page.md",
-    "scaffolds/draft.md",
     "_config.yml",
     "pnpm-lock.yaml",
     "_config.landscape.yml",
