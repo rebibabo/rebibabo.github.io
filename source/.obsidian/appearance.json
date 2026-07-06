@@ -1,4 +1,5 @@
 {
-  "theme": "obsidian",
-  "baseFontSize": 15
+  "enabledCssSnippets": [
+    "ignore"
+  ]
 }

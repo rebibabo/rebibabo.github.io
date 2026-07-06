@@ -514,6 +514,3 @@ List<String> mutable = new ArrayList<>(List.of("a", "b", "c"));
 ---
 
 > 🎯 如果这篇文章对你有帮助，别忘了**点赞、收藏、关注**三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~
-
-
-aaa

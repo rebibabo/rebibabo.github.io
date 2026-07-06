@@ -1,6 +1,11 @@
 {
-  "alwaysUpdateLinks": true,
-  "attachmentFolderPath": "附件",
-  "readableLineLength": true,
-  "rightToLeft": false
+  "showUnsupportedFiles": false,
+  "userIgnoreFilters": [
+    "node_modules/",
+    "scaffolds/",
+    "themes/",
+    "source/2026/",
+    "source/附件/",
+    "public/"
+  ]
 }
