@@ -1,12 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T14:33:27.508Z",
+  "updatedAt": "2026-07-06T14:34:23.607Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs"
   ],
-  "activeFile": null,
-  "openFiles": [],
-  "selection": null
+  "activeFile": {
+    "filePath": "/Users/zs.yuan/Documents/blogs/_config.yml",
+    "vaultPath": "_config.yml",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/_config.yml",
+    "hasFocus": false
+  },
+  "openFiles": [
+    {
+      "filePath": "/Users/zs.yuan/Documents/blogs/_config.yml",
+      "vaultPath": "_config.yml",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/_config.yml",
+      "isActive": true
+    }
+  ],
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 0,
+      "ch": 0,
+      "offset": 0
+    },
+    "to": {
+      "line": 0,
+      "ch": 0,
+      "offset": 0
+    }
+  }
 }
