@@ -37,12 +37,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/concurrency/15-Future 如何获取异步任务的执行结果.md",
+                "file": "_posts/concurrency/20-ReentrantReadWriteLock 与 StampedLock.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "15-Future 如何获取异步任务的执行结果"
+              "title": "20-ReentrantReadWriteLock 与 StampedLock"
             }
           }
         ],
@@ -208,6 +208,11 @@
   },
   "active": "f290e5fcda3f3c3e",
   "lastOpenFiles": [
+    "_posts/concurrency/19-AQS 独占与共享模式如何完成排队与唤醒.md",
+    "_posts/concurrency/18-ThreadLocal 的线程隔离与线程池问题.md",
+    "_posts/concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
+    "_posts/concurrency/16-CompletableFuture 如何编排多个异步任务.md",
+    "_posts/concurrency/15-Future 如何获取异步任务的执行结果.md",
     "_posts/concurrency/14-线程池如何复用和调度线程.md",
     "_posts/concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
     "_posts/concurrency/12-Semaphore 如何控制并发线程数量.md",
@@ -232,12 +237,7 @@
     "about/index.md",
     "about",
     "categories",
-    "skills/写作_Skill_claude.md",
-    "skills/写作_Skill_chatgpt.md",
     "skills",
-    "_posts/skills/写作_Skill_claude.md",
-    "_posts/skills/写作_Skill_chatgpt.md",
-    "_posts/skills/Java技术笔记润色与增量写作_Skill_claude.md",
     "_posts/skills",
     "images/Java-basic/arraydeque-methods.png",
     "images/Java-basic/IMG-20260706212847507.png",

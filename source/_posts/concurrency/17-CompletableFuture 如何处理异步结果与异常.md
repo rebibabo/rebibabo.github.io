@@ -30,23 +30,21 @@ System.out.println("调用线程继续执行");
 
 调用 `supplyAsync()` 的线程和执行 Lambda 的工作线程通常不是同一个线程。异常只能沿当前线程的调用栈向上传播，工作线程中的异常无法直接跳到主线程的调用栈中。
 
-```text
-Main Thread                     Worker Thread
-┌──────────────────┐            ┌──────────────────┐
-│ call supplyAsync │            │ run Supplier     │
-│ get future       │            │ throw exception  │
-│ continue running │            │ complete future  │
-└─────────┬────────┘            └─────────┬────────┘
-          │                               │
-          └──────────────┬────────────────┘
-                         ↓
-Heap
-┌────────────────────────────────┐
-│ CompletableFuture              │
-├────────────────────────────────┤
-│ result or exception            │
-│ completion state               │
-└────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Main["主线程"]
+        M1["调用 supplyAsync"] --> M2["拿到 future"]
+        M2 --> M3["继续执行"]
+    end
+    subgraph Worker["工作线程"]
+        W1["执行 Supplier"] --> W2["抛出异常"]
+        W2 --> W3["完成 future"]
+    end
+    subgraph Heap["堆"]
+        CF["CompletableFuture<br>result = 异常对象<br>state = 完成"]
+    end
+    M2 --> CF
+    W3 --> CF
 ```
 
 因此，`CompletableFuture` 必须先把任务的完成状态保存到堆对象中。正常完成时保存正常结果；异常完成时保存异常对象。调用线程之后只能通过异常处理阶段、`get()` 或 `join()`，再去感知这次失败。
@@ -124,12 +122,14 @@ CompletableFuture<String> future =
 
 可以把任务链理解成两条路径：
 
-```text
-normal result path
-supplyAsync -> thenApply -> thenAccept -> thenRun
-
-exception path
-supplyAsync -> exceptionally / handle / whenComplete
+```mermaid
+graph LR
+    subgraph Normal["正常路径"]
+        SA["supplyAsync"] --> TA["thenApply"] --> TAc["thenAccept"] --> TR["thenRun"]
+    end
+    subgraph Error["异常路径"]
+        SA2["supplyAsync"] --> EX["exceptionally<br>handle<br>whenComplete"]
+    end
 ```
 
 不同方法对前一步完成状态的反应不同：
@@ -462,22 +462,22 @@ CompletableFuture<Void> future =
 
 `allOf()` 等待所有任务完成。如果其中至少一个任务异常完成，组合后的 `CompletableFuture<Void>` 也会异常完成。
 
-```text
-futureA -> success
-futureB -> failure
-futureC -> success
-allOf   -> failure
+```mermaid
+graph LR
+    FA["futureA: 成功"] --> All["allOf: 失败"]
+    FB["futureB: 失败"] --> All
+    FC["futureC: 成功"] --> All
 ```
 
 各个任务的结果和异常仍然保存在原来的 `CompletableFuture` 中。`allOf()` 本身只表达“这一批任务都完成了”，不负责收集每个业务结果。
 
 `anyOf()` 在任意一个任务最先完成时结束，这里的“完成”包括正常完成和异常完成。
 
-```text
-futureA -> first failure
-futureB -> later success
-futureC -> later success
-anyOf   -> failure
+```mermaid
+graph LR
+    FA["futureA: 首个失败"] --> Any["anyOf: 失败"]
+    FB["futureB: 后续成功"]
+    FC["futureC: 后续成功"]
 ```
 
 所以，`anyOf()` 等待的是最快完成，不是最快成功。它不会自动忽略失败任务，也不会在一个任务完成后自动取消其他仍在执行的任务。

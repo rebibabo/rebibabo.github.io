@@ -209,10 +209,9 @@ CompletableFuture<List<Order>> ordersFuture =
 
 `thenCompose()` 的作用是连接两个前后依赖的异步阶段，并把嵌套结构展平成一层。
 
-```text
-CompletableFuture<CompletableFuture<R>>
-        ↓
-CompletableFuture<R>
+```mermaid
+graph TD
+    Nested["CompletableFuture<br>嵌套版本"] --> Flat["CompletableFuture<br>扁平版本"]
 ```
 
 判断规则可以简化为：
@@ -271,9 +270,11 @@ CompletableFuture<Price> priceFuture =
 
 执行关系可以表示为：
 
-```text
-userFuture    -> User                            -> calculatePrice -> Price
-couponFuture  -> Coupon /
+```mermaid
+graph LR
+    UF["userFuture → User"] --> CP["计算价格"]
+    CF["couponFuture → Coupon"] --> CP
+    CP --> Price["价格"]
 ```
 
 合并函数只有在两个任务都正常完成后才会执行。它不要求哪个任务先完成，只要求两个结果最终都可用。
@@ -331,10 +332,11 @@ CompletableFuture<Object> anyFuture =
 
 需要注意，`anyOf()` 完成后，其他任务不会自动取消：
 
-```text
-futureA -> first completed -> anyFuture completed
-futureB -> still running
-futureC -> still running
+```mermaid
+graph LR
+    FA["futureA: 已完成"] --> Any["anyFuture<br>完成"]
+    FB["futureB: 运行中"]
+    FC["futureC: 运行中"]
 ```
 
 此外，最先完成不一定是最先成功。如果某个任务最先异常完成，`anyOf()` 也可能直接异常完成。异常处理会放到下一章单独讨论。
