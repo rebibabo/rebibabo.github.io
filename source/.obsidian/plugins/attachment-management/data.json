@@ -1,0 +1,18 @@
+{
+  "attachPath": {
+    "attachmentRoot": "images",
+    "saveAttE": "inFolderBelow",
+    "attachmentPath": "${parent}",
+    "attachFormat": "IMG-${date}",
+    "type": "GLOBAL"
+  },
+  "dateFormat": "YYYYMMDDHHmmssSSS",
+  "excludeExtensionPattern": "",
+  "autoRenameAttachment": true,
+  "excludedPaths": "",
+  "excludePathsArray": [],
+  "excludeSubpaths": false,
+  "originalNameStorage": [],
+  "overridePath": {},
+  "disableNotification": false
+}
