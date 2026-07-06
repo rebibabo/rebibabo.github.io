@@ -1,0 +1,917 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="第1章 计算机是如何执行 Java 程序的本章目标阅读完本章后，你应该能够回答下面几个问题：  一段 Java 程序是如何运行起来的？ JVM、操作系统和 CPU 分别负责什么？ 为什么现代 CPU 都采用多核设计？ 什么是线程，CPU 如何调度线程？ Heap、Stack、对象和引用之间是什么关系？ 为什么多个线程访问同一个对象会产生线程安全问题？  1. Java 程序是如何运行起来的学习 J">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（一）------ 计算机是如何执行 Java 程序的">
+<meta property="og:url" content="https://rebibabo.github.io/2026/07/02/concurrency/01-%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8CJava%E7%A8%8B%E5%BA%8F%E7%9A%84/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="第1章 计算机是如何执行 Java 程序的本章目标阅读完本章后，你应该能够回答下面几个问题：  一段 Java 程序是如何运行起来的？ JVM、操作系统和 CPU 分别负责什么？ 为什么现代 CPU 都采用多核设计？ 什么是线程，CPU 如何调度线程？ Heap、Stack、对象和引用之间是什么关系？ 为什么多个线程访问同一个对象会产生线程安全问题？  1. Java 程序是如何运行起来的学习 J">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-06T14:00:27.344Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（一）------ 计算机是如何执行 Java 程序的 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（一）------ 计算机是如何执行 Java 程序的"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-02 00:00" pubdate>
+          2026年7月2日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（一）------ 计算机是如何执行 Java 程序的</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="第1章-计算机是如何执行-Java-程序的"><a href="#第1章-计算机是如何执行-Java-程序的" class="headerlink" title="第1章 计算机是如何执行 Java 程序的"></a>第1章 计算机是如何执行 Java 程序的</h1><h2 id="本章目标"><a href="#本章目标" class="headerlink" title="本章目标"></a>本章目标</h2><p>阅读完本章后，你应该能够回答下面几个问题：</p>
+<ul>
+<li>一段 Java 程序是如何运行起来的？</li>
+<li>JVM、操作系统和 CPU 分别负责什么？</li>
+<li>为什么现代 CPU 都采用多核设计？</li>
+<li>什么是线程，CPU 如何调度线程？</li>
+<li>Heap、Stack、对象和引用之间是什么关系？</li>
+<li>为什么多个线程访问同一个对象会产生线程安全问题？</li>
+</ul>
+<h2 id="1-Java-程序是如何运行起来的"><a href="#1-Java-程序是如何运行起来的" class="headerlink" title="1. Java 程序是如何运行起来的"></a>1. Java 程序是如何运行起来的</h2><p>学习 Java 高并发之前，我们先回答一个最基础的问题：<strong>点击 IDEA 的 Run<br>按钮之后，计算机到底发生了什么？</strong></p>
+<p>很多人知道 Java 程序运行在 JVM 上，但 JVM<br>并不是终点，它只是整个执行链路中的一环。一段 Java<br>程序最终会经过下面几个阶段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">Java Source (.java)<br>        ↓<br>ByteCode (.class)<br>        ↓<br>       JVM<br>        ↓<br>Operating System<br>        ↓<br>       CPU<br></code></pre></td></tr></table></figure>
+
+<p>整个过程可以概括为五个步骤：</p>
+<ol>
+<li>编写 Java 源代码；</li>
+<li>使用 <code>javac</code> 编译成字节码；</li>
+<li>JVM 加载并执行字节码，必要时将热点代码编译为机器指令；</li>
+<li>操作系统负责创建和调度线程；</li>
+<li>CPU 执行最终的机器指令。</li>
+</ol>
+<p>后面的学习都会围绕这条链路展开，因此先建立整体模型，比记住各种 API<br>更重要。</p>
+<h2 id="2-CPU-是如何工作的"><a href="#2-CPU-是如何工作的" class="headerlink" title="2. CPU 是如何工作的"></a>2. CPU 是如何工作的</h2><p>CPU 并不是一个单独的计算核心，而是由多个 Core（计算核心）组成。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────────────────────────────┐<br>│               CPU                │<br>├────────┬────────┬────────┬───────┤<br>│ Core 1 │ Core 2 │ Core 3 │  ...  │<br>└────────┴────────┴────────┴───────┘<br></code></pre></td></tr></table></figure>
+
+<p>现代 CPU 很少继续提升主频，而是增加 Core<br>的数量。这是因为主频越高，功耗和发热越严重，而增加 Core<br>更容易获得整体性能提升。</p>
+<p>不过，多核 CPU 并不会自动让程序变快。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>； i &lt; <span class="hljs-number">1000000000</span>； i++) &#123;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码通常仍然只会由一个 Core 顺序执行，其余 Core 基本处于空闲状态。</p>
+<p>因此，仅仅拥有多个 Core 还不够，程序还需要一种能够把任务拆分给多个 Core<br>的机制，这就是线程。</p>
+<h2 id="3-一个-Core-是如何执行程序的"><a href="#3-一个-Core-是如何执行程序的" class="headerlink" title="3. 一个 Core 是如何执行程序的"></a>3. 一个 Core 是如何执行程序的</h2><p>CPU 真正执行的是机器指令，而不是 Java 代码。</p>
+<p>为了减少数据访问时间，Core<br>会优先使用寄存器（Register）保存当前参与计算的数据。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────────────────┐<br>│       CPU Core       │<br>│                      │<br>│   ┌──────────────┐   │<br>│   │   Register   │   │<br>│   └──────────────┘   │<br>└──────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>寄存器容量很小，但访问速度极快。例如执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> a + b；<br></code></pre></td></tr></table></figure>
+
+<p>CPU 会先把 <code>a</code>、<code>b</code> 放入寄存器，在寄存器中完成计算，再写回结果。</p>
+<p>如果所有数据都必须直接从内存读取，CPU<br>大部分时间都会浪费在等待数据上。因此，仅靠寄存器仍然无法满足性能需求。</p>
+<h2 id="4-为什么-CPU-需要-Cache"><a href="#4-为什么-CPU-需要-Cache" class="headerlink" title="4. 为什么 CPU 需要 Cache"></a>4. 为什么 CPU 需要 Cache</h2><p>寄存器虽然快，但数量极少，只能保存当前参与计算的数据。</p>
+<p>程序中的绝大多数数据仍然存放在主内存中，而主内存的访问速度远慢于<br>CPU。为了缩小两者之间的性能差距，现代 CPU 引入了多级缓存（Cache）。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs text">┌─────────────┐<br>│  Register   │<br>└─────────────┘<br>       ↓<br>┌─────────────┐<br>│  L1 Cache   │<br>└─────────────┘<br>       ↓<br>┌─────────────┐<br>│  L2 Cache   │<br>└─────────────┘<br>       ↓<br>┌─────────────┐<br>│  L3 Cache   │<br>└─────────────┘<br>       ↓<br>┌─────────────┐<br>│ Main Memory │<br>└─────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>CPU<br>每次读取数据时，都会优先查询距离自己最近的存储区域。只有前一级没有命中时，才继续向下一层查找。</p>
+<p>Cache 大幅提升了执行效率，但多个 Core 拥有各自的<br>Cache，也意味着同一份数据可能同时存在多个副本。这一点会在后面的并发章节继续讨论。</p>
+<h2 id="5-为什么需要线程"><a href="#5-为什么需要线程" class="headerlink" title="5. 为什么需要线程"></a>5. 为什么需要线程</h2><p>现代 CPU 已经拥有多个 Core，但程序默认仍然是顺序执行的。</p>
+<p>如果希望多个 Core<br>同时工作，就必须把任务拆分成多条独立的执行路径，这就是线程（Thread）。</p>
+<p>一个进程可以拥有多个线程，每个线程负责不同的任务。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Browser Process<br>├── Render Thread<br>├── Network Thread<br>├── JavaScript Thread<br>└── GC Thread<br></code></pre></td></tr></table></figure>
+
+<p>Java 中创建的 <code>Thread</code><br>最终都会对应到操作系统线程，由操作系统决定它们在哪个 Core 上运行。</p>
+<h2 id="6-CPU-如何调度线程"><a href="#6-CPU-如何调度线程" class="headerlink" title="6. CPU 如何调度线程"></a>6. CPU 如何调度线程</h2><p>假设一台计算机拥有 8 个 Core，而程序创建了 100<br>个线程，那么显然不可能让所有线程同时运行。</p>
+<p>一个 Core 在同一时刻只能执行一个线程，其余线程只能等待调度。</p>
+<p>线程通常可以简单理解为三种状态：</p>
+<ul>
+<li>Running：正在执行。</li>
+<li>Runnable：具备运行条件，等待 CPU。</li>
+<li>Blocked：由于锁、IO 等原因暂时不能运行。</li>
+</ul>
+<p>CPU 会不断切换 Runnable<br>状态的线程，让它们轮流获得时间片。切换线程时，需要保存当前线程的执行现场，并在下次恢复执行，因此线程切换本身也存在一定开销。</p>
+<h2 id="7-JVM-为什么需要-Heap-和-Stack"><a href="#7-JVM-为什么需要-Heap-和-Stack" class="headerlink" title="7. JVM 为什么需要 Heap 和 Stack"></a>7. JVM 为什么需要 Heap 和 Stack</h2><p>线程出现以后，一个新的问题随之而来：线程自己的数据放在哪里？多个线程共同访问的数据又放在哪里？</p>
+<p>JVM 将内存划分为多个区域，本书首先关注最重要的两个：</p>
+<ul>
+<li>Stack：线程私有。</li>
+<li>Heap：线程共享。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs text">             JVM<br><br>┌───────────────────────────┐<br>│           Heap            │<br>├───────────────────────────┤<br>│ Counter                   │<br>│ User                      │<br>│ ArrayList                 │<br>└───────────────────────────┘<br><br>Thread A Stack     Thread B Stack<br>- local vars       - local vars<br>- references       - references<br>- frames           - frames<br></code></pre></td></tr></table></figure>
+
+<p>局部变量属于当前线程，因此放在 Stack；对象需要被多个线程访问，因此放在<br>Heap。</p>
+<h2 id="8-对象和引用"><a href="#8-对象和引用" class="headerlink" title="8. 对象和引用"></a>8. 对象和引用</h2><p>来看一段代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>()；<br></code></pre></td></tr></table></figure>
+
+<p>很多人认为变量 <code>user</code> 就是对象本身，其实不是。</p>
+<p><code>new User()</code> 创建的是 Heap 中的对象，而变量 <code>user</code> 保存的是对象的引用。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">┌────────────────────────┐        ┌────────────────────────────┐<br>│      Thread Stack      │        │            Heap            │<br>├────────────────────────┤        ├────────────────────────────┤<br>│ user = 0x1000          │───────→│ 0x1000                     │<br>│                        │        │ ┌────────────────────────┐ │<br>│                        │        │ │      User Object       │ │<br>└────────────────────────┘        │ └────────────────────────┘ │<br>                                  └────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>引用相当于对象的地址，通过引用才能找到真正的对象。</p>
+<p>多个引用也可以同时指向同一个对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">User</span> <span class="hljs-variable">u1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>()；<br><span class="hljs-type">User</span> <span class="hljs-variable">u2</span> <span class="hljs-operator">=</span> u1；<br></code></pre></td></tr></table></figure>
+
+<p>修改 <code>u1</code>，通过 <code>u2</code> 同样能够看到变化，因为它们访问的是同一个对象。</p>
+<h2 id="9-为什么会出现线程安全问题"><a href="#9-为什么会出现线程安全问题" class="headerlink" title="9. 为什么会出现线程安全问题"></a>9. 为什么会出现线程安全问题</h2><p>对象存放在 Heap，而 Heap 是所有线程共享的。</p>
+<p>如果多个线程同时持有同一个对象的引用，那么它们实际上访问的是同一份数据。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs text">┌────────────────────────┐        ┌────────────────────────┐<br>│     Thread A Stack     │        │     Thread B Stack     │<br>├────────────────────────┤        ├────────────────────────┤<br>│ counter = 0x1000       │        │ counter = 0x1000       │<br>└────────────────────────┘        └────────────────────────┘<br>             ╲                              ╱<br>              ╲                            ╱<br>               ╲                          ╱<br>                ╲                        ╱<br>                 ╲                      ╱<br>                  ╲                    ╱<br>                   ╲                  ╱<br>                    └───────┬────────┘<br>                            ↓<br>                 ┌────────────────────┐<br>                 │        Heap        │<br>                 ├────────────────────┤<br>                 │ 0x1000             │<br>                 │ ┌────────────────┐ │<br>                 │ │ Counter Object │ │<br>                 │ └────────────────┘ │<br>                 └────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>当多个线程同时读取或修改同一个对象时，就可能发生竞争，这就是线程安全问题产生的根本原因。</p>
+<p>后面的章节，我们将围绕最经典的一行代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">count++；<br></code></pre></td></tr></table></figure>
+
+<p>一步一步分析线程安全问题是如何产生的，以及 Java 是如何解决这些问题的。</p>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p>本章建立了整本书的基础模型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs text">Java Source<br>     ↓<br>  ByteCode<br>     ↓<br>    JVM<br>     ↓<br>Operating System<br>     ↓<br>    CPU<br>     ↓<br>┌───────────────┐<br>│     Core      │<br>├───────────────┤<br>│ Register      │<br>│ Cache         │<br>└───────────────┘<br>     ↓<br>┌───────────────┬───────────────┐<br>│     Stack     │     Heap      │<br>└───────────────┴───────────────┘<br>     ↓<br>Shared Objects<br>     ↓<br>Thread Safety<br></code></pre></td></tr></table></figure>
+
+<p>后续所有内容都会建立在这张模型图之上。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" class="category-chain-item">Java高并发底层原理</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（一）------ 计算机是如何执行 Java 程序的</div>
+      <div>https://rebibabo.github.io/2026/07/02/concurrency/01-计算机是如何执行Java程序的/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/03/concurrency/17-CompletableFuture%20%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E7%BB%93%E6%9E%9C%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="Java高并发底层原理（十七）—— CompletableFuture 如何处理异步结果与异常">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（十七）—— CompletableFuture 如何处理异步结果与异常</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/02/concurrency/02-%E4%B8%BA%E4%BB%80%E4%B9%88count++%E4%BC%9A%E5%87%BA%E9%94%99/" title="Java高并发底层原理（二）—— 为什么 count++ 会出错">
+                        <span class="hidden-mobile">Java高并发底层原理（二）—— 为什么 count++ 会出错</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

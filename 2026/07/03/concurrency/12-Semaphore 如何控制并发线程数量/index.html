@@ -1,0 +1,992 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="CountDownLatch 适合等待一批任务全部完成，但它不限制这些任务能够同时执行多少个。假设程序需要访问一个外部服务，而这个服务最多只能同时处理三个请求，如果十个线程一起访问，就可能造成连接耗尽、响应变慢甚至服务崩溃。 这时可以使用 Semaphore： 1Semaphore semaphore &#x3D; new Semaphore(3);  这里的 3 表示初始有三个许可证。线程只有成功取得许可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量">
+<meta property="og:url" content="https://rebibabo.github.io/2026/07/03/concurrency/12-Semaphore%20%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E5%B9%B6%E5%8F%91%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="CountDownLatch 适合等待一批任务全部完成，但它不限制这些任务能够同时执行多少个。假设程序需要访问一个外部服务，而这个服务最多只能同时处理三个请求，如果十个线程一起访问，就可能造成连接耗尽、响应变慢甚至服务崩溃。 这时可以使用 Semaphore： 1Semaphore semaphore &#x3D; new Semaphore(3);  这里的 3 表示初始有三个许可证。线程只有成功取得许可">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T04:00:57.335Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="AQS">
+<meta property="article:tag" content="CAS">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Semaphore">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-03 00:00" pubdate>
+          2026年7月3日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          53 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p><code>CountDownLatch</code> 适合等待一批任务全部完成，但它不限制这些任务能够同时执行多少个。假设程序需要访问一个外部服务，而这个服务最多只能同时处理三个请求，如果十个线程一起访问，就可能造成连接耗尽、响应变慢甚至服务崩溃。</p>
+<p>这时可以使用 <code>Semaphore</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Semaphore</span> <span class="hljs-variable">semaphore</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Semaphore</span>(<span class="hljs-number">3</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>3</code> 表示初始有三个许可证。线程只有成功取得许可证后，才能继续访问受限资源；使用结束后，再把许可证归还。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">semaphore.acquire();<br><br><span class="hljs-keyword">try</span> &#123;<br>    accessService();<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    semaphore.release();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>Semaphore</code> 解决的不是“所有任务什么时候结束”，而是“同一时刻最多允许多少个线程继续执行”。</p>
+<h2 id="一、许可证表示什么"><a href="#一、许可证表示什么" class="headerlink" title="一、许可证表示什么"></a>一、许可证表示什么</h2><p>创建 <code>Semaphore</code> 时传入的数字表示当前可用许可证数量：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Semaphore</span> <span class="hljs-variable">semaphore</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Semaphore</span>(<span class="hljs-number">3</span>);<br></code></pre></td></tr></table></figure>
+
+<p>可以把它理解为当前有三张通行证。前三个线程调用 <code>acquire()</code> 时，可以分别拿走一张许可证；第四个线程再调用 <code>acquire()</code> 时，发现许可证已经用完，就需要等待。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">Initial permits = 3<br><br>Thread A acquire: 3 -&gt; 2<br>Thread B acquire: 2 -&gt; 1<br>Thread C acquire: 1 -&gt; 0<br>Thread D acquire: wait<br></code></pre></td></tr></table></figure>
+
+<p>当某个线程执行完受限任务并调用 <code>release()</code> 后，许可证数量增加，等待线程才有机会重新尝试获取许可证。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Thread A release: 0 -&gt; 1<br>Thread D acquire: 1 -&gt; 0<br></code></pre></td></tr></table></figure>
+
+<p>这里需要注意，<code>release()</code> 并不是把许可证直接指定给某个等待线程。它只是增加可用许可证，并通知等待线程重新参与竞争。最终哪个线程成功，还要看它是否重新执行获取逻辑并成功减少许可证数量。</p>
+<h2 id="二、acquire-、release-与-state-的关系"><a href="#二、acquire-、release-与-state-的关系" class="headerlink" title="二、acquire()、release() 与 state 的关系"></a>二、acquire()、release() 与 state 的关系</h2><p><code>Semaphore</code> 基于 AQS 实现，并使用 AQS 的 <code>state</code> 保存当前剩余许可证数量：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">state = 3: three permits available<br>state = 2: two permits available<br>state = 1: one permit available<br>state = 0: no permit available<br></code></pre></td></tr></table></figure>
+
+<p>这和前面几个同步工具使用的是同一个 AQS 状态字段，但语义不同。</p>
+<table>
+<thead>
+<tr>
+<th>同步工具</th>
+<th>state 的含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ReentrantLock</code></td>
+<td>锁状态和重入次数</td>
+</tr>
+<tr>
+<td><code>CountDownLatch</code></td>
+<td>尚未完成的事件数量</td>
+</tr>
+<tr>
+<td><code>Semaphore</code></td>
+<td>剩余许可证数量</td>
+</tr>
+</tbody></table>
+<p>所以 <code>Semaphore</code> 的两个核心操作可以直接理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">acquire(): state decreases<br>release(): state increases<br></code></pre></td></tr></table></figure>
+
+<p>这和 <code>CountDownLatch</code> 只递减不同。<code>Semaphore</code> 的许可证既可以被获取，也可以被归还，因此它可以长期重复使用。</p>
+<h2 id="三、为什么-acquire-和-release-都需要-CAS"><a href="#三、为什么-acquire-和-release-都需要-CAS" class="headerlink" title="三、为什么 acquire() 和 release() 都需要 CAS"></a>三、为什么 acquire() 和 release() 都需要 CAS</h2><p>多个线程可能同时申请许可证。如果 <code>acquire()</code> 内部只是普通地执行 <code>state--</code>，就可能让多个线程取得同一个许可证。</p>
+<p>假设当前只剩一个许可证，也就是 <code>state == 1</code>。两个线程同时申请时，都可能先读到 <code>1</code>，然后都把结果写回 <code>0</code>。从状态结果看只少了一个许可证，但两个线程都可能认为自己已经通过了限制。</p>
+<p>这个交错过程可以表示为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">Thread A                     Thread B<br>┌──────────────────┐         ┌──────────────────┐<br>│ read state = 1   │         │ read state = 1   │<br>│ compute 1 - 1    │         │ compute 1 - 1    │<br>└─────────┬────────┘         └─────────┬────────┘<br>          │                            │<br>┌─────────↓────────┐         ┌─────────↓────────┐<br>│ write state = 0  │         │ write state = 0  │<br>│ acquire success  │         │ acquire success  │<br>└──────────────────┘         └──────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>这会破坏并发数量限制。<code>Semaphore</code> 因此使用 CAS 循环修改 <code>state</code>。可以简化理解为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (;;) &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">available</span> <span class="hljs-operator">=</span> getState();<br>    <span class="hljs-type">int</span> <span class="hljs-variable">remaining</span> <span class="hljs-operator">=</span> available - <span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">if</span> (remaining &lt; <span class="hljs-number">0</span>) &#123;<br>        获取失败;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (compareAndSetState(available, remaining)) &#123;<br>        获取成功;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果两个线程都读到 <code>state == 1</code>，只有一个线程能成功执行 <code>CAS(1, 0)</code>；另一个线程 CAS 失败后必须重新读取最新状态，发现已经没有许可证，就进入等待。</p>
+<p><code>release()</code> 也需要 CAS，原因和 <code>acquire()</code> 对称。多个线程可能同时归还许可证，如果只是普通地执行 <code>state++</code>，也可能发生更新丢失。例如两个线程都读到 <code>state == 0</code>，都写回 <code>1</code>，实际归还了两个许可证，结果却只增加了一个。因此归还许可证同样要通过 CAS 循环完成。</p>
+<h2 id="四、许可证不足时线程去了哪里"><a href="#四、许可证不足时线程去了哪里" class="headerlink" title="四、许可证不足时线程去了哪里"></a>四、许可证不足时线程去了哪里</h2><p>当线程调用 <code>acquire()</code> 时，如果发现 <code>state == 0</code>，它不会一直空转重试。AQS 会把它加入等待队列，并暂停线程执行。等其他线程调用 <code>release()</code> 增加许可证后，等待线程会被唤醒，再重新尝试获取许可证。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">AQS shared queue<br><br>head -&gt; Thread D -&gt; Thread E -&gt; Thread F<br></code></pre></td></tr></table></figure>
+
+<p>被唤醒不等于已经取得许可证。线程醒来后仍然要重新读取 <code>state</code>，并通过 CAS 尝试减少许可证数量。只有成功减少 <code>state</code>，才算真正通过 <code>acquire()</code>。</p>
+<p>这一点和前文的 <code>Condition</code> 类似：通知只是让等待线程重新获得机会，不是直接承诺业务条件一定满足；在 <code>Semaphore</code> 中，唤醒也只是重新竞争许可证的开始。</p>
+<h2 id="五、为什么-Semaphore-属于共享模式"><a href="#五、为什么-Semaphore-属于共享模式" class="headerlink" title="五、为什么 Semaphore 属于共享模式"></a>五、为什么 Semaphore 属于共享模式</h2><p><code>ReentrantLock</code> 使用 AQS 独占模式。一把锁同一时刻只能由一个线程持有，其他线程必须等待。</p>
+<p><code>Semaphore</code> 使用 AQS 共享模式。只要还有许可证，多个线程就可以同时获取成功：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Initial permits = 3<br><br>Thread A acquire: 3 -&gt; 2<br>Thread B acquire: 2 -&gt; 1<br>Thread C acquire: 1 -&gt; 0<br></code></pre></td></tr></table></figure>
+
+<p>三个线程都能通过 <code>acquire()</code>，因此可以同时执行受限代码。这里的“共享”不是指多个线程共同拥有同一张许可证，而是指同步状态允许多个线程同时通过。</p>
+<p>它和 <code>CountDownLatch</code> 都属于共享模式，但通过条件不同：</p>
+<table>
+<thead>
+<tr>
+<th>同步工具</th>
+<th>共享通过条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CountDownLatch</code></td>
+<td><code>state == 0</code> 后，等待线程都可以通过</td>
+</tr>
+<tr>
+<td><code>Semaphore</code></td>
+<td><code>state</code> 足够时，线程消耗许可证后通过</td>
+</tr>
+</tbody></table>
+<p>所以 <code>CountDownLatch</code> 更像一次性闸门，计数归零后所有等待线程放行；<code>Semaphore</code> 更像可循环使用的通行证池，线程通过时拿走许可证，结束后再归还许可证。</p>
+<h2 id="六、为什么-Semaphore-可以重复使用"><a href="#六、为什么-Semaphore-可以重复使用" class="headerlink" title="六、为什么 Semaphore 可以重复使用"></a>六、为什么 Semaphore 可以重复使用</h2><p><code>CountDownLatch</code> 的计数只能减少，到达 <code>0</code> 后不会恢复，因此只能使用一轮。<code>Semaphore</code> 的 <code>state</code> 既会因为 <code>acquire()</code> 减少，也会因为 <code>release()</code> 增加，所以它可以在长期运行的程序中反复控制并发数量。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">Initial state = 3<br><br>A acquire: 3 -&gt; 2<br>B acquire: 2 -&gt; 1<br>C acquire: 1 -&gt; 0<br><br>A release: 0 -&gt; 1<br>D acquire: 1 -&gt; 0<br><br>B release: 0 -&gt; 1<br>E acquire: 1 -&gt; 0<br></code></pre></td></tr></table></figure>
+
+<p>这也是它适合做限流、资源池并发控制的原因：许可证不会因为用完一次就永久失效，而是在获取和归还之间循环流动。</p>
+<h2 id="七、Semaphore-不记录许可证属于哪个线程"><a href="#七、Semaphore-不记录许可证属于哪个线程" class="headerlink" title="七、Semaphore 不记录许可证属于哪个线程"></a>七、Semaphore 不记录许可证属于哪个线程</h2><p><code>ReentrantLock</code> 会记录当前持锁线程，只有 owner 才能合法执行 <code>unlock()</code>。<code>Semaphore</code> 不记录某个许可证具体属于哪个线程，也没有类似 owner 的字段。</p>
+<p>这意味着从 <code>Semaphore</code> 自身的角度看，一个线程调用 <code>acquire()</code>，另一个线程调用 <code>release()</code> 是允许的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">semaphore.acquire();<br><br><span class="hljs-comment">// another thread</span><br>semaphore.release();<br></code></pre></td></tr></table></figure>
+
+<p>这不是漏洞，而是它的设计语义：<code>Semaphore</code> 只维护许可证数量，不检查许可证由谁取得、又由谁归还。因此程序必须自己保证 <code>acquire()</code> 和 <code>release()</code> 的业务配对关系。</p>
+<p>如果没有成功取得许可证却调用了 <code>release()</code>，许可证数量可能超过初始值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Semaphore</span> <span class="hljs-variable">semaphore</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Semaphore</span>(<span class="hljs-number">3</span>);<br><br>semaphore.release(); <span class="hljs-comment">// permits may become 4</span><br></code></pre></td></tr></table></figure>
+
+<p>构造方法中的 <code>3</code> 只是初始许可证数量，不是自动维护的最大上限。错误地多调用 <code>release()</code>，会直接破坏原本的并发限制。</p>
+<h2 id="八、正确使用：finally、多许可证和公平性"><a href="#八、正确使用：finally、多许可证和公平性" class="headerlink" title="八、正确使用：finally、多许可证和公平性"></a>八、正确使用：finally、多许可证和公平性</h2><p>只要 <code>acquire()</code> 成功返回，就应该保证后续一定会调用 <code>release()</code>。否则线程在执行受限任务时抛出异常，就可能造成许可证泄漏。许可证泄漏后，后续线程会一直等待，即使原来的工作线程早已结束。</p>
+<p>标准写法是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">semaphore.acquire();<br><br><span class="hljs-keyword">try</span> &#123;<br>    doWork();<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    semaphore.release();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>acquire()</code> 应放在 <code>try</code> 外面。因为它可能在等待期间被中断并抛出 <code>InterruptedException</code>；如果线程根本没有成功取得许可证，就不应该在 <code>finally</code> 中归还许可证。</p>
+<p><code>Semaphore</code> 还支持一次申请多个许可证：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">semaphore.acquire(<span class="hljs-number">2</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这表示当前线程必须同时取得两个许可证才能继续执行。归还时也应该归还相同数量：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">semaphore.release(<span class="hljs-number">2</span>);<br></code></pre></td></tr></table></figure>
+
+<p>一次申请多个许可证适合表示一个任务会同时占用多份资源，但业务代码必须保证申请和归还数量一致。</p>
+<p>默认创建的是非公平 <code>Semaphore</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Semaphore</span> <span class="hljs-variable">semaphore</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Semaphore</span>(<span class="hljs-number">3</span>);<br></code></pre></td></tr></table></figure>
+
+<p>也可以创建公平 <code>Semaphore</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Semaphore</span> <span class="hljs-variable">semaphore</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Semaphore</span>(<span class="hljs-number">3</span>, <span class="hljs-literal">true</span>);<br></code></pre></td></tr></table></figure>
+
+<p>非公平模式下，新到达的线程可能在等待队列中的线程之前取得刚刚释放的许可证。公平模式会尽量按照线程进入等待队列的顺序分配许可证。公平模式可以减少长期等待，但通常需要更多队列判断和线程调度，吞吐量可能低于非公平模式。因此，默认使用非公平模式；只有业务明确要求等待顺序时，才需要考虑公平模式。</p>
+<h2 id="九、如何避免无限等待"><a href="#九、如何避免无限等待" class="headerlink" title="九、如何避免无限等待"></a>九、如何避免无限等待</h2><p>普通的 <code>acquire()</code> 会一直等待许可证，但等待期间可以响应中断：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">try</span> &#123;<br>    semaphore.acquire();<br>&#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>    Thread.currentThread().interrupt();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果不希望线程进入等待，可以使用立即尝试获取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-variable">acquired</span> <span class="hljs-operator">=</span> semaphore.tryAcquire();<br><br><span class="hljs-keyword">if</span> (acquired) &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork();<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        semaphore.release();<br>    &#125;<br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    System.out.println(<span class="hljs-string">&quot;no permit available&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果希望最多等待一段时间，可以使用带超时的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-variable">acquired</span> <span class="hljs-operator">=</span><br>        semaphore.tryAcquire(<span class="hljs-number">5</span>, TimeUnit.SECONDS);<br></code></pre></td></tr></table></figure>
+
+<p>返回 <code>true</code> 表示在超时前成功取得许可证，返回 <code>false</code> 表示等待超时。只有返回 <code>true</code> 时，后续才能调用 <code>release()</code>。</p>
+<h2 id="十、release-和-acquire-的可见性边界"><a href="#十、release-和-acquire-的可见性边界" class="headerlink" title="十、release() 和 acquire() 的可见性边界"></a>十、release() 和 acquire() 的可见性边界</h2><p><code>Semaphore</code> 不只控制线程能否继续执行，还具有内存可见性保证：一个线程在调用 <code>release()</code> 之前完成的操作，happens-before 另一个线程成功调用 <code>acquire()</code> 之后的操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Thread A</span><br>data = result;<br>semaphore.release();<br><br><span class="hljs-comment">// Thread B</span><br>semaphore.acquire();<br>System.out.println(data);<br></code></pre></td></tr></table></figure>
+
+<p>如果线程 B 成功取得了由同步过程释放出来的许可证，那么它能够看到线程 A 在 <code>release()</code> 之前产生的内存更新。</p>
+<p>但这类可见性保证不能代替互斥。<code>Semaphore(3)</code> 允许最多三个线程同时进入受限区域，如果这三个线程还会同时修改同一个非线程安全对象，仍然可能发生写写冲突。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Semaphore(3): at most three threads enter<br>ReentrantLock: at most one thread enters<br></code></pre></td></tr></table></figure>
+
+<p>所以 <code>Semaphore</code> 解决的是并发数量边界，不是临界区互斥边界。许可证只控制有多少线程能进来，不保证进来的线程之间不会互相干扰。</p>
+<h2 id="十一、Semaphore-适合解决什么问题"><a href="#十一、Semaphore-适合解决什么问题" class="headerlink" title="十一、Semaphore 适合解决什么问题"></a>十一、Semaphore 适合解决什么问题</h2><p><code>Semaphore</code> 适合限制同时访问某种资源的线程数量，例如限制同时访问外部服务的请求数、限制同时使用数据库连接的线程数、限制同时执行文件转换的任务数、模拟停车场中的剩余车位，或者控制接口调用的并发数量。</p>
+<p>它表示的是“还有多少个线程可以继续执行”，而不是“还有多少个任务没有完成”。</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>解决的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ReentrantLock</code></td>
+<td>同一时刻谁能进入临界区</td>
+</tr>
+<tr>
+<td><code>Condition</code></td>
+<td>进入临界区后，业务条件不满足时如何等待</td>
+</tr>
+<tr>
+<td><code>CountDownLatch</code></td>
+<td>一批事件是否已经全部完成</td>
+</tr>
+<tr>
+<td><code>Semaphore</code></td>
+<td>同一时刻最多允许多少线程继续执行</td>
+</tr>
+</tbody></table>
+<p><code>Semaphore</code> 也不能完全代替线程池。线程池不仅能限制同时执行的任务数量，还负责复用线程、保存待执行任务和管理线程生命周期。<code>Semaphore</code> 只负责许可证控制，不负责创建、复用和调度线程。</p>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p><code>Semaphore</code> 的因果链条可以从许可证开始理解：许可证数量被保存在 AQS 的 <code>state</code> 中，线程想继续执行就必须先通过 CAS 减少 <code>state</code>；如果许可证不足，线程进入 AQS 等待队列，而不是持续占用 CPU。任务结束后，线程再通过 CAS 增加 <code>state</code>，等待线程被唤醒并重新竞争许可证。</p>
+<p>正因为 <code>state</code> 可以减少也可以增加，<code>Semaphore</code> 不像 <code>CountDownLatch</code> 那样只使用一次，而是可以在获取和归还之间长期循环。正因为它使用共享模式，只要许可证足够，多个线程就能同时通过；也正因为它不记录 owner，程序必须自己保证成功获取后再释放，避免多释放破坏并发限制。</p>
+<p>最终，<code>Semaphore</code> 建立的是“并发数量”的边界。它可以把十个线程限制成同一时刻最多三个线程访问资源，也可以通过 <code>release()</code> &#x2F; <code>acquire()</code> 提供必要的内存可见性，但它不会把这三个线程变成互斥执行。如果通过许可证的线程仍然共同修改非线程安全对象，仍然需要额外的锁、线程安全容器或其他同步机制。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" class="category-chain-item">Java高并发底层原理</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/CAS/" class="print-no-link">#CAS</a>
+      
+        <a href="/tags/AQS/" class="print-no-link">#AQS</a>
+      
+        <a href="/tags/Semaphore/" class="print-no-link">#Semaphore</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量</div>
+      <div>https://rebibabo.github.io/2026/07/03/concurrency/12-Semaphore 如何控制并发线程数量/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/03/concurrency/10-Condition%20%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%BA%BF%E7%A8%8B%E7%AD%89%E5%BE%85%E4%B8%8E%E9%80%9A%E7%9F%A5/" title="Java高并发底层原理（十）—— Condition 如何实现线程等待与通知">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（十）—— Condition 如何实现线程等待与通知</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/03/concurrency/13-Object%20Monitor%20%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E9%94%81%E4%B8%8E%E7%BA%BF%E7%A8%8B%E7%AD%89%E5%BE%85/" title="Java高并发底层原理（十三）—— Object Monitor 如何实现对象锁与线程等待">
+                        <span class="hidden-mobile">Java高并发底层原理（十三）—— Object Monitor 如何实现对象锁与线程等待</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,663 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java 并发学习路径[[wiki&#x2F;index|返回 Wiki 首页]] 这是一张按依赖关系组织的学习地图——每一层概念是上一层的基础，建议从下往上阅读。 概念依赖图graph TD     subgraph L7[&quot;Layer 7 任务系统&quot;]         WM[&quot;Worker Model&quot;] --&gt; TT[&quot;数据库任务表&quot;]         TT  MQ         MQ -">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Java 并发学习路径">
+<meta property="og:url" content="https://rebibabo.github.io/wiki/maps/java-concurrency.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="Java 并发学习路径[[wiki&#x2F;index|返回 Wiki 首页]] 这是一张按依赖关系组织的学习地图——每一层概念是上一层的基础，建议从下往上阅读。 概念依赖图graph TD     subgraph L7[&quot;Layer 7 任务系统&quot;]         WM[&quot;Worker Model&quot;] --&gt; TT[&quot;数据库任务表&quot;]         TT  MQ         MQ -">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-06T07:20:16.292Z">
+<meta property="article:modified_time" content="2026-07-06T07:20:16.292Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="concurrency">
+<meta property="article:tag" content="learning-path">
+<meta property="article:tag" content="map">
+<meta property="article:tag" content="wiki">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java 并发学习路径 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 60vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java 并发学习路径"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <h1 id="Java-并发学习路径"><a href="#Java-并发学习路径" class="headerlink" title="Java 并发学习路径"></a>Java 并发学习路径</h1><p>[[wiki&#x2F;index|返回 Wiki 首页]]</p>
+<p>这是一张按<strong>依赖关系</strong>组织的学习地图——每一层概念是上一层的基础，建议从下往上阅读。</p>
+<h2 id="概念依赖图"><a href="#概念依赖图" class="headerlink" title="概念依赖图"></a>概念依赖图</h2><pre class="mermaid">graph TD
+    subgraph L7["Layer 7 任务系统"]
+        WM["Worker Model"] --> TT["数据库任务表"]
+        TT <--> MQ
+        MQ --> ID["幂等"]
+    end
+
+    subgraph L6["Layer 6 故障与排查"]
+        DL["死锁"]
+        LL["活锁"]
+        STV["线程饥饿"]
+        RC["竞态条件"]
+        TI["线程中断"]
+    end
+
+    subgraph L5["Layer 5 线程与执行"]
+        TPE["ThreadPoolExecutor"] --> FJP["ForkJoinPool"]
+        FT["Future/FutureTask"] --> CF["CompletableFuture"]
+    end
+
+    subgraph L4["Layer 4 无锁与并发工具"]
+        CAS2["CAS"] --> ABA["ABA"]
+        CAS2 --> LA["LongAdder"]
+        CHM["ConcurrentHashMap"]
+        BQ["BlockingQueue"]
+        TL["ThreadLocal"]
+    end
+
+    subgraph L3["Layer 3 高级同步器"]
+        AQS2["AQS"] --> RWL["ReentrantReadWriteLock"]
+        AQS2 --> SL["StampedLock"]
+        AQS2 --> CDL["CountDownLatch"]
+        AQS2 --> SEM["Semaphore"]
+        AQS2 --> COND["Condition"]
+    end
+
+    subgraph L2["Layer 2 同步原语"]
+        SYN["synchronized"]
+        MON["Monitor"]
+        LUP["锁升级"]
+        CAS1["CAS"] --> RL["ReentrantLock"] --> LS["LockSupport"]
+    end
+
+    subgraph L1["Layer 1 内存模型"]
+        JMM["JMM"]
+        HB["Happens-Before"]
+        VOL["volatile"]
+        IR["指令重排序"]
+        MB["内存屏障"]
+    end
+
+    subgraph L0["Layer 0 硬件基础"]
+        EM["CPU 执行模型"]
+        CL["Cache Line"]
+        MESI
+    end
+
+    L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7
+    AQS2 -.-> L2</pre>
+
+<h2 id="推荐阅读路线"><a href="#推荐阅读路线" class="headerlink" title="推荐阅读路线"></a>推荐阅读路线</h2><h3 id="路线-A：系统学习（从底向上）"><a href="#路线-A：系统学习（从底向上）" class="headerlink" title="路线 A：系统学习（从底向上）"></a>路线 A：系统学习（从底向上）</h3><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>主题</th>
+<th>核心概念</th>
+<th>原始文章</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0 硬件</td>
+<td>CPU 如何执行 Java 程序</td>
+<td>执行模型、Cache Line、MESI</td>
+<td>post 01, 06</td>
+</tr>
+<tr>
+<td>1 内存</td>
+<td>Java 内存模型</td>
+<td>JMM、Happens-Before、volatile、重排序</td>
+<td>post 02, 07, 08</td>
+</tr>
+<tr>
+<td>2 同步</td>
+<td>锁与同步原语</td>
+<td>synchronized、Monitor、锁升级、ReentrantLock、AQS、LockSupport</td>
+<td>post 03-04, 09, 13, 19, 25</td>
+</tr>
+<tr>
+<td>3 高级</td>
+<td>高级同步器</td>
+<td>Condition、CountDownLatch、Semaphore、ReentrantReadWriteLock、StampedLock</td>
+<td>post 10-12, 20</td>
+</tr>
+<tr>
+<td>4 无锁</td>
+<td>无锁与并发工具</td>
+<td>CAS、ABA、LongAdder、ConcurrentHashMap、BlockingQueue、ThreadLocal</td>
+<td>post 05, 18, 21-23</td>
+</tr>
+<tr>
+<td>5 执行</td>
+<td>线程池与异步</td>
+<td>ThreadPoolExecutor、Future&#x2F;CompletableFuture、ForkJoinPool</td>
+<td>post 14-17, 26</td>
+</tr>
+<tr>
+<td>6 故障</td>
+<td>故障排查</td>
+<td>死锁&#x2F;活锁&#x2F;饥饿、线程中断、jstack</td>
+<td>post 24, 27</td>
+</tr>
+<tr>
+<td>7 系统</td>
+<td>任务系统设计</td>
+<td>Worker Model、有界队列、任务表、MQ、幂等</td>
+<td>post 28-29</td>
+</tr>
+</tbody></table>
+<h3 id="路线-B：问题驱动（按痛点跳读）"><a href="#路线-B：问题驱动（按痛点跳读）" class="headerlink" title="路线 B：问题驱动（按痛点跳读）"></a>路线 B：问题驱动（按痛点跳读）</h3><table>
+<thead>
+<tr>
+<th>遇到的问题</th>
+<th>直接跳到</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>count++</code> 结果不对</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;丢失更新|Lost Update]] → [[wiki&#x2F;glossary&#x2F;concurrency&#x2F;CAS|CAS]]</td>
+</tr>
+<tr>
+<td>程序莫名卡住</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;死锁活锁与饥饿|死锁&#x2F;活锁&#x2F;饥饿]]</td>
+</tr>
+<tr>
+<td>线程池怎么配都不对</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ThreadPoolExecutor|ThreadPoolExecutor]] → [[wiki&#x2F;concepts&#x2F;concurrency&#x2F;BlockingQueue|BlockingQueue]]</td>
+</tr>
+<tr>
+<td>服务重启后任务丢了</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;可靠任务系统|可靠任务系统]]</td>
+</tr>
+<tr>
+<td>并发容器选哪个</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ConcurrentHashMap|ConcurrentHashMap]] → [[wiki&#x2F;concepts&#x2F;concurrency&#x2F;BlockingQueue|BlockingQueue]]</td>
+</tr>
+<tr>
+<td>异步任务怎么编排</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CompletableFuture|CompletableFuture]]</td>
+</tr>
+<tr>
+<td>volatile 到底管不管用</td>
+<td>[[wiki&#x2F;glossary&#x2F;concurrency&#x2F;volatile|volatile]] → [[wiki&#x2F;glossary&#x2F;concurrency&#x2F;JMM|JMM]]</td>
+</tr>
+<tr>
+<td>AQS 是什么为什么重要</td>
+<td>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;AQS|AQS]]</td>
+</tr>
+<tr>
+<td>synchronized 和 ReentrantLock 怎么选</td>
+<td>[[wiki&#x2F;glossary&#x2F;concurrency&#x2F;synchronized|synchronized]] vs [[wiki&#x2F;glossary&#x2F;concurrency&#x2F;ReentrantLock|ReentrantLock]]</td>
+</tr>
+</tbody></table>
+<h2 id="同步机制层"><a href="#同步机制层" class="headerlink" title="同步机制层"></a>同步机制层</h2><pre class="mermaid">graph TD
+    AQS["AQS 框架<br/>state · CLH 队列 · park/unpark"]
+
+    AQS --> EX["独占模式<br/>ReentrantLock"]
+    AQS --> SH["共享模式<br/>Semaphore · CountDownLatch"]
+    AQS --> COND["Condition<br/>条件队列 · await/signal"]
+
+    EX --> RWL["ReentrantReadWriteLock<br/>读共享 · 写独占"]
+    RWL --> SL["StampedLock<br/>乐观读 · stamp 校验"]</pre>
+
+<h2 id="执行与任务层"><a href="#执行与任务层" class="headerlink" title="执行与任务层"></a>执行与任务层</h2><pre class="mermaid">graph LR
+    REQ["请求线程"] -->|"提交 Task"| BQ["有界队列<br/>ArrayBlockingQueue"]
+    BQ --> WP["Worker Pool"]
+
+    subgraph WP["Worker Pool"]
+        W1["Worker-1"]
+        W2["Worker-2"]
+        W3["Worker-N"]
+    end
+
+    WP --> PROC["Processor<br/>业务逻辑"]
+    WP --> FH["FailureHandler<br/>重试 · 死信"]
+
+    BQ -.->|"升级方案"| DB["数据库任务表<br/>可恢复 · 可追踪"]
+    BQ -.->|"升级方案"| MQ["MQ<br/>削峰 · 分布式投递"]</pre>
+
+<h2 id="故障排查速查"><a href="#故障排查速查" class="headerlink" title="故障排查速查"></a>故障排查速查</h2><pre class="mermaid">graph TD
+    STUCK["程序 '卡住'"] --> CPU{"CPU 高？"}
+
+    CPU -->|是| HIGH["top -Hp → jstack nid → 业务代码<br/>可能: 死循环 · 活锁 · 大量计算"]
+    CPU -->|否| LOW["看线程状态"]
+
+    LOW --> BLOCKED["大量 BLOCKED<br/>→ 锁竞争 / 死锁"]
+    LOW --> WAITING["大量 WAITING<br/>→ 线程池 / 队列 / 条件等待"]
+
+    STUCK --> TASK["任务不执行？"]
+    TASK --> METRICS["activeCount · queueSize · completedTaskCount<br/>可能: Worker 打满 · 队列堆积 · 长任务占坑"]</pre>
+
+<h2 id="相关入口"><a href="#相关入口" class="headerlink" title="相关入口"></a>相关入口</h2><ul>
+<li>[[wiki&#x2F;series&#x2F;concurrency|Java 高并发系列（原始文章）]]</li>
+<li>[[wiki&#x2F;glossary&#x2F;concurrency&#x2F;index|Java 并发词汇表]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发总图|并发概念总图]]</li>
+</ul>
+
+
+  
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -19,15 +19,15 @@
   <meta name="author" content="rebibabo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言在 28 微服务入门 里提到过，服务之间除了直接调用（OpenFeign），还有一种”不直接调用、丢个消息就走”的通信方式——这就是消息队列（Message Queue, MQ）。 这篇按”够用就上手 + 面试高频点”的程度来讲：先讲清楚为什么要用 MQ（这是面试必问的”动机”题），再讲最基本的生产者&#x2F;消费者代码，最后讲三个最容易踩坑、也是面试最爱问的点——消息丢失、重复消费、顺序性">
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言在 28 微服务入门 里提到过，服务之间除了直接调用（OpenFeign），还有一种”不直接调用、丢个消息就走”的通信方式——这就是消息队列（Message Queue, MQ）。 这篇按”够用就上手 + 面试高频点”的程度来讲：先讲清楚为什么要">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础(番外) | 消息队列入门：为什么用、怎么用、踩坑点">
 <meta property="og:url" content="https://rebibabo.github.io/2026/05/30/Java-basic/30-RabbitMQ/index.html">
 <meta property="og:site_name" content="AI Infra">
-<meta property="og:description" content="前言在 28 微服务入门 里提到过，服务之间除了直接调用（OpenFeign），还有一种”不直接调用、丢个消息就走”的通信方式——这就是消息队列（Message Queue, MQ）。 这篇按”够用就上手 + 面试高频点”的程度来讲：先讲清楚为什么要用 MQ（这是面试必问的”动机”题），再讲最基本的生产者&#x2F;消费者代码，最后讲三个最容易踩坑、也是面试最爱问的点——消息丢失、重复消费、顺序性">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言在 28 微服务入门 里提到过，服务之间除了直接调用（OpenFeign），还有一种”不直接调用、丢个消息就走”的通信方式——这就是消息队列（Message Queue, MQ）。 这篇按”够用就上手 + 面试高频点”的程度来讲：先讲清楚为什么要">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-29T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-14T08:48:03.385Z">
+<meta property="article:modified_time" content="2026-06-19T00:32:06.371Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Kafka">
 <meta property="article:tag" content="RabbitMQ">
@@ -329,7 +329,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          9.2k 字
+          9.4k 字
         
       </span>
     
@@ -340,7 +340,7 @@
         
         
         
-          77 分钟
+          78 分钟
         
       </span>
     
@@ -384,7 +384,11 @@
             
               <div class="markdown-body">
                 
-                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 <a href="/2026/05/28/Java-basic/28-microservices-intro/">28 微服务入门</a> 里提到过，服务之间除了直接调用（OpenFeign），还有一种”不直接调用、丢个消息就走”的通信方式——这就是<strong>消息队列（Message Queue, MQ）</strong>。</p>
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 <a href="/2026/05/28/Java-basic/28-microservices-intro/">28 微服务入门</a> 里提到过，服务之间除了直接调用（OpenFeign），还有一种”不直接调用、丢个消息就走”的通信方式——这就是<strong>消息队列（Message Queue, MQ）</strong>。</p>
 <p>这篇按”够用就上手 + 面试高频点”的程度来讲：先讲清楚<strong>为什么要用 MQ</strong>（这是面试必问的”动机”题），再讲最基本的生产者&#x2F;消费者代码，最后讲三个最容易踩坑、也是面试最爱问的点——<strong>消息丢失、重复消费、顺序性</strong>。</p>
 <span id="more"></span>
 
@@ -755,6 +759,11 @@
 </tr>
 </tbody></table>
 <p>这几个点——<strong>为什么用MQ、消息丢失怎么解决、重复消费怎么处理、顺序性怎么保证</strong>——基本覆盖了面试里关于MQ的高频问题。实际项目里用到具体产品（RabbitMQ&#x2F;RocketMQ&#x2F;Kafka）的API细节，等入职后对照公司文档现学即可，<strong>思路比API更重要</strong>。</p>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
 
                 
               </div>

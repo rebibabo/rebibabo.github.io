@@ -1,0 +1,651 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java 高并发底层原理[[wiki&#x2F;index|返回 Wiki 首页]] 系列定位这组文章不是“并发 API 使用手册”，而是从计算机执行模型、内存可见性、锁与无锁同步、线程调度到并发容器和任务系统，一层层往下钻的底层原理系列。 它和 Java-basic&#x2F;10-concurrency 的关系可以理解为：  Java-basic 给的是全景入门 concurrency 给的是专题深挖">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Java 高并发底层原理">
+<meta property="og:url" content="https://rebibabo.github.io/wiki/series/concurrency.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="Java 高并发底层原理[[wiki&#x2F;index|返回 Wiki 首页]] 系列定位这组文章不是“并发 API 使用手册”，而是从计算机执行模型、内存可见性、锁与无锁同步、线程调度到并发容器和任务系统，一层层往下钻的底层原理系列。 它和 Java-basic&#x2F;10-concurrency 的关系可以理解为：  Java-basic 给的是全景入门 concurrency 给的是专题深挖">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-06T07:12:14.065Z">
+<meta property="article:modified_time" content="2026-07-06T07:12:14.065Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="concurrency">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="series">
+<meta property="article:tag" content="wiki">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java 高并发底层原理 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 60vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java 高并发底层原理"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <h1 id="Java-高并发底层原理"><a href="#Java-高并发底层原理" class="headerlink" title="Java 高并发底层原理"></a>Java 高并发底层原理</h1><p>[[wiki&#x2F;index|返回 Wiki 首页]]</p>
+<h2 id="系列定位"><a href="#系列定位" class="headerlink" title="系列定位"></a>系列定位</h2><p>这组文章不是“并发 API 使用手册”，而是从计算机执行模型、内存可见性、锁与无锁同步、线程调度到并发容器和任务系统，一层层往下钻的底层原理系列。</p>
+<p>它和 <code>Java-basic/10-concurrency</code> 的关系可以理解为：</p>
+<ul>
+<li><code>Java-basic</code> 给的是全景入门</li>
+<li><code>concurrency</code> 给的是专题深挖</li>
+</ul>
+<h2 id="这个系列回答什么问题"><a href="#这个系列回答什么问题" class="headerlink" title="这个系列回答什么问题"></a>这个系列回答什么问题</h2><ul>
+<li>CPU、JVM、内存模型到底如何共同决定并发行为</li>
+<li><code>synchronized</code>、<code>volatile</code>、CAS、AQS、LockSupport 这些机制为什么成立</li>
+<li>线程池、Future、CompletableFuture、ForkJoinPool 的执行模型是什么</li>
+<li>并发容器和同步工具类为什么能安全工作</li>
+<li>从单机并发走向任务系统、消息队列时，架构边界怎么判断</li>
+</ul>
+<h2 id="核心概念入口"><a href="#核心概念入口" class="headerlink" title="核心概念入口"></a>核心概念入口</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发总图|并发总图]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;执行模型|执行模型]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Java内存模型|Java Memory Model]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;同步机制|同步机制]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;AQS|AQS]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;异步执行|任务执行与异步编排]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发容器|并发容器与数据结构]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;任务系统|任务系统与系统边界]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;故障模式|故障模式与安全停止]]</li>
+</ul>
+<h2 id="第二层关键节点"><a href="#第二层关键节点" class="headerlink" title="第二层关键节点"></a>第二层关键节点</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CAS|CAS]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;volatile|volatile]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ReentrantLock|ReentrantLock]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ThreadLocal|ThreadLocal]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ConcurrentHashMap|ConcurrentHashMap]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ForkJoinPool|ForkJoinPool]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;对象监视器|Object Monitor]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Condition|Condition]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CountDownLatch|CountDownLatch]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Semaphore|Semaphore]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;BlockingQueue|BlockingQueue]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;LockSupport|LockSupport]]</li>
+</ul>
+<h2 id="骨架补齐节点"><a href="#骨架补齐节点" class="headerlink" title="骨架补齐节点"></a>骨架补齐节点</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;丢失更新|count++ 与丢失更新]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;锁竞争与性能开销|锁竞争与性能开销]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;缓存一致性|缓存一致性]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ThreadPoolExecutor|ThreadPoolExecutor]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Future|Future]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CompletableFuture异常处理|CompletableFuture 异常处理]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ABA|ABA]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;线程中断|线程中断与安全停止]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;死锁活锁与饥饿|死锁、活锁与饥饿]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Worker执行模型|Worker 执行模型]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;可靠任务系统|可靠任务系统]]</li>
+</ul>
+<h2 id="推荐阅读顺序"><a href="#推荐阅读顺序" class="headerlink" title="推荐阅读顺序"></a>推荐阅读顺序</h2><ol>
+<li>[[_posts&#x2F;concurrency&#x2F;01-计算机是如何执行Java程序的|Java高并发底层原理（一）—— 计算机是如何执行 Java 程序的]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;02-为什么count++会出错|Java高并发底层原理（二）—— 为什么 count++ 会出错]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;03-synchronized为什么能够保证线程安全|Java高并发底层原理（三）—— synchronized 为什么能够保证线程安全]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;04-synchronized为什么会影响性能|Java高并发底层原理（四）—— synchronized 为什么会影响性能]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;05-CAS为什么能够在不加锁的情况下更新共享数据|Java高并发底层原理（五）—— CAS 为什么能够在不加锁的情况下更新共享数据]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;06-多核CPU如何保持缓存一致|Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;07-volatile到底解决了什么问题|Java高并发底层原理（七）—— volatile 到底解决了什么问题]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;08-Java内存到底规定什么|Java高并发底层原理（八）—— Java 内存模型到底规定了什么]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;09-ReentrantLock 为什么能够实现互斥|Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;10-Condition 如何实现线程等待与通知|Java高并发底层原理（十）—— Condition 如何实现线程等待与通知]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;11-CountDownLatch 如何等待多个线程完成|Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;12-Semaphore 如何控制并发线程数量|Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;13-Object Monitor 如何实现对象锁与线程等待|Java高并发底层原理（十三）—— Object Monitor 如何实现对象锁与线程等待]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;14-线程池如何复用和调度线程|Java高并发底层原理（十四）—— 线程池如何复用和调度线程]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;15-Future 如何获取异步任务的执行结果|Java高并发底层原理（十五）—— FutureTask 如何保存异步任务的结果和异常]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;16-CompletableFuture 如何编排多个异步任务|Java高并发底层原理（十六）—— CompletableFuture 如何编排多个异步任务]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;17-CompletableFuture 如何处理异步结果与异常|Java高并发底层原理（十七）—— CompletableFuture 如何处理异步结果与异常]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;18-ThreadLocal 的线程隔离与线程池问题|Java高并发底层原理（十八）—— ThreadLocal 的线程隔离与线程池问题]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;19-AQS 独占与共享模式如何完成排队与唤醒|Java高并发底层原理（十九）—— AQS 独占与共享模式如何完成排队与唤醒]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;20-ReentrantReadWriteLock 与 StampedLock|Java高并发底层原理（二十）—— ReentrantReadWriteLock 与 StampedLock]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;21-无锁设计、ABA 与 LongAdder|Java高并发底层原理（二十一）—— 无锁设计、ABA 与 LongAdder]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;22-ConcurrentHashMap 为什么能支持高并发访问|Java高并发底层原理（二十二）—— ConcurrentHashMap 为什么能支持高并发访问]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;23-BlockingQueue 如何协调生产者和消费者|Java高并发底层原理（二十三）—— BlockingQueue 如何协调生产者和消费者]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;24-线程中断如何让任务安全停止|Java高并发底层原理（二十四）—— 线程中断如何让任务安全停止]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;25-LockSupport 如何挂起和唤醒线程|Java高并发底层原理（补充）—— LockSupport 如何挂起和唤醒线程]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;26-ForkJoinPool 如何通过工作窃取执行任务|Java高并发底层原理—— ForkJoinPool 如何通过工作窃取执行任务]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;27-死锁、活锁与线程饥饿是如何发生的|死锁、活锁与线程饥饿是如何发生的]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;28-并发任务处理系统如何设计：从任务模型到 Worker 执行|并发任务处理系统如何设计：从任务模型到 Worker 执行]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择|从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择]]</li>
+</ol>
+<h2 id="结构脉络"><a href="#结构脉络" class="headerlink" title="结构脉络"></a>结构脉络</h2><h3 id="1-运行基础与内存语义"><a href="#1-运行基础与内存语义" class="headerlink" title="1. 运行基础与内存语义"></a>1. 运行基础与内存语义</h3><ul>
+<li>[[_posts&#x2F;concurrency&#x2F;01-计算机是如何执行Java程序的|01]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;02-为什么count++会出错|02]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;03-synchronized为什么能够保证线程安全|03]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;04-synchronized为什么会影响性能|04]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;05-CAS为什么能够在不加锁的情况下更新共享数据|05]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;06-多核CPU如何保持缓存一致|06]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;07-volatile到底解决了什么问题|07]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;08-Java内存到底规定什么|08]]</li>
+</ul>
+<h3 id="2-锁、条件队列与同步工具"><a href="#2-锁、条件队列与同步工具" class="headerlink" title="2. 锁、条件队列与同步工具"></a>2. 锁、条件队列与同步工具</h3><ul>
+<li>[[_posts&#x2F;concurrency&#x2F;09-ReentrantLock 为什么能够实现互斥|09]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;10-Condition 如何实现线程等待与通知|10]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;11-CountDownLatch 如何等待多个线程完成|11]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;12-Semaphore 如何控制并发线程数量|12]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;13-Object Monitor 如何实现对象锁与线程等待|13]]</li>
+</ul>
+<h3 id="3-任务执行与异步编排"><a href="#3-任务执行与异步编排" class="headerlink" title="3. 任务执行与异步编排"></a>3. 任务执行与异步编排</h3><ul>
+<li>[[_posts&#x2F;concurrency&#x2F;14-线程池如何复用和调度线程|14]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;15-Future 如何获取异步任务的执行结果|15]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;16-CompletableFuture 如何编排多个异步任务|16]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;17-CompletableFuture 如何处理异步结果与异常|17]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;18-ThreadLocal 的线程隔离与线程池问题|18]]</li>
+</ul>
+<h3 id="4-AQS、容器与高级并发原语"><a href="#4-AQS、容器与高级并发原语" class="headerlink" title="4. AQS、容器与高级并发原语"></a>4. AQS、容器与高级并发原语</h3><ul>
+<li>[[_posts&#x2F;concurrency&#x2F;19-AQS 独占与共享模式如何完成排队与唤醒|19]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;20-ReentrantReadWriteLock 与 StampedLock|20]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;21-无锁设计、ABA 与 LongAdder|21]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;22-ConcurrentHashMap 为什么能支持高并发访问|22]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;23-BlockingQueue 如何协调生产者和消费者|23]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;24-线程中断如何让任务安全停止|24]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;25-LockSupport 如何挂起和唤醒线程|25]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;26-ForkJoinPool 如何通过工作窃取执行任务|26]]</li>
+</ul>
+<h3 id="5-故障、系统边界与架构延伸"><a href="#5-故障、系统边界与架构延伸" class="headerlink" title="5. 故障、系统边界与架构延伸"></a>5. 故障、系统边界与架构延伸</h3><ul>
+<li>[[_posts&#x2F;concurrency&#x2F;27-死锁、活锁与线程饥饿是如何发生的|27]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;28-并发任务处理系统如何设计：从任务模型到 Worker 执行|28]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择|29]]</li>
+</ul>
+<h2 id="当前这页的作用"><a href="#当前这页的作用" class="headerlink" title="当前这页的作用"></a>当前这页的作用</h2><p>这页现在不只是原文目录，也已经是 <code>wiki</code> 里的并发总入口。</p>
+<p>你可以把它理解成两层导航：</p>
+<ul>
+<li>想按文章顺序系统学习：走“推荐阅读顺序”</li>
+<li>想按概念关系拆开理解：走“核心概念入口”</li>
+</ul>
+<h2 id="当前细化进度"><a href="#当前细化进度" class="headerlink" title="当前细化进度"></a>当前细化进度</h2><p>这次已经先按原文 01-18 做了第一轮实质补充，不再只是挂骨架：</p>
+<ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;执行模型|执行模型]]：补了源码到 CPU 的执行链、Heap &#x2F; Stack、线程调度与共享状态来源</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;丢失更新|count++ 与丢失更新]]：补了原子性、竞态条件和“三问判断法”</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;synchronized|synchronized]]：补了临界区、三种写法和“锁对象而不是锁代码”</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;锁竞争与性能开销|锁竞争与性能开销]]：补了竞争、阻塞、唤醒、上下文切换与临界区大小</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CAS|CAS]]：补了三值模型、CAS 循环和与 <code>synchronized</code> 的区别</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;缓存一致性|缓存一致性]]：补了 Cache Line、副本失效、MESI 理解模型和 CAS 的硬件竞争背景</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;volatile|volatile]]：补了可见性、有序性、发布模式和它不能解决 <code>count++</code> 的边界</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Java内存模型|Java Memory Model]]：补了 JMM 的定位、program order、数据竞争和它与底层硬件的分工</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ReentrantLock|ReentrantLock]]：补了 state、owner、CAS、重入、等待队列和公平&#x2F;非公平差异</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Condition|Condition]]：补了 await&#x2F;signal 语义、条件队列和锁等待队列的区别、以及多 Condition 的业务拆分</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CountDownLatch|CountDownLatch]]：补了一次性闸门模型、countDown 的 CAS 递减、结果汇总边界和 await 可见性</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Semaphore|Semaphore]]：补了许可证模型、共享模式、重复使用语义和 finally 释放边界</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;对象监视器|Object Monitor]]：补了 Monitor 与对象的关系、wait&#x2F;notify 语义和与 Condition 的平行关系</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ThreadPoolExecutor|ThreadPoolExecutor]]：补了任务与线程分离、调度分流顺序、队列差异和拒绝策略含义</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Future|Future]]：补了结果凭证语义、等待&#x2F;超时&#x2F;取消边界和它为什么不擅长任务链</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;FutureTask|FutureTask]]：补了 Runnable&#x2F;Future 二合一模型、state&#x2F;outcome 分工和 submit 后的共享对象语义</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CompletableFuture|CompletableFuture]]：补了起点创建、阶段接力、thenCompose&#x2F;thenCombine、allOf&#x2F;anyOf 和 Async 调度差异</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CompletableFuture异常处理|CompletableFuture 异常处理]]：补了异常保存、传播、恢复，以及 exceptionally&#x2F;handle&#x2F;whenComplete 的选择边界</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ThreadLocal|ThreadLocal]]：补了 ThreadLocalMap 存储模型、线程池复用风险、remove 习惯和弱引用边界</li>
+</ul>
+<h2 id="当前-Wiki-覆盖范围"><a href="#当前-Wiki-覆盖范围" class="headerlink" title="当前 Wiki 覆盖范围"></a>当前 Wiki 覆盖范围</h2><p>第一版没有急着把 29 篇文章拆成 29 个零散概念，而是先建立 9 个主骨架页面：</p>
+<ul>
+<li>并发总图：所有知识层次的总入口</li>
+<li>执行模型：CPU &#x2F; JVM &#x2F; 缓存 &#x2F; 调度</li>
+<li>Java Memory Model：可见性、有序性、happens-before</li>
+<li>同步机制：锁、无锁、阻塞、唤醒</li>
+<li>AQS：同步器的统一排队框架</li>
+<li>任务执行与异步编排：线程池、Future、CompletableFuture、ForkJoinPool</li>
+<li>并发容器与数据结构：ConcurrentHashMap、BlockingQueue、LongAdder</li>
+<li>任务系统与系统边界：Worker、数据库任务表、MQ、可靠任务系统</li>
+<li>故障模式与安全停止：死锁、活锁、饥饿、中断</li>
+</ul>
+<p>这一轮已经优先拆出了 12 个第二层关键节点：</p>
+<ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CAS|CAS]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;volatile|volatile]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ReentrantLock|ReentrantLock]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ThreadLocal|ThreadLocal]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ConcurrentHashMap|ConcurrentHashMap]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ForkJoinPool|ForkJoinPool]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;对象监视器|Object Monitor]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Condition|Condition]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CountDownLatch|CountDownLatch]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Semaphore|Semaphore]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;BlockingQueue|BlockingQueue]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;LockSupport|LockSupport]]</li>
+</ul>
+<p>这一轮也继续补上了 7 个第三层进阶节点：</p>
+<ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;synchronized|synchronized]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;Happens-Before|happens-before]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;FutureTask|FutureTask]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CompletableFuture|CompletableFuture]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ReentrantReadWriteLock|ReentrantReadWriteLock]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;StampedLock|StampedLock]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;LongAdder|LongAdder]]</li>
+</ul>
+<p>这一版把系列主干上的骨架节点已经基本补齐了。后续如果继续扩展，更自然的方向会是：</p>
+<ul>
+<li>AtomicInteger</li>
+<li>ThreadPool 参数与拒绝策略</li>
+<li>CompletableFuture 组合模式</li>
+<li>MQ &#x2F; 数据库任务表决策树</li>
+<li>AQS 队列节点细节</li>
+</ul>
+
+
+  
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

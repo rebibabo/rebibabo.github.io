@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="StampedLock[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发容器|返回并发容器与数据结构]] 定义StampedLock 是一种面向读多写少场景的高级锁，提供写锁、悲观读锁和乐观读三种模式。 它解决什么问题它回答的是：  如果读线程大多数时候只是快速查看数据，能不能先便宜地读，只有发现冲突时再回退？  ReentrantReadWriteLock">
+<meta property="og:type" content="website">
+<meta property="og:title" content="StampedLock">
+<meta property="og:url" content="https://rebibabo.github.io/wiki/concepts/concurrency/StampedLock.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="StampedLock[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发容器|返回并发容器与数据结构]] 定义StampedLock 是一种面向读多写少场景的高级锁，提供写锁、悲观读锁和乐观读三种模式。 它解决什么问题它回答的是：  如果读线程大多数时候只是快速查看数据，能不能先便宜地读，只有发现冲突时再回退？  ReentrantReadWriteLock">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-06T07:12:13.777Z">
+<meta property="article:modified_time" content="2026-07-06T07:12:13.777Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="concept">
+<meta property="article:tag" content="concurrency">
+<meta property="article:tag" content="stampedlock">
+<meta property="article:tag" content="wiki">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>StampedLock - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 60vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="StampedLock"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <h1 id="StampedLock"><a href="#StampedLock" class="headerlink" title="StampedLock"></a>StampedLock</h1><p>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发容器|返回并发容器与数据结构]]</p>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p><code>StampedLock</code> 是一种面向读多写少场景的高级锁，提供写锁、悲观读锁和乐观读三种模式。</p>
+<h2 id="它解决什么问题"><a href="#它解决什么问题" class="headerlink" title="它解决什么问题"></a>它解决什么问题</h2><p>它回答的是：</p>
+<blockquote>
+<p>如果读线程大多数时候只是快速查看数据，能不能先便宜地读，只有发现冲突时再回退？</p>
+</blockquote>
+<p><code>ReentrantReadWriteLock</code> 已经允许多个读线程并发，但读线程仍然需要真正加锁（修改读锁计数）。对于读多写少且读操作很短的场景，这部分同步成本可能变得明显。</p>
+<h2 id="为什么它重要"><a href="#为什么它重要" class="headerlink" title="为什么它重要"></a>为什么它重要</h2><p>它比普通读写锁更激进，因为它把”乐观读”这种策略直接做成了标准模型。这让我们能更清楚看到：锁不只有”加或不加”两种形态，一致性和吞吐量之间可以继续细调。</p>
+<h2 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h2><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>方法</th>
+<th>是否真正加锁</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>写锁</td>
+<td><code>writeLock()</code></td>
+<td>是</td>
+<td>修改共享数据</td>
+</tr>
+<tr>
+<td>悲观读锁</td>
+<td><code>readLock()</code></td>
+<td>是</td>
+<td>稳定读取，阻止写线程</td>
+</tr>
+<tr>
+<td>乐观读</td>
+<td><code>tryOptimisticRead()</code></td>
+<td>否</td>
+<td>先读取局部快照，再校验中途有没有写</td>
+</tr>
+</tbody></table>
+<h2 id="stamp：状态版本凭证"><a href="#stamp：状态版本凭证" class="headerlink" title="stamp：状态版本凭证"></a>stamp：状态版本凭证</h2><p><code>StampedLock</code> 的方法返回 <code>long</code> 类型的 <code>stamp</code>——可以粗略理解成”版本时间戳”，但不是物理时间，而是锁状态的版本凭证。不同来源的 <code>stamp</code> 有不同用途：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>stamp 的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tryOptimisticRead()</code></td>
+<td>用于后续 <code>validate(stamp)</code> 校验</td>
+</tr>
+<tr>
+<td><code>readLock()</code></td>
+<td>作为读锁凭证，用于释放读锁</td>
+</tr>
+<tr>
+<td><code>writeLock()</code></td>
+<td>作为写锁凭证，用于释放写锁</td>
+</tr>
+</tbody></table>
+<h2 id="乐观读的正确写法"><a href="#乐观读的正确写法" class="headerlink" title="乐观读的正确写法"></a>乐观读的正确写法</h2><p>乐观读的核心原则：<strong>先拿 stamp → 复制共享字段到局部变量 → 再 validate</strong>。校验成功后只能使用已复制出来的局部变量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">double</span> <span class="hljs-title function_">distanceFromOrigin</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">long</span> <span class="hljs-variable">stamp</span> <span class="hljs-operator">=</span> lock.tryOptimisticRead();<br>    <span class="hljs-type">double</span> <span class="hljs-variable">currentX</span> <span class="hljs-operator">=</span> x;<br>    <span class="hljs-type">double</span> <span class="hljs-variable">currentY</span> <span class="hljs-operator">=</span> y;<br>    <span class="hljs-keyword">if</span> (!lock.validate(stamp)) &#123;<br>        <span class="hljs-comment">// 退回悲观读锁重新读取</span><br>        stamp = lock.readLock();<br>        <span class="hljs-keyword">try</span> &#123;<br>            currentX = x;<br>            currentY = y;<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            lock.unlockRead(stamp);<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> Math.sqrt(currentX * currentX + currentY * currentY);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>常见错误写法：先 <code>validate()</code> 再读取共享字段——<code>validate()</code> 通过后写线程仍可能立刻修改共享字段。另一个错误：复制了局部变量也完成了校验，但最后又重新访问共享字段。</p>
+<h2 id="它和-ReentrantReadWriteLock-的关键区别"><a href="#它和-ReentrantReadWriteLock-的关键区别" class="headerlink" title="它和 ReentrantReadWriteLock 的关键区别"></a>它和 ReentrantReadWriteLock 的关键区别</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th><code>ReentrantReadWriteLock</code></th>
+<th><code>StampedLock</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可重入</td>
+<td>支持（写锁可重入）</td>
+<td>不可重入</td>
+</tr>
+<tr>
+<td><code>Condition</code></td>
+<td>写锁支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>乐观读</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>实现风格</td>
+<td>围绕 AQS state 和重入计数</td>
+<td>围绕 stamp 凭证</td>
+</tr>
+<tr>
+<td>代码复杂度</td>
+<td>较低，符合常见锁模型</td>
+<td>较高，需要正确管理 stamp</td>
+</tr>
+</tbody></table>
+<p><code>StampedLock</code> 不可重入——不要在同一线程里对已持有写锁的状态再次调用 <code>writeLock()</code>。需要锁模式转换时使用 <code>tryConvertToWriteLock(stamp)</code> 等非阻塞转换方法。</p>
+<h2 id="两者如何选择"><a href="#两者如何选择" class="headerlink" title="两者如何选择"></a>两者如何选择</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>更适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要可重入</td>
+<td><code>ReentrantReadWriteLock</code></td>
+</tr>
+<tr>
+<td>需要 <code>Condition</code></td>
+<td><code>ReentrantReadWriteLock</code> 的写锁</td>
+</tr>
+<tr>
+<td>希望代码简单、稳定、易维护</td>
+<td><code>ReentrantReadWriteLock</code></td>
+</tr>
+<tr>
+<td>读很多、写很少，且读操作短小</td>
+<td><code>StampedLock</code> 乐观读</td>
+</tr>
+<tr>
+<td>读取的是一组相关字段的快照</td>
+<td><code>StampedLock</code> 乐观读</td>
+</tr>
+<tr>
+<td>读取过程较长或逻辑复杂</td>
+<td>悲观读锁</td>
+</tr>
+</tbody></table>
+<p>实际选择：先考虑 <code>ReentrantReadWriteLock</code>；只有当读操作非常频繁、写操作很少，且读逻辑能清晰写成”复制局部快照 + validate 校验”时，再考虑 <code>StampedLock</code>。</p>
+<h2 id="在系列里的位置"><a href="#在系列里的位置" class="headerlink" title="在系列里的位置"></a>在系列里的位置</h2><p>它是读写锁这条线上的进阶节点，也和无锁、快照、乐观校验这些思想有相通之处。</p>
+<h2 id="推荐回看原文"><a href="#推荐回看原文" class="headerlink" title="推荐回看原文"></a>推荐回看原文</h2><ul>
+<li>[[_posts&#x2F;concurrency&#x2F;20-ReentrantReadWriteLock 与 StampedLock|20-ReentrantReadWriteLock 与 StampedLock]]</li>
+<li>[[_posts&#x2F;concurrency&#x2F;21-无锁设计、ABA 与 LongAdder|21-无锁设计、ABA 与 LongAdder]]</li>
+</ul>
+<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ReentrantReadWriteLock|ReentrantReadWriteLock]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;LongAdder|LongAdder]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;CAS|CAS]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;ABA|ABA]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;concurrency&#x2F;并发容器|并发容器与数据结构]]</li>
+</ul>
+
+
+  
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

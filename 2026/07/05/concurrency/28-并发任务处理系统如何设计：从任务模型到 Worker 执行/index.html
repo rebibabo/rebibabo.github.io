@@ -1,0 +1,1145 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在后端系统中，并不是所有任务都适合放在请求线程里同步执行。文件解析、图片处理、用户通知、报表生成、缓存刷新这类任务，通常耗时较长，并且不一定要阻塞当前请求。如果它们全部压在请求线程里，接口响应会变慢，请求线程也会被长时间占用。 并发任务处理系统要解决的核心问题，不只是“开几个线程异步执行任务”，而是：当任务不断产生，而系统资源有限时，如何让任务有边界地排队、被工作线程处理，并在队列堆积、执行失败、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发任务处理系统如何设计：从任务模型到 Worker 执行">
+<meta property="og:url" content="https://rebibabo.github.io/2026/07/05/concurrency/28-%E5%B9%B6%E5%8F%91%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%EF%BC%9A%E4%BB%8E%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9E%8B%E5%88%B0%20Worker%20%E6%89%A7%E8%A1%8C/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="在后端系统中，并不是所有任务都适合放在请求线程里同步执行。文件解析、图片处理、用户通知、报表生成、缓存刷新这类任务，通常耗时较长，并且不一定要阻塞当前请求。如果它们全部压在请求线程里，接口响应会变慢，请求线程也会被长时间占用。 并发任务处理系统要解决的核心问题，不只是“开几个线程异步执行任务”，而是：当任务不断产生，而系统资源有限时，如何让任务有边界地排队、被工作线程处理，并在队列堆积、执行失败、">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-05T09:16:49.026Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="BlockingQueue">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta property="article:tag" content="线程池">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>并发任务处理系统如何设计：从任务模型到 Worker 执行 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="并发任务处理系统如何设计：从任务模型到 Worker 执行"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-05 00:00" pubdate>
+          2026年7月5日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          104 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">并发任务处理系统如何设计：从任务模型到 Worker 执行</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>在后端系统中，并不是所有任务都适合放在请求线程里同步执行。文件解析、图片处理、用户通知、报表生成、缓存刷新这类任务，通常耗时较长，并且不一定要阻塞当前请求。如果它们全部压在请求线程里，接口响应会变慢，请求线程也会被长时间占用。</p>
+<p>并发任务处理系统要解决的核心问题，不只是“开几个线程异步执行任务”，而是：当任务不断产生，而系统资源有限时，如何让任务有边界地排队、被工作线程处理，并在队列堆积、执行失败、系统关闭时保持可控。</p>
+<p>本章先讨论单机内存版任务处理系统。它不引入数据库任务表，也不引入 MQ，而是先把最小模型讲清楚：任务如何建模，为什么需要有界队列，Worker 如何执行任务，队列满了怎么办，任务失败后如何重试，以及系统如何监控和关闭。</p>
+<h2 id="1、为什么不能在请求线程里直接处理任务"><a href="#1、为什么不能在请求线程里直接处理任务" class="headerlink" title="1、为什么不能在请求线程里直接处理任务"></a>1、为什么不能在请求线程里直接处理任务</h2><p>假设有一个文件上传接口。用户上传文件后，系统需要保存原文件、解析文件内容、生成预览图，并通知用户处理结果。最直接的写法是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">upload</span><span class="hljs-params">(File file)</span> &#123;<br>    saveOriginalFile(file);<br>    parseFile(file);<br>    generatePreview(file);<br>    notifyUser(file);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码的问题不是不能运行，而是所有工作都压在请求线程里。只要文件变大、解析变慢、通知接口超时，请求响应就会被拖慢。如果并发请求继续增加，请求线程会越来越多地阻塞在这些耗时逻辑上，最终可能导致 Web 容器的业务线程被占满。</p>
+<p>更合理的方式是让请求线程只完成必要的前置动作，然后把后续任务交给后台系统处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">upload</span><span class="hljs-params">(File file)</span> &#123;<br>    saveOriginalFile(file);<br><br>    <span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Task</span>(<br>            UUID.randomUUID().toString(),<br>            TaskType.FILE_PARSE,<br>            file.getId()<br>    );<br><br>    taskSubmitter.submit(task);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码里，请求线程不再直接解析文件，而是创建一个 <code>Task</code> 并提交出去。后续由后台 Worker 线程执行解析、生成预览和通知。</p>
+<p>这个变化的本质是：请求线程负责产生任务，后台 Worker 负责执行任务，两者通过任务队列解耦。解耦之后，请求线程不需要等待整个文件处理完成，后台处理能力也可以通过 Worker 数量、队列容量、拒绝策略来单独控制。</p>
+<h2 id="2、一个任务系统里有哪些关键角色"><a href="#2、一个任务系统里有哪些关键角色" class="headerlink" title="2、一个任务系统里有哪些关键角色"></a>2、一个任务系统里有哪些关键角色</h2><p>一个单机并发任务处理系统，最小可以拆成四个角色：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────┐      ┌────────────┐      ┌──────────┐      ┌────────────┐<br>│ Producer │ ───→ │ Task Queue │ ───→ │ Workers  │ ───→ │ Processor  │<br>└──────────┘      └────────────┘      └──────────┘      └────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>这几个角色分别承担不同职责：</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>作用</th>
+<th>在主例子中的对应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Producer</td>
+<td>产生并提交任务</td>
+<td>文件上传接口</td>
+</tr>
+<tr>
+<td>Task</td>
+<td>描述一个待处理任务</td>
+<td>文件解析任务</td>
+</tr>
+<tr>
+<td>Task Queue</td>
+<td>暂存暂时处理不过来的任务</td>
+<td>有界阻塞队列</td>
+</tr>
+<tr>
+<td>Workers</td>
+<td>从队列中取任务并执行</td>
+<td>后台工作线程</td>
+</tr>
+<tr>
+<td>Processor</td>
+<td>封装具体业务逻辑</td>
+<td>解析文件、生成预览、通知用户</td>
+</tr>
+</tbody></table>
+<p>这里要注意，任务处理系统不是只有 Worker。Worker 只是执行者，如果没有任务模型，系统不知道自己执行的是什么；如果没有队列，任务提交速度和任务处理速度无法解耦；如果没有 Processor，业务逻辑会散落在 Worker 中，后续扩展和测试都会变得困难。</p>
+<p>所以第一步不是急着调线程数，而是先建立角色关系：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">submit task<br>    ↓<br>enqueue task<br>    ↓<br>worker takes task<br>    ↓<br>processor handles task<br>    ↓<br>record result<br></code></pre></td></tr></table></figure>
+
+<p>后面的设计，都是围绕这条主线展开。</p>
+<h2 id="3、为什么要把任务建模成-Task"><a href="#3、为什么要把任务建模成-Task" class="headerlink" title="3、为什么要把任务建模成 Task"></a>3、为什么要把任务建模成 Task</h2><p>最简单的异步写法是直接提交一个 <code>Runnable</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">executor.execute(() -&gt; &#123;<br>    parseFile(fileId);<br>    generatePreview(fileId);<br>    notifyUser(fileId);<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>这种写法适合临时异步执行一段代码，但不适合设计一个可管理的任务系统。因为 <code>Runnable</code> 只表达了“要执行什么代码”，没有显式表达任务身份、任务类型、创建时间、重试次数和执行状态。</p>
+<p>一旦系统需要追踪任务属于谁、已经等待多久、失败过几次、当前执行到哪一步，直接提交 <code>Runnable</code> 就不够了。因此，任务系统通常需要先定义一个显式的任务对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> lombok.Getter;<br><span class="hljs-keyword">import</span> lombok.RequiredArgsConstructor;<br><br><span class="hljs-meta">@Getter</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Task</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String taskId;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> TaskType type;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String bizId;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">createTime</span> <span class="hljs-operator">=</span> System.currentTimeMillis();<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">retryCount</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">TaskStatus</span> <span class="hljs-variable">status</span> <span class="hljs-operator">=</span> TaskStatus.CREATED;<br>    <span class="hljs-keyword">private</span> String lastError;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">increaseRetryCount</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-built_in">this</span>.retryCount++;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markRunning</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-built_in">this</span>.status = TaskStatus.RUNNING;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markSuccess</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-built_in">this</span>.status = TaskStatus.SUCCESS;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markFailed</span><span class="hljs-params">(String error)</span> &#123;<br>        <span class="hljs-built_in">this</span>.status = TaskStatus.FAILED;<br>        <span class="hljs-built_in">this</span>.lastError = error;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markDead</span><span class="hljs-params">(String error)</span> &#123;<br>        <span class="hljs-built_in">this</span>.status = TaskStatus.DEAD;<br>        <span class="hljs-built_in">this</span>.lastError = error;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>任务类型可以先包括 <code>FILE_PARSE</code>、<code>IMAGE_RESIZE</code>、<code>USER_NOTIFY</code>，任务状态可以先包括 <code>CREATED</code>、<code>RUNNING</code>、<code>SUCCESS</code>、<code>FAILED</code>、<code>DEAD</code>。</p>
+<p>这里的 <code>bizId</code> 用来保存业务对象 ID。对于文件解析任务，它可以是 <code>fileId</code>；对于用户通知任务，它可以是 <code>userId</code>；对于订单同步任务，它可以是 <code>orderId</code>。</p>
+<p>这样设计之后，任务不再只是一个代码片段，而是一个可以被系统识别、排队、执行、监控和重试的对象。</p>
+<h2 id="4、为什么任务要进入有界队列"><a href="#4、为什么任务要进入有界队列" class="headerlink" title="4、为什么任务要进入有界队列"></a>4、为什么任务要进入有界队列</h2><p>有了 <code>Task</code> 之后，下一个问题是：任务提交后是否应该立刻执行？如果任务产生速度很慢，Worker 又刚好空闲，任务可以很快被执行。但系统设计不能只考虑空闲状态，还要考虑任务突然增多的情况。比如某一段时间用户集中上传文件，请求线程不断创建文件解析任务，而 Worker 一时处理不过来，这时就需要队列暂存任务。</p>
+<p>在单机内存模型中，可以用 <code>BlockingQueue&lt;Task&gt;</code> 表示任务队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">BlockingQueue&lt;Task&gt; taskQueue = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayBlockingQueue</span>&lt;&gt;(<span class="hljs-number">1000</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这里使用 <code>ArrayBlockingQueue</code>，并且给定容量 <code>1000</code>。重点不是具体数字，而是队列必须有上限。如果使用无界队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">BlockingQueue&lt;Task&gt; taskQueue = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedBlockingQueue</span>&lt;&gt;();<br></code></pre></td></tr></table></figure>
+
+<p>表面上任务不会被拒绝，但压力只是被藏进内存里。只要任务提交速度长期大于处理速度，队列就会持续增长，最终带来内存压力、GC 压力，甚至 OOM。</p>
+<p>所以队列不是为了无限缓存任务，而是为了提供一个有限缓冲区。Worker 短时间处理不过来时，任务可以先排队；队列满了以后，系统必须暴露过载信号，而不是继续无边界接收任务。</p>
+<p>提交任务时，推荐用 <code>offer()</code> 而不是 <code>put()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskSubmitter</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Task&gt; taskQueue;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">TaskSubmitter</span><span class="hljs-params">(BlockingQueue&lt;Task&gt; taskQueue)</span> &#123;<br>        <span class="hljs-built_in">this</span>.taskQueue = taskQueue;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> SubmitResult <span class="hljs-title function_">submit</span><span class="hljs-params">(Task task)</span> &#123;<br>        <span class="hljs-keyword">if</span> (taskQueue.offer(task)) &#123;<br>            <span class="hljs-keyword">return</span> SubmitResult.ACCEPTED;<br>        &#125;<br><br>        <span class="hljs-keyword">return</span> SubmitResult.REJECTED;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>提交结果可以定义为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">SubmitResult</span> &#123;<br>    ACCEPTED,<br>    REJECTED,<br>    CALLER_RUN,<br>    DROPPED<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>offer()</code> 的含义是：如果队列有空间，就放入任务；如果队列已经满了，马上返回 <code>false</code>。这适合请求线程，因为请求线程不能无限阻塞等待。</p>
+<p>与之相比，<code>put()</code> 在队列满时会一直阻塞。如果在请求线程里使用 <code>put()</code>，系统过载时请求线程会被越阻塞越多，反而可能把入口线程池拖垮。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>队列满时的行为</th>
+<th>更适合的位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>offer()</code></td>
+<td>马上返回失败</td>
+<td>请求线程提交任务</td>
+</tr>
+<tr>
+<td><code>put()</code></td>
+<td>阻塞等待空间</td>
+<td>后台生产者，且允许等待</td>
+</tr>
+<tr>
+<td><code>add()</code></td>
+<td>队列满时抛异常</td>
+<td>不适合作为过载分支</td>
+</tr>
+</tbody></table>
+<p>在任务系统中，队列满不是代码异常，而是一个明确的过载信号。</p>
+<h2 id="5、Worker-如何从队列中取任务并执行"><a href="#5、Worker-如何从队列中取任务并执行" class="headerlink" title="5、Worker 如何从队列中取任务并执行"></a>5、Worker 如何从队列中取任务并执行</h2><p>任务进入队列之后，需要有后台线程不断从队列中取任务。这个角色就是 Worker。</p>
+<p>Worker 的基本职责很简单：等待任务、取出任务、交给 Processor 执行，然后继续等待下一个任务。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskWorker</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Task&gt; taskQueue;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> TaskProcessor processor;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">TaskWorker</span><span class="hljs-params">(BlockingQueue&lt;Task&gt; taskQueue,</span><br><span class="hljs-params">                      TaskProcessor processor)</span> &#123;<br>        <span class="hljs-built_in">this</span>.taskQueue = taskQueue;<br>        <span class="hljs-built_in">this</span>.processor = processor;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> taskQueue.take();<br>                processor.process(task);<br>            &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>                Thread.currentThread().interrupt();<br>                <span class="hljs-keyword">break</span>;<br>            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                e.printStackTrace();<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里 Worker 使用的是 <code>take()</code>。它和提交端的 <code>offer()</code> 正好形成对应关系：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>使用方</th>
+<th>队列满或空时的行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>offer(task)</code></td>
+<td>提交线程</td>
+<td>队列满了马上返回失败</td>
+</tr>
+<tr>
+<td><code>take()</code></td>
+<td>Worker 线程</td>
+<td>队列空了阻塞等待</td>
+</tr>
+</tbody></table>
+<p>Worker 可以用 <code>take()</code>，是因为 Worker 本来就是后台工作线程，它的职责就是等待任务。队列为空时，让 Worker 阻塞等待，比让它不停空转更合理。不推荐在死循环里不断 <code>poll()</code>，因为队列为空时它会马上返回 <code>null</code>，导致 Worker 空转消耗 CPU。</p>
+<p>具体业务逻辑放在 <code>TaskProcessor</code> 中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskProcessor</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">process</span><span class="hljs-params">(Task task)</span> &#123;<br>        task.markRunning();<br><br>        <span class="hljs-keyword">if</span> (task.getType() == TaskType.FILE_PARSE) &#123;<br>            parseFile(task.getBizId());<br>            generatePreview(task.getBizId());<br>            notifyUser(task.getBizId());<br>            task.markSuccess();<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Unsupported task type&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">parseFile</span><span class="hljs-params">(String fileId)</span> &#123;<br>        <span class="hljs-comment">// parse file</span><br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">generatePreview</span><span class="hljs-params">(String fileId)</span> &#123;<br>        <span class="hljs-comment">// generate preview</span><br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">notifyUser</span><span class="hljs-params">(String fileId)</span> &#123;<br>        <span class="hljs-comment">// notify user</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样 Worker 和 Processor 的职责是分开的：</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>关心的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Worker</td>
+<td>如何从队列取任务，如何循环执行</td>
+</tr>
+<tr>
+<td>Processor</td>
+<td>某类任务具体怎么处理</td>
+</tr>
+<tr>
+<td>Task</td>
+<td>当前任务是谁、是什么状态</td>
+</tr>
+</tbody></table>
+<p>启动多个 Worker 时，只需要按 <code>workerCount</code> 创建多个 <code>TaskWorker</code> 线程，并统一管理它们的启动和关闭即可。至此，单机任务系统的最小执行闭环已经形成：创建任务，放入队列，Worker 从队列取出任务，Processor 执行业务逻辑，最后更新任务状态。</p>
+<h2 id="6、Worker-数量和队列容量如何设计"><a href="#6、Worker-数量和队列容量如何设计" class="headerlink" title="6、Worker 数量和队列容量如何设计"></a>6、Worker 数量和队列容量如何设计</h2><p>Worker 数量决定系统同时执行多少个任务，队列容量决定系统最多允许多少任务等待。二者必须一起看，不能只调其中一个。</p>
+<p>如果 Worker 太少，处理速度跟不上提交速度，队列会持续堆积：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">submit speed &gt; process speed<br>        ↓<br>queue backlog grows<br>        ↓<br>task wait time increases<br></code></pre></td></tr></table></figure>
+
+<p>如果 Worker 太多，也不一定更快。文件解析任务可能会读文件、写数据库、调用通知接口。Worker 太多时，任务虽然并发执行了，但数据库连接池、磁盘 I&#x2F;O、HTTP 下游可能被打满，单个任务耗时反而变长。</p>
+<p>所以 Worker 数量的上限不只由线程决定，还受任务类型和下游资源影响：</p>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>主要瓶颈</th>
+<th>Worker 数量倾向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CPU 密集型</td>
+<td>CPU 计算</td>
+<td>接近 CPU 核数</td>
+</tr>
+<tr>
+<td>I&#x2F;O 密集型</td>
+<td>数据库、文件、HTTP</td>
+<td>可以大于 CPU 核数，但受下游限制</td>
+</tr>
+<tr>
+<td>混合型</td>
+<td>CPU + I&#x2F;O</td>
+<td>从保守值开始压测调整</td>
+</tr>
+</tbody></table>
+<p>文件解析任务通常是混合型任务。它既可能消耗 CPU，也可能访问文件系统和数据库。因此第一版不要开得过大，可以先从保守值开始：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">workerCount</span> <span class="hljs-operator">=</span> <span class="hljs-number">8</span>;<br>BlockingQueue&lt;Task&gt; queue = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayBlockingQueue</span>&lt;&gt;(<span class="hljs-number">500</span>);<br><br><span class="hljs-type">TaskProcessor</span> <span class="hljs-variable">processor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TaskProcessor</span>();<br><span class="hljs-type">TaskWorkerPool</span> <span class="hljs-variable">workerPool</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TaskWorkerPool</span>(queue, processor, workerCount);<br><br>workerPool.start();<br></code></pre></td></tr></table></figure>
+
+<p>队列容量也不是越大越好。队列越大，系统越能吸收短时流量波动，但任务等待时间也会变长。队列太大还会隐藏过载，让系统很晚才暴露问题。</p>
+<p>队列容量更合理的估算方式，是从业务可接受等待时间倒推：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">queue capacity ≈ process speed × acceptable wait time<br>process speed ≈ worker count / average task cost<br></code></pre></td></tr></table></figure>
+
+<p>假设有 8 个 Worker，单个文件解析任务平均耗时 200ms，那么系统大约每秒处理：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">8 / 0.2 = 40 tasks / second<br></code></pre></td></tr></table></figure>
+
+<p>如果业务允许任务最多等待 10 秒，队列容量可以先估算为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">40 × 10 = 400<br></code></pre></td></tr></table></figure>
+
+<p>这个数字不是最终答案，但它比随手写 <code>10000</code> 更有意义。因为它表达的是：系统最多缓存大约 10 秒的任务量。</p>
+<p>Worker 数量和队列容量最终都要通过实际指标校准，重点观察队列长度、任务等待时间、任务执行时间、CPU 使用率、数据库连接池使用率、失败率和超时率。任务系统不能只靠经验参数，必须配合监控一起设计。</p>
+<h2 id="7、队列满了以后系统如何自保"><a href="#7、队列满了以后系统如何自保" class="headerlink" title="7、队列满了以后系统如何自保"></a>7、队列满了以后系统如何自保</h2><p>有界队列一定会出现满队列的情况。队列满不是 bug，而是系统告诉调用方：当前处理能力已经达到边界。</p>
+<p>如果 <code>taskQueue.offer(task)</code> 返回 <code>false</code>，系统必须做选择。这个选择就是拒绝策略。</p>
+<p>最直接的策略是快速拒绝：队列满了就返回 <code>REJECTED</code>。这种策略适合用户可以稍后重试，或者任务时效性很强的场景。比如某些通知任务已经严重堆积，再继续接收只会让用户更晚收到通知，甚至失去业务意义。</p>
+<p>另一种策略是调用方自己执行，也就是反压：队列满了就让提交线程直接调用 <code>processor.process(task)</code>，然后返回 <code>CALLER_RUN</code>。它的效果是提交线程被迫变慢，从源头减轻队列压力。</p>
+<p>不过这个策略不能乱用。如果任务很慢，而调用方是请求线程，那么请求线程会被拖住，入口线程池可能也被影响。它更适合任务较短、调用方允许变慢、并且任务不希望轻易丢弃的场景。</p>
+<p>不同任务不应该使用同一种过载策略：</p>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>队列满后的策略</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>文件解析</td>
+<td>可以拒绝，让用户稍后重试</td>
+</tr>
+<tr>
+<td>用户通知</td>
+<td>可以降级或延后</td>
+</tr>
+<tr>
+<td>日志上报</td>
+<td>可以采样或丢弃</td>
+</tr>
+<tr>
+<td>核心状态同步</td>
+<td>不适合只放内存队列</td>
+</tr>
+</tbody></table>
+<p>这里先不展开“不能丢”的任务如何处理，因为那已经超出单机内存队列的边界。只需要先记住：队列容量定义了系统的缓冲边界，拒绝策略定义了越过边界后的自保方式。</p>
+<h2 id="8、任务失败后如何重试和隔离"><a href="#8、任务失败后如何重试和隔离" class="headerlink" title="8、任务失败后如何重试和隔离"></a>8、任务失败后如何重试和隔离</h2><p>任务被 Worker 取出后，也可能执行失败。比如文件不存在、文件格式错误、数据库写入失败、通知接口超时等。</p>
+<p>如果 Worker 只是打印异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">try</span> &#123;<br>    <span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> taskQueue.take();<br>    processor.process(task);<br>&#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>    e.printStackTrace();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>那么任务失败以后就没有后续处理。系统既不知道任务是否要重试，也不知道失败原因是否需要保留。</p>
+<p>更合理的做法是把失败处理从 Worker 中拆出来：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskWorker</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Runnable</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Task&gt; taskQueue;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> TaskProcessor processor;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> TaskFailureHandler failureHandler;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>            <span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br><br>            <span class="hljs-keyword">try</span> &#123;<br>                task = taskQueue.take();<br>                processor.process(task);<br>            &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>                Thread.currentThread().interrupt();<br>                <span class="hljs-keyword">break</span>;<br>            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                <span class="hljs-keyword">if</span> (task != <span class="hljs-literal">null</span>) &#123;<br>                    failureHandler.handle(task, e);<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Worker 仍然只负责取任务和调用 Processor。任务失败后，是否重试、是否进入死信，由 <code>TaskFailureHandler</code> 决定。</p>
+<p>一个简单的重试策略可以先只控制最大重试次数，例如 <code>task.getRetryCount() &lt; maxRetryCount</code>。失败处理器可以这样写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskFailureHandler</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Task&gt; taskQueue;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RetryPolicy retryPolicy;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(Task task, Exception e)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> e.getMessage();<br>        task.markFailed(error);<br><br>        <span class="hljs-keyword">if</span> (shouldRetry(e) &amp;&amp; retryPolicy.canRetry(task)) &#123;<br>            task.increaseRetryCount();<br><br>            <span class="hljs-keyword">if</span> (!taskQueue.offer(task)) &#123;<br>                task.markDead(<span class="hljs-string">&quot;queue full when retry: &quot;</span> + error);<br>                saveDeadTask(task);<br>            &#125;<br><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        task.markDead(error);<br>        saveDeadTask(task);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">shouldRetry</span><span class="hljs-params">(Exception e)</span> &#123;<br>        <span class="hljs-keyword">return</span> e <span class="hljs-keyword">instanceof</span> TimeoutException<br>                || e <span class="hljs-keyword">instanceof</span> IOException;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">saveDeadTask</span><span class="hljs-params">(Task task)</span> &#123;<br>        <span class="hljs-comment">// save to log, local file, monitoring system, or later persistent storage</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段逻辑表达的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">task failed<br>    ↓<br>record error<br>    ↓<br>should retry?<br>    ↓<br>yes → increase retry count → requeue<br>    ↓<br>no  → mark dead → save dead task<br></code></pre></td></tr></table></figure>
+
+<p>重试必须有边界。不能因为任务失败就无限重试，否则失败任务会一直占用 Worker。尤其当下游服务已经异常时，无限重试会持续放大故障。</p>
+<p>也不是所有异常都适合重试：</p>
+<table>
+<thead>
+<tr>
+<th>失败类型</th>
+<th>是否适合重试</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>临时失败</td>
+<td>适合</td>
+<td>网络抖动、HTTP 超时</td>
+</tr>
+<tr>
+<td>资源繁忙</td>
+<td>适合延迟重试</td>
+<td>下游限流、连接池满</td>
+</tr>
+<tr>
+<td>参数错误</td>
+<td>不适合</td>
+<td>文件 ID 不存在</td>
+</tr>
+<tr>
+<td>业务规则失败</td>
+<td>不适合</td>
+<td>当前状态不允许处理</td>
+</tr>
+<tr>
+<td>代码 Bug</td>
+<td>不适合盲目重试</td>
+<td>空指针、类型转换错误</td>
+</tr>
+</tbody></table>
+<p>如果失败是临时性的，最好不要立刻重试。因为马上重试很可能再次失败。更合理的是延迟重试，比如第一次失败后 5 秒重试，第二次失败后 30 秒重试，第三次失败后 2 分钟重试。</p>
+<p>本章不展开 <code>DelayQueue</code> 的实现，只需要先建立设计原则：重试用于恢复临时失败，死信用于隔离长期失败。重试不能无边界，死信也不是简单丢弃，而是为后续排查和补偿保留入口。</p>
+<h2 id="9、任务系统如何监控和优雅关闭"><a href="#9、任务系统如何监控和优雅关闭" class="headerlink" title="9、任务系统如何监控和优雅关闭"></a>9、任务系统如何监控和优雅关闭</h2><p>任务系统跑起来以后，还需要知道它是否健康。不能只看服务进程是否存活，因为任务系统最常见的问题不是立刻宕机，而是队列慢慢堆积、任务越等越久、失败率逐渐升高。</p>
+<p>最核心的指标包括队列长度、队列容量使用率、任务等待时间、任务执行时间、成功数、失败数、重试次数、死信数量和 Worker 存活数。为了统计等待时间和执行时间，可以给 <code>Task</code> 增加时间字段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> createTime;<br><span class="hljs-keyword">private</span> <span class="hljs-type">long</span> startTime;<br><span class="hljs-keyword">private</span> <span class="hljs-type">long</span> finishTime;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markRunning</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">this</span>.status = TaskStatus.RUNNING;<br>    <span class="hljs-built_in">this</span>.startTime = System.currentTimeMillis();<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markSuccess</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">this</span>.status = TaskStatus.SUCCESS;<br>    <span class="hljs-built_in">this</span>.finishTime = System.currentTimeMillis();<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">getWaitTime</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> startTime - createTime;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">getExecuteTime</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> finishTime - startTime;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这两个指标能帮助定位问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">wait time increases<br>    ↓<br>problem is likely in queueing<br><br>execute time increases<br>    ↓<br>problem is likely in processing<br></code></pre></td></tr></table></figure>
+
+<p>如果等待时间变长，但执行时间正常，说明 Worker 处理能力可能不足，或者任务提交速度突然升高。如果执行时间变长，说明业务逻辑或下游资源变慢，Worker 被慢任务占住，后续等待时间也会跟着升高。</p>
+<p>队列指标可以定期采集：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">queueSize</span> <span class="hljs-operator">=</span> taskQueue.size();<br><span class="hljs-type">int</span> <span class="hljs-variable">remainingCapacity</span> <span class="hljs-operator">=</span> taskQueue.remainingCapacity();<br><span class="hljs-type">int</span> <span class="hljs-variable">capacity</span> <span class="hljs-operator">=</span> queueSize + remainingCapacity;<br><span class="hljs-type">double</span> <span class="hljs-variable">usage</span> <span class="hljs-operator">=</span> queueSize * <span class="hljs-number">1.0</span> / capacity;<br></code></pre></td></tr></table></figure>
+
+<p>除了运行时监控，还要考虑服务关闭。关闭时 Worker 可能正在等待任务，也可能正在执行任务，队列里也可能还有任务。如果直接停进程，内存队列里的任务会丢失，正在执行的任务也可能只执行一半。</p>
+<p>单机内存任务系统的优雅关闭，至少要做到三步：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">stop accepting new tasks<br>    ↓<br>let workers drain existing queue<br>    ↓<br>wait for running tasks with timeout<br></code></pre></td></tr></table></figure>
+
+<p>可以给 WorkerPool 增加运行状态：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskWorkerPool</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">running</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isRunning</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> running;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">shutdown</span><span class="hljs-params">()</span> &#123;<br>        running = <span class="hljs-literal">false</span>;<br><br>        <span class="hljs-keyword">for</span> (Thread worker : workers) &#123;<br>            worker.interrupt();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Worker 循环可以从永久 <code>take()</code> 改成带超时的 <code>poll()</code>，这样它能周期性检查关闭状态：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">while</span> (pool.isRunning() || !taskQueue.isEmpty()) &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> taskQueue.poll(<span class="hljs-number">1</span>, TimeUnit.SECONDS);<br><br>            <span class="hljs-keyword">if</span> (task == <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-keyword">continue</span>;<br>            &#125;<br><br>            processor.process(task);<br>        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>            Thread.currentThread().interrupt();<br>            <span class="hljs-keyword">break</span>;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            <span class="hljs-comment">// handle failure</span><br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>关键在循环条件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">while</span> (pool.isRunning() || !taskQueue.isEmpty())<br></code></pre></td></tr></table></figure>
+
+<p>它的含义是：只要系统还在运行，就继续取任务；即使系统已经开始关闭，只要队列里还有任务，也尽量继续处理；只有系统已经关闭，并且队列也空了，Worker 才退出。</p>
+<p>关闭后还需要等待 Worker 结束，但不能无限等。通常会用 <code>join(timeout)</code> 或线程池的 <code>awaitTermination</code> 给 Worker 一个有限的完成窗口。这样关闭流程就有了边界：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">shutdown<br>    ↓<br>reject new tasks<br>    ↓<br>interrupt idle workers<br>    ↓<br>drain existing queue<br>    ↓<br>wait with timeout<br></code></pre></td></tr></table></figure>
+
+<p>不过要注意，内存队列只能做到“尽量处理”。如果机器宕机、进程被强杀，内存里的任务仍然会丢失。正在执行的任务是否能恢复，也没有可靠记录。</p>
+<p>这正是单机内存任务系统的边界：它可以解决并发执行和短暂缓冲，但不能保证任务在重启、宕机、多实例部署下仍然可靠。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>并发任务处理系统的起点，是请求线程不适合直接承担所有耗时工作。为了让请求处理和后台执行解耦，系统需要把业务动作抽象成 <code>Task</code>，再通过有界队列把任务提交速度和任务执行速度隔开。</p>
+<p>有了任务和队列之后，Worker 负责从队列中取任务，Processor 负责执行具体业务逻辑。Worker 数量决定并发执行能力，队列容量决定短时缓冲能力。二者都不能无限放大，因为真正的限制往往来自 CPU、数据库、文件系统、HTTP 下游和业务可接受延迟。</p>
+<p>当队列满了，系统必须通过拒绝、降级、调用方执行等策略保护自己；当任务失败了，系统必须通过有限重试和死信隔离让失败能够收敛；当系统运行起来以后，还需要通过队列长度、等待时间、执行时间、失败率和 Worker 存活数判断它是否健康；当服务关闭时，也要先停止接收新任务，再尽量处理完已进入队列的任务。</p>
+<p>因此，单机内存任务系统解决的是“有限资源下如何有边界地并发处理任务”。它适合轻量异步、短暂削峰和允许一定丢失风险的任务。但如果任务不能丢，需要跨机器共享，或者服务重启后还要恢复执行，就必须继续引入数据库任务表或 MQ。那已经是可靠任务系统要解决的问题。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java-%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" class="category-chain-item">Java 高并发底层原理</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="print-no-link">#线程池</a>
+      
+        <a href="/tags/BlockingQueue/" class="print-no-link">#BlockingQueue</a>
+      
+        <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" class="print-no-link">#并发编程</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>并发任务处理系统如何设计：从任务模型到 Worker 执行</div>
+      <div>https://rebibabo.github.io/2026/07/05/concurrency/28-并发任务处理系统如何设计：从任务模型到 Worker 执行/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/05/concurrency/27-%E6%AD%BB%E9%94%81%E3%80%81%E6%B4%BB%E9%94%81%E4%B8%8E%E7%BA%BF%E7%A8%8B%E9%A5%A5%E9%A5%BF%E6%98%AF%E5%A6%82%E4%BD%95%E5%8F%91%E7%94%9F%E7%9A%84/" title="Java高并发底层原理（十九）—— 死锁、活锁与线程饥饿是如何发生的">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（十九）—— 死锁、活锁与线程饥饿是如何发生的</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/05/concurrency/25-LockSupport%20%E5%A6%82%E4%BD%95%E6%8C%82%E8%B5%B7%E5%92%8C%E5%94%A4%E9%86%92%E7%BA%BF%E7%A8%8B/" title="Java高并发底层原理（补充）—— LockSupport 如何挂起和唤醒线程">
+                        <span class="hidden-mobile">Java高并发底层原理（补充）—— LockSupport 如何挂起和唤醒线程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

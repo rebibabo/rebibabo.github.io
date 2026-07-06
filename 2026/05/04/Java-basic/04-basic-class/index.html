@@ -19,16 +19,16 @@
   <meta name="author" content="rebibabo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 static 和 final 这两个高频关键字到底在干什么。">
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 static 和 final 这两个高频关键字到底在干什么。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础(4) | 类与对象：构造方法、访问控制、static 与 final">
 <meta property="og:url" content="https://rebibabo.github.io/2026/05/04/Java-basic/04-basic-class/index.html">
 <meta property="og:site_name" content="AI Infra">
-<meta property="og:description" content="前言Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 static 和 final 这两个高频关键字到底在干什么。">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 static 和 final 这两个高频关键字到底在干什么。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-basic/class-object-structure.png">
 <meta property="article:published_time" content="2026-05-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-13T15:00:09.247Z">
+<meta property="article:modified_time" content="2026-06-19T00:32:06.359Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="基础">
@@ -330,7 +330,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.9k 字
+          7k 字
         
       </span>
     
@@ -341,7 +341,7 @@
         
         
         
-          58 分钟
+          59 分钟
         
       </span>
     
@@ -385,7 +385,11 @@
             
               <div class="markdown-body">
                 
-                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 <code>static</code> 和 <code>final</code> 这两个高频关键字到底在干什么。</p>
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Java 是一门纯面向对象的语言——除了 8 种基本类型，一切都是对象。这篇文章梳理类与对象的基础机制：怎么定义类、怎么构造对象、访问权限怎么控制，以及 <code>static</code> 和 <code>final</code> 这两个高频关键字到底在干什么。</p>
 <span id="more"></span>
 
 <h2 id="1-类与对象的关系"><a href="#1-类与对象的关系" class="headerlink" title="1. 类与对象的关系"></a>1. 类与对象的关系</h2><p>一句话：<strong>类是模板，对象是实例。</strong></p>
@@ -542,6 +546,11 @@
 <blockquote>
 <p><strong>下一篇预告</strong>：继承与多态——extends、方法重写、抽象类 vs 接口</p>
 </blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
 
                 
               </div>
@@ -636,9 +645,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/04/Java-advanced/04-jwt/" title="Java进阶(4) | Spring Security + JWT：认证授权入门">
+                      <a href="/2026/05/05/Java-advanced/05-metric/" title="Java全貌(5) | 监控指标入门：Micrometer + Prometheus">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Java进阶(4) | Spring Security + JWT：认证授权入门</span>
+                        <span class="hidden-mobile">Java全貌(5) | 监控指标入门：Micrometer + Prometheus</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -646,8 +655,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/03/Java-advanced/03-k8s/" title="Java进阶(3) | Kubernetes 入门：为什么需要它，核心概念与实战">
-                        <span class="hidden-mobile">Java进阶(3) | Kubernetes 入门：为什么需要它，核心概念与实战</span>
+                      <a href="/2026/05/04/Java-advanced/04-jwt/" title="Java进阶(4) | Spring Security + JWT：认证授权入门">
+                        <span class="hidden-mobile">Java进阶(4) | Spring Security + JWT：认证授权入门</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

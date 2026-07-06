@@ -1,0 +1,1027 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥synchronized 可以通过对象监视器实现互斥，同一时刻只允许一个线程进入临界区。Java 还提供了另一种常用锁： 12345678910private final ReentrantLock lock &#x3D; new ReentrantLock();public void increment() &#123;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥">
+<meta property="og:url" content="https://rebibabo.github.io/2026/07/03/concurrency/09-ReentrantLock%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E5%A4%9F%E5%AE%9E%E7%8E%B0%E4%BA%92%E6%96%A5/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥synchronized 可以通过对象监视器实现互斥，同一时刻只允许一个线程进入临界区。Java 还提供了另一种常用锁： 12345678910private final ReentrantLock lock &#x3D; new ReentrantLock();public void increment() &#123;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-04T04:00:10.158Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="AQS">
+<meta property="article:tag" content="CAS">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="ReentrantLock">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-03 00:00" pubdate>
+          2026年7月3日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          64 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java高并发底层原理（九）——-ReentrantLock-为什么能够实现互斥"><a href="#Java高并发底层原理（九）——-ReentrantLock-为什么能够实现互斥" class="headerlink" title="Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥"></a>Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥</h1><p><code>synchronized</code> 可以通过对象监视器实现互斥，同一时刻只允许一个线程进入临界区。Java 还提供了另一种常用锁：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">increment</span><span class="hljs-params">()</span> &#123;<br>    lock.lock();<br>    <span class="hljs-keyword">try</span> &#123;<br>        count++;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        lock.unlock();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>ReentrantLock</code> 没有使用 <code>synchronized</code> 包围临界区，却同样可以保证只有一个线程修改 <code>count</code>。除此之外，它还支持可重入、公平锁、可中断等待和超时获取等能力。</p>
+<p>本章只围绕一个主问题展开：<strong><code>ReentrantLock</code> 为什么能够实现互斥</strong>。后文会从锁状态开始，逐步引出 CAS、owner、重入计数、等待队列、公平策略和内存语义。每一节只在前文基础上增加一个必要条件，不重复证明已经建立过的结论。</p>
+<h2 id="一、锁需要记录什么状态"><a href="#一、锁需要记录什么状态" class="headerlink" title="一、锁需要记录什么状态"></a>一、锁需要记录什么状态</h2><p>先不看 <code>ReentrantLock</code> 的源码，只考虑一把最简单的互斥锁需要解决什么问题。</p>
+<p>一把锁至少要区分两种状态：空闲和已占用。可以先用一个整数表示：<code>state == 0</code> 表示锁空闲，<code>state == 1</code> 表示锁已被占用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">SimpleLock</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">state</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>(<span class="hljs-number">0</span>);<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">tryLock</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> state.compareAndSet(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">unlock</span><span class="hljs-params">()</span> &#123;<br>        state.set(<span class="hljs-number">0</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段 <code>SimpleLock</code> 不是完整锁，只用来建立第一个概念：<strong>互斥首先需要一个可被竞争的状态位</strong>。线程调用 <code>tryLock()</code> 时，如果能把 <code>state</code> 从 <code>0</code> 改成 <code>1</code>，就说明它成功占用了锁；如果改失败，就说明锁已经被其他线程占用。</p>
+<p>所以，锁的本质不是某个特殊的物理对象，而是一组围绕状态变化建立的规则：谁能把空闲状态改成占用状态，谁就能进入临界区；谁持有占用状态，谁才有资格释放它。</p>
+<h2 id="二、为什么获取锁需要-CAS"><a href="#二、为什么获取锁需要-CAS" class="headerlink" title="二、为什么获取锁需要 CAS"></a>二、为什么获取锁需要 CAS</h2><p>上一节的 <code>state</code> 只是记录状态，还没有说明多个线程同时修改它时如何保证安全。问题出在普通判断和赋值不是一个不可分割的整体。</p>
+<p>假设线程 A 和线程 B 同时执行下面的逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (state == <span class="hljs-number">0</span>) &#123;<br>    state = <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可能出现这样的多线程交错：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>Thread A</th>
+<th>Thread B</th>
+<th><code>state</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>读取到 <code>0</code></td>
+<td></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td>读取到 <code>0</code></td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>写入 <code>1</code></td>
+<td></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td></td>
+<td>写入 <code>1</code></td>
+<td><code>1</code></td>
+</tr>
+</tbody></table>
+<p>两个线程都基于“我刚才看到的是 <code>0</code>”做出判断，最后都会认为自己获得了锁。这里破坏互斥的根因是：<strong>读取、判断、写入被拆成了多个步骤，中间被另一个线程插入了</strong>。</p>
+<p>CAS 要解决的正是这个问题：它把“当前值是否仍然等于期望值”和“如果相等就写入新值”合并成一个原子操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">state.compareAndSet(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>);<br></code></pre></td></tr></table></figure>
+
+<p>其中 <code>0</code> 是期望值，<code>1</code> 是新值。只有执行 CAS 的那一刻，<code>state</code> 仍然是 <code>0</code>，当前线程才会成功写入 <code>1</code>。多个线程同时竞争时，最多只有一个线程能完成从 <code>0</code> 到 <code>1</code> 的状态转换。</p>
+<p>OpenJDK 中的 <code>ReentrantLock</code> 在锁空闲时，也会先通过 CAS 修改同步状态；CAS 成功后，当前线程才进一步成为持锁线程。到这里，我们只解决了“谁先占住状态位”的问题，还没有解决“占住之后应该由谁释放”的问题。</p>
+<h2 id="三、只记录-state-为什么还不够"><a href="#三、只记录-state-为什么还不够" class="headerlink" title="三、只记录 state 为什么还不够"></a>三、只记录 state 为什么还不够</h2><p>沿用前文的 <code>SimpleLock</code>，如果锁只记录 <code>state</code>，它只能知道“锁是否被占用”，却不知道“锁被谁占用”。这会带来一个直接问题：没有获得锁的线程也可能错误地释放锁。</p>
+<p>例如线程 A 已经获得锁，线程 B 没有获得锁，但 B 错误调用了 <code>unlock()</code>。如果 <code>unlock()</code> 只是简单地把 <code>state</code> 改回 <code>0</code>，线程 C 就可能随后获得锁。此时线程 A 仍在临界区中，线程 C 也进入了临界区，互斥就被破坏了。</p>
+<p>因此，独占锁不能只记录状态，还必须记录当前持锁线程：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>state</code></td>
+<td>记录锁是否被占用，后面还会扩展为重入次数</td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td>记录当前持有这把锁的线程</td>
+</tr>
+</tbody></table>
+<p>有了 <code>owner</code> 之后，释放锁前必须校验当前线程是否就是持锁线程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (owner != Thread.currentThread()) &#123;<br>    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalMonitorStateException</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这一步补上了前文 <code>state</code> 模型缺失的身份约束：CAS 决定谁能第一次占住锁，<code>owner</code> 决定谁有资格继续操作这把锁。</p>
+<h2 id="四、什么是可重入"><a href="#四、什么是可重入" class="headerlink" title="四、什么是可重入"></a>四、什么是可重入</h2><p>有了 <code>owner</code> 之后，还可以继续解决一个常见场景：同一个线程已经持有锁，又在临界区中调用另一个也需要同一把锁的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">methodA</span><span class="hljs-params">()</span> &#123;<br>    lock.lock();<br>    <span class="hljs-keyword">try</span> &#123;<br>        methodB();<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        lock.unlock();<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">methodB</span><span class="hljs-params">()</span> &#123;<br>    lock.lock();<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// 执行业务</span><br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        lock.unlock();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>线程 A 进入 <code>methodA()</code> 后已经持有锁，随后调用 <code>methodB()</code> 时又申请同一把锁。如果锁只允许 <code>state == 0</code> 的线程进入，那么线程 A 会等待自己释放锁，而它又必须等 <code>methodB()</code> 返回后才能继续执行外层 <code>unlock()</code>，这就形成自我阻塞。</p>
+<p>可重入锁的处理方式是：如果申请锁的线程已经是 <code>owner</code>，就允许它再次进入，但要把 <code>state</code> 从单纯的占用标记扩展为重入计数。</p>
+<table>
+<thead>
+<tr>
+<th><code>state</code> 值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0</code></td>
+<td>锁空闲</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>owner 获取了一次锁</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>owner 重入了一次，总共获取两次</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>owner 总共获取了 <code>n</code> 次</td>
+</tr>
+</tbody></table>
+<p>简化后的获取逻辑如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-title function_">tryAcquire</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">Thread</span> <span class="hljs-variable">current</span> <span class="hljs-operator">=</span> Thread.currentThread();<br>    <span class="hljs-type">int</span> <span class="hljs-variable">currentState</span> <span class="hljs-operator">=</span> getState();<br><br>    <span class="hljs-keyword">if</span> (currentState == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (compareAndSetState(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>)) &#123;<br>            owner = current;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (owner == current) &#123;<br>        setState(currentState + <span class="hljs-number">1</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段逻辑是在前文基础上的增量扩展：锁空闲时仍然通过 CAS 竞争；锁已被占用时，如果 owner 是当前线程，就增加重入计数；如果 owner 不是当前线程，获取失败。</p>
+<h2 id="五、重入之后如何释放锁"><a href="#五、重入之后如何释放锁" class="headerlink" title="五、重入之后如何释放锁"></a>五、重入之后如何释放锁</h2><p>如前所述，<code>state</code> 已经从“是否占用”扩展成了“重入次数”。因此，释放锁也不能简单地把 <code>state</code> 改回 <code>0</code>，而是每次 <code>unlock()</code> 只减少一次计数。</p>
+<p>对于前文的 <code>methodA()</code> 和 <code>methodB()</code> 嵌套调用，线程 A 一共调用了两次 <code>lock()</code>，也必须调用两次 <code>unlock()</code>。第一次解锁只把 <code>state</code> 从 <code>2</code> 减到 <code>1</code>，线程 A 仍然持有锁；第二次解锁把 <code>state</code> 从 <code>1</code> 减到 <code>0</code>，锁才真正释放。</p>
+<p>简化后的释放逻辑如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">void</span> <span class="hljs-title function_">release</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">Thread</span> <span class="hljs-variable">current</span> <span class="hljs-operator">=</span> Thread.currentThread();<br><br>    <span class="hljs-keyword">if</span> (owner != current) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalMonitorStateException</span>();<br>    &#125;<br><br>    <span class="hljs-type">int</span> <span class="hljs-variable">newState</span> <span class="hljs-operator">=</span> getState() - <span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">if</span> (newState == <span class="hljs-number">0</span>) &#123;<br>        owner = <span class="hljs-literal">null</span>;<br>    &#125;<br><br>    setState(newState);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这一节只补充释放规则：<strong>每一次成功加锁都必须对应一次解锁，只有 <code>state</code> 减到 <code>0</code>，owner 才会被清除，锁才真正进入空闲状态</strong>。</p>
+<h2 id="六、为什么-unlock-通常不需要-CAS"><a href="#六、为什么-unlock-通常不需要-CAS" class="headerlink" title="六、为什么 unlock 通常不需要 CAS"></a>六、为什么 unlock 通常不需要 CAS</h2><p>前文已经说明，获取锁时需要 CAS，是因为多个线程可能同时尝试把 <code>state</code> 从 <code>0</code> 改成 <code>1</code>。但锁被某个线程持有后，情况发生了变化：重入和解锁都只能由 owner 合法执行。</p>
+<p>也就是说，在 <code>state &gt; 0</code> 的持锁阶段，不存在两个合法线程同时修改同一把独占锁重入计数的情况。非 owner 调用 <code>unlock()</code> 会被拒绝，而 owner 自己增加或减少计数，不需要和其他线程争夺这次计数修改。</p>
+<p>所以 CAS 主要出现在锁所有权发生转移的入口：锁空闲时，多个线程竞争成为 owner；一旦 owner 确定，重入计数的增加和减少就属于 owner 自己的内部状态维护。</p>
+<p>这并不是说 <code>unlock()</code> 不重要。相反，<code>unlock()</code> 是后续线程能否继续推进的关键，只是它通常不需要用 CAS 解决“多个合法释放者同时竞争”的问题。</p>
+<h2 id="七、获取锁失败后为什么不能一直重试"><a href="#七、获取锁失败后为什么不能一直重试" class="headerlink" title="七、获取锁失败后为什么不能一直重试"></a>七、获取锁失败后为什么不能一直重试</h2><p>到目前为止，锁已经能够记录状态、区分 owner，并支持重入。但还有一个问题没有解决：如果锁被其他线程持有，获取失败的线程应该怎么办？</p>
+<p>最直接的做法是不断重试：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">while</span> (!tryAcquire()) &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这种方式称为忙等待。它的问题是，线程虽然没有进入临界区，却一直占用 CPU，不断读取 <code>state</code>、尝试 CAS、失败后再重复。竞争激烈时，多个线程还会反复争夺保存 <code>state</code> 的 Cache Line，进一步放大 CPU 和缓存一致性开销。</p>
+<p>短时间自旋有时有价值，因为锁可能很快释放；但如果持锁时间较长，失败线程继续空转就没有意义。<code>ReentrantLock</code> 不能只靠 CAS 循环，还需要一种机制把失败线程保存起来，并让它们暂时停止运行。</p>
+<p>这就引出了 AQS。AQS，全名是 <code>AbstractQueuedSynchronizer</code>，在这里先只引入它的一个作用：<strong>用等待队列管理获取同步状态失败的线程</strong>。后文只围绕这个作用展开，不提前进入 AQS 的完整源码细节。</p>
+<h2 id="八、等待队列解决了什么问题"><a href="#八、等待队列解决了什么问题" class="headerlink" title="八、等待队列解决了什么问题"></a>八、等待队列解决了什么问题</h2><p>假设线程 A 已经持有锁，线程 B、C、D 依次调用 <code>lock()</code>，并且都获取失败。沿用前文结论，这些失败线程不能无限忙等，所以它们会进入 AQS 等待队列。</p>
+<p>队列至少解决两个问题：第一，记录哪些线程正在等待；第二，锁释放时能找到相对靠前的等待线程继续推进。可以把等待关系理解为：B 先等待，C 排在 B 后面，D 排在 C 后面。</p>
+<p>AQS 中等待线程会被包装成节点，节点中保存等待线程以及前后节点引用。这里不展开节点字段，只建立本章需要的抽象：<strong>获取失败的线程从 CPU 上持续竞争，转为在队列中暂停等待</strong>。</p>
+<p>这个转变很重要。前文的 CAS 负责解决“谁能成功获得锁”，等待队列负责解决“失败者如何不浪费 CPU”。两者不是替代关系，而是连接关系：先尝试获取，失败后排队；被唤醒后，再重新尝试获取。</p>
+<h2 id="九、释放锁后为什么只唤醒一个线程"><a href="#九、释放锁后为什么只唤醒一个线程" class="headerlink" title="九、释放锁后为什么只唤醒一个线程"></a>九、释放锁后为什么只唤醒一个线程</h2><p>有了等待队列后，<code>unlock()</code> 的后半段才有意义：当 owner 把 <code>state</code> 减到 <code>0</code>，锁真正释放，队列中的等待线程需要被唤醒。</p>
+<p>如果前文的 B、C、D 都在等待，通常只需要优先唤醒靠前的线程，例如 B。因为即使同时唤醒 B、C、D，最终也只有一个线程能通过 CAS 获得锁，另外两个线程恢复运行后还要再次失败并重新等待。这会增加线程调度、上下文切换和 Cache Line 竞争。</p>
+<p>因此，释放锁后的策略不是“把锁直接交给所有等待线程”，也不是“直接指定某个线程已经获得锁”，而是唤醒相对靠前的等待线程，让它恢复运行后重新检查状态并尝试获取。</p>
+<p>这里要保留一个关键结论：<strong>唤醒不等于交付锁</strong>。被唤醒线程只是重新获得竞争机会，只有它再次成功修改 <code>state</code> 并成为 owner，才真正进入临界区。</p>
+<h2 id="十、公平锁和非公平锁有什么区别"><a href="#十、公平锁和非公平锁有什么区别" class="headerlink" title="十、公平锁和非公平锁有什么区别"></a>十、公平锁和非公平锁有什么区别</h2><p>前文已经有了等待队列，接下来才能解释公平锁和非公平锁的差异。差异不在于是否使用 <code>state</code>、CAS、owner 或等待队列，而在于新来的线程是否必须尊重队列中已经等待的线程。</p>
+<p><code>ReentrantLock</code> 默认使用非公平模式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();<br></code></pre></td></tr></table></figure>
+
+<p>也可以显式创建公平锁：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>(<span class="hljs-literal">true</span>);<br></code></pre></td></tr></table></figure>
+
+<p>公平锁在尝试获取锁前，会检查队列中是否已经有排在前面的等待线程。如果有，新来的线程不能直接插队，而是进入队尾等待。非公平锁则允许新来的线程先尝试 CAS；如果它刚好在锁释放后抢到了 <code>state</code>，就可能先于队列中的旧线程获得锁。</p>
+<p>用前文的 B、C、D 等待队列举例：线程 B 已经在队首等待，线程 A 刚释放锁，线程 D 此时正好新调用 <code>lock()</code>。在非公平模式下，D 可能因为正在 CPU 上运行而率先 CAS 成功；在公平模式下，D 会先检查前面是否已有等待线程，如果有，就不能直接绕过 B。</p>
+<p>非公平锁允许插队，是为了减少线程切换成本：新来的线程可能已经处于运行态，可以马上进入临界区；队首线程即使被唤醒，也可能还要等待操作系统调度。公平锁减少插队带来的饥饿风险，但可能牺牲一部分吞吐。</p>
+<p>公平锁也不等于绝对时间顺序。线程可能被中断、取消或受到操作系统调度影响。它表达的是一种获取锁策略：尽量尊重等待队列，不让新线程随意绕过已有前驱。</p>
+<h2 id="十一、ReentrantLock-如何保证可见性"><a href="#十一、ReentrantLock-如何保证可见性" class="headerlink" title="十一、ReentrantLock 如何保证可见性"></a>十一、ReentrantLock 如何保证可见性</h2><p>前文主要解释互斥：同一时刻只有 owner 能进入临界区。但锁还必须解决另一个问题：前一个线程在临界区中修改的数据，后一个线程获得同一把锁后必须能够看到。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Thread A</span><br>lock.lock();<br><span class="hljs-keyword">try</span> &#123;<br>    data = <span class="hljs-number">42</span>;<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    lock.unlock();<br>&#125;<br><br><span class="hljs-comment">// Thread B</span><br>lock.lock();<br><span class="hljs-keyword">try</span> &#123;<br>    System.out.println(data);<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    lock.unlock();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果线程 A 成功释放 <code>lock</code>，线程 B 随后成功获得同一把 <code>lock</code>，那么线程 A 在释放锁之前对共享数据做出的修改，必须对线程 B 可见。这是锁的内存同步语义。</p>
+<p>换句话说，<code>state</code>、CAS、owner 和等待队列解释的是“线程如何排他地进入临界区”；锁的内存语义解释的是“临界区中的数据如何在线程之间正确传递”。如果只有互斥而没有可见性，后一个线程虽然不会和前一个线程同时执行临界区，却仍可能看不到前一个线程的修改，这样锁就不能完成并发控制的目标。</p>
+<p>因此，<code>ReentrantLock</code> 和 <code>synchronized</code> 一样，不只是控制进入顺序，还在成功释放和后续成功获取同一把锁之间建立可见性保证。</p>
+<h2 id="十二、为什么-unlock-必须写在-finally-中"><a href="#十二、为什么-unlock-必须写在-finally-中" class="headerlink" title="十二、为什么 unlock 必须写在 finally 中"></a>十二、为什么 unlock 必须写在 finally 中</h2><p><code>ReentrantLock</code> 与 <code>synchronized</code> 在使用方式上有一个重要区别：<code>synchronized</code> 会在代码块退出时自动释放 monitor，而 <code>ReentrantLock</code> 必须显式调用 <code>unlock()</code>。</p>
+<p>标准写法是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">lock.lock();<br><span class="hljs-keyword">try</span> &#123;<br>    <span class="hljs-comment">// 访问共享数据</span><br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    lock.unlock();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>finally</code> 的必要性来自前文的 owner 和等待队列规则。线程获得锁后，如果临界区抛出异常并提前退出，但没有执行 <code>unlock()</code>，<code>state</code> 就不会归零，owner 也不会被清除，等待队列中的线程就可能长期无法继续。</p>
+<p>需要注意，<code>lock()</code> 应放在 <code>try</code> 之前。如果 <code>lock()</code> 本身没有成功获得锁，就不应该在 <code>finally</code> 中执行 <code>unlock()</code>。标准结构表达的是：只有成功进入临界区之后，才确保退出时释放锁。</p>
+<h2 id="十三、ReentrantLock-的完整执行过程"><a href="#十三、ReentrantLock-的完整执行过程" class="headerlink" title="十三、ReentrantLock 的完整执行过程"></a>十三、ReentrantLock 的完整执行过程</h2><p>现在可以把前面的增量条件合并成一条执行链。</p>
+<p>线程调用 <code>lock()</code> 时，先根据 <code>state</code> 判断锁是否空闲。若 <code>state == 0</code>，多个线程通过 CAS 竞争，成功者把自己记录为 owner 并进入临界区。若 <code>state &gt; 0</code> 且 owner 是当前线程，说明发生重入，只需要增加 <code>state</code>。若 <code>state &gt; 0</code> 且 owner 不是当前线程，说明锁被其他线程持有，当前线程获取失败并进入 AQS 等待队列。</p>
+<p>线程调用 <code>unlock()</code> 时，先检查当前线程是否为 owner，然后把 <code>state</code> 减一。如果 <code>state</code> 仍大于 <code>0</code>，说明只是退出了一层重入，锁还没有真正释放；如果 <code>state</code> 变成 <code>0</code>，owner 被清除，锁进入空闲状态，并唤醒等待队列中相对靠前的线程。被唤醒线程不会直接拥有锁，而是重新回到获取流程，通过 CAS 再次竞争。</p>
+<p>在这条链路中，每个组件都有明确分工：<code>state</code> 承载锁状态和重入计数，CAS 保证空闲锁只能被一个线程抢占，owner 限制重入和释放资格，AQS 队列保存失败线程，唤醒动作把等待线程重新送回竞争入口，锁的内存语义保证临界区修改能被后续持锁线程看到。</p>
+<h2 id="写后去重检查"><a href="#写后去重检查" class="headerlink" title="写后去重检查"></a>写后去重检查</h2><table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>处理结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>state</code> 的含义是否重复定义</td>
+<td>只在第一节完整定义，第四节仅增量扩展为重入计数</td>
+</tr>
+<tr>
+<td>CAS 竞争过程是否重复画图</td>
+<td>只在第二节用一次多线程交错表说明，后文均回指</td>
+</tr>
+<tr>
+<td>owner 的必要性是否重复证明</td>
+<td>只在第三节用非 owner 错误解锁说明，后文直接使用结论</td>
+</tr>
+<tr>
+<td>可重入例子是否重复展开</td>
+<td>只在第四节完整展开 <code>methodA()</code> &#x2F; <code>methodB()</code>，第五节只承接释放规则</td>
+</tr>
+<tr>
+<td>等待队列结构是否重复绘制</td>
+<td>未重复绘制队列图，只用文字说明队首、队尾和唤醒关系</td>
+</tr>
+<tr>
+<td>总结是否逐节复述</td>
+<td>已改成因果链整合，不逐条重复各节结论</td>
+</tr>
+</tbody></table>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p><code>ReentrantLock</code> 的实现可以看成一条逐步收紧的因果链：共享变量需要互斥访问，所以必须有一个状态表示锁是否空闲；状态会被多个线程同时竞争，所以获取入口必须使用 CAS；CAS 只能决定谁抢到锁，不能说明谁有资格继续操作，所以还要记录 owner；同一个 owner 可能嵌套申请同一把锁，所以 <code>state</code> 又从占用标记扩展为重入计数；重入计数只有归零才表示所有临界区层级都已经退出，因此真正释放锁发生在最后一次 <code>unlock()</code>。</p>
+<p>一旦释放动作出现，问题又从“谁持有锁”转向“失败线程如何继续”。如果失败线程一直自旋，CPU 会被无效竞争消耗，所以 AQS 用等待队列保存它们；如果释放时唤醒所有等待线程，又会制造新的竞争浪费，所以通常只推进相对靠前的线程；被唤醒线程仍要重新竞争，是因为锁的所有权始终只能通过状态转换确认，而不是由唤醒动作直接赠送。</p>
+<p>因此，<code>ReentrantLock</code> 并不是由某一个技巧实现互斥，而是把状态竞争、持有者身份、重入计数、失败等待、释放唤醒和内存语义连接成一条完整路径：先用 CAS 建立唯一 owner，再用 owner 和 <code>state</code> 维持独占关系，最后通过 AQS 队列和锁的同步语义，把竞争失败的线程和临界区数据一起安全地推进到下一轮执行。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" class="category-chain-item">Java高并发底层原理</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/CAS/" class="print-no-link">#CAS</a>
+      
+        <a href="/tags/ReentrantLock/" class="print-no-link">#ReentrantLock</a>
+      
+        <a href="/tags/AQS/" class="print-no-link">#AQS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥</div>
+      <div>https://rebibabo.github.io/2026/07/03/concurrency/09-ReentrantLock 为什么能够实现互斥/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/04/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85/" title="Java高并发底层原理（二十三）—— BlockingQueue 如何协调生产者和消费者">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（二十三）—— BlockingQueue 如何协调生产者和消费者</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/03/concurrency/08-Java%E5%86%85%E5%AD%98%E5%88%B0%E5%BA%95%E8%A7%84%E5%AE%9A%E4%BB%80%E4%B9%88/" title="Java高并发底层原理（八）—— Java 内存模型到底规定了什么">
+                        <span class="hidden-mobile">Java高并发底层原理（八）—— Java 内存模型到底规定了什么</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -19,15 +19,15 @@
   <meta name="author" content="rebibabo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言03 集合框架 讲的是”怎么用”——ArrayList、HashMap 的 API。这篇讲”为什么这么设计”——也就是底层原理，重点是 HashMap，因为它几乎是 Java 面试出现频率最高的话题。 注意范围：这里说的”数据结构底层原理”，指的是Java 集合类的内部实现（数组怎么扩容、HashMap 的哈希和扩容机制、为什么用红黑树），不是让你去手写红黑树、AVL树这类算法题——那是另一个">
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言03 集合框架 讲的是”怎么用”——ArrayList、HashMap 的 API。这篇讲”为什么这么设计”——也就是底层原理，重点是 HashMap，因为它几乎是 Java 面试出现频率最高的话题。 注意范围：这里说的”数据结构底层原理”，指的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树">
 <meta property="og:url" content="https://rebibabo.github.io/2026/06/01/Java-basic/32-data-structure-internals/index.html">
 <meta property="og:site_name" content="AI Infra">
-<meta property="og:description" content="前言03 集合框架 讲的是”怎么用”——ArrayList、HashMap 的 API。这篇讲”为什么这么设计”——也就是底层原理，重点是 HashMap，因为它几乎是 Java 面试出现频率最高的话题。 注意范围：这里说的”数据结构底层原理”，指的是Java 集合类的内部实现（数组怎么扩容、HashMap 的哈希和扩容机制、为什么用红黑树），不是让你去手写红黑树、AVL树这类算法题——那是另一个">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言03 集合框架 讲的是”怎么用”——ArrayList、HashMap 的 API。这篇讲”为什么这么设计”——也就是底层原理，重点是 HashMap，因为它几乎是 Java 面试出现频率最高的话题。 注意范围：这里说的”数据结构底层原理”，指的">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-14T08:47:10.986Z">
+<meta property="article:modified_time" content="2026-06-19T00:32:06.372Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="HashMap">
 <meta property="article:tag" content="数据结构">
@@ -329,7 +329,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.5k 字
+          6.6k 字
         
       </span>
     
@@ -340,7 +340,7 @@
         
         
         
-          55 分钟
+          56 分钟
         
       </span>
     
@@ -384,7 +384,11 @@
             
               <div class="markdown-body">
                 
-                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><a href="/2026/05/03/Java-basic/03-collections/">03 集合框架</a> 讲的是”怎么用”——<code>ArrayList</code>、<code>HashMap</code> 的 API。这篇讲”为什么这么设计”——也就是<strong>底层原理</strong>，重点是 <code>HashMap</code>，因为它几乎是 Java 面试出现频率最高的话题。</p>
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><a href="/2026/05/03/Java-basic/03-collections/">03 集合框架</a> 讲的是”怎么用”——<code>ArrayList</code>、<code>HashMap</code> 的 API。这篇讲”为什么这么设计”——也就是<strong>底层原理</strong>，重点是 <code>HashMap</code>，因为它几乎是 Java 面试出现频率最高的话题。</p>
 <p>注意范围：这里说的”数据结构底层原理”，指的是<strong>Java 集合类的内部实现</strong>（数组怎么扩容、HashMap 的哈希和扩容机制、为什么用红黑树），<strong>不是</strong>让你去手写红黑树、AVL树这类算法题——那是另一个范畴，工作中很少需要自己实现，但面试官很爱问”HashMap 底层用了什么数据结构、为什么”。</p>
 <span id="more"></span>
 
@@ -666,6 +670,11 @@
 </tr>
 </tbody></table>
 <p>这些内容里，<strong>HashMap 的 hash 扰动、负载因子、扩容机制、树化阈值、equals&#x2F;hashCode 契约</strong>是面试被问到概率最高的几个点，建议重点掌握；<code>ConcurrentHashMap</code> 的两代实现和 <code>ArrayDeque</code> 的缓存友好性属于”加分项”，能说出来会显得基础更扎实。</p>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
 
                 
               </div>

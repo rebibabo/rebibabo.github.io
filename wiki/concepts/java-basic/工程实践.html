@@ -1,0 +1,559 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="工程实践[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Java-Basic-概念总图|返回概念总图]] 这一层回答什么问题 代码写完了，怎么保证它对？怎么管理版本？怎么部署上线？消息队列、设计模式、开发规范这些”非语言特性”在工程中扮演什么角色？  这一层关心的是”让代码从能跑变成能交付”。语言和框架教你写代码，工程实践教你写能上线、能维护、能协作的代码。 这">
+<meta property="og:type" content="website">
+<meta property="og:title" content="工程实践">
+<meta property="og:url" content="https://rebibabo.github.io/wiki/concepts/java-basic/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="工程实践[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Java-Basic-概念总图|返回概念总图]] 这一层回答什么问题 代码写完了，怎么保证它对？怎么管理版本？怎么部署上线？消息队列、设计模式、开发规范这些”非语言特性”在工程中扮演什么角色？  这一层关心的是”让代码从能跑变成能交付”。语言和框架教你写代码，工程实践教你写能上线、能维护、能协作的代码。 这">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-06T06:24:34.899Z">
+<meta property="article:modified_time" content="2026-07-06T06:24:34.897Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="concept">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="java-basic">
+<meta property="article:tag" content="wiki">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>工程实践 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 60vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="工程实践"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <h1 id="工程实践"><a href="#工程实践" class="headerlink" title="工程实践"></a>工程实践</h1><p>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Java-Basic-概念总图|返回概念总图]]</p>
+<h2 id="这一层回答什么问题"><a href="#这一层回答什么问题" class="headerlink" title="这一层回答什么问题"></a>这一层回答什么问题</h2><blockquote>
+<p>代码写完了，怎么保证它对？怎么管理版本？怎么部署上线？消息队列、设计模式、开发规范这些”非语言特性”在工程中扮演什么角色？</p>
+</blockquote>
+<p>这一层关心的是”让代码从能跑变成能交付”。语言和框架教你写代码，工程实践教你写能上线、能维护、能协作的代码。</p>
+<h2 id="这层的主要分支"><a href="#这层的主要分支" class="headerlink" title="这层的主要分支"></a>这层的主要分支</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;设计模式|设计模式]] — 单例&#x2F;工厂&#x2F;策略&#x2F;代理&#x2F;模板方法&#x2F;建造者，在 Spring 中的应用</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;单元测试|单元测试]] — JUnit 5、Mockito、MockMvc、Given-When-Then</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Git|Git]] — 四层模型、merge vs rebase、撤销与恢复</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Tomcat与Servlet|Tomcat 与 Servlet]] — 请求链路、Filter vs Interceptor、内嵌 Tomcat</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;消息队列|消息队列]] — 解耦&#x2F;异步&#x2F;削峰、RabbitMQ vs Kafka、可靠性</li>
+</ul>
+<h3 id="设计模式"><a href="#设计模式" class="headerlink" title="设计模式"></a>设计模式</h3><p>不是”背 23 种模式”——而是理解 Java 生态中最常见的几种模式及其在框架中的实际应用：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>一句话</th>
+<th>Spring 中的应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单例</td>
+<td>全局只有一个实例</td>
+<td>Spring Bean 默认 singleton</td>
+</tr>
+<tr>
+<td>工厂</td>
+<td>封装对象创建</td>
+<td><code>BeanFactory</code></td>
+</tr>
+<tr>
+<td>策略</td>
+<td>运行时切换算法</td>
+<td><code>Map&lt;String, Strategy&gt;</code> 自动注入</td>
+</tr>
+<tr>
+<td>代理</td>
+<td>控制对象访问</td>
+<td>AOP、<code>@Transactional</code></td>
+</tr>
+<tr>
+<td>模板方法</td>
+<td>定义骨架、子类填空</td>
+<td><code>JdbcTemplate</code>、<code>HttpServlet</code></td>
+</tr>
+<tr>
+<td>建造者</td>
+<td>分步构建复杂对象</td>
+<td>Lombok <code>@Builder</code></td>
+</tr>
+</tbody></table>
+<h3 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h3><p><strong>JUnit 5</strong> 是测试框架，<strong>Mockito</strong> 模拟依赖，<strong>MockMvc</strong> 测试 Controller 层。测试结构遵循 Given-When-Then。</p>
+<p>测试不是”写完代码补几个用例”——它是设计工具。写测试的过程就是思考接口是否可测、依赖是否合理的过程。</p>
+<h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><p>工作区 → 暂存区 → 本地仓库 → 远程仓库，四阶段模型。<strong>merge vs rebase 黄金原则</strong>：公共分支用 merge（保留历史），个人分支用 rebase（保持线性）。不要 rebase 已 push 的分支。</p>
+<h3 id="Tomcat-与-Servlet"><a href="#Tomcat-与-Servlet" class="headerlink" title="Tomcat 与 Servlet"></a>Tomcat 与 Servlet</h3><p>一次 HTTP 请求的完整旅程：Connector 接收连接 → Filter 链 → DispatcherServlet → HandlerMapping → Interceptor 链 → Controller → 视图渲染 → Filter 链（反向）。</p>
+<p>Filter 是 Servlet 规范层的，Interceptor 是 Spring MVC 层的。Filter 用于编码&#x2F;CORS&#x2F;XSS，Interceptor 用于鉴权&#x2F;日志&#x2F;性能统计。</p>
+<h3 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h3><p>MQ 的三大核心价值：<strong>解耦</strong>（A 发消息，B 订阅，互不感知）、<strong>异步</strong>（非核心步骤异步处理）、<strong>削峰</strong>（MQ 缓冲，消费者匀速消费）。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RabbitMQ</th>
+<th>Kafka</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设计</td>
+<td>消息代理（AMQP）</td>
+<td>分布式日志</td>
+</tr>
+<tr>
+<td>吞吐</td>
+<td>万级&#x2F;秒</td>
+<td>百万级&#x2F;秒</td>
+</tr>
+<tr>
+<td>消费后</td>
+<td>ACK 后删除</td>
+<td>不删除，可重复消费</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>业务消息</td>
+<td>流数据、事件溯源</td>
+</tr>
+</tbody></table>
+<h3 id="开发规范与工作流"><a href="#开发规范与工作流" class="headerlink" title="开发规范与工作流"></a>开发规范与工作流</h3><p>代码规范（命名、格式、注释）、API 设计规范（RESTful、统一响应格式）、Git 分支模型（Git Flow&#x2F;Trunk Based）、CI&#x2F;CD 流水线、部署策略（灰度&#x2F;蓝绿&#x2F;金丝雀）——这些不是”加分项”，是团队协作的基础设施。</p>
+<h2 id="这一层和其他层的不同"><a href="#这一层和其他层的不同" class="headerlink" title="这一层和其他层的不同"></a>这一层和其他层的不同</h2><p>前面 13 个概念都是在教”一个 Java 程序怎么写”。这一层教的是”一个 Java 项目怎么做”——它连接了代码和真实世界。</p>
+<h2 id="在系列里的位置"><a href="#在系列里的位置" class="headerlink" title="在系列里的位置"></a>在系列里的位置</h2><p>post 19-20（设计模式、单元测试）、post 22（HTTP 客户端）、post 25-31（Claude Code、开发规范、工作流、Git、Tomcat、RabbitMQ、Kafka）。</p>
+<h2 id="推荐回看原文"><a href="#推荐回看原文" class="headerlink" title="推荐回看原文"></a>推荐回看原文</h2><ul>
+<li>[[_posts&#x2F;Java-basic&#x2F;19-design-patterns|19-设计模式]]</li>
+<li>[[_posts&#x2F;Java-basic&#x2F;20-unit-testing|20-单元测试]]</li>
+<li>[[_posts&#x2F;Java-basic&#x2F;28-git-essentials|28-Git]]</li>
+<li>[[_posts&#x2F;Java-basic&#x2F;29-tomcat-servlet|29-Tomcat 与 Servlet]]</li>
+<li>[[_posts&#x2F;Java-basic&#x2F;30-RabbitMQ|30-消息队列]]</li>
+<li>[[_posts&#x2F;Java-basic&#x2F;31-kafka|31-Kafka]]</li>
+</ul>
+<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Spring|Spring]] — 设计模式和 AOP 密切相关</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;数据访问|数据访问]] — 消息队列常和数据库配合做可靠任务系统</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;构建工具|构建工具]] — CI&#x2F;CD 的第一步就是 Maven&#x2F;Gradle 编译</li>
+</ul>
+
+
+  
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

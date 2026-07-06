@@ -1,0 +1,572 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="程序化广告系列[[wiki&#x2F;index|返回 Wiki 首页]] 系列定位这是一组按“先看全景，再拆角色，再讲交易规则，最后落到指标与协议”的程序化广告入门笔记。 它更像一条完整学习路径，而不是零散词条，所以这一版 wiki 先保留“系列页”作为主入口，不急着把每个概念拆成独立知识卡片。 这个系列回答什么问题 程序化广告生态里到底有哪些核心角色 广告主、DSP、SSP、ADX、Ad Ne">
+<meta property="og:type" content="website">
+<meta property="og:title" content="程序化广告系列">
+<meta property="og:url" content="https://rebibabo.github.io/wiki/series/programmatic-ads.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="程序化广告系列[[wiki&#x2F;index|返回 Wiki 首页]] 系列定位这是一组按“先看全景，再拆角色，再讲交易规则，最后落到指标与协议”的程序化广告入门笔记。 它更像一条完整学习路径，而不是零散词条，所以这一版 wiki 先保留“系列页”作为主入口，不急着把每个概念拆成独立知识卡片。 这个系列回答什么问题 程序化广告生态里到底有哪些核心角色 广告主、DSP、SSP、ADX、Ad Ne">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-06T07:14:46.678Z">
+<meta property="article:modified_time" content="2026-07-06T07:14:46.678Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="programmatic-ads">
+<meta property="article:tag" content="series">
+<meta property="article:tag" content="wiki">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>程序化广告系列 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 60vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="程序化广告系列"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <h1 id="程序化广告系列"><a href="#程序化广告系列" class="headerlink" title="程序化广告系列"></a>程序化广告系列</h1><p>[[wiki&#x2F;index|返回 Wiki 首页]]</p>
+<h2 id="系列定位"><a href="#系列定位" class="headerlink" title="系列定位"></a>系列定位</h2><p>这是一组按“先看全景，再拆角色，再讲交易规则，最后落到指标与协议”的程序化广告入门笔记。</p>
+<p>它更像一条完整学习路径，而不是零散词条，所以这一版 <code>wiki</code> 先保留“系列页”作为主入口，不急着把每个概念拆成独立知识卡片。</p>
+<h2 id="这个系列回答什么问题"><a href="#这个系列回答什么问题" class="headerlink" title="这个系列回答什么问题"></a>这个系列回答什么问题</h2><ul>
+<li>程序化广告生态里到底有哪些核心角色</li>
+<li>广告主、DSP、SSP、ADX、Ad Network、Ad Server 分别做什么</li>
+<li>广告交易为什么会从人工合约演化到 RTB、PMP、PD、PDB、Header Bidding</li>
+<li>怎么衡量投放效果</li>
+<li>DSP 和 SSP 之间到底靠什么协议通信</li>
+</ul>
+<h2 id="核心概念入口"><a href="#核心概念入口" class="headerlink" title="核心概念入口"></a>核心概念入口</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;角色总图|角色关系图]]</li>
+<li>[[DSP|DSP]]</li>
+<li>[[SSP|SSP]]</li>
+<li>[[ADX|ADX]]</li>
+<li>[[OpenRTB|OpenRTB]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;RTB|RTB]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;服务平台|广告服务平台]]</li>
+<li>[[广告网盟|Ad Network]]</li>
+<li>[[广告服务器|Ad Server]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;交易模式|交易模式框架]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;头部竞价|Header Bidding]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;指标|Metrics]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;指标与归因|指标与归因]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;原生广告规范|Native Ads Spec]]</li>
+</ul>
+<h2 id="当前-Wiki-覆盖范围"><a href="#当前-Wiki-覆盖范围" class="headerlink" title="当前 Wiki 覆盖范围"></a>当前 Wiki 覆盖范围</h2><p>现在这个系列已经不是只有一个总入口，而是已经拆出一组可继续展开的概念页。</p>
+<h3 id="1-角色与生态"><a href="#1-角色与生态" class="headerlink" title="1. 角色与生态"></a>1. 角色与生态</h3><ul>
+<li>[[DSP|DSP]]</li>
+<li>[[SSP|SSP]]</li>
+<li>[[ADX|ADX]]</li>
+<li>[[广告网盟|Ad Network]]</li>
+<li>[[广告服务器|Ad Server]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;服务平台|广告服务平台]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;角色总图|角色关系图]]</li>
+</ul>
+<h3 id="2-交易模式"><a href="#2-交易模式" class="headerlink" title="2. 交易模式"></a>2. 交易模式</h3><ul>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;RTB|RTB]]</li>
+<li>[[OA|OA]]</li>
+<li>[[PMP|PMP]]</li>
+<li>[[PD|PD]]</li>
+<li>[[PDB|PDB]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;头部竞价|Header Bidding]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;瀑布流|Waterfall]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;优先查看|First Look]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;底价|Floor Price]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;交易模式|交易模式框架]]</li>
+</ul>
+<h3 id="3-协议与对接"><a href="#3-协议与对接" class="headerlink" title="3. 协议与对接"></a>3. 协议与对接</h3><ul>
+<li>[[OpenRTB|OpenRTB]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;原生广告规范|Native Ads Spec]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;交易ID|Deal ID]]</li>
+</ul>
+<h3 id="4-指标与经营"><a href="#4-指标与经营" class="headerlink" title="4. 指标与经营"></a>4. 指标与经营</h3><ul>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;指标|Metrics]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;指标与归因|指标与归因]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;曝光|Impression]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;CPM|CPM]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;eCPM|eCPM]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;可见率|Viewability]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;CTR|CTR]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;CPC|CPC]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;CVR|CVR]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;CPA|CPA]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;ROI|ROI]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;ROAS|ROAS]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;LTV|LTV]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;填充率|Fill Rate]]</li>
+</ul>
+<h3 id="5-广告技术工具链"><a href="#5-广告技术工具链" class="headerlink" title="5. 广告技术工具链"></a>5. 广告技术工具链</h3><ul>
+<li>[[CMP|CMP]]</li>
+<li>[[DMP|DMP]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;广告验证|Ad Verification]]</li>
+<li>[[wiki&#x2F;concepts&#x2F;programmatic-ads&#x2F;分析平台|Analytics Platform]]</li>
+</ul>
+<h2 id="推荐阅读顺序"><a href="#推荐阅读顺序" class="headerlink" title="推荐阅读顺序"></a>推荐阅读顺序</h2><ol>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;01-introduction|程序化广告 (0)：先看清楚整个江湖]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;02-DSP|程序化广告 (1)：DSP——广告主的”代理人”]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;03-DSP-helper|程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的”商业化中枢”与”交易所”]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;05-Ad network&amp;server|程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;06-trading-mode-part1|程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;07-trading-mode-part2|程序化广告 (6)：交易模式（下）——Header Bidding 的革命]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;08-key-metrics|程序化广告 (7)：考核指标——程序化广告的”成绩单”]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;09-openRTB|程序化广告 (8)：OpenRTB 2.5 协议 &amp; Native Ads Spec 学习笔记]]</li>
+</ol>
+<h2 id="结构脉络"><a href="#结构脉络" class="headerlink" title="结构脉络"></a>结构脉络</h2><h3 id="1-全景认知"><a href="#1-全景认知" class="headerlink" title="1. 全景认知"></a>1. 全景认知</h3><ul>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;01-introduction|01-introduction]]</li>
+</ul>
+<p>先建立“广告主、媒体方、平台、交易、效果”这整套生态的总图。</p>
+<h3 id="2-需求方视角"><a href="#2-需求方视角" class="headerlink" title="2. 需求方视角"></a>2. 需求方视角</h3><ul>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;02-DSP|02-DSP]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;03-DSP-helper|03-DSP-helper]]</li>
+</ul>
+<p>这一段回答“广告主怎么把钱花出去，以及如何花得更准”。</p>
+<h3 id="3-供给方视角"><a href="#3-供给方视角" class="headerlink" title="3. 供给方视角"></a>3. 供给方视角</h3><ul>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;04-SSP|04-SSP]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;05-Ad network&amp;server|05-Ad network&amp;server]]</li>
+</ul>
+<p>这一段回答“媒体方怎么把流量卖出去，以及旧角色和新角色怎么共存”。</p>
+<h3 id="4-交易规则"><a href="#4-交易规则" class="headerlink" title="4. 交易规则"></a>4. 交易规则</h3><ul>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;06-trading-mode-part1|06-trading-mode-part1]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;07-trading-mode-part2|07-trading-mode-part2]]</li>
+</ul>
+<p>这一段把 RTB、PMP、PD、PDB、Header Bidding 串成一条演化链。</p>
+<h3 id="5-评估与协议"><a href="#5-评估与协议" class="headerlink" title="5. 评估与协议"></a>5. 评估与协议</h3><ul>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;08-key-metrics|08-key-metrics]]</li>
+<li>[[_posts&#x2F;programmatic-ads&#x2F;09-openRTB|09-openRTB]]</li>
+</ul>
+<p>这一段回答“怎么判断投得好不好，以及系统之间怎么真正对接”。</p>
+<h2 id="当前这页的作用"><a href="#当前这页的作用" class="headerlink" title="当前这页的作用"></a>当前这页的作用</h2><p>这不是原文替代品，而是这个系列在 <code>wiki</code> 层的总导航页。</p>
+<p>你可以把它理解成两层入口：</p>
+<ul>
+<li>想按文章顺序学：从“推荐阅读顺序”跳回 <code>_posts</code></li>
+<li>想按概念关系学：从“当前 Wiki 覆盖范围”进入概念子图</li>
+</ul>
+<p>后续继续扩展时，应该优先补这种“能接进现有图谱”的概念页，而不是把原文机械重写一遍。</p>
+
+
+  
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="I&#x2F;O[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Java-Basic-概念总图|返回概念总图]] 这一层回答什么问题 Java 怎么读写文件？BIO、NIO、AIO 有什么区别？什么时候该用哪个？  I&#x2F;O 是 Java 程序与外部世界交换数据的通道——读文件、发网络请求、处理输入输出流。不理解 I&#x2F;O 模型，就理解不了为什么">
+<meta property="og:type" content="website">
+<meta property="og:title" content="I&#x2F;O">
+<meta property="og:url" content="https://rebibabo.github.io/wiki/concepts/java-basic/IO.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="I&#x2F;O[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Java-Basic-概念总图|返回概念总图]] 这一层回答什么问题 Java 怎么读写文件？BIO、NIO、AIO 有什么区别？什么时候该用哪个？  I&#x2F;O 是 Java 程序与外部世界交换数据的通道——读文件、发网络请求、处理输入输出流。不理解 I&#x2F;O 模型，就理解不了为什么">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-06T06:24:14.623Z">
+<meta property="article:modified_time" content="2026-07-06T06:24:14.623Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="concept">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="java-basic">
+<meta property="article:tag" content="wiki">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>I/O - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 60vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="I/O"></span>
+          
+        </div>
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+<article class="page-content">
+  <h1 id="I-O"><a href="#I-O" class="headerlink" title="I&#x2F;O"></a>I&#x2F;O</h1><p>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Java-Basic-概念总图|返回概念总图]]</p>
+<h2 id="这一层回答什么问题"><a href="#这一层回答什么问题" class="headerlink" title="这一层回答什么问题"></a>这一层回答什么问题</h2><blockquote>
+<p>Java 怎么读写文件？BIO、NIO、AIO 有什么区别？什么时候该用哪个？</p>
+</blockquote>
+<p>I&#x2F;O 是 Java 程序与外部世界交换数据的通道——读文件、发网络请求、处理输入输出流。不理解 I&#x2F;O 模型，就理解不了为什么 Netty 要重新设计一套 API。</p>
+<h2 id="这层的主要分支"><a href="#这层的主要分支" class="headerlink" title="这层的主要分支"></a>这层的主要分支</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;BIO|BIO]] — 传统流式 I&#x2F;O、装饰器模式、字节流与字符流</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;NIO|NIO]] — Channel + Buffer + Selector、多路复用、Files 工具类</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;序列化|序列化]] — Serializable、Jackson JSON、对象与字节流的互转</li>
+</ul>
+<h2 id="三套-I-O-模型"><a href="#三套-I-O-模型" class="headerlink" title="三套 I&#x2F;O 模型"></a>三套 I&#x2F;O 模型</h2><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>全称</th>
+<th>核心</th>
+<th>阻塞</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>BIO</strong></td>
+<td>Blocking I&#x2F;O</td>
+<td>Stream（流）</td>
+<td>是</td>
+<td>简单文件读写、低并发</td>
+</tr>
+<tr>
+<td><strong>NIO</strong></td>
+<td>Non-blocking I&#x2F;O</td>
+<td>Channel + Buffer</td>
+<td>可非阻塞</td>
+<td>高并发网络服务</td>
+</tr>
+<tr>
+<td><strong>AIO</strong></td>
+<td>Asynchronous I&#x2F;O</td>
+<td>回调</td>
+<td>否</td>
+<td>极少直接使用</td>
+</tr>
+</tbody></table>
+<p><strong>BIO 的问题不是”慢”，而是”一个线程只能处理一个连接”。</strong> 当并发连接数上去后，线程资源就成了瓶颈。</p>
+<h2 id="BIO：传统的流式-I-O"><a href="#BIO：传统的流式-I-O" class="headerlink" title="BIO：传统的流式 I&#x2F;O"></a>BIO：传统的流式 I&#x2F;O</h2><p>核心是四大抽象类：</p>
+<ul>
+<li><code>InputStream</code> &#x2F; <code>OutputStream</code> — 字节流</li>
+<li><code>Reader</code> &#x2F; <code>Writer</code> — 字符流（内置编解码）</li>
+</ul>
+<p>装饰器模式是这个体系的核心设计：<code>BufferedReader</code> 包装 <code>FileReader</code> 加缓冲，<code>InputStreamReader</code> 桥接字节流和字符流。每一层包装加一种能力。</p>
+<h2 id="NIO：面向-Channel-和-Buffer"><a href="#NIO：面向-Channel-和-Buffer" class="headerlink" title="NIO：面向 Channel 和 Buffer"></a>NIO：面向 Channel 和 Buffer</h2><p>三大组件：</p>
+<ul>
+<li><strong>Channel</strong>：双向通道，可以读也可以写</li>
+<li><strong>Buffer</strong>：数据容器，position &#x2F; limit &#x2F; capacity 三指针控制读写</li>
+<li><strong>Selector</strong>：一个线程管理多个 Channel，谁有数据就处理谁——这是多路复用的核心</li>
+</ul>
+<p>NIO 最大的贡献不是性能，而是<strong>编程模型</strong>——它证明了”一个线程管理多个连接”是可行的。Netty 就是基于 NIO 构建的。</p>
+<h2 id="Files-工具类（Java-7-）"><a href="#Files-工具类（Java-7-）" class="headerlink" title="Files 工具类（Java 7+）"></a>Files 工具类（Java 7+）</h2><p><code>java.nio.file.Files</code> 是日常文件操作的首选：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 一行代码读/写</span><br><span class="hljs-type">String</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> Files.readString(Path.of(<span class="hljs-string">&quot;file.txt&quot;</span>));<br>Files.writeString(Path.of(<span class="hljs-string">&quot;out.txt&quot;</span>), <span class="hljs-string">&quot;hello&quot;</span>);<br><br><span class="hljs-comment">// 惰性流式处理大文件</span><br><span class="hljs-keyword">try</span> (Stream&lt;String&gt; lines = Files.lines(Path.of(<span class="hljs-string">&quot;large.csv&quot;</span>))) &#123;<br>    lines.filter(l -&gt; !l.startsWith(<span class="hljs-string">&quot;#&quot;</span>)).forEach(...);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>把对象转成字节流（序列化）和从字节流恢复对象（反序列化）。Java 原生 <code>Serializable</code> 简单但笨重，Jackson JSON 是工程上的主流选择。</p>
+<h2 id="在系列里的位置"><a href="#在系列里的位置" class="headerlink" title="在系列里的位置"></a>在系列里的位置</h2><p>post 09。在异常之后——I&#x2F;O 操作是 Checked Exception 的重灾区，<code>try-with-resources</code> 是标准写法。</p>
+<h2 id="推荐回看原文"><a href="#推荐回看原文" class="headerlink" title="推荐回看原文"></a>推荐回看原文</h2><ul>
+<li>[[_posts&#x2F;Java-basic&#x2F;09-io|09-I&#x2F;O 与文件操作]]</li>
+</ul>
+<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><ul>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;异常|异常]] — I&#x2F;O 操作大量使用 Checked Exception</li>
+<li>[[wiki&#x2F;concepts&#x2F;java-basic&#x2F;Lambda与Stream|Lambda 与 Stream]] — <code>Files.lines()</code> 返回的就是 Stream</li>
+</ul>
+
+
+  
+
+</article>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

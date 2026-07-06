@@ -19,15 +19,15 @@
   <meta name="author" content="rebibabo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。">
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、S">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础(8) | Lambda 与 Stream API：函数式编程核心工具">
 <meta property="og:url" content="https://rebibabo.github.io/2026/05/08/Java-basic/08-lambda-and-stream/index.html">
 <meta property="og:site_name" content="AI Infra">
-<meta property="og:description" content="前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、S">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-07T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-13T15:00:09.260Z">
+<meta property="article:modified_time" content="2026-06-19T00:32:06.361Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Lambda">
@@ -340,7 +340,7 @@
         
         
         
-          158 分钟
+          159 分钟
         
       </span>
     
@@ -384,7 +384,11 @@
             
               <div class="markdown-body">
                 
-                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。</p>
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Java 8 是 Java 历史上变化最大的一个版本，Lambda 表达式和 Stream API 彻底改变了 Java 的代码风格——从冗长的匿名内部类和 for 循环，变成了简洁的声明式写法。这篇文章把 Lambda、函数式接口、方法引用、Stream、Optional 一次讲完。</p>
 <span id="more"></span>
 
 <h2 id="1-从匿名内部类到-Lambda"><a href="#1-从匿名内部类到-Lambda" class="headerlink" title="1. 从匿名内部类到 Lambda"></a>1. 从匿名内部类到 Lambda</h2><h3 id="1-1-问题：匿名内部类太啰嗦"><a href="#1-1-问题：匿名内部类太啰嗦" class="headerlink" title="1.1 问题：匿名内部类太啰嗦"></a>1.1 问题：匿名内部类太啰嗦</h3><p>Java 8 之前，想把”一段行为”传给方法，只能用匿名内部类。</p>
@@ -911,6 +915,11 @@
 <blockquote>
 <p><strong>下一篇预告</strong>：I&#x2F;O 与文件操作——BIO、NIO 与 Files 工具类</p>
 </blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
 
                 
               </div>
@@ -1017,8 +1026,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/07/Java-advanced/07-tracing/" title="Java进阶(7) | 链路追踪入门：一个请求是怎么被&#34;全程跟拍&#34;的">
-                        <span class="hidden-mobile">Java进阶(7) | 链路追踪入门：一个请求是怎么被&#34;全程跟拍&#34;的</span>
+                      <a href="/2026/05/07/Java-basic/07-exception/" title="Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources">
+                        <span class="hidden-mobile">Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

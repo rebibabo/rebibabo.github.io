@@ -19,15 +19,15 @@
   <meta name="author" content="rebibabo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：到底慢在哪一步？ 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？ 指标回答不了这个问题，因为它是”聚合后的">
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java进阶(7) | 链路追踪入门：一个请求是怎么被&quot;全程跟拍&quot;的">
 <meta property="og:url" content="https://rebibabo.github.io/2026/05/07/Java-advanced/07-tracing/index.html">
 <meta property="og:site_name" content="AI Infra">
-<meta property="og:description" content="前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：到底慢在哪一步？ 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？ 指标回答不了这个问题，因为它是”聚合后的">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-06T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-16T00:50:06.282Z">
+<meta property="article:modified_time" content="2026-06-19T00:32:06.376Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="OpenTelemetry">
 <meta property="article:tag" content="Tracing">
@@ -330,7 +330,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          9.3k 字
+          9.4k 字
         
       </span>
     
@@ -341,7 +341,7 @@
         
         
         
-          78 分钟
+          79 分钟
         
       </span>
     
@@ -385,7 +385,11 @@
             
               <div class="markdown-body">
                 
-                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面两篇——<a href="/2026/05/05/Java-advanced/05-metric/">指标</a> 和 <a href="/2026/05/06/Java-advanced/06-grafana/">Grafana 大盘</a>——已经把可观测性三大支柱里的 <strong>Metrics（指标）</strong> 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：<strong>到底慢在哪一步？</strong> 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？</p>
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面两篇——<a href="/2026/05/05/Java-advanced/05-metric/">指标</a> 和 <a href="/2026/05/06/Java-advanced/06-grafana/">Grafana 大盘</a>——已经把可观测性三大支柱里的 <strong>Metrics（指标）</strong> 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，你接着要问的是：<strong>到底慢在哪一步？</strong> 这个请求在我自己服务里慢，还是卡在调用支付接口上，还是数据库查询拖了后腿？</p>
 <p>指标回答不了这个问题，因为它是”聚合后的数字”，丢掉了单次请求的细节。这就轮到第三根支柱 <strong>Tracing（链路追踪）</strong> 登场了。这篇不堆代码，重点把”一个请求是怎么被全程跟拍下来的”这件事的原理讲透——它其实没那么玄，核心思想用一个快递单号就能解释清楚。</p>
 <span id="more"></span>
 
@@ -714,6 +718,11 @@
 <blockquote>
 <p>到这里，可观测性三大支柱——<a href="/2026/05/05/Java-advanced/05-metric/">指标</a>、<a href="/2026/05/06/Java-advanced/06-grafana/">Grafana 大盘</a>、链路追踪——就凑齐了。实际项目里它们往往整合在同一套平台（比如在 Grafana 里从一个变慢的指标点，直接跳到对应的 trace，再下钻到日志），三层联动，排查一气呵成。</p>
 </blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
 
                 
               </div>
@@ -812,9 +821,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/05/08/Java-basic/08-lambda-and-stream/" title="Java基础(8) | Lambda 与 Stream API：函数式编程核心工具">
+                      <a href="/2026/05/07/Java-basic/07-exception/" title="Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Java基础(8) | Lambda 与 Stream API：函数式编程核心工具</span>
+                        <span class="hidden-mobile">Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -822,8 +831,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/05/07/Java-basic/07-exception/" title="Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources">
-                        <span class="hidden-mobile">Java基础(7) | 异常体系：Checked vs Unchecked 与 try-with-resources</span>
+                      <a href="/2026/05/06/Java-basic/06-genrics/" title="Java基础(6) | 泛型：类型擦除、通配符与 PECS 原则">
+                        <span class="hidden-mobile">Java基础(6) | 泛型：类型擦除、通配符与 PECS 原则</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

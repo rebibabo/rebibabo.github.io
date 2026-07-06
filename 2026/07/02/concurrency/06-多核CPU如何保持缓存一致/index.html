@@ -1,0 +1,991 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="第6章 多核 CPU 如何保持缓存一致CAS 能够在不使用 Java 锁的情况下完成原子更新，但它仍然需要硬件保证“比较”和“写入”不会被其他 CPU Core 同时破坏。问题在于，现代 CPU 不会让每个 Core 都直接访问主内存。为了缩小 CPU 与内存之间的速度差距，数据通常会先进入 Cache，同一份数据也可能同时出现在多个 Core 的缓存中。 当一个 Core 修改自己的缓存副本时，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致">
+<meta property="og:url" content="https://rebibabo.github.io/2026/07/02/concurrency/06-%E5%A4%9A%E6%A0%B8CPU%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="第6章 多核 CPU 如何保持缓存一致CAS 能够在不使用 Java 锁的情况下完成原子更新，但它仍然需要硬件保证“比较”和“写入”不会被其他 CPU Core 同时破坏。问题在于，现代 CPU 不会让每个 Core 都直接访问主内存。为了缩小 CPU 与内存之间的速度差距，数据通常会先进入 Cache，同一份数据也可能同时出现在多个 Core 的缓存中。 当一个 Core 修改自己的缓存副本时，">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-02T15:30:59.420Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="CPU Cache">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="MESI">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-02 00:00" pubdate>
+          2026年7月2日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          66 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="第6章-多核-CPU-如何保持缓存一致"><a href="#第6章-多核-CPU-如何保持缓存一致" class="headerlink" title="第6章 多核 CPU 如何保持缓存一致"></a>第6章 多核 CPU 如何保持缓存一致</h1><p>CAS 能够在不使用 Java 锁的情况下完成原子更新，但它仍然需要硬件保证“比较”和“写入”不会被其他 CPU Core 同时破坏。问题在于，现代 CPU 不会让每个 Core 都直接访问主内存。为了缩小 CPU 与内存之间的速度差距，数据通常会先进入 Cache，同一份数据也可能同时出现在多个 Core 的缓存中。</p>
+<p>当一个 Core 修改自己的缓存副本时，其他 Core 如何知道旧副本已经失效？两个 Core 同时准备修改同一份数据时，硬件如何决定谁先获得写入权限？这些问题由缓存一致性机制处理。</p>
+<h2 id="1-同一份数据为什么会有多个副本"><a href="#1-同一份数据为什么会有多个副本" class="headerlink" title="1. 同一份数据为什么会有多个副本"></a>1. 同一份数据为什么会有多个副本</h2><p>假设 Heap 中存在一个 <code>Counter</code> 对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Counter</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Thread A 运行在 Core 1，Thread B 运行在 Core 2。两个线程都读取 <code>count</code> 时，处理器可能把包含 <code>count</code> 的数据分别加载到两个 Core 的 Cache 中。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────────────────┐        ┌──────────────────────┐<br>│        Core 1        │        │        Core 2        │<br>├──────────────────────┤        ├──────────────────────┤<br>│ L1 Cache             │        │ L1 Cache             │<br>│ count = 0            │        │ count = 0            │<br>└──────────────────────┘        └──────────────────────┘<br>             ╲                            ╱<br>              ╲                          ╱<br>               ╲                        ╱<br>                └──────────┬───────────┘<br>                           ↓<br>              ┌────────────────────────┐<br>              │      Main Memory       │<br>              ├────────────────────────┤<br>              │ count = 0              │<br>              └────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>从 Java 程序的角度看，<code>count</code> 只有一份；从硬件执行过程看，它可能存在多个缓存副本。Cache 的作用就是让 Core 尽量在附近读取数据，而不是每次都等待主内存。</p>
+<p>不同处理器的缓存结构并不完全相同。常见设计是每个 Core 拥有私有的 L1、L2 Cache，多个 Core 共享更大的末级缓存，但具体层级和共享方式由硬件决定。无论结构如何变化，只要同一份数据能够同时被多个 Core 缓存，就需要解决副本一致性问题。</p>
+<h2 id="2-CPU-以-Cache-Line-为单位读取数据"><a href="#2-CPU-以-Cache-Line-为单位读取数据" class="headerlink" title="2. CPU 以 Cache Line 为单位读取数据"></a>2. CPU 以 Cache Line 为单位读取数据</h2><p>CPU Cache 通常不会只加载一个 Java 字段，而是一次加载一整块连续数据，这个基本单位称为 <strong>Cache Line</strong>。常见桌面和服务器处理器的 Cache Line 为 64 字节，但具体大小取决于硬件平台。</p>
+<p>假设程序只读取一个 4 字节的 <code>int</code>，CPU 仍然会把它所在的整条 Cache Line 加载到缓存中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">┌─────────────────────────────────────────────────────────────┐<br>│                         Cache Line                          │<br>├──────────────┬──────────────┬──────────────┬────────────────┤<br>│ count        │ status       │ version      │ other data     │<br>│ 4 bytes      │ 4 bytes      │ 8 bytes      │ ...            │<br>└──────────────┴──────────────┴──────────────┴────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>这样设计是为了利用局部性。程序访问某个位置后，通常还会继续访问附近的数据，一次读取一整块往往比每次只读取几个字节更高效。</p>
+<p>缓存一致性协议跟踪的通常也是 Cache Line，而不是单独的 Java 字段。Core 只修改其中一个字段时，其他 Core 中对应的整条 Cache Line 都可能失效。</p>
+<h2 id="3-修改-Cache-不等于立即写回主内存"><a href="#3-修改-Cache-不等于立即写回主内存" class="headerlink" title="3. 修改 Cache 不等于立即写回主内存"></a>3. 修改 Cache 不等于立即写回主内存</h2><p>现代 CPU 通常使用写回缓存策略。Core 修改数据时，可以先修改自己的 Cache Line，并把它标记为已修改，稍后再写回主内存。这样可以把多次连续写入合并，减少访问主内存的次数。</p>
+<p>例如，Core 1 连续把某个值从 <code>0</code> 修改到 <code>1</code>、<code>2</code>、<code>3</code>，没有必要每次都等待主内存完成写入。只要硬件能够保证其他 Core 不再使用过期副本，修改就可以先保留在 Cache 中。</p>
+<p>因此，线程能否看到最新值，不能只理解成“数据是否已经写回主内存”。更准确地说，需要关注两个问题：</p>
+<ul>
+<li>其他 Core 中的旧副本是否已经失效；</li>
+<li>其他 Core 下一次读取时能否取得最新数据。</li>
+</ul>
+<p>缓存一致性机制负责协调这些缓存副本，而不是要求所有读写都绕过 Cache 直接访问主内存。</p>
+<h2 id="4-缓存一致性协议要解决什么问题"><a href="#4-缓存一致性协议要解决什么问题" class="headerlink" title="4. 缓存一致性协议要解决什么问题"></a>4. 缓存一致性协议要解决什么问题</h2><p>假设 Core 1 和 Core 2 都缓存了同一条 Cache Line。只要两个 Core 都只读取，两个副本可以同时存在；一旦某个 Core 准备修改，硬件就必须保证其他 Core 不能继续把旧副本当作有效数据。</p>
+<p>缓存一致性机制主要解决两个问题：</p>
+<ol>
+<li>同一条 Cache Line 不能同时被多个 Core 以可修改状态持有；</li>
+<li>一个 Core 完成修改后，其他 Core 不能继续使用旧副本。</li>
+</ol>
+<p>写入过程可以简化为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">Core 想要写入<br>        ↓<br>请求独占权限ownership<br>        ↓<br>将其他 Core 的副本失效<br>        ↓<br>修改自己的 Cache Line<br>        ↓<br>写回主内存（可选）<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>ownership</code> 是 Cache Line 的硬件修改权限，不是 Java 对象锁。<code>synchronized</code> 保护的是一段业务代码，缓存一致性协议协调的是多个 Core 对同一条 Cache Line 的读写，两者处于不同层次。</p>
+<h2 id="5-MESI-的四种状态"><a href="#5-MESI-的四种状态" class="headerlink" title="5. MESI 的四种状态"></a>5. MESI 的四种状态</h2><p>MESI 是一种经典的缓存一致性协议模型，名称来自四种状态的首字母：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Modified</td>
+<td>当前 Core 独占并修改过这条 Cache Line，内容可能与主内存不同</td>
+</tr>
+<tr>
+<td>Exclusive</td>
+<td>当前 Core 独占这条 Cache Line，内容与主内存一致</td>
+</tr>
+<tr>
+<td>Shared</td>
+<td>多个 Core 可以持有相同的只读副本</td>
+</tr>
+<tr>
+<td>Invalid</td>
+<td>当前副本已经失效，不能继续读取</td>
+</tr>
+</tbody></table>
+<p>真实处理器可能使用 MESIF、MOESI 或其他扩展协议，并加入更多优化状态。本章使用 MESI 只是为了建立一个清晰模型，重点不是记住每一种状态转换，而是理解共享读取、独占修改和副本失效。</p>
+<h2 id="6-多个-Core-读取同一份数据"><a href="#6-多个-Core-读取同一份数据" class="headerlink" title="6. 多个 Core 读取同一份数据"></a>6. 多个 Core 读取同一份数据</h2><p>假设 Core 1 首先读取 <code>count</code>，并且其他 Core 中没有对应副本，Core 1 可能以 Exclusive 状态持有这条 Cache Line：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Core 1: Exclusive<br>Core 2: Invalid<br></code></pre></td></tr></table></figure>
+
+<p>随后 Core 2 也读取 <code>count</code>。两个 Core 都只读取，不会破坏数据，因此它们可以同时持有 Shared 状态的副本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Core 1: Shared<br>Core 2: Shared<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────────────────┐        ┌──────────────────────┐<br>│        Core 1        │        │        Core 2        │<br>├──────────────────────┤        ├──────────────────────┤<br>│ State: Shared        │        │ State: Shared        │<br>│ count = 0            │        │ count = 0            │<br>└──────────────────────┘        └──────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>Shared 状态允许多个 Core 并发读取。只要没有 Core 发起写入，这些副本都可以继续使用。</p>
+<h2 id="7-一个-Core-修改数据时会发生什么"><a href="#7-一个-Core-修改数据时会发生什么" class="headerlink" title="7. 一个 Core 修改数据时会发生什么"></a>7. 一个 Core 修改数据时会发生什么</h2><p>如果 Core 1 准备把 <code>count</code> 从 <code>0</code> 修改为 <code>1</code>，它不能直接在 Shared 状态下写入，因为 Core 2 仍然持有有效副本。Core 1 必须先取得独占修改权限，并让 Core 2 的副本失效。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────┬──────────────────────────────┬──────────────────────────────┐<br>│ Step │            Core 1            │            Core 2            │<br>├──────┼──────────────────────────────┼──────────────────────────────┤<br>│  1   │ Shared, count = 0            │ Shared, count = 0            │<br>│  2   │ Request ownership            │                              │<br>│  3   │                              │ Invalidate local copy        │<br>│  4   │ Modified, count = 1          │ Invalid                      │<br>└──────┴──────────────────────────────┴──────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>Core 2 再次读取 <code>count</code> 时，会发现自己的 Cache Line 已经处于 Invalid 状态，不能继续返回旧值 <code>0</code>。它必须重新取得有效数据，最终看到 Core 1 修改后的结果。在许多处理器中，最新的 Cache Line 可以通过 CPU 内部的缓存一致性互连，直接从 Core 1 的 Cache 传递给 Core 2，不需要先写回主内存再重新读取。</p>
+<p>这些失效通知和状态转换由处理器自动完成。Java 程序不需要手动清除 CPU Cache，也不能通过普通代码直接控制某条 Cache Line 的 MESI 状态。</p>
+<h2 id="8-两个-Core-同时修改会发生什么"><a href="#8-两个-Core-同时修改会发生什么" class="headerlink" title="8. 两个 Core 同时修改会发生什么"></a>8. 两个 Core 同时修改会发生什么</h2><p>如果 Core 1 和 Core 2 同时准备修改处于 Shared 状态的同一条 Cache Line，它们都会请求独占权限。硬件不能同时批准两个请求，否则两个 Core 会各自修改自己的副本，再次产生不一致。</p>
+<p>处理器会通过内部互连结构对请求进行协调，只有一个 Core 能先取得这条 Cache Line 的修改权限。另一个 Core 的副本会失效，它必须等待或重新取得最新状态后再尝试。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">Core 1 requests ownership ─┐<br>                           ├──→ Hardware arbitration<br>Core 2 requests ownership ─┘<br>                                   ↓<br>                          One request succeeds<br>                                   ↓<br>                       Other copy becomes Invalid<br></code></pre></td></tr></table></figure>
+
+<p>多个 Core 频繁修改同一条 Cache Line 时，修改权限会不断在 Core 之间转移。Cache Line 反复失效、重新获取，常被形容为在不同 Core 之间“来回弹跳”。即使程序只修改一个整数，硬件仍然需要协调一整条 Cache Line。</p>
+<h2 id="9-CAS-为什么需要硬件支持"><a href="#9-CAS-为什么需要硬件支持" class="headerlink" title="9. CAS 为什么需要硬件支持"></a>9. CAS 为什么需要硬件支持</h2><p>CAS 必须原子地完成“比较当前值”和“写入新值”。假设 Core 1 执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">CAS(expected = 0, newValue = 1)<br></code></pre></td></tr></table></figure>
+
+<p>处理器需要保证，在比较当前值是否为 <code>0</code> 并决定是否写入 <code>1</code> 的过程中，其他 Core 不能同时完成冲突写入。否则，比较成功后再写入的结果仍然可能覆盖其他线程的修改。</p>
+<p>CAS 的硬件过程可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">请求修改权限<br>      ↓<br>比较当前值与期望值<br>      ↓<br>当前值等于期望值时，写入新值<br>      ↓<br>返回成功或者失败<br></code></pre></td></tr></table></figure>
+
+<p>不同 CPU 架构使用的实现方式并不完全相同。有些架构提供原子读改写指令，有些架构通过一组配套指令完成条件更新。具体指令可以不同，但都必须保证比较和写入作为一个原子动作完成。</p>
+<p>因此，CAS 并不是完全不需要互斥。它没有使用 Java Monitor，也不会先把整个方法锁住，但硬件仍然需要协调目标内存位置的修改权限。更准确的说法是：</p>
+<blockquote>
+<p>CAS 不使用线程级互斥锁，而是依赖 CPU 提供的原子读改写能力。</p>
+</blockquote>
+<h2 id="10-为什么-CAS-竞争也有成本"><a href="#10-为什么-CAS-竞争也有成本" class="headerlink" title="10. 为什么 CAS 竞争也有成本"></a>10. 为什么 CAS 竞争也有成本</h2><p>CAS 不会像 <code>synchronized</code> 那样先让一个线程独占整段临界区，但多个 Core 同时更新同一个值时，仍然会争夺对应 Cache Line 的修改权限。</p>
+<p>假设十个线程不断对同一个 <code>AtomicInteger</code> 自增。每一轮只有一个线程能够基于某个旧值更新成功，其他线程的 CAS 会失败，然后重新读取并重试。与此同时，Cache Line 的所有权也可能在多个 Core 之间反复转移。</p>
+<p>CAS 的主要成本包括：</p>
+<ul>
+<li>失败后的重复读取和计算；</li>
+<li>持续占用 CPU 执行重试；</li>
+<li>Cache Line 在多个 Core 之间频繁转移；</li>
+<li>其他 Core 中对应副本反复失效。</li>
+</ul>
+<p>这也是 CAS 在低竞争场景中通常表现较好，而在高竞争场景中可能出现明显性能下降的原因。它避免的是线程阻塞，不是竞争本身。</p>
+<h2 id="11-缓存一致性不等于线程可见性"><a href="#11-缓存一致性不等于线程可见性" class="headerlink" title="11. 缓存一致性不等于线程可见性"></a>11. 缓存一致性不等于线程可见性</h2><p>缓存一致性协议能够保证同一条 Cache Line 的多个副本不会长期保持相互冲突的有效状态，但这并不等于 Java 程序中的所有读写都会按照源码顺序立刻被其他线程观察到。</p>
+<p>处理器可能使用 Store Buffer 暂存写入，编译器和 JVM 也可能在不破坏单线程语义的前提下调整指令顺序。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">data = <span class="hljs-number">42</span>;<br>ready = <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<p>另一个线程执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (ready) &#123;<br>    System.out.println(data);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>程序希望另一个线程看到 <code>ready == true</code> 时，<code>data</code> 已经等于 <code>42</code>。缓存一致性协议能够处理 <code>data</code> 和 <code>ready</code> 各自的缓存副本，但它并不单独规定这两个写操作必须以什么顺序对其他线程可见。</p>
+<p>因此，需要区分三个概念：</p>
+<ul>
+<li><strong>Cache Coherence</strong>：同一内存位置的多个缓存副本如何保持一致；</li>
+<li><strong>Memory Ordering</strong>：多个内存操作以什么顺序完成并对外可见；</li>
+<li><strong>Thread Safety</strong>：所有合法执行顺序是否都能得到正确业务结果。</li>
+</ul>
+<p>缓存一致性是 Java 并发的硬件基础之一，但不是完整答案。Java 还需要在 JVM 和语言层定义统一的内存规则。</p>
+<h2 id="12-什么是伪共享"><a href="#12-什么是伪共享" class="headerlink" title="12. 什么是伪共享"></a>12. 什么是伪共享</h2><p>Cache Line 是缓存一致性协议维护的基本单位，因此两个完全不同的变量只要位于同一条 Cache Line 中，也可能互相影响。这种现象称为<strong>伪共享（False Sharing）</strong>。</p>
+<p>假设 Thread A 只修改 <code>left</code>，Thread B 只修改 <code>right</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">PairCounter</span> &#123;<br>    <span class="hljs-type">long</span> left;<br>    <span class="hljs-type">long</span> right;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从业务逻辑看，两个线程没有修改同一个字段；但如果 <code>left</code> 和 <code>right</code> 位于同一条 Cache Line，Core 1 修改 <code>left</code> 时会取得整条 Cache Line 的修改权限，使 Core 2 中包含 <code>right</code> 的副本失效。Core 2 随后修改 <code>right</code>，又会让 Core 1 的副本失效。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────────────────────────────────────────────────────────┐<br>│                         Cache Line                           │<br>├────────────────────────────┬─────────────────────────────────┤<br>│ left                       │ right                           │<br>│ written by Core 1          │ written by Core 2               │<br>└────────────────────────────┴─────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<p>两个线程没有业务上的数据竞争，却因为共享同一条 Cache Line 而产生硬件争用，所以称为伪共享。它通常会造成 Cache Line 频繁失效、重新加载和迁移，最终降低吞吐量。</p>
+<p>伪共享主要出现在高频计数器、队列游标和性能敏感的数据结构中。普通业务代码不应该仅凭字段相邻就随意增加填充，因为对象布局还受到 JVM、字段重排、对象头和硬件平台影响。只有通过性能分析确认瓶颈后，才需要专门处理。</p>
+<h2 id="13-LongAdder-为什么适合高竞争计数"><a href="#13-LongAdder-为什么适合高竞争计数" class="headerlink" title="13. LongAdder 为什么适合高竞争计数"></a>13. LongAdder 为什么适合高竞争计数</h2><p><code>AtomicInteger</code> 只有一个共享值。所有线程执行自增时，都要对这个值进行 CAS：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">Thread A ─┐<br>Thread B ─┼──→ AtomicInteger.value<br>Thread C ─┤<br>Thread D ─┘<br></code></pre></td></tr></table></figure>
+
+<p>线程较少时，这种方式没有问题；线程很多时，大量 CAS 会集中在同一个变量上。一个线程更新成功后，其他线程基于旧值执行的 CAS 会失败，只能重新读取并重试。这个值所在的 Cache Line 也会在多个 Core 之间频繁转移。</p>
+<p><code>LongAdder</code> 不让所有线程一直竞争同一个值，而是把总数拆成一个 <code>base</code> 和多个 <code>Cell</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">┌──────────┬──────────┬──────────┬──────────┬──────────┐<br>│   base   │  Cell 0  │  Cell 1  │  Cell 2  │  Cell 3  │<br>├──────────┼──────────┼──────────┼──────────┼──────────┤<br>│    5     │    8     │    6     │    7     │    9     │<br>└──────────┴──────────┴──────────┴──────────┴──────────┘<br>                              ↓<br>                      sum = 5 + 8 + 6 + 7 + 9<br></code></pre></td></tr></table></figure>
+
+<p>刚开始没有竞争时，线程会优先使用 <code>base</code>，效果与普通原子计数器类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">base = 0<br>   ↓ increment<br>base = 1<br></code></pre></td></tr></table></figure>
+
+<p>如果多个线程同时更新 <code>base</code>，其中一些线程 CAS 失败，<code>LongAdder</code> 就会创建 <code>Cell</code> 数组，把后续更新分散到不同的 Cell 中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">Thread A ───→ Cell 0<br>Thread B ───→ Cell 2<br>Thread C ───→ Cell 1<br>Thread D ───→ Cell 3<br></code></pre></td></tr></table></figure>
+
+<p>线程并不是永久绑定某个 Cell，也不是一个 Core 固定对应一个 Cell。<code>LongAdder</code> 会根据线程自身的探测值选择 Cell；如果选中的 Cell 仍然竞争激烈，还可以尝试其他位置，并在需要时扩容 Cell 数组。</p>
+<p>每个 Cell 都有自己的数值，线程通常只需要对选中的 Cell 执行 CAS：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">cell.value = cell.value + <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+<p>实际更新仍然依赖 CAS，只是竞争从一个共享变量分散到了多个 Cell。原来所有线程都争抢同一个位置，现在不同线程更可能修改不同位置，因此 CAS 失败次数和 Cache Line 争用都会减少。</p>
+<p>读取总数时，<code>LongAdder</code> 会把 <code>base</code> 和所有 Cell 相加：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">long</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> base;<br><br><span class="hljs-keyword">for</span> (Cell cell : cells) &#123;<br>    total += cell.value;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>使用方式如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">LongAdder</span> <span class="hljs-variable">adder</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LongAdder</span>();<br><br>adder.increment();<br>adder.add(<span class="hljs-number">10</span>);<br><br><span class="hljs-type">long</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> adder.sum();<br></code></pre></td></tr></table></figure>
+
+<p>这种拆分并没有减少自增次数，而是把更新压力分散到多个内存位置，因此 <code>LongAdder</code> 在大量线程频繁计数时，通常比 <code>AtomicInteger</code> 更适合。</p>
+<p>不过，调用 <code>sum()</code> 时，其他线程仍然可能继续更新不同的 Cell，所以汇总结果不一定对应某个严格瞬间的值。<code>LongAdder</code> 适合请求次数、事件数量等统计场景，不适合“余额是否足够”“库存是否大于零”这类需要读取后立即判断并更新的业务逻辑。</p>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p>现代 CPU 使用多级 Cache 缩小 Core 与主内存之间的速度差距，同一份数据也可能同时存在多个缓存副本。缓存一致性协议通过跟踪 Cache Line 状态、协调修改权限和发送失效通知，保证多个 Core 不会长期使用相互冲突的有效副本。</p>
+<p>本章的核心结论包括：</p>
+<ul>
+<li>CPU 通常以 Cache Line 为单位读取和维护缓存数据；</li>
+<li>修改可以先发生在 Cache 中，不必每次立即写回主内存；</li>
+<li>多个 Core 可以同时读取同一条 Cache Line，但修改前必须取得独占权限；</li>
+<li>MESI 使用 Modified、Exclusive、Shared 和 Invalid 描述缓存状态；</li>
+<li>多个 Core 同时修改时，硬件必须协调 Cache Line 的所有权；</li>
+<li>CAS 依赖 CPU 提供的原子读改写能力；</li>
+<li>CAS 避免了线程级锁，但高竞争下仍然会发生重试和 Cache Line 争用；</li>
+<li>缓存一致性只解决同一内存位置的副本一致，不等于完整的线程可见性；</li>
+<li>不同字段位于同一条 Cache Line 时，可能发生伪共享；</li>
+<li><code>LongAdder</code> 通过分散热点降低高并发计数时的 Cache Line 竞争。</li>
+</ul>
+<p>缓存一致性解决了多个 Core 如何围绕同一份数据协作的问题，但还没有解释多个读写操作之间的可见顺序。下一章将继续分析 Java 中的可见性、指令重排和 <code>volatile</code>。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" class="category-chain-item">Java高并发底层原理</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/CPU-Cache/" class="print-no-link">#CPU Cache</a>
+      
+        <a href="/tags/MESI/" class="print-no-link">#MESI</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致</div>
+      <div>https://rebibabo.github.io/2026/07/02/concurrency/06-多核CPU如何保持缓存一致/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/02/concurrency/05-CAS%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E5%A4%9F%E5%9C%A8%E4%B8%8D%E5%8A%A0%E9%94%81%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E6%9B%B4%E6%96%B0%E5%85%B1%E4%BA%AB%E6%95%B0%E6%8D%AE/" title="Java高并发底层原理（五）—— CAS 为什么能够在不加锁的情况下更新共享数据">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（五）—— CAS 为什么能够在不加锁的情况下更新共享数据</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/02/concurrency/04-synchronized%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%BD%B1%E5%93%8D%E6%80%A7%E8%83%BD/" title="Java高并发底层原理（四）—— synchronized 为什么会影响性能">
+                        <span class="hidden-mobile">Java高并发底层原理（四）—— synchronized 为什么会影响性能</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
