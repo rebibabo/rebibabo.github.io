@@ -40,8 +40,19 @@
               "icon": "lucide-file",
               "title": "新标签页"
             }
+          },
+          {
+            "id": "91826179cf05f851",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "新标签页"
+            }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -202,7 +213,7 @@
       "termy:打开Termy终端": false
     }
   },
-  "active": "c7493faae6c822d6",
+  "active": "91826179cf05f851",
   "lastOpenFiles": [
     "db.json",
     "public/img/default.png",

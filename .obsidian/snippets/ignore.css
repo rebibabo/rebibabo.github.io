@@ -1,0 +1,9 @@
+div[data-path="node_modules"],
+div[data-path="public"],
+div[data-path=".git"],
+div[data-path=".deploy_git"],
+div[data-path="themes"],
+div[data-path="package-lock.json"],
+div[data-path="package.json"] {
+  display: none;
+}
