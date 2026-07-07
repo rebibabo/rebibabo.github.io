@@ -1,8 +1,10 @@
 graph LR
     subgraph Core1["Core 1"]
+        direction LR
         L1a["L1 Cache: count = 0"]
     end
     subgraph Core2["Core 2"]
+        direction LR
         L1b["L1 Cache: count = 0"]
     end
     L1a --> Mem["Main Memory: count = 0"]

@@ -26,18 +26,13 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="上一章介绍了 CompletableFuture 如何编排多个异步任务。任务正常完成时，结果会沿着任务链继续向后传递；但真实程序中，数据库查询可能失败，远程调用可能超时，任务代码也可能抛出运行时异常。 这一章继续沿用上一章的任务链视角，只讨论一个问题：异步阶段失败以后，异常如何保存、传播、恢复，以及调用线程最终如何感知这个失败。 一、异步任务中的异常为什么不会直接抛给调用线程先看一个异步任务： 1">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000074.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000075.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000076.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000077.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:47:12.003Z">
+<meta property="article:modified_time" content="2026-07-07T13:50:11.019Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="CompletableFuture">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000074.png">
   
   
   
@@ -233,7 +228,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          9.5k 字
+          10k 字
         
       </span>
     
@@ -244,7 +239,7 @@
         
         
         
-          80 分钟
+          88 分钟
         
       </span>
     
@@ -294,7 +289,28 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">CompletableFuture&lt;String&gt; future =<br>        CompletableFuture.supplyAsync(() -&gt; &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;查询失败&quot;</span>);<br>        &#125;);<br><br>System.out.println(<span class="hljs-string">&quot;调用线程继续执行&quot;</span>);<br></code></pre></td></tr></table></figure>
 
 <p>调用 <code>supplyAsync()</code> 的线程和执行 Lambda 的工作线程通常不是同一个线程。异常只能沿当前线程的调用栈向上传播，工作线程中的异常无法直接跳到主线程的调用栈中。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000074.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph Main[&quot;主线程&quot;]
+        direction LR
+        M1[&quot;调用 supplyAsync&quot;] --&gt; M2[&quot;拿到 future&quot;]
+        M2 --&gt; M3[&quot;继续执行&quot;]
+    end
+    subgraph Worker[&quot;工作线程&quot;]
+        direction LR
+        W1[&quot;执行 Supplier&quot;] --&gt; W2[&quot;抛出异常&quot;]
+        W2 --&gt; W3[&quot;完成 future&quot;]
+    end
+    subgraph Heap[&quot;堆&quot;]
+        direction LR
+        CF[&quot;CompletableFuture&lt;br&gt;result = 异常对象&lt;br&gt;state = 完成&quot;]
+    end
+    M2 --&gt; CF
+    W3 --&gt; CF
+</code></pre>
+
+
+
+
 <p>因此，<code>CompletableFuture</code> 必须先把任务的完成状态保存到堆对象中。正常完成时保存正常结果；异常完成时保存异常对象。调用线程之后只能通过异常处理阶段、<code>get()</code> 或 <code>join()</code>，再去感知这次失败。</p>
 <p>这和前文的 <code>FutureTask</code> 思路一致：跨线程不能靠方法返回值和异常直接传递，只能靠共享的结果对象保存完成状态。</p>
 <h2 id="二、Supplier-为什么不能直接抛出受检异常"><a href="#二、Supplier-为什么不能直接抛出受检异常" class="headerlink" title="二、Supplier 为什么不能直接抛出受检异常"></a>二、Supplier 为什么不能直接抛出受检异常</h2><p><code>CompletableFuture.supplyAsync()</code> 接收的是 <code>Supplier&lt;T&gt;</code>，不是 <code>Callable&lt;V&gt;</code>。</p>
@@ -334,7 +350,20 @@
 
 <p>第一阶段异常完成后，<code>thenApply()</code> 没有正常结果可用，因此不会执行。异常会继续向后传播，直到遇到能够处理异常的阶段，或者最终被 <code>get()</code> &#x2F; <code>join()</code> 感知。</p>
 <p>可以把任务链理解成两条路径：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000075.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph Normal[&quot;正常路径&quot;]
+        direction LR
+        SA[&quot;supplyAsync&quot;] --&gt; TA[&quot;thenApply&quot;] --&gt; TAc[&quot;thenAccept&quot;] --&gt; TR[&quot;thenRun&quot;]
+    end
+    subgraph Error[&quot;异常路径&quot;]
+        direction LR
+        SA2[&quot;supplyAsync&quot;] --&gt; EX[&quot;exceptionally&lt;br&gt;handle&lt;br&gt;whenComplete&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>不同方法对前一步完成状态的反应不同：</p>
 <table>
 <thead>
@@ -564,10 +593,26 @@
 <p>取消请求可能无法让它及时停止。</p>
 <p>因此，取消是一种协作机制，不是强制终止机制。这一点和前文 <code>FutureTask.cancel(true)</code> 的语义一致。</p>
 <h2 id="十一、allOf-和-anyOf-遇到异常时会怎样"><a href="#十一、allOf-和-anyOf-遇到异常时会怎样" class="headerlink" title="十一、allOf 和 anyOf 遇到异常时会怎样"></a>十一、allOf 和 anyOf 遇到异常时会怎样</h2><p><code>allOf()</code> 等待所有任务完成。如果其中至少一个任务异常完成，组合后的 <code>CompletableFuture&lt;Void&gt;</code> 也会异常完成。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000076.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    FA[&quot;futureA: 成功&quot;] --&gt; All[&quot;allOf: 失败&quot;]
+    FB[&quot;futureB: 失败&quot;] --&gt; All
+    FC[&quot;futureC: 成功&quot;] --&gt; All
+</code></pre>
+
+
+
+
 <p>各个任务的结果和异常仍然保存在原来的 <code>CompletableFuture</code> 中。<code>allOf()</code> 本身只表达“这一批任务都完成了”，不负责收集每个业务结果。</p>
 <p><code>anyOf()</code> 在任意一个任务最先完成时结束，这里的“完成”包括正常完成和异常完成。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000077.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    FA[&quot;futureA: 首个失败&quot;] --&gt; Any[&quot;anyOf: 失败&quot;]
+    FB[&quot;futureB: 后续成功&quot;]
+    FC[&quot;futureC: 后续成功&quot;]
+</code></pre>
+
+
+
+
 <p>所以，<code>anyOf()</code> 等待的是最快完成，不是最快成功。它不会自动忽略失败任务，也不会在一个任务完成后自动取消其他仍在执行的任务。</p>
 <h2 id="十二、常见错误"><a href="#十二、常见错误" class="headerlink" title="十二、常见错误"></a>十二、常见错误</h2><p>第一，捕获异常后直接返回 <code>null</code>：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">catch</span> (IOException e) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>

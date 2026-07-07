@@ -26,27 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="CAS 能够在不使用 Java 锁的情况下完成原子更新，但它仍然需要硬件保证“比较”和“写入”不会被其他 CPU Core 同时破坏。问题在于，现代 CPU 不会让每个 Core 都直接访问主内存。为了缩小 CPU 与内存之间的速度差距，数据通常会先进入 Cache，同一份数据也可能同时出现在多个 Core 的缓存中。 当一个 Core 修改自己的缓存副本时，其他 Core 如何知道旧副本已经失效">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000029.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000030.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000031.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000032.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000033.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000034.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000035.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000036.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000037.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000038.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000039.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000040.png">
 <meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:47:12.001Z">
+<meta property="article:modified_time" content="2026-07-07T13:50:11.017Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="CPU Cache">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="MESI">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000029.png">
   
   
   
@@ -242,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.8k 字
+          7.9k 字
         
       </span>
     
@@ -253,7 +240,7 @@
         
         
         
-          49 分钟
+          66 分钟
         
       </span>
     
@@ -303,12 +290,39 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Counter</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>Thread A 运行在 Core 1，Thread B 运行在 Core 2。两个线程都读取 <code>count</code> 时，处理器可能把包含 <code>count</code> 的数据分别加载到两个 Core 的 Cache 中。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000029.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph Core1[&quot;Core 1&quot;]
+        direction LR
+        L1a[&quot;L1 Cache: count = 0&quot;]
+    end
+    subgraph Core2[&quot;Core 2&quot;]
+        direction LR
+        L1b[&quot;L1 Cache: count = 0&quot;]
+    end
+    L1a --&gt; Mem[&quot;Main Memory: count = 0&quot;]
+    L1b --&gt; Mem
+</code></pre>
+
+
+
+
 <p>从 Java 程序的角度看，<code>count</code> 只有一份；从硬件执行过程看，它可能存在多个缓存副本。Cache 的作用就是让 Core 尽量在附近读取数据，而不是每次都等待主内存。</p>
 <p>不同处理器的缓存结构并不完全相同。常见设计是每个 Core 拥有私有的 L1、L2 Cache，多个 Core 共享更大的末级缓存，但具体层级和共享方式由硬件决定。无论结构如何变化，只要同一份数据能够同时被多个 Core 缓存，就需要解决副本一致性问题。</p>
 <h2 id="2-CPU-以-Cache-Line-为单位读取数据"><a href="#2-CPU-以-Cache-Line-为单位读取数据" class="headerlink" title="2. CPU 以 Cache Line 为单位读取数据"></a>2. CPU 以 Cache Line 为单位读取数据</h2><p>CPU Cache 通常不会只加载一个 Java 字段，而是一次加载一整块连续数据，这个基本单位称为 <strong>Cache Line</strong>。常见桌面和服务器处理器的 Cache Line 为 64 字节，但具体大小取决于硬件平台。</p>
 <p>假设程序只读取一个 4 字节的 <code>int</code>，CPU 仍然会把它所在的整条 Cache Line 加载到缓存中：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000030.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph CacheLine[&quot;Cache Line&quot;]
+        direction LR
+        F1[&quot;count: 4 bytes&quot;]
+        F2[&quot;status: 4 bytes&quot;]
+        F3[&quot;version: 8 bytes&quot;]
+        F4[&quot;other data: ...&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>这样设计是为了利用局部性。程序访问某个位置后，通常还会继续访问附近的数据，一次读取一整块往往比每次只读取几个字节更高效。</p>
 <p>缓存一致性协议跟踪的通常也是 Cache Line，而不是单独的 Java 字段。Core 只修改其中一个字段时，其他 Core 中对应的整条 Cache Line 都可能失效。</p>
 <h2 id="3-修改-Cache-不等于立即写回主内存"><a href="#3-修改-Cache-不等于立即写回主内存" class="headerlink" title="3. 修改 Cache 不等于立即写回主内存"></a>3. 修改 Cache 不等于立即写回主内存</h2><p>现代 CPU 通常使用写回缓存策略。Core 修改数据时，可以先修改自己的 Cache Line，并把它标记为已修改，稍后再写回主内存。这样可以把多次连续写入合并，减少访问主内存的次数。</p>
@@ -326,7 +340,16 @@
 <li>一个 Core 完成修改后，其他 Core 不能继续使用旧副本。</li>
 </ol>
 <p>写入过程可以简化为：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000031.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Core 想要写入&quot;] --&gt; B[&quot;请求独占权限&quot;]
+    B --&gt; C[&quot;将其他 Core 副本失效&quot;]
+    C --&gt; D[&quot;修改自己的 Cache Line&quot;]
+    D --&gt; E[&quot;写回主内存（可选）&quot;]
+</code></pre>
+
+
+
+
 <p>这里的 <code>ownership</code> 是 Cache Line 的硬件修改权限，不是 Java 对象锁。<code>synchronized</code> 保护的是一段业务代码，缓存一致性协议协调的是多个 Core 对同一条 Cache Line 的读写，两者处于不同层次。</p>
 <h2 id="5-MESI-的四种状态"><a href="#5-MESI-的四种状态" class="headerlink" title="5. MESI 的四种状态"></a>5. MESI 的四种状态</h2><p>MESI 是一种经典的缓存一致性协议模型，名称来自四种状态的首字母：</p>
 <table>
@@ -360,22 +383,66 @@
 <p>随后 Core 2 也读取 <code>count</code>。两个 Core 都只读取，不会破坏数据，因此它们可以同时持有 Shared 状态的副本：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Core 1: Shared<br>Core 2: Shared<br></code></pre></td></tr></table></figure>
 
-<p><img src="/images/Java-concurrency/IMG-20260707-000032.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph Core1[&quot;Core 1&quot;]
+        direction LR
+        S1[&quot;State: Shared&lt;br&gt;count = 0&quot;]
+    end
+    subgraph Core2[&quot;Core 2&quot;]
+        direction LR
+        S2[&quot;State: Shared&lt;br&gt;count = 0&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>Shared 状态允许多个 Core 并发读取。只要没有 Core 发起写入，这些副本都可以继续使用。</p>
 <h2 id="7-一个-Core-修改数据时会发生什么"><a href="#7-一个-Core-修改数据时会发生什么" class="headerlink" title="7. 一个 Core 修改数据时会发生什么"></a>7. 一个 Core 修改数据时会发生什么</h2><p>如果 Core 1 准备把 <code>count</code> 从 <code>0</code> 修改为 <code>1</code>，它不能直接在 Shared 状态下写入，因为 Core 2 仍然持有有效副本。Core 1 必须先取得独占修改权限，并让 Core 2 的副本失效。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000033.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">sequenceDiagram
+    participant C1 as Core 1
+    participant Bus
+    participant C2 as Core 2
+
+    Note over C1,C2: 1. Both Shared, count = 0
+    C1-&gt;&gt;Bus: 2. Request ownership
+    Bus-&gt;&gt;C2: 3. Invalidate
+    Note over C1: 4. Modified, count = 1
+    Note over C2: Invalid
+</code></pre>
+
+
+
+
 <p>Core 2 再次读取 <code>count</code> 时，会发现自己的 Cache Line 已经处于 Invalid 状态，不能继续返回旧值 <code>0</code>。它必须重新取得有效数据，最终看到 Core 1 修改后的结果。在许多处理器中，最新的 Cache Line 可以通过 CPU 内部的缓存一致性互连，直接从 Core 1 的 Cache 传递给 Core 2，不需要先写回主内存再重新读取。</p>
 <p>这些失效通知和状态转换由处理器自动完成。Java 程序不需要手动清除 CPU Cache，也不能通过普通代码直接控制某条 Cache Line 的 MESI 状态。</p>
 <h2 id="8-两个-Core-同时修改会发生什么"><a href="#8-两个-Core-同时修改会发生什么" class="headerlink" title="8. 两个 Core 同时修改会发生什么"></a>8. 两个 Core 同时修改会发生什么</h2><p>如果 Core 1 和 Core 2 同时准备修改处于 Shared 状态的同一条 Cache Line，它们都会请求独占权限。硬件不能同时批准两个请求，否则两个 Core 会各自修改自己的副本，再次产生不一致。</p>
 <p>处理器会通过内部互连结构对请求进行协调，只有一个 Core 能先取得这条 Cache Line 的修改权限。另一个 Core 的副本会失效，它必须等待或重新取得最新状态后再尝试。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000034.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    C1[&quot;Core 1: requests ownership&quot;] --&gt; Arb[&quot;Hardware Arbitration&quot;]
+    C2[&quot;Core 2: requests ownership&quot;] --&gt; Arb
+    Arb --&gt; Win[&quot;One request succeeds&quot;]
+    Win --&gt; Invalid[&quot;Other copy → Invalid&quot;]
+</code></pre>
+
+
+
+
 <p>多个 Core 频繁修改同一条 Cache Line 时，修改权限会不断在 Core 之间转移。Cache Line 反复失效、重新获取，常被形容为在不同 Core 之间“来回弹跳”。即使程序只修改一个整数，硬件仍然需要协调一整条 Cache Line。</p>
 <h2 id="9-CAS-为什么需要硬件支持"><a href="#9-CAS-为什么需要硬件支持" class="headerlink" title="9. CAS 为什么需要硬件支持"></a>9. CAS 为什么需要硬件支持</h2><p>CAS 必须原子地完成“比较当前值”和“写入新值”。假设 Core 1 执行：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">CAS(expected = 0, newValue = 1)<br></code></pre></td></tr></table></figure>
 
 <p>处理器需要保证，在比较当前值是否为 <code>0</code> 并决定是否写入 <code>1</code> 的过程中，其他 Core 不能同时完成冲突写入。否则，比较成功后再写入的结果仍然可能覆盖其他线程的修改。</p>
 <p>CAS 的硬件过程可以概括为：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000035.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Request[&quot;请求修改权限&quot;] --&gt; Compare[&quot;比较当前值与期望值&quot;]
+    Compare --&gt;|相等| Write[&quot;写入新值&quot;]
+    Write --&gt; Return[&quot;返回成功或失败&quot;]
+</code></pre>
+
+
+
+
 <p>不同 CPU 架构使用的实现方式并不完全相同。有些架构提供原子读改写指令，有些架构通过一组配套指令完成条件更新。具体指令可以不同，但都必须保证比较和写入作为一个原子动作完成。</p>
 <p>因此，CAS 并不是完全不需要互斥。它没有使用 Java Monitor，也不会先把整个方法锁住，但硬件仍然需要协调目标内存位置的修改权限。更准确的说法是：</p>
 <blockquote>
@@ -411,18 +478,62 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">PairCounter</span> &#123;<br>    <span class="hljs-type">long</span> left;<br>    <span class="hljs-type">long</span> right;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>从业务逻辑看，两个线程没有修改同一个字段；但如果 <code>left</code> 和 <code>right</code> 位于同一条 Cache Line，Core 1 修改 <code>left</code> 时会取得整条 Cache Line 的修改权限，使 Core 2 中包含 <code>right</code> 的副本失效。Core 2 随后修改 <code>right</code>，又会让 Core 1 的副本失效。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000036.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph CacheLine[&quot;Cache Line&quot;]
+        direction LR
+        Left[&quot;left: Core 1&quot;] 
+        Right[&quot;right: Core 2&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>两个线程没有业务上的数据竞争，却因为共享同一条 Cache Line 而产生硬件争用，所以称为伪共享。它通常会造成 Cache Line 频繁失效、重新加载和迁移，最终降低吞吐量。</p>
 <p>伪共享主要出现在高频计数器、队列游标和性能敏感的数据结构中。普通业务代码不应该仅凭字段相邻就随意增加填充，因为对象布局还受到 JVM、字段重排、对象头和硬件平台影响。只有通过性能分析确认瓶颈后，才需要专门处理。</p>
 <h2 id="13-LongAdder-为什么适合高竞争计数"><a href="#13-LongAdder-为什么适合高竞争计数" class="headerlink" title="13. LongAdder 为什么适合高竞争计数"></a>13. LongAdder 为什么适合高竞争计数</h2><p><code>AtomicInteger</code> 只有一个共享值。所有线程执行自增时，都要对这个值进行 CAS：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000037.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread A&quot;] --&gt; AI[&quot;AtomicInteger&quot;]
+    B[&quot;Thread B&quot;] --&gt; AI
+    C[&quot;Thread C&quot;] --&gt; AI
+    D[&quot;Thread D&quot;] --&gt; AI
+</code></pre>
+
+
+
+
 <p>线程较少时，这种方式没有问题；线程很多时，大量 CAS 会集中在同一个变量上。一个线程更新成功后，其他线程基于旧值执行的 CAS 会失败，只能重新读取并重试。这个值所在的 Cache Line 也会在多个 Core 之间频繁转移。</p>
 <p><code>LongAdder</code> 不让所有线程一直竞争同一个值，而是把总数拆成一个 <code>base</code> 和多个 <code>Cell</code>：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000038.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Base[&quot;base = 5&quot;] --&gt; Sum[&quot;sum = 35&quot;]
+    Cell0[&quot;Cell 0 = 8&quot;] --&gt; Sum
+    Cell1[&quot;Cell 1 = 6&quot;] --&gt; Sum
+    Cell2[&quot;Cell 2 = 7&quot;] --&gt; Sum
+    Cell3[&quot;Cell 3 = 9&quot;] --&gt; Sum
+</code></pre>
+
+
+
+
 <p>刚开始没有竞争时，线程会优先使用 <code>base</code>，效果与普通原子计数器类似：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000039.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Base0[&quot;base = 0&quot;] --&gt;|increment| Base1[&quot;base = 1&quot;]
+</code></pre>
+
+
+
+
 <p>如果多个线程同时更新 <code>base</code>，其中一些线程 CAS 失败，<code>LongAdder</code> 就会创建 <code>Cell</code> 数组，把后续更新分散到不同的 Cell 中：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000040.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread A&quot;] --&gt; Cell0[&quot;Cell 0&quot;]
+    B[&quot;Thread B&quot;] --&gt; Cell2[&quot;Cell 2&quot;]
+    C[&quot;Thread C&quot;] --&gt; Cell1[&quot;Cell 1&quot;]
+    D[&quot;Thread D&quot;] --&gt; Cell3[&quot;Cell 3&quot;]
+</code></pre>
+
+
+
+
 <p>线程并不是永久绑定某个 Cell，也不是一个 Core 固定对应一个 Cell。<code>LongAdder</code> 会根据线程自身的探测值选择 Cell；如果选中的 Cell 仍然竞争激烈，还可以尝试其他位置，并在需要时扩容 Cell 数组。</p>
 <p>每个 Cell 都有自己的数值，线程通常只需要对选中的 Cell 执行 CAS：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">cell.value = cell.value + <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>

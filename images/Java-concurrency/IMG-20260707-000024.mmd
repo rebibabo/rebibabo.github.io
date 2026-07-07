@@ -1,13 +1,17 @@
 graph LR
     subgraph A["Thread A"]
+        direction LR
         A1["Read"] --> A2["CAS ✓"]
     end
     subgraph B["Thread B"]
+        direction LR
         B1["Read"] --> B2["CAS ✗"] --> B3["Read"] --> B4["CAS ✗"] --> B5["Retry"]
     end
     subgraph C["Thread C"]
+        direction LR
         C1["Read"] --> C2["CAS ✗"] --> C3["Read"] --> C4["CAS ✓"]
     end
     subgraph D["Thread D"]
+        direction LR
         D1["Read"] --> D2["CAS ✗"] --> D3["Retry"]
     end

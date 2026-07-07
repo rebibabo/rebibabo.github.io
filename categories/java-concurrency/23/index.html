@@ -26,34 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="前面已经讨论了 Condition 如何让线程在业务条件不满足时释放锁并等待。BlockingQueue 正是这类机制在队列场景中的标准化封装：队列为空时，消费者不需要自己写 await()；队列已满时，生产者也不需要自己管理 notFull。它把“存取元素”和“空满等待”合并成了一套统一的队列接口。 普通 Queue 只回答一个问题：元素如何进入队列、如何从队列中取出。BlockingQueue">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000142.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000143.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000144.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000145.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000146.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000147.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000148.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000149.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000150.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000151.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000152.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000153.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000154.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000155.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000156.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000157.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000158.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000159.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000160.png">
 <meta property="article:published_time" content="2026-07-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:47:12.005Z">
+<meta property="article:modified_time" content="2026-07-07T13:50:11.021Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="BlockingQueue">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="线程池">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000142.png">
   
   
   
@@ -249,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          13k 字
+          16k 字
         
       </span>
     
@@ -260,7 +240,7 @@
         
         
         
-          106 分钟
+          137 分钟
         
       </span>
     
@@ -306,7 +286,13 @@
                 
                 <p>前面已经讨论了 <code>Condition</code> 如何让线程在业务条件不满足时释放锁并等待。<code>BlockingQueue</code> 正是这类机制在队列场景中的标准化封装：队列为空时，消费者不需要自己写 <code>await()</code>；队列已满时，生产者也不需要自己管理 <code>notFull</code>。它把“存取元素”和“空满等待”合并成了一套统一的队列接口。</p>
 <p>普通 <code>Queue</code> 只回答一个问题：元素如何进入队列、如何从队列中取出。<code>BlockingQueue</code> 额外回答了另一个问题：当队列暂时不能继续操作时，线程应该怎么办。这个问题在生产者消费者模型中非常常见：生产者负责放入任务，消费者负责取走任务；如果两边速度不一致，队列就会出现空或满。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000142.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;生产者&lt;br&gt;put task&quot;] --&gt; B[&quot;BlockingQueue&lt;br&gt;store tasks&quot;] --&gt; C[&quot;消费者&lt;br&gt;take task&quot;]
+</code></pre>
+
+
+
+
 <p>因此，<code>BlockingQueue</code> 不是简单的“线程安全队列”，而是一个带等待语义的线程安全队列。线程安全保证多个线程同时访问队列时内部状态不会损坏；等待语义保证队列空或满时，线程可以按约定阻塞、超时、失败或抛异常。</p>
 <h2 id="一、BlockingQueue-的方法差异，本质是失败策略差异"><a href="#一、BlockingQueue-的方法差异，本质是失败策略差异" class="headerlink" title="一、BlockingQueue 的方法差异，本质是失败策略差异"></a>一、BlockingQueue 的方法差异，本质是失败策略差异</h2><p>队列操作主要分成插入、获取并移除、只查看三类。<code>BlockingQueue</code> 在普通 <code>Queue</code> 的基础上，对“操作无法立即完成”提供了几组不同策略。</p>
 <table>
@@ -391,11 +377,38 @@
 </tr>
 </tbody></table>
 <p>假设容量为 5，依次放入 <code>A</code>、<code>B</code>、<code>C</code> 后，数组状态大致如下：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000143.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    subgraph items[&quot;items 数组（容量 5）&quot;]
+        direction LR
+        i0[&quot;[0] A&quot;] ~~~ i1[&quot;[1] B&quot;] ~~~ i2[&quot;[2] C&quot;] ~~~ i3[&quot;[3] 空&quot;] ~~~ i4[&quot;[4] 空&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>此时执行一次 <code>take()</code>，取出的不是移动整个数组，而是读取 <code>takeIndex</code> 指向的位置，然后让 <code>takeIndex</code> 后移。数组不会把 <code>B</code>、<code>C</code> 搬到前面，因为每次搬移都会带来额外成本。队列只需要维护“下次从哪里取”和“下次往哪里放”。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000144.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    subgraph items[&quot;items 数组（容量 5）&quot;]
+        direction LR
+        i0[&quot;[0] 空&quot;] ~~~ i1[&quot;[1] B&quot;] ~~~ i2[&quot;[2] C&quot;] ~~~ i3[&quot;[3] 空&quot;] ~~~ i4[&quot;[4] 空&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>数组下标走到末尾后会回到 0，所以这个数组是循环使用的。继续放入 <code>D</code>、<code>E</code>，再放入 <code>F</code> 时，<code>putIndex</code> 会回到开头，把已经被取走的位置重新利用。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000145.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    subgraph items[&quot;items 数组（容量 5）&quot;]
+        direction LR
+        i0[&quot;[0] F&quot;] ~~~ i1[&quot;[1] B&quot;] ~~~ i2[&quot;[2] C&quot;] ~~~ i3[&quot;[3] D&quot;] ~~~ i4[&quot;[4] E&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>这里可以看到一个细节：<code>putIndex == takeIndex</code> 并不一定表示队列为空，也可能表示队列已满。因此 <code>ArrayBlockingQueue</code> 不能只靠两个下标判断空满，而要用 <code>count</code> 区分。</p>
 <table>
 <thead>
@@ -419,7 +432,20 @@
 
 <p>这里的 <code>items[takeIndex] = null</code> 不是为了让本次返回正确，因为返回值已经保存到局部变量 <code>e</code> 中；它的作用是断开数组对已出队对象的引用，避免对象逻辑上已经离开队列，却仍然因为数组持有引用而不能被 GC 回收。</p>
 <h2 id="三、ArrayBlockingQueue-为什么只用一把锁"><a href="#三、ArrayBlockingQueue-为什么只用一把锁" class="headerlink" title="三、ArrayBlockingQueue 为什么只用一把锁"></a>三、ArrayBlockingQueue 为什么只用一把锁</h2><p><code>ArrayBlockingQueue</code> 的所有核心状态都由同一把 <code>ReentrantLock</code> 保护。生产者修改 <code>items</code>、<code>putIndex</code> 和 <code>count</code>，消费者修改 <code>items</code>、<code>takeIndex</code> 和 <code>count</code>，其中 <code>count</code> 是双方共同修改的状态。使用一把锁可以让所有修改串行化，状态一致性更容易保证。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000146.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    subgraph put[&quot;put()&quot;]
+        direction LR
+        p1[&quot;获取锁&quot;] --&gt; p2[&quot;写入尾部&quot;] --&gt; p3[&quot;更新 count&quot;] --&gt; p4[&quot;释放锁&quot;]
+    end
+    subgraph take[&quot;take()&quot;]
+        direction LR
+        t1[&quot;获取锁&quot;] --&gt; t2[&quot;读取头部&quot;] --&gt; t3[&quot;更新 count&quot;] --&gt; t4[&quot;释放锁&quot;]
+    end
+</code></pre>
+
+
+
+
 <p>这也带来明显代价：即使队列既不空也不满，一个生产者正在 <code>put()</code>，一个消费者也不能同时 <code>take()</code>，因为二者竞争的是同一把锁。两个 <code>Condition</code> 只是把等待线程按业务条件分组，<code>notEmpty</code> 给消费者等待数据，<code>notFull</code> 给生产者等待空间，并不代表有两把锁。</p>
 <p>所以，<code>ArrayBlockingQueue</code> 的特点可以概括为：固定数组、容量明确、内存稳定、实现简单，但 <code>put()</code> 和 <code>take()</code> 不能真正并行。在容量边界清晰、希望内存可控的场景中，它是一个很稳妥的选择。</p>
 <h2 id="四、LinkedBlockingQueue：用两把锁提高生产消费并发度"><a href="#四、LinkedBlockingQueue：用两把锁提高生产消费并发度" class="headerlink" title="四、LinkedBlockingQueue：用两把锁提高生产消费并发度"></a>四、LinkedBlockingQueue：用两把锁提高生产消费并发度</h2><p><code>LinkedBlockingQueue</code> 的底层结构不是数组，而是链表。链表的一个天然特点是：入队主要修改尾部，出队主要修改头部。利用这个特点，<code>LinkedBlockingQueue</code> 把入队和出队拆成了两把锁。</p>
@@ -443,23 +469,72 @@
 </tr>
 </tbody></table>
 <p>这和前面的单锁模型形成对比：<code>ArrayBlockingQueue</code> 中生产者和消费者必须竞争同一把锁；<code>LinkedBlockingQueue</code> 中，只要队列既不空也不满，生产者可以持有 <code>putLock</code> 追加节点，消费者可以持有 <code>takeLock</code> 摘取节点，两类操作可以并发推进。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000147.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000148.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    producer[&quot;生产者 put()&quot;] --&gt; lock[&quot;单锁&lt;br&gt;single lock&quot;]
+    consumer[&quot;消费者 take()&quot;] --&gt; lock
+</code></pre>
+
+
+
+
+<pre><code class=" mermaid">flowchart LR
+    producer[&quot;生产者 put()&quot;] --&gt; putLock[&quot;putLock&quot;]
+    consumer[&quot;消费者 take()&quot;] --&gt; takeLock[&quot;takeLock&quot;]
+</code></pre>
+
+
+
+
 <p>两把锁提高了并发度，但也引出一个新问题：入队和出队都会修改元素数量，而它们并不持有同一把锁。为了解决这个共享计数问题，<code>LinkedBlockingQueue</code> 使用 <code>AtomicInteger count</code>。链表尾部由 <code>putLock</code> 保护，链表头部由 <code>takeLock</code> 保护，数量变化由原子变量保护。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000149.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    tail[&quot;tail link&quot;] --&gt; putLock[&quot;putLock 保护&quot;]
+    head[&quot;head link&quot;] --&gt; takeLock[&quot;takeLock 保护&quot;]
+    count[&quot;count&quot;] --&gt; atomic[&quot;AtomicInteger 保护&quot;]
+</code></pre>
+
+
+
+
 <p>如果 <code>count</code> 是普通 <code>int</code>，生产者执行 <code>count++</code>、消费者执行 <code>count--</code> 时可能并发发生，导致丢失更新。原子变量使数量变化在两把锁之间仍然保持一致。</p>
 <h2 id="五、LinkedBlockingQueue-的链表为什么需要哨兵节点"><a href="#五、LinkedBlockingQueue-的链表为什么需要哨兵节点" class="headerlink" title="五、LinkedBlockingQueue 的链表为什么需要哨兵节点"></a>五、LinkedBlockingQueue 的链表为什么需要哨兵节点</h2><p><code>LinkedBlockingQueue</code> 的链表节点大致包含两个字段：<code>item</code> 保存元素，<code>next</code> 指向后继节点。队列内部维护 <code>head</code> 和 <code>last</code> 两个指针，其中 <code>head</code> 通常是哨兵节点，不保存有效元素；真正的第一个元素在 <code>head.next</code>。</p>
 <p>初始状态下，队列只有一个哨兵节点，<code>head</code> 和 <code>last</code> 都指向它。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000150.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    hl[&quot;head / last&quot;] --&gt; sentinel[&quot;哨兵节点&lt;br&gt;item = null&quot;]
+</code></pre>
+
+
+
+
 <p>第一次放入 <code>A</code> 时，入队逻辑可以简化为：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">last.next = node;<br>last = node;<br></code></pre></td></tr></table></figure>
 
 <p>第一句是把新节点接到旧尾节点后面，第二句是把尾指针移动到新节点。放入 <code>A</code> 后，<code>last</code> 指向 <code>A</code>，而不是让 <code>A.next</code> 指向自己。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000151.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    head[&quot;head&quot;] --&gt; sentinel[&quot;哨兵节点&lt;br&gt;item = null&quot;] --&gt; a[&quot;节点 A&lt;br&gt;item = A&quot;]
+    last[&quot;last&quot;] --&gt; a
+</code></pre>
+
+
+
+
 <p>继续放入 <code>B</code>，就是把 <code>B</code> 接到旧尾节点 <code>A</code> 后面，再把 <code>last</code> 移到 <code>B</code>。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000152.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    head[&quot;head&quot;] --&gt; sentinel[&quot;哨兵节点&lt;br&gt;item = null&quot;] --&gt; a[&quot;节点 A&lt;br&gt;item = A&quot;] --&gt; b[&quot;节点 B&lt;br&gt;item = B&quot;]
+    last[&quot;last&quot;] --&gt; b
+</code></pre>
+
+
+
+
 <p>出队时取的不是 <code>head</code>，而是 <code>head.next</code>。假设当前第一个真实节点是 <code>A</code>，<code>take()</code> 会读取 <code>A.item</code>，然后把 <code>head</code> 移动到 <code>A</code>，并把 <code>A.item</code> 置为 <code>null</code>。这样原来的 <code>A</code> 节点变成新的哨兵节点，<code>B</code> 成为新的第一个真实元素。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000153.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    oldHead[&quot;旧 head&lt;br&gt;item = null&quot;] --&gt; newHead[&quot;新 head（原 A 节点）&lt;br&gt;item = null&quot;] --&gt; b[&quot;节点 B&lt;br&gt;item = B&quot;]
+    last[&quot;last&quot;] --&gt; b
+</code></pre>
+
+
+
+
 <p>这里的 <code>item = null</code> 不是原子并发控制手段，而是引用清理。由于头部摘取在 <code>takeLock</code> 下完成，同一时间不会有两个消费者同时移动 <code>head</code>；由于尾部追加在 <code>putLock</code> 下完成，同一时间不会有两个生产者同时修改 <code>last</code>。链表指针本身不需要 CAS，锁已经提供了互斥保护。</p>
 <p>哨兵节点让空队列和非空队列的处理更加统一：<code>head</code> 永远不保存有效元素，<code>head.next</code> 才是第一个真实元素；空队列时 <code>head == last</code>，非空时 <code>head.next != null</code>。</p>
 <h2 id="六、两把锁拆开后，通知也要分成两类"><a href="#六、两把锁拆开后，通知也要分成两类" class="headerlink" title="六、两把锁拆开后，通知也要分成两类"></a>六、两把锁拆开后，通知也要分成两类</h2><p>在单锁队列中，生产者放入元素后直接通知 <code>notEmpty</code>，消费者取出元素后直接通知 <code>notFull</code>。但在 <code>LinkedBlockingQueue</code> 中，<code>notEmpty</code> 绑定的是 <code>takeLock</code>，<code>notFull</code> 绑定的是 <code>putLock</code>。这意味着要操作哪个 <code>Condition</code>，就必须先持有创建它的那把锁。</p>
@@ -510,7 +585,26 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">signalNotEmpty</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">takeLock</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>.takeLock;<br><br>    takeLock.lock();<br>    <span class="hljs-keyword">try</span> &#123;<br>        notEmpty.signal();<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        takeLock.unlock();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>这样，生产者的一次 <code>put()</code> 就完整串起了三件事：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000154.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;生产者 put(e)&quot;] --&gt; B[&quot;获取 putLock&quot;]
+    B --&gt; C[&quot;队列已满?&quot;]
+    C --&gt;|&quot;是&quot;| D[&quot;等待 notFull&quot;]
+    D --&gt; C
+    C --&gt;|&quot;否&quot;| E[&quot;追加节点到尾部&quot;]
+    E --&gt; F[&quot;原子递增 count&quot;]
+    F --&gt; G[&quot;入队后仍未满?&quot;]
+    G --&gt;|&quot;是&quot;| H[&quot;signal notFull&lt;br&gt;（唤醒其他生产者）&quot;]
+    G --&gt;|&quot;否&quot;| I[&quot;释放 putLock&quot;]
+    H --&gt; I
+    I --&gt; J[&quot;入队前队列为空?&quot;]
+    J --&gt;|&quot;是&quot;| K[&quot;获取 takeLock&lt;br&gt;signal notEmpty&lt;br&gt;释放 takeLock&quot;]
+    J --&gt;|&quot;否&quot;| L[&quot;结束&quot;]
+    K --&gt; L
+</code></pre>
+
+
+
+
 <p>这个例子体现了 <code>LinkedBlockingQueue</code> 的通知规则：生产者侧的尾部追加由 <code>putLock</code> 保护，数量变化由 <code>AtomicInteger count</code> 保证，放完后如果本侧条件仍然满足，就继续唤醒其他生产者；如果这次入队打破了“空队列”边界，就跨到 <code>takeLock</code> 一侧唤醒消费者。</p>
 <h2 id="七、LinkedBlockingQueue-默认近似无界"><a href="#七、LinkedBlockingQueue-默认近似无界" class="headerlink" title="七、LinkedBlockingQueue 默认近似无界"></a>七、LinkedBlockingQueue 默认近似无界</h2><p><code>ArrayBlockingQueue</code> 创建时必须指定容量，而 <code>LinkedBlockingQueue</code> 可以不传容量：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedBlockingQueue</span>&lt;&gt;();<br><span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedBlockingQueue</span>&lt;&gt;(capacity);<br></code></pre></td></tr></table></figure>
@@ -543,9 +637,22 @@
 <p>因此，<code>LinkedBlockingQueue</code> 的优势不是“可以无限放”，而是用链表和两把锁提高生产消费并发度。实际使用时，通常更应该显式指定容量，让系统在消费能力不足时尽早暴露压力，而不是把压力隐藏到内存中。</p>
 <h2 id="八、SynchronousQueue：没有容量的直接交接"><a href="#八、SynchronousQueue：没有容量的直接交接" class="headerlink" title="八、SynchronousQueue：没有容量的直接交接"></a>八、SynchronousQueue：没有容量的直接交接</h2><p><code>SynchronousQueue</code> 虽然也实现了 <code>BlockingQueue</code>，但它不是用来缓存元素的。它的容量为 0，生产者和消费者必须直接配对，元素不会进入一个中间缓冲区等待以后再取。</p>
 <p>普通阻塞队列允许生产者和消费者在时间上错开：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000155.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;生产者 put(A)&quot;] --&gt; B[&quot;Queue 存储 A&quot;]
+    B --&gt; C[&quot;消费者 take(A)&quot;]
+</code></pre>
+
+
+
+
 <p><code>SynchronousQueue</code> 则要求双方同时在场：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000156.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;生产者 put(A)&quot;] &lt;--&gt; B[&quot;消费者 take()&quot;]
+</code></pre>
+
+
+
+
 <p>如果生产者先调用 <code>put(A)</code>，但没有消费者正在 <code>take()</code>，生产者就会阻塞；如果消费者先调用 <code>take()</code>，但没有生产者正在 <code>put()</code>，消费者也会阻塞。非阻塞的 <code>offer(A)</code> 在没有等待消费者时会直接返回 <code>false</code>，<code>poll()</code> 在没有等待生产者时会直接返回 <code>null</code>。</p>
 <p>这个特性在线程池中非常重要。使用普通队列时，核心线程忙了以后，任务可以先排队；使用 <code>SynchronousQueue</code> 时，任务没有地方缓存，只能直接交给空闲工作线程。如果没有空闲线程接收，线程池就更倾向于创建新线程，直到达到 <code>maximumPoolSize</code> 或执行拒绝策略。</p>
 <p><code>SynchronousQueue</code> 还支持公平模式和非公平模式：</p>
@@ -607,22 +714,63 @@
 
 <p>因为 <code>DelayQueue</code> 关注的是到期时间，而不是插入顺序。</p>
 <p>这一点会带来一个和普通阻塞队列不同的行为：<strong>队列非空，<code>take()</code> 也可能继续阻塞</strong>。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000157.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    subgraph dq[&quot;DelayQueue&quot;]
+        direction LR
+        top[&quot;堆顶: B&lt;br&gt;剩余 3 秒&quot;]
+        mid[&quot;下一个: C&lt;br&gt;剩余 5 秒&quot;]
+        bot[&quot;下一个: A&lt;br&gt;剩余 10 秒&quot;]
+    end
+    dq --&gt; consumer[&quot;take() 等待 B 到期才返回&quot;]
+</code></pre>
+
+
+
+
 <p>普通队列只要非空，消费者就可以取元素；但 <code>DelayQueue</code> 会先看堆顶元素是否到期。如果堆顶没到期，说明后面的元素只会更晚到期，所以消费者没有必要扫描整个队列，只需要等待堆顶元素到期。</p>
 <p>可以简单理解为：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000158.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;take()&quot;] --&gt; B[&quot;队列为空?&quot;]
+    B --&gt;|&quot;是&quot;| C[&quot;等待&quot;]
+    B --&gt;|&quot;否&quot;| D[&quot;检查堆顶元素&quot;]
+    D --&gt;|&quot;堆顶未到期&quot;| E[&quot;等待剩余时间&quot;]
+    D --&gt;|&quot;堆顶已到期&quot;| F[&quot;取出并返回&quot;]
+</code></pre>
+
+
+
+
 <p>多个消费者同时等待时，<code>DelayQueue</code> 内部使用 <code>leader</code> 优化。它不会让所有消费者都等待同一个到期时间，而是只让一个线程作为 leader，负责等待最近的到期时间；其他线程普通等待。这样可以避免到期时间一到，多个消费者同时醒来抢锁，最后却只有一个线程真正取到元素。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Consumer-1: leader, waits until top expires<br>Consumer-2: awaits normally<br>Consumer-3: awaits normally<br></code></pre></td></tr></table></figure>
 
 <p>如果生产者新放入的任务比原堆顶更早到期，原来的等待时间就不准确了。这时队列会清空 leader 并唤醒一个等待线程，让它重新检查新的堆顶任务。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000159.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;原堆顶: A&lt;br&gt;10 秒后到期&quot;] --&gt;|&quot;新任务 B 入队（1 秒后到期）&quot;| B[&quot;B 成为新的堆顶&quot;]
+    B --&gt; C[&quot;唤醒等待线程&lt;br&gt;重新计算等待时间&quot;]
+</code></pre>
+
+
+
+
 <p>所以，<code>DelayQueue</code> 的核心可以压缩成一句话：</p>
 <blockquote>
 <p><code>DelayQueue</code> 是按到期时间释放元素的阻塞队列；队列非空不代表可以取，只有最早到期的元素真正到期后，<code>take()</code> 才会返回。</p>
 </blockquote>
 <p>它也属于无界队列，<code>put()</code> 通常不会因为容量满而阻塞。真正阻塞的是没有到期元素时的 <code>take()</code>。因此它适合延迟任务、订单超时关闭、缓存过期清理、定时重试等场景，但不适合用来做容量反压。</p>
 <h2 id="十一、BlockingQueue-在线程池中决定任务是排队还是扩容"><a href="#十一、BlockingQueue-在线程池中决定任务是排队还是扩容" class="headerlink" title="十一、BlockingQueue 在线程池中决定任务是排队还是扩容"></a>十一、BlockingQueue 在线程池中决定任务是排队还是扩容</h2><p><code>ThreadPoolExecutor</code> 的构造参数中，<code>workQueue</code> 就是 <code>BlockingQueue&lt;Runnable&gt;</code>。它不仅是任务容器，还会影响线程池的扩容路径。简化后的 <code>execute()</code> 流程是：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000160.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;execute(task)&quot;] --&gt; B[&quot;workerCount &lt; corePoolSize?&quot;]
+    B --&gt;|&quot;是&quot;| C[&quot;创建核心工作线程&quot;]
+    B --&gt;|&quot;否&quot;| D[&quot;workQueue.offer(task)?&quot;]
+    D --&gt;|&quot;是（入队成功）&quot;| E[&quot;任务已排队&quot;]
+    D --&gt;|&quot;否（队列满）&quot;| F[&quot;workerCount &lt; maximumPoolSize?&quot;]
+    F --&gt;|&quot;是&quot;| G[&quot;创建非核心工作线程&quot;]
+    F --&gt;|&quot;否&quot;| H[&quot;执行拒绝策略&quot;]
+</code></pre>
+
+
+
+
 <p>这里有一个容易忽略的点：线程池提交任务时，入队通常调用的是 <code>offer()</code>，不是 <code>put()</code>。也就是说，队列满了以后，提交线程不会在 <code>put()</code> 上一直阻塞，而是入队失败，然后线程池尝试创建非核心线程；如果线程数也达到上限，才执行拒绝策略。</p>
 <p>不同队列会让线程池表现出不同倾向：</p>
 <table>

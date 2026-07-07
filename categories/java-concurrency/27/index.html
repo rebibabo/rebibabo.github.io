@@ -26,27 +26,16 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="前面几章已经讲过锁、线程池、AQS、Condition、BlockingQueue 等并发组件。它们本质上都在解决同一个问题：多个线程如何安全、有序地共享资源。但只要线程之间存在资源竞争，就不只会出现数据错误，还可能出现另一类问题：程序看起来“卡住了”。 “卡住”并不是一种问题。线程可能真的互相等待，可能一直在运行但没有推进，也可能只是长期轮不到执行。本文从死锁、活锁与线程饥饿三个问题出发，解释它">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000172.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000173.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000174.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000175.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000176.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000177.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000178.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000179.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000180.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000181.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000182.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707095333146.png">
 <meta property="article:published_time" content="2026-07-04T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:47:12.005Z">
+<meta property="article:modified_time" content="2026-07-07T13:50:11.022Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="线程安全">
 <meta property="article:tag" content="线程排查">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000172.png">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707095333146.png">
   
   
   
@@ -242,7 +231,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          12k 字
+          14k 字
         
       </span>
     
@@ -253,7 +242,7 @@
         
         
         
-          103 分钟
+          121 分钟
         
       </span>
     
@@ -338,13 +327,27 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DeadLockDemo</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Object</span> <span class="hljs-variable">orderLock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>();<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Object</span> <span class="hljs-variable">stockLock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">t1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">synchronized</span> (orderLock) &#123;<br>                sleep(<span class="hljs-number">100</span>);<br><br>                <span class="hljs-keyword">synchronized</span> (stockLock) &#123;<br>                    System.out.println(<span class="hljs-string">&quot;t1 done&quot;</span>);<br>                &#125;<br>            &#125;<br>        &#125;, <span class="hljs-string">&quot;order-worker-1&quot;</span>);<br><br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">t2</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">synchronized</span> (stockLock) &#123;<br>                sleep(<span class="hljs-number">100</span>);<br><br>                <span class="hljs-keyword">synchronized</span> (orderLock) &#123;<br>                    System.out.println(<span class="hljs-string">&quot;t2 done&quot;</span>);<br>                &#125;<br>            &#125;<br>        &#125;, <span class="hljs-string">&quot;order-worker-2&quot;</span>);<br><br>        t1.start();<br>        t2.start();<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">sleep</span><span class="hljs-params">(<span class="hljs-type">long</span> millis)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Thread.sleep(millis);<br>        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>            Thread.currentThread().interrupt();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>这里两个线程拿锁顺序相反：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000172.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;order-worker-1&quot;] --&gt; B[&quot;orderLock&quot;] --&gt; C[&quot;stockLock&quot;]
+    D[&quot;order-worker-2&quot;] --&gt; E[&quot;stockLock&quot;] --&gt; F[&quot;orderLock&quot;]
+</code></pre>
+
+
+
+
 <p><code>Thread.sleep(100)</code> 不是死锁的根本原因，它只是扩大并发交错窗口，让两个线程更容易先各自拿到第一把锁。</p>
 <p>一种可能的执行过程是：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">order-worker-1 拿到 orderLock<br>order-worker-2 拿到 stockLock<br><br>order-worker-1 想拿 stockLock，但 stockLock 在 order-worker-2 手里<br>order-worker-2 想拿 orderLock，但 orderLock 在 order-worker-1 手里<br></code></pre></td></tr></table></figure>
 
 <p>等待关系变成：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000173.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;order-worker-1&lt;br&gt;持有 orderLock&quot;] --&gt;|等待| B[&quot;stockLock&lt;br&gt;被 order-worker-2 持有&quot;]
+    C[&quot;order-worker-2&lt;br&gt;持有 stockLock&quot;] --&gt;|等待| D[&quot;orderLock&lt;br&gt;被 order-worker-1 持有&quot;]
+</code></pre>
+
+
+
+
 <p>这就是死锁的核心：<strong>等待关系形成了环</strong>。</p>
 <p>死锁通常需要同时满足四个条件：</p>
 <table>
@@ -388,13 +391,37 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">orderLock → stockLock<br></code></pre></td></tr></table></figure>
 
 <p>最多只会出现：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000174.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">sequenceDiagram
+    participant T1 as order-worker-1
+    participant T2 as order-worker-2
+    participant L as orderLock
+    participant S as stockLock
+
+    T1-&gt;&gt;L: 拿到 orderLock
+    T2-&gt;&gt;L: 等待 orderLock
+    T1-&gt;&gt;S: 拿到 stockLock
+    T1-&gt;&gt;T1: 执行完成
+    T1-&gt;&gt;S: 释放 stockLock
+    T1-&gt;&gt;L: 释放 orderLock
+    T2-&gt;&gt;L: 拿到 orderLock
+    T2-&gt;&gt;T2: 继续执行
+</code></pre>
+
+
+
+
 <p>这里仍然有等待，但不是死锁。因为等待链只有单向关系：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">order-worker-2 → waits for orderLock → order-worker-1<br></code></pre></td></tr></table></figure>
 
 <p>它没有形成环。</p>
 <p>如果不止两把锁，也要给锁规定一个全局顺序：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000175.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    lock1 --&gt; lock2 --&gt; lock3 --&gt; lock4
+</code></pre>
+
+
+
+
 <p>所有线程都只能按照这个顺序申请锁。这样可以破坏死锁四个条件里的“循环等待”。</p>
 <p>另一种办法是使用 <code>ReentrantLock.tryLock()</code> 给线程一个失败退路。<code>synchronized</code> 的问题是拿不到锁时只能一直等待，而 <code>tryLock()</code> 可以表达“我只等一会儿，拿不到就放弃”。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> java.util.concurrent.ThreadLocalRandom;<br><span class="hljs-keyword">import</span> java.util.concurrent.TimeUnit;<br><span class="hljs-keyword">import</span> java.util.concurrent.locks.ReentrantLock;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TryLockDemo</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">orderLock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">stockLock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">t1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; work(orderLock, stockLock), <span class="hljs-string">&quot;order-worker-1&quot;</span>);<br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">t2</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; work(stockLock, orderLock), <span class="hljs-string">&quot;order-worker-2&quot;</span>);<br><br>        t1.start();<br>        t2.start();<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">work</span><span class="hljs-params">(ReentrantLock first, ReentrantLock second)</span> &#123;<br>        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>            <span class="hljs-type">boolean</span> <span class="hljs-variable">firstLocked</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;<br>            <span class="hljs-type">boolean</span> <span class="hljs-variable">secondLocked</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;<br><br>            <span class="hljs-keyword">try</span> &#123;<br>                firstLocked = first.tryLock(<span class="hljs-number">1</span>, TimeUnit.SECONDS);<br>                <span class="hljs-keyword">if</span> (!firstLocked) &#123;<br>                    <span class="hljs-keyword">continue</span>;<br>                &#125;<br><br>                secondLocked = second.tryLock(<span class="hljs-number">1</span>, TimeUnit.SECONDS);<br>                <span class="hljs-keyword">if</span> (!secondLocked) &#123;<br>                    Thread.sleep(ThreadLocalRandom.current().nextInt(<span class="hljs-number">10</span>, <span class="hljs-number">100</span>));<br>                    <span class="hljs-keyword">continue</span>;<br>                &#125;<br><br>                System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; done&quot;</span>);<br>                <span class="hljs-keyword">break</span>;<br><br>            &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>                Thread.currentThread().interrupt();<br>                <span class="hljs-keyword">break</span>;<br>            &#125; <span class="hljs-keyword">finally</span> &#123;<br>                <span class="hljs-keyword">if</span> (secondLocked) &#123;<br>                    second.unlock();<br>                &#125;<br>                <span class="hljs-keyword">if</span> (firstLocked) &#123;<br>                    first.unlock();<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -404,16 +431,58 @@
 
 <p>但它们不会永久卡死。因为如果第二把锁拿不到，线程会在本轮结束前进入 <code>finally</code>，释放自己已经持有的第一把锁。</p>
 <p>也就是说：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000176.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;拿到第一把锁&quot;] --&gt; B[&quot;尝试拿第二把锁&quot;]
+    B --&gt; C[&quot;拿不到第二把锁&quot;]
+    C --&gt; D[&quot;不继续死等&quot;]
+    D --&gt; E[&quot;释放第一把锁&quot;]
+    E --&gt; F[&quot;下一轮重新尝试&quot;]
+</code></pre>
+
+
+
+
 <p>这里有一个细节：即使 <code>try</code> 中执行了 <code>continue</code>，Java 也会在离开当前 <code>try</code> 结构之前先执行 <code>finally</code>。所以这段代码能够保证每一轮循环结束前，只要已经拿到锁，就会把锁交出来。</p>
 <p><code>tryLock()</code> 解决的是“线程拿着部分资源无限等待”的问题，但它也有代价。如果多个线程释放和重试的节奏过于一致，死锁可能会被转化成另一种问题：活锁。</p>
 <h2 id="4、活锁是如何发生的"><a href="#4、活锁是如何发生的" class="headerlink" title="4、活锁是如何发生的"></a>4、活锁是如何发生的</h2><p>活锁和死锁的区别在于：死锁里的线程通常不动了，活锁里的线程还在运行。</p>
 <p>前面的 <code>tryLock()</code> 逻辑中，线程拿不到完整资源时会释放已有锁并重试。这比死锁好，因为线程不会永久阻塞。但如果两个线程每次都在同一时刻拿到第一把锁、同一时刻拿不到第二把锁、同一时刻释放、又同一时刻重试，就可能一直失败。</p>
 <p>执行过程可能变成：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000177.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">sequenceDiagram
+    participant T1 as order-worker-1
+    participant T2 as order-worker-2
+    participant OL as orderLock
+    participant SL as stockLock
+
+    Note over T1,T2: 第1轮
+    T1-&gt;&gt;OL: 拿到 orderLock
+    T2-&gt;&gt;SL: 拿到 stockLock
+    T1--xSL: 拿不到 stockLock
+    T2--xOL: 拿不到 orderLock
+    T1-&gt;&gt;OL: 释放 orderLock
+    T2-&gt;&gt;SL: 释放 stockLock
+
+    Note over T1,T2: 第2轮
+    T1-&gt;&gt;OL: 再次拿到 orderLock
+    T2-&gt;&gt;SL: 再次拿到 stockLock
+    T1--xSL: 再次失败
+    T2--xOL: 再次失败
+</code></pre>
+
+
+
+
 <p>线程没有阻塞，也没有互相永久持有资源，但业务仍然没有推进。这就是活锁。</p>
 <p>活锁的本质是：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000178.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;发现冲突&quot;] --&gt; B[&quot;主动让步&quot;]
+    B --&gt; C[&quot;重新尝试&quot;]
+    C --&gt; D[&quot;再次冲突&quot;]
+    D --&gt; E[&quot;再次让步&quot;]
+</code></pre>
+
+
+
+
 <p>问题不在“让步”本身，而在于多个线程让步和重试的节奏完全同步。就像两个人在走廊相遇，都往同一边让，结果谁也过不去。</p>
 <p>所以避免活锁的常见做法是让重试节奏错开。例如失败后随机等待一小段时间：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread.sleep(ThreadLocalRandom.current().nextInt(<span class="hljs-number">10</span>, <span class="hljs-number">100</span>));<br></code></pre></td></tr></table></figure>
@@ -460,7 +529,16 @@
 
 <p>这个线程池只有一个 Worker。外层任务先占用了这个 Worker，然后又提交内层任务，并调用 <code>future.get()</code> 等它完成。但内层任务也需要 Worker 才能执行。</p>
 <p>于是出现：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000179.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Worker 执行外层任务&quot;] --&gt; B[&quot;外层任务提交内层任务&quot;]
+    B --&gt; C[&quot;外层任务等待内层任务&quot;]
+    C --&gt; D[&quot;内层任务等待可用 Worker&quot;]
+    D -.-&gt; A
+</code></pre>
+
+
+
+
 <p>这里不一定有显式锁，但工作线程被等待动作占住了，真正需要执行的任务反而没有线程执行。它和死锁很像，但发生在任务调度层面。</p>
 <h2 id="6、如何用-jstack-看死锁和锁竞争"><a href="#6、如何用-jstack-看死锁和锁竞争" class="headerlink" title="6、如何用 jstack 看死锁和锁竞争"></a>6、如何用 jstack 看死锁和锁竞争</h2><p><code>jstack</code> 的作用是打印 Java 进程中所有线程当前的调用栈。它能告诉我们：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">线程是谁<br>线程处于什么状态<br>线程当前执行到哪一行<br>线程正在等待什么锁<br>线程已经持有什么锁<br></code></pre></td></tr></table></figure>
@@ -542,7 +620,17 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;order-worker-1&quot; #12 prio=5 os_prio=31 tid=0x... nid=0x3044 runnable<br>   java.lang.Thread.State: RUNNABLE<br>        at com.example.OrderService.calculate(OrderService.java:42)<br>        at com.example.OrderTask.run(OrderTask.java:18)<br>        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)<br>        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)<br>        at java.base/java.lang.Thread.run(Thread.java:833)<br></code></pre></td></tr></table></figure>
 
 <p>这条链路就完整了：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000180.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;top -Hp 找到高 CPU 线程&quot;] --&gt; B[&quot;线程 ID 转十六进制&quot;]
+    B --&gt; C[&quot;在 jstack 中搜索 nid&quot;]
+    C --&gt; D[&quot;找到 Java 线程名&quot;]
+    D --&gt; E[&quot;读取栈顶&quot;]
+    E --&gt; F[&quot;定位业务代码&quot;]
+</code></pre>
+
+
+
+
 <p>栈顶的业务代码最值得看：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">at com.example.OrderService.calculate(OrderService.java:42)<br></code></pre></td></tr></table></figure>
 
@@ -600,7 +688,14 @@
 
 <p>调用栈要从上往下读。最上面通常是线程当前正在执行的位置，下面是它一路被谁调用过来的。</p>
 <p>这里可以还原成：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000181.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;ThreadPoolExecutor Worker&quot;] --&gt; B[&quot;OrderTask.run()&quot;]
+    B --&gt; C[&quot;OrderService.calculate()&quot;]
+</code></pre>
+
+
+
+
 <p>也就是说，这是线程池 Worker 正在执行一个订单任务，当前停在 <code>OrderService.java:42</code>。</p>
 <p>如果看到下面这些线程池框架调用：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">ThreadPoolExecutor.runWorker<br>ThreadPoolExecutor$Worker.run<br>Thread.run<br></code></pre></td></tr></table></figure>
@@ -652,7 +747,19 @@
 
 <p>这说明 10 个 Worker 都在执行任务，还有 5000 个任务排队。如果后面的任务迟迟不执行，优先怀疑线程池被长任务、阻塞任务或等待动作占满。</p>
 <p>这时要继续结合 <code>jstack</code> 看 Worker 到底卡在哪里：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000182.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;Worker 卡在哪里?&quot;] --&gt; B[&quot;慢 SQL&quot;]
+    B --&gt; C[&quot;远程接口&quot;]
+    C --&gt; D[&quot;文件 IO&quot;]
+    D --&gt; E[&quot;锁等待&quot;]
+    E --&gt; F[&quot;Future.get()&quot;]
+    F --&gt; G[&quot;CountDownLatch.await()&quot;]
+    G --&gt; H[&quot;BlockingQueue.take()&quot;]
+</code></pre>
+
+
+
+
 <p>不同位置含义不同。<code>BlockingQueue.take()</code> 可能只是空闲等任务；<code>Future.get()</code>、<code>CountDownLatch.await()</code> 则可能说明 Worker 被等待动作占住，导致真正的任务没有线程执行。</p>
 <h2 id="10、三类问题如何快速区分"><a href="#10、三类问题如何快速区分" class="headerlink" title="10、三类问题如何快速区分"></a>10、三类问题如何快速区分</h2><p>死锁、活锁、线程饥饿都可能让程序看起来“没有响应”，但它们的判断线索不同。</p>
 <table>

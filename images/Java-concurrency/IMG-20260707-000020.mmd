@@ -1,7 +1,9 @@
 graph LR
     subgraph sync["synchronized"]
+        direction LR
         S1["获取独占权限"] --> S2["只允许一个线程进入"]
     end
     subgraph cas["CAS"]
+        direction LR
         C1["先计算，再验证旧值"] --> C2["失败则放弃并重试"]
     end

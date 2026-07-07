@@ -1,8 +1,10 @@
 graph LR
     subgraph Stack["工作线程栈"]
+        direction LR
         err["error = 0x1000"]
     end
     subgraph Heap["堆"]
+        direction LR
         arr["Throwable[1] @ 0x1000<br>element[0] = exception"]
     end
     err --> arr
