@@ -18,7 +18,7 @@ from playwright.sync_api import Playwright, sync_playwright
 # 配置
 # ============================================================
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
-COLUMN_NAMES = ["Java高并发", "Java基础", "adss"]       # 专栏名列表，可多选
+COLUMN_NAMES = ["Java高并发", "Java基础"]       # 专栏名列表，可多选
 DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签
 
 
