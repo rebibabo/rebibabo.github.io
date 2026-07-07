@@ -15,6 +15,7 @@ import json
 import ssl
 import urllib.request
 from pathlib import Path
+from urllib.parse import quote
 from playwright.sync_api import Playwright, sync_playwright
 
 # ============================================================
@@ -76,7 +77,9 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             return match.group(0)
 
         local_file = os.path.join(BLOG_SOURCE_DIR, rel_path)
-        raw_url = f"{GITHUB_RAW_BASE}/{rel_path}"
+        # URL 编码路径（处理中文等特殊字符）
+        encoded_path = "/".join(quote(part, safe="") for part in rel_path.split("/"))
+        raw_url = f"{GITHUB_RAW_BASE}/{encoded_path}"
 
         # 先查外链
         if _check_url(raw_url):
