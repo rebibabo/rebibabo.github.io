@@ -253,28 +253,3 @@ body > header .header-inner {
 [data-user-color-scheme="dark"] .series-card:hover {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2) !important;
 }
-
-/* ===== Markdown 表格样式 ===== */
-.markdown-body table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 16px 0;
-  display: block;
-  overflow-x: auto;
-}
-
-.markdown-body table th,
-.markdown-body table td {
-  padding: 8px 12px;
-  border: 1px solid var(--line-color);
-  text-align: left;
-}
-
-.markdown-body table th {
-  background: rgba(128, 128, 128, 0.06);
-  font-weight: 600;
-}
-
-.markdown-body table tr:nth-child(even) {
-  background: rgba(128, 128, 128, 0.03);
-}

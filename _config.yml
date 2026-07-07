@@ -49,7 +49,6 @@ relative_link: false
 future: true
 syntax_highlighter: highlight.js
 highlight:
-  enable: true
   line_number: true
   auto_detect: false
   tab_replace: ''
@@ -100,7 +99,7 @@ pagination_dir: page
 ## include:/exclude: options only apply to the 'source/' folder
 include:
 exclude:
-  # - "wiki/**"  # 已启用 wiki 渲染
+  - "wiki/**"
   - "schema/**"
   - "skills/**"
 ignore:
