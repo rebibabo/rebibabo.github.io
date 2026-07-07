@@ -121,7 +121,7 @@ graph LR
 签名是 JWT 安全的核心：
 
 ```mermaid
-graph LR
+graph TB
     Key["服务端密钥"] --> Compute["重新计算签名<br/>HMAC-SHA256(Header.Payload, 密钥)"]
     Token["收到 JWT"] --> Compare{"算出的签名<br/>=<br/>Token 中的签名?"}
     Compute --> Compare
@@ -132,7 +132,7 @@ graph LR
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
 
 ```mermaid
-graph LR
+graph TB
     Attack["攻击者篡改 Payload<br/>role: user → role: admin"] --> NoKey{"不知道密钥<br/>无法生成新签名"}
     NoKey --> ServerCheck["服务端用密钥重新计算签名"]
     ServerCheck --> Mismatch{"和 token 里的签名一致?"}
