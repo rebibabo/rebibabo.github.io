@@ -1,0 +1,7 @@
+graph LR
+    subgraph "微服务架构"
+        direction LR
+        US["用户服务<br/>+ DB"] <-->|网络调用| TS["投放服务<br/>+ DB"]
+        TS <-->|网络调用| BS["计费服务<br/>+ DB"]
+        BS <-->|网络调用| RS["报表服务<br/>+ DB"]
+    end

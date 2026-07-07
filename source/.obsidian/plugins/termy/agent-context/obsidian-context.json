@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T11:40:43.945Z",
+  "updatedAt": "2026-07-07T11:42:16.949Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -22,11 +22,11 @@
   ],
   "selection": {
     "text": "",
-    "isEmpty": false,
+    "isEmpty": true,
     "from": {
-      "line": 209,
+      "line": 104,
       "ch": 0,
-      "offset": 4674
+      "offset": 1822
     },
     "to": {
       "line": 104,
