@@ -26,8 +26,11 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="一、从互斥锁到读写锁普通互斥锁解决的是“同一时刻只能有一个线程进入临界区”的问题。无论临界区里是读取数据，还是修改数据，只要一个线程持有锁，其他线程都必须等待。 以一个二维坐标对象为例： 12345678910111213class Point &#123;    private double x;    private double y;    double distanceFromOrigi">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000095.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000096.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000097.png">
 <meta property="article:published_time" content="2026-07-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:50:11.020Z">
+<meta property="article:modified_time" content="2026-07-07T13:51:07.915Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="Java">
@@ -35,6 +38,7 @@
 <meta property="article:tag" content="StampedLock">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000095.png">
   
   
   
@@ -230,7 +234,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          8.8k 字
+          8.3k 字
         
       </span>
     
@@ -241,7 +245,7 @@
         
         
         
-          74 分钟
+          70 分钟
         
       </span>
     
@@ -325,15 +329,7 @@
 <p>这段代码的重点不是 API 本身，而是锁语义发生了变化：读方法不再和其他读方法互斥，但仍然会和写方法互斥。</p>
 <h2 id="二、两个锁入口为什么要共用同一份状态"><a href="#二、两个锁入口为什么要共用同一份状态" class="headerlink" title="二、两个锁入口为什么要共用同一份状态"></a>二、两个锁入口为什么要共用同一份状态</h2><p><code>ReentrantReadWriteLock</code> 表面上有两个锁：<code>ReadLock</code> 和 <code>WriteLock</code>。但它们不能真的各管各的，因为读锁和写锁之间必须互相感知。</p>
 <p>读线程申请读锁时，需要知道当前有没有写线程正在写；写线程申请写锁时，需要知道当前有没有读线程正在读，以及有没有其他写线程正在写。因此，读锁和写锁背后必须共享同一份同步状态。</p>
-<pre><code class=" mermaid">graph LR
-    RRWL[&quot;ReentrantReadWriteLock&quot;] --&gt; ReadLock[&quot;ReadLock&quot;]
-    RRWL --&gt; WriteLock[&quot;WriteLock&quot;]
-    WriteLock --&gt; Sync[&quot;Sync(AQS)&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000095.png" srcset="/img/loading.gif" lazyload></p>
 <p>可以把 <code>ReadLock</code> 和 <code>WriteLock</code> 理解成两个入口，把 <code>Sync</code> 理解成统一的状态管理者。线程从不同入口进入，但最终都要根据同一份状态判断能不能获取锁。</p>
 <p>这个设计和普通互斥锁不同。普通 <code>ReentrantLock</code> 只需要表达一种独占语义，<code>state = 0</code> 表示没有线程持有锁，<code>state &gt; 0</code> 表示锁被某个线程持有并可能发生重入。而读写锁要同时表达读锁数量和写锁重入次数，所以它需要在同一个状态值里编码两类信息。</p>
 <h2 id="三、state-如何同时表示读锁和写锁"><a href="#三、state-如何同时表示读锁和写锁" class="headerlink" title="三、state 如何同时表示读锁和写锁"></a>三、state 如何同时表示读锁和写锁</h2><p>AQS 中的核心状态是一个 <code>int</code>：</p>
@@ -420,14 +416,7 @@
 <p>锁降级的本质是从“独占写”平滑过渡到“共享读”。它不是为了让锁释放顺序符合嵌套结构，而是为了避免写锁释放到读锁获取之间出现状态失控的窗口。</p>
 <p>反过来的锁升级通常不允许。一个线程持有读锁时再去申请写锁，写锁会要求所有读锁都释放；如果多个读线程都尝试升级，就容易互相等待，形成死等。</p>
 <h2 id="六、读锁为什么还要记录每个线程自己的持有次数"><a href="#六、读锁为什么还要记录每个线程自己的持有次数" class="headerlink" title="六、读锁为什么还要记录每个线程自己的持有次数"></a>六、读锁为什么还要记录每个线程自己的持有次数</h2><p><code>state</code> 的高 16 bit 只记录读锁总数，但它不知道这些读锁分别属于哪个线程。例如：</p>
-<pre><code class=" mermaid">graph LR
-    A[&quot;线程 A: 读计数 = 2&quot;] --&gt; Sum[&quot;state 读计数 = 3&quot;]
-    B[&quot;线程 B: 读计数 = 1&quot;] --&gt; Sum
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000096.png" srcset="/img/loading.gif" lazyload></p>
 <p>从 <code>state</code> 看，只能知道当前总共有 3 次读锁持有，无法知道线程 A 持有了几次，线程 B 持有了几次。问题会出现在释放读锁时：如果线程 A 调用 <code>readLock.unlock()</code>，它必须确认自己确实持有读锁，并且只能减少自己的那一部分计数。</p>
 <p>因此，读锁需要两类记录配合：</p>
 <table>
@@ -472,13 +461,7 @@
 </tr>
 </tbody></table>
 <p>队列结构可以这样理解：</p>
-<pre><code class=" mermaid">graph LR
-    Head[&quot;head&quot;] --&gt; RA[&quot;读 A&lt;br&gt;shared&quot;] --&gt; RB[&quot;读 B&lt;br&gt;shared&quot;] --&gt; WC[&quot;写 C&lt;br&gt;exclusive&quot;] --&gt; RD[&quot;读 D&lt;br&gt;shared&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000097.png" srcset="/img/loading.gif" lazyload></p>
 <p>当锁释放后，如果队列前面是连续的读节点，<code>reader A</code> 和 <code>reader B</code> 可以一起被放行，因为读读共享。传播到 <code>writer C</code> 时停止，因为写节点必须等所有<code>reader A</code> 和 <code>reader B</code> 可以一起被放读锁释放后才能获取写锁。<code>reader D</code> 虽然也是读节点，但它排在 <code>writer C</code> 后面，不能越过写节点。</p>
 <p>所以队列内部的推进规则是：连续读节点可以共享传播，遇到第一个写节点就形成边界。这个边界可以避免写节点后面的读线程不断越过写节点，从而导致写线程长期饥饿。</p>
 <p>公平性会影响新来的线程是否可以插队。默认构造方法创建的是非公平锁：</p>

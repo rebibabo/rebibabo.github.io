@@ -26,14 +26,21 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="Java 程序最终运行在 CPU 上。CPU 有寄存器、Store Buffer 和多级 Cache，JIT 编译器会调整指令，CPU 也可能乱序执行。相同的 Java 代码可以运行在 x86、ARM 等不同架构上，而不同架构提供的内存顺序保证并不完全相同。 如果 Java 并发程序只能依赖某一种 CPU 的具体行为，那么同一段代码换一台机器、换一种 JVM 实现，结果就可能发生变化。Java 因">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000046.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000047.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000048.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000049.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000050.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000051.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:50:11.018Z">
+<meta property="article:modified_time" content="2026-07-07T13:51:07.913Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JMM">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="happens-before">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000046.png">
   
   
   
@@ -229,7 +236,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          11k 字
+          9.4k 字
         
       </span>
     
@@ -240,7 +247,7 @@
         
         
         
-          90 分钟
+          78 分钟
         
       </span>
     
@@ -292,37 +299,12 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">State</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-type">boolean</span> <span class="hljs-variable">ready</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;<br>&#125;<br><br><span class="hljs-type">State</span> <span class="hljs-variable">state</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">State</span>();<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">threadA</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    state.data = <span class="hljs-number">42</span>;<br>    state.ready = <span class="hljs-literal">true</span>;<br>&#125;);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">threadB</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">if</span> (state.ready) &#123;<br>        System.out.println(state.data);<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
 
 <p>两个线程的栈中保存的是同一个对象地址，真正的 <code>State</code> 对象只有一份：</p>
-<pre><code class=" mermaid">graph LR
-    subgraph Thread_A[Thread A Stack]
-        state_a[state = 0x1000]
-    end
-    subgraph Thread_B[Thread B Stack]
-        state_b[state = 0x1000]
-    end
-    subgraph Heap
-        obj[&quot;State @ 0x1000&lt;br&gt;data = 0&lt;br&gt;ready = false&quot;]
-    end
-    state_a --&gt; obj
-    state_b --&gt; obj
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000046.png" srcset="/img/loading.gif" lazyload></p>
 <p>线程 A 修改的不是线程 B 的变量副本，而是 Heap 中同一个对象的字段。线程 B 之所以可能看不到最新值，不是因为 Heap 中真的存在两份 <code>State</code> 对象，而是因为一次写入从当前线程执行完成，到被另一个线程观察到，中间还要经过寄存器、Store Buffer、Cache、JIT 优化和 CPU 指令调度。</p>
 <p>所以 JMM 关注的不是“变量具体放在哪一级硬件结构里”，而是“某次读取允许看到哪一次写入，以及哪些执行结果必须被排除”。这也是本文后面所有讨论的起点。</p>
 <h2 id="二、写入共享变量后，数据什么时候对别的线程可见"><a href="#二、写入共享变量后，数据什么时候对别的线程可见" class="headerlink" title="二、写入共享变量后，数据什么时候对别的线程可见"></a>二、写入共享变量后，数据什么时候对别的线程可见</h2><p>继续使用前文的 <code>State</code> 例子。线程 A 执行 <code>state.data = 42</code>，并不意味着 CPU 必须立刻把 <code>42</code> 写入 DRAM。现代 CPU 通常采用写回缓存，写操作可能先进入 Store Buffer，再修改 Cache Line，之后通过缓存一致性协议让其他 Core 看到这个变化。</p>
 <p>这个过程跨越了内存层级，因此可以画出传播路径：</p>
-<pre><code class=" mermaid">graph LR
-    Register[Register] --&gt;|执行写入| StoreBuffer[Store Buffer]
-    StoreBuffer --&gt;|提交到本 Core 缓存体系| CacheLine[Cache Line]
-    CacheLine --&gt;|通过一致性协议传播| OtherCache[Other Core Cache]
-    OtherCache --&gt; Lower[&quot;更低层 Cache / DRAM&lt;br&gt;可能在之后才被写回&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000047.png" srcset="/img/loading.gif" lazyload></p>
 <p>这里至少有三个不同时间点：当前 Core 认为写操作已经执行、写操作对其他 Core 可见、数据最终写回 DRAM。Java 并发主要关心第二个时间点。只要另一个 Core 能通过缓存一致性协议取得最新 Cache Line，就不需要先等待数据写回 DRAM。</p>
 <p>因此，“对其他线程可见”不能简单理解为“已经写入主内存”。JMM 只要求另一个线程在规定的位置必须能够观察到这个写入，至于 JVM 和 CPU 如何完成传播，属于实现细节。</p>
 <h2 id="三、为什么-CPU-不严格按照源码顺序执行"><a href="#三、为什么-CPU-不严格按照源码顺序执行" class="headerlink" title="三、为什么 CPU 不严格按照源码顺序执行"></a>三、为什么 CPU 不严格按照源码顺序执行</h2><p>JMM 允许底层实现做优化，前提是不能破坏单线程语义。比如：</p>
@@ -350,19 +332,7 @@
 <p>如果操作 A happens-before 操作 B，JMM 提供两类保证：A 的内存效果必须对 B 可见；同时，编译器和 CPU 不能通过重排产生违背这个关系的结果。happens-before 不是单纯的现实时间顺序。一个操作在时钟时间上先执行，并不代表它一定 happens-before 另一个操作；只有符合 JMM 规则的操作，才会建立这种关系。</p>
 <p>继续回到前文的 volatile <code>ready</code>：线程 A 在 program order 中先写 <code>data</code>，再 volatile 写 <code>ready</code>；线程 B 通过 volatile 读看到 <code>ready == true</code> 后，再按 program order 读取 <code>data</code>。中间的 volatile 写和 volatile 读建立 synchronizes-with，三段关系通过传递性连起来后，线程 A 写 <code>data = 42</code> 就 happens-before 线程 B 读 <code>data</code>。</p>
 <p>所以线程 B 读到 <code>ready == true</code> 后，必须能够看到 <code>data = 42</code>。这里不是 <code>volatile ready</code> 把 <code>data</code> 也变成了 volatile，而是 <code>ready</code> 在两个线程之间建立了一座桥，把线程 A 中 volatile 写之前的内存效果传递给线程 B 中 volatile 读之后的操作。</p>
-<pre><code class=" mermaid">graph LR
-    subgraph Thread_A[Thread A]
-        A1[写 data = 42] --&gt;|program order| A2[volatile 写 ready]
-    end
-    subgraph Thread_B[Thread B]
-        B1[volatile 读 ready] --&gt;|program order| B2[读 data]
-    end
-    A2 --&gt;|synchronizes-with| B1
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000048.png" srcset="/img/loading.gif" lazyload></p>
 <h2 id="七、volatile-的保证范围有多大"><a href="#七、volatile-的保证范围有多大" class="headerlink" title="七、volatile 的保证范围有多大"></a>七、volatile 的保证范围有多大</h2><p>前文已经完整展开了 volatile 如何通过 <code>ready</code> 建立跨线程连接，这一节只讨论它的范围。</p>
 <p>volatile 的方向和位置非常重要。在线程 A 中，只有 volatile 写之前的普通写，才能随着这次 volatile 写被发布出去；在线程 B 中，只有 volatile 读之后的普通读，才能接收这次发布带来的可见性效果。</p>
 <p>因此，正确的模式是：先写普通数据，再写 volatile 标志；另一个线程先读 volatile 标志，再读普通数据。反过来就不行。如果先写 volatile 标志，再写普通数据，后面的普通写不能通过前面的 volatile 写发布出去；如果另一个线程先读普通数据，再读 volatile 标志，后面的 volatile 读也不能反过来修复之前已经读到的旧值。</p>
@@ -390,24 +360,7 @@
 
 <p><code>r1 == 0 &amp;&amp; r2 == 0</code> 是允许出现的。一种原因是线程内部不存在相关数据依赖，编译器或 CPU 可能产生读操作越过写操作的效果；另一种原因是机器指令没有交换，双方仍然可以因为 Store Buffer 传播延迟而读到旧值。</p>
 <p>这个场景涉及两个线程和两个 Core 的交错时序，因此可以画图：</p>
-<pre><code class=" mermaid">graph LR
-    subgraph Core_A[&quot;Thread A / Core A&quot;]
-        direction LR
-        A1[&quot;x = 1&quot;] --&gt; A2[&quot;Store Buffer A&quot;]
-        A2 --&gt; A3[&quot;x 对 B 不可见&quot;]
-        A3 --&gt; A4[&quot;read y → 0&quot;]
-    end
-    subgraph Core_B[&quot;Thread B / Core B&quot;]
-        direction LR
-        B1[&quot;y = 1&quot;] --&gt; B2[&quot;Store Buffer B&quot;]
-        B2 --&gt; B3[&quot;y 对 A 不可见&quot;]
-        B3 --&gt; B4[&quot;read x → 0&quot;]
-    end
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000049.png" srcset="/img/loading.gif" lazyload></p>
 <p>JMM 不要求程序判断究竟是 JIT 重排、CPU 乱序执行，还是 Store Buffer 传播延迟造成了结果。因为两个线程之间没有 happens-before，双方都读到初始值就是合法结果。</p>
 <p>如果 <code>x</code> 和 <code>y</code> 都是 volatile，那么 <code>r1 == 0 &amp;&amp; r2 == 0</code> 会被排除。原因不是 volatile 让两个线程互相等待，而是所有 volatile 操作必须进入统一的同步顺序，并且这个同步顺序不能违背每个线程自己的 program order。若双方都读到 <code>0</code>，同步顺序中会形成一个无法成立的环：A 的 volatile 写必须排在 A 的 volatile 读之前，B 的 volatile 写也必须排在 B 的 volatile 读之前；同时，A 读到 <code>y == 0</code> 又要求它排在 B 写 <code>y</code> 之前，B 读到 <code>x == 0</code> 又要求它排在 A 写 <code>x</code> 之前。一个顺序无法同时满足这四个约束。</p>
 <p>但 volatile 仍然不能保证双方都读取到 <code>1</code>。它负责可见性和顺序约束，不负责等待另一个线程完成某个阶段。要保证双方都先完成写入，再开始读取，需要使用 <code>CountDownLatch</code>、<code>CyclicBarrier</code> 等线程会合工具。</p>
@@ -432,25 +385,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">age</span> <span class="hljs-operator">=</span> <span class="hljs-number">18</span>;<br>&#125;<br><br>User sharedUser;<br><br><span class="hljs-comment">// Thread A</span><br>sharedUser = <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br><br><span class="hljs-comment">// Thread B</span><br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> sharedUser;<br></code></pre></td></tr></table></figure>
 
 <p>线程 A 把对象地址写入共享字段 <code>sharedUser</code>，线程 B 通过这个字段得到同一个地址：</p>
-<pre><code class=" mermaid">graph LR
-    subgraph Thread_A[&quot;Thread A Stack&quot;]
-        direction LR
-        user_a[&quot;user = 0x1000&quot;]
-    end
-    subgraph Thread_B[&quot;Thread B Stack&quot;]
-        direction LR
-        user_b[&quot;user = 0x1000&quot;]
-    end
-    subgraph Heap
-        obj[&quot;User @ 0x1000&lt;br&gt;age = 18&quot;]
-    end
-    user_a --&gt; obj
-    user_b --&gt; obj
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000050.png" srcset="/img/loading.gif" lazyload></p>
 <p>发布的是对象引用，不是复制对象。把引用写入共享字段、放入共享集合、传入线程任务或返回给其他代码，都可能构成对象发布。</p>
 <p>如果发布过程没有使用 volatile、锁、并发容器、<code>start()</code> 等方式建立 happens-before，就属于不安全发布。线程 B 可能仍然读到旧引用，例如 <code>null</code>；即使读到了对象，也不一定能看到普通字段的完整初始化结果。</p>
 <p>安全发布的核心不是对象一定放在 Heap 中，而是构造期间的写入与另一个线程读取对象之间建立了 happens-before。</p>
@@ -459,13 +394,7 @@
 
 <p>对象创建时，字段先具有默认值。上面这个构造函数先把 <code>this</code> 写入共享字段，再给 <code>age</code> 赋值。其他线程如果在这两个动作之间读取 <code>sharedUser</code>，就可能拿到一个尚未完成初始化的对象，并看到 <code>age == 0</code>。</p>
 <p>这个场景涉及对象引用在堆上的提前暴露，可以用引用关系表达：</p>
-<pre><code class=" mermaid">graph LR
-    Static[&quot;Static Field&lt;br&gt;sharedUser = 0x1000&quot;] --&gt; Heap[&quot;Heap: User @ 0x1000&lt;br&gt;age = 0&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000051.png" srcset="/img/loading.gif" lazyload></p>
 <p>正确做法是：完成全部字段初始化，构造函数正常结束之后，再向其他线程发布对象引用。构造函数内部启动线程、注册回调、把 <code>this</code> 放入静态字段或共享集合，都可能造成 <code>this</code> 逃逸。</p>
 <h2 id="十六、final-字段为什么具有特殊语义"><a href="#十六、final-字段为什么具有特殊语义" class="headerlink" title="十六、final 字段为什么具有特殊语义"></a>十六、final 字段为什么具有特殊语义</h2><p>从 Java 语法看，<code>final</code> 字段只能赋值一次：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> id;<br><br>    User() &#123;<br>        id = <span class="hljs-number">1</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
