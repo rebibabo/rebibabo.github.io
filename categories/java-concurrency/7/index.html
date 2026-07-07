@@ -26,19 +26,20 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="缓存一致性协议能够协调多个 CPU Core 对同一条 Cache Line 的读写，但 Java 程序仍然需要明确一件事：一个线程修改变量以后，另一个线程什么时候必须看到这个修改？ volatile 就是 Java 提供的一种内存语义。它不负责把一段代码变成临界区，也不会阻止多个线程同时执行，而是围绕一个变量建立可见性和有序性规则。 1. 一个线程为什么可能看不到另一个线程的修改先看一个常见的停">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000041.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000042.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000043.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000044.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000045.png">
 <meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T14:05:43.584Z">
+<meta property="article:modified_time" content="2026-07-07T14:12:23.651Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JMM">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="volatile">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000042.png">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000041.png">
   
   
   
@@ -234,7 +235,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          7k 字
+          6.7k 字
         
       </span>
     
@@ -245,7 +246,7 @@
         
         
         
-          59 分钟
+          57 分钟
         
       </span>
     
@@ -347,22 +348,7 @@
 <li>读取到 <code>ready == true</code> 之后的普通读，不能被移动到这个 volatile 读之前。</li>
 </ul>
 <p>可以用下面的模型表示：</p>
-<pre><code class=" mermaid">graph LR
-    subgraph Write[&quot;Write Thread&quot;]
-        direction LR
-        D[&quot;data = 42&quot;] --&gt; VR[&quot;volatile write: ready = true&quot;]
-    end
-    subgraph Read[&quot;Read Thread&quot;]
-        direction LR
-        VD[&quot;volatile read: ready == true&quot;] --&gt; RD[&quot;read data&quot;]
-    end
-    VR --&gt;|synchronizes-with| VD    D --&gt; VD
-</code></pre>
-
-
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000041.png" srcset="/img/loading.gif" lazyload></p>
 <p>中间的横线表示一条内存可见边界。只要读线程读取到写线程发布的 <code>ready == true</code>，它也必须能够看到这个 volatile 写之前已经完成的普通写，因此 <code>data</code> 应当等于 <code>42</code>。</p>
 <h2 id="6-volatile-与-happens-before"><a href="#6-volatile-与-happens-before" class="headerlink" title="6. volatile 与 happens-before"></a>6. volatile 与 happens-before</h2><p>Java 内存模型使用 <strong>happens-before</strong> 描述线程之间的可见性和顺序保证。它并不表示两个操作在现实时间上一定紧挨着发生，而是表示前一个操作的结果必须对后一个操作可见，并且前一个操作在内存语义上排在后一个操作之前。</p>
 <p>与 <code>volatile</code> 直接相关的规则是：</p>

@@ -1,9 +1,10 @@
 graph LR
     subgraph Thread_A[Thread A]
+        direction LR
         A1[写 data = 42] -->|program order| A2[volatile 写 ready]
     end
     subgraph Thread_B[Thread B]
+        direction LR
         B1[volatile 读 ready] -->|program order| B2[读 data]
     end
     A2 -->|synchronizes-with| B1
-    A1 --> B1
