@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T09:00:01.968Z",
+  "updatedAt": "2026-07-07T09:00:31.969Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
-    "vaultPath": "_posts/programmatic-ads/04-SSP.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
-    "hasFocus": true
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad network&server.md",
+    "vaultPath": "_posts/programmatic-ads/05-Ad network&server.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad%20network&server.md",
+    "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
-      "vaultPath": "_posts/programmatic-ads/04-SSP.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad network&server.md",
+      "vaultPath": "_posts/programmatic-ads/05-Ad network&server.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad%20network&server.md",
       "isActive": true
     }
   ],
   "selection": {
-    "text": "",
-    "isEmpty": true,
+    "text": "![ad network工作时序图](images/programmatic-ads/IMG-20260609092106611.png)",
+    "isEmpty": false,
     "from": {
-      "line": 13,
+      "line": 75,
       "ch": 0,
-      "offset": 225
+      "offset": 1203
     },
     "to": {
-      "line": 13,
-      "ch": 0,
-      "offset": 225
+      "line": 75,
+      "ch": 69,
+      "offset": 1272
     }
   }
 }

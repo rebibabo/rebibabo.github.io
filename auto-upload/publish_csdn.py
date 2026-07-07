@@ -25,7 +25,7 @@ AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAMES = ["Java高并发", "Java基础"]       # 专栏名列表，可多选
 DEFAULT_TAGS = ["学习笔记"]   # 默认标签（AI 失败时的兜底）
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_MODEL = "deepseek-chat"    # flash 模型
+DEEPSEEK_MODEL = "deepseek-chat"    # v4 pro 模型
 
 # GitHub 图片外链配置
 # 图片外链：用 jsDelivr CDN 代理 GitHub raw（国内访问更稳定，CSDN 不会转存失败）
