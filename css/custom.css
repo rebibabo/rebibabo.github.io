@@ -253,3 +253,15 @@ body > header .header-inner {
 [data-user-color-scheme="dark"] .series-card:hover {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* ===== Mermaid 流程图缩放 ===== */
+.mermaid {
+  max-width: 100%;
+  overflow-x: auto;
+  text-align: center;
+}
+.mermaid svg {
+  max-width: 100% !important;
+  min-width: auto !important;
+  height: auto !important;
+}

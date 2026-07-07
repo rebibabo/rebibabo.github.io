@@ -490,9 +490,9 @@
       
         <a href="/tags/Java/" class="print-no-link">#Java</a>
       
-        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
-      
         <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
       
     </div>
   
@@ -615,8 +615,8 @@
 
 
   <script>
-  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js', function() {
-    mermaid.initialize({"theme":"default"});
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"neutral","themeVariables":{"fontSize":"13px","primaryBorderColor":"#ccc"},"flowchart":{"useMaxWidth":true,"htmlLabels":true,"nodeSpacing":15,"rankSpacing":25,"padding":6}});
 
     Fluid.utils.listenDOMLoaded(function() {
       Fluid.events.registerRefreshCallback(function() {
