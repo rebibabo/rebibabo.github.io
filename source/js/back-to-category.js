@@ -64,21 +64,6 @@
     target = catLink.getAttribute("href");
   }
 
-  // 在文章头部注入分类导航条
-  var catName = catLink ? catLink.textContent.trim() : "";
-  var navDiv = document.createElement("div");
-  navDiv.className = "post-category-nav";
-  navDiv.innerHTML =
-    '<span class="nav-sep">📂</span>' +
-    '<a href="/series/">首页</a>' +
-    '<span class="nav-sep">/</span>' +
-    '<a href="' + target + '">' + catName + '</a>';
-  // 插入到标题下方
-  var bannerContent = document.querySelector("#banner > div > div > div");
-  if (bannerContent) {
-    bannerContent.appendChild(navDiv);
-  }
-
   const link = document.createElement("a");
   link.className = "back-to-category-btn";
   link.href = target;
