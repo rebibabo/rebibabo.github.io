@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T08:49:58.973Z",
+  "updatedAt": "2026-07-07T09:00:01.968Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/test.md",
-    "vaultPath": "_posts/Java-concurrency/test.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/test.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
+    "vaultPath": "_posts/programmatic-ads/04-SSP.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/test.md",
-      "vaultPath": "_posts/Java-concurrency/test.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/test.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
+      "vaultPath": "_posts/programmatic-ads/04-SSP.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/04-SSP.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 189,
-      "ch": 54,
-      "offset": 3428
+      "line": 13,
+      "ch": 0,
+      "offset": 225
     },
     "to": {
-      "line": 189,
-      "ch": 54,
-      "offset": 3428
+      "line": 13,
+      "ch": 0,
+      "offset": 225
     }
   }
 }
