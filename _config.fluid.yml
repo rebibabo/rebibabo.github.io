@@ -30,3 +30,6 @@ footer:
     enable: false
   beian:
     enable: false
+
+custom_css:
+  - /css/custom.css
