@@ -206,8 +206,9 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "f290e5fcda3f3c3e",
+  "active": "65aff21f3d59f825",
   "lastOpenFiles": [
+    "js/prev-next-by-source.js",
     "_posts/llm-inference/07-series-summary copy.md",
     "_posts/llm-inference/06-series-summary copy.md",
     "index.html",
@@ -241,7 +242,6 @@
     "_posts/concurrency/10-Condition 如何实现线程等待与通知.md",
     "_posts/concurrency/09-ReentrantLock 为什么能够实现互斥.md",
     "_posts/concurrency/08-Java内存到底规定什么.md",
-    "_posts/concurrency/07-volatile到底解决了什么问题.md",
     "tags",
     "about",
     "images/Java-basic/arraydeque-methods.png",
