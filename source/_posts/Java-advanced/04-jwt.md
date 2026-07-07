@@ -208,7 +208,7 @@ graph TB
     S3 --> S4["④ 把 JWT 返回给客户端"]
     S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]
 </pre>
-![|298](/images/Java-advanced/IMG-20260707-000017.png)
+![295](/images/Java-advanced/IMG-20260707-000017.png)
 
 
 
@@ -226,7 +226,7 @@ graph TB
     S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 </pre>
-![|396](/images/Java-advanced/IMG-20260707-000018.png)
+![385](/images/Java-advanced/IMG-20260707-000018.png)
 
 
 

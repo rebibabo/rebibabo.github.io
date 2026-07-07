@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T12:32:44.755Z",
+  "updatedAt": "2026-07-07T12:34:01.984Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "![](/images/Java-advanced/IMG-20260707-000014.png)",
-    "isEmpty": false,
+    "text": "",
+    "isEmpty": true,
     "from": {
-      "line": 137,
-      "ch": 0,
-      "offset": 2698
+      "line": 210,
+      "ch": 53,
+      "offset": 4281
     },
     "to": {
-      "line": 137,
-      "ch": 50,
-      "offset": 2748
+      "line": 210,
+      "ch": 53,
+      "offset": 4281
     }
   }
 }
