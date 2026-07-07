@@ -259,7 +259,7 @@ body > header .header-inner {
   display: block;
   width: auto !important;
   max-width: min(760px, 100%) !important;
-  max-height: 800px;
+  max-height: 700px;
   height: auto !important;
   margin: 1.5rem auto;
   object-fit: contain;
