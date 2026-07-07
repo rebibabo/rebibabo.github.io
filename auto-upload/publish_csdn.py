@@ -169,7 +169,7 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
     prompt = (
         "根据以下文章内容生成摘要和标签。\n"
         "要求：\n"
-        "1. 摘要：必须严格控制在150个字符以内，只概括核心内容，不要评价\n"
+        "1. 摘要：200~250字，概括文章核心内容和关键结论，不要评价\n"
         "2. 标签：5~7个，用简短关键词描述文章主题\n"
         "严格只返回 JSON，不要包含其他文字：\n"
         '{"summary": "...", "tags": ["...", "..."]}\n\n'
@@ -281,31 +281,6 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
         print("  ✅ 通过剪贴板粘贴填入")
 
     print(f"  ✅ 已填入正文（{len(body)} 字）")
-
-    # ---- 第4.5步：处理图片选择弹窗（如果有）----
-    try:
-        # 等久一点让 CSDN 处理粘贴的内容
-        page2.wait_for_timeout(3000)
-        # 用 JS 查找 .img-selection-item，存在就点第一个
-        clicked = page2.evaluate("""() => {
-            const items = document.querySelectorAll('.img-selection-item');
-            if (items.length > 0) {
-                items[0].click();
-                return true;
-            }
-            return false;
-        }""")
-        if clicked:
-            print("4.5 选择图片...")
-            page2.wait_for_timeout(500)
-            page2.evaluate("""() => {
-                const btn = document.querySelector('.vicp-operate-btn');
-                if (btn) btn.click();
-            }""")
-            page2.wait_for_timeout(500)
-            print("  ✅ 图片已选择")
-    except Exception:
-        pass  # 没有图片选择弹窗就跳过
 
     # ---- 第五步：设置标题 ----
     print(f"5. 设置标题: {title}")
