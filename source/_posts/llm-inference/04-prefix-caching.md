@@ -1,5 +1,5 @@
 ---
-title: LM推理优化实战(四):Prefix Caching原理详解与TTFT性能实测
+title: LLM推理优化实战(四)：Prefix Caching原理详解与TTFT性能实测
 date: 2026-04-04
 mathjax: true
 categories:
