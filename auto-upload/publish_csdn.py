@@ -192,13 +192,20 @@ def _do_login(playwright=None):
     import time
     for _ in range(150):
         time.sleep(2)
-        url = page.url
-        # 登录成功后通常会跳转到 mp.csdn.net 或其他非登录页
-        if "passport.csdn.net" not in url or page.evaluate(
-            "() => !!document.querySelector('img[class*=\"avatar\"]')"
-        ):
-            print("  ✅ 检测到登录成功")
-            break
+        try:
+            url = page.url
+            if "passport.csdn.net" not in url:
+                print("  ✅ 检测到登录成功（页面已跳转）")
+                break
+            logged = page.evaluate("() => !!document.querySelector('img[class*=\"avatar\"]')")
+            if logged:
+                print("  ✅ 检测到登录成功（头像出现）")
+                break
+        except Exception:
+            # 页面正在跳转 = 登录成功
+            if "passport.csdn.net" not in page.url:
+                print("  ✅ 检测到登录成功（跳转中）")
+                break
     else:
         print("  ⚠️  超时未检测到登录，继续执行...")
 
