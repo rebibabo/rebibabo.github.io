@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-advanced/04-jwt.md",
+                "file": "_posts/Java-advanced/05-metric.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "04-jwt"
+              "title": "05-metric"
             }
           }
         ],
@@ -194,6 +194,7 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "_posts/Java-advanced/04-jwt.md",
     "images/Java-advanced/IMG-20260707-000033.mmd",
     "images/Java-advanced/IMG-20260707-000032.mmd",
     "images/Java-advanced/IMG-20260707-000031.mmd",
@@ -204,7 +205,6 @@
     "images/Java-advanced/IMG-20260707-000026.mmd",
     "images/Java-advanced/IMG-20260707-000025.mmd",
     "images/Java-advanced/IMG-20260707-000024.mmd",
-    "images/Java-advanced/IMG-20260707-000023.mmd",
     "_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
     "images/Java-advanced/IMG-20260707-000033.png",
     "images/Java-advanced/IMG-20260707-000032.png",
@@ -219,7 +219,6 @@
     "_posts/Java-advanced/01-microservices-intro.md",
     "_posts/programmatic-ads/02-DSP.md",
     "_posts/Java-advanced/02-docker.md",
-    "_posts/Java-advanced/04-jwt.md",
     "_posts/Java-advanced/07-tracing.md",
     "_posts/Java-advanced/05-metric.md",
     "_posts/Java-advanced/06-grafana.md",
