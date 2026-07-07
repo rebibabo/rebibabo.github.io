@@ -1,6 +1,8 @@
 flowchart LR
-    A["take()"] --> B["队列为空?"]
-    B -->|"是"| C["等待"]
-    B -->|"否"| D["检查堆顶元素"]
-    D -->|"堆顶未到期"| E["等待剩余时间"]
-    D -->|"堆顶已到期"| F["取出并返回"]
+    A["execute(task)"] --> B["workerCount < corePoolSize?"]
+    B -->|"是"| C["创建核心工作线程"]
+    B -->|"否"| D["workQueue.offer(task)?"]
+    D -->|"是（入队成功）"| E["任务已排队"]
+    D -->|"否（队列满）"| F["workerCount < maximumPoolSize?"]
+    F -->|"是"| G["创建非核心工作线程"]
+    F -->|"否"| H["执行拒绝策略"]

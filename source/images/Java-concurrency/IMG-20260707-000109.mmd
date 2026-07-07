@@ -1,5 +1,6 @@
 graph LR
-    A[线程 A] --> V["value"]
-    B[线程 B] --> V
-    C[线程 C] --> V
-    D[线程 D] --> V
+    B["base"] --> S["sum"]
+    C0["cell[0]"] --> S
+    C1["cell[1]"] --> S
+    C2["cell[2]"] --> S
+    C3["..."] --> S

@@ -1,7 +1,11 @@
 graph LR
-    subgraph Deque["本地双端队列"]
-        direction LR
-    T1 --- T2 --- T3 --- T4
-    end
-    Stealer["其他 Worker<br>（窃取者）"] -->|"窃取"| T1
-    Owner["当前 Worker<br>（拥有者）"] -->|"push / pop"| T4
+    A["join(task)"] --> B["任务已完成?"]
+    B -->|"是"| C["返回结果"]
+    B -->|"否"| D["任务仍在本地队列?"]
+    D -->|"是"| E["自己执行该任务"]
+    D -->|"否"| F["任务被窃取?"]
+    F -->|"是"| G["帮助执行其他任务"]
+    F -->|"否"| H["无法推进，等待"]
+    E --> C
+    G --> C
+    H --> C

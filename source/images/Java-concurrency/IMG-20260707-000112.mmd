@@ -1,8 +1,2 @@
 graph LR
-    LA["LongAdder"]
-    LA --> B["base"]
-    LA --> C["cells[]"]
-    C --> C0["cell[0].value"]
-    C --> C1["cell[1].value"]
-    C --> C2["cell[2].value"]
-    C --> C3["cell[3].value"]
+    A["读取 base"] --> B["读取 cell[0]"] --> C["读取 cell[1]"] --> D["读取 cell[2]"] --> E["返回 total"]

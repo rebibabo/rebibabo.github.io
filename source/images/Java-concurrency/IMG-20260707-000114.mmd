@@ -1,2 +1,6 @@
 graph LR
-    A["读取 base"] --> B["读取 cell[0]"] --> C["读取 cell[1]"] --> D["读取 cell[2]"] --> E["返回 total"]
+    table["table"]
+    table --> bucket0["[0] null"]
+    table --> bucket1["[1] A -> B"]
+    table --> bucket2["[2] null"]
+    table --> bucket3["[3] C"]

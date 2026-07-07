@@ -1,3 +1,10 @@
-flowchart LR
-    A["原堆顶: A<br>10 秒后到期"] -->|"新任务 B 入队（1 秒后到期）"| B["B 成为新的堆顶"]
-    B --> C["唤醒等待线程<br>重新计算等待时间"]
+graph LR
+    subgraph Controller["控制线程"]
+        direction LR
+        C1["worker.interrupt"] --> C2["发出停止请求"]
+    end
+    subgraph Worker["工作线程"]
+        direction LR
+        W1["正在执行任务"] --> W2["检查并决定"]
+    end
+    C1 -->|设置中断标记| W2    C1 --> W1

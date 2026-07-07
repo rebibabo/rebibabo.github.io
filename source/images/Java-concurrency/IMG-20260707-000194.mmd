@@ -1,3 +1,2 @@
 flowchart LR
-    InstanceA["实例 A"] --> TaskTable["数据库任务表"]
-    InstanceB["实例 B"] --> TaskTable
+    Producer["生产者"] --> Broker["Broker"] --> Consumer["消费者"]

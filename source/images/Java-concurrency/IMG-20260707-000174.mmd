@@ -1,14 +1,6 @@
-sequenceDiagram
-    participant T1 as order-worker-1
-    participant T2 as order-worker-2
-    participant L as orderLock
-    participant S as stockLock
-
-    T1->>L: 拿到 orderLock
-    T2->>L: 等待 orderLock
-    T1->>S: 拿到 stockLock
-    T1->>T1: 执行完成
-    T1->>S: 释放 stockLock
-    T1->>L: 释放 orderLock
-    T2->>L: 拿到 orderLock
-    T2->>T2: 继续执行
+flowchart LR
+    A["拿到第一把锁"] --> B["尝试拿第二把锁"]
+    B --> C["拿不到第二把锁"]
+    C --> D["不继续死等"]
+    D --> E["释放第一把锁"]
+    E --> F["下一轮重新尝试"]

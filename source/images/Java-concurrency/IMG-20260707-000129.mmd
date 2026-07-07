@@ -1,2 +1,7 @@
 graph LR
-    A["A"] --> B["B"] --> C["C"]
+    subgraph 全局["全局路径"]
+        t["table[i]"] --> A_g["A"] --> C_g["C"]
+    end
+    subgraph 局部["读线程局部引用"]
+        e["e 局部变量"] --> B_g["B"] --> C_g2["C"]
+    end

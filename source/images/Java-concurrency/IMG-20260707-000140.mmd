@@ -1,7 +1,2 @@
-graph LR
-    root["计数结构"]
-    root --> baseCount["baseCount"]
-    baseCount --> cc0["CounterCell[0]"]
-    cc0 --> cc1["CounterCell[1]"]
-    cc1 --> cc2["CounterCell[2]"]
-    cc2 --> ccN["..."]
+flowchart LR
+    A["生产者<br>put task"] --> B["BlockingQueue<br>store tasks"] --> C["消费者<br>take task"]
