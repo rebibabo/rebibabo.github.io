@@ -198,10 +198,21 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     # ---- 第十一步：勾选 AI 声明 ----
     print("11. 勾选 AI 辅助生成声明...")
     page2.get_by_text("部分内容由AI辅助生成").click()
-    page2.wait_for_timeout(30000)
+    page2.wait_for_timeout(500)
 
-    # 勾选确认复选框
-    safe_click(page2, ".el-checkbox__inner")
+    # 确认复选框：只勾选，不取消
+    try:
+        cb = page2.locator(".el-checkbox__inner")
+        cb.wait_for(timeout=5000)
+        # 检查是否已勾选，没勾才点
+        is_checked = cb.evaluate("el => el.classList.contains('is-checked') || el.parentElement.classList.contains('is-checked')")
+        if not is_checked:
+            cb.click()
+            print("  ✅ 已勾选确认复选框")
+        else:
+            print("  ✅ 确认复选框已勾选，跳过")
+    except Exception as e:
+        print(f"  ⚠️  复选框操作失败: {e}")
 
     # ---- 第十二步：最终发布 ----
     print("12. 最终确认发布...")
