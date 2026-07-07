@@ -46,6 +46,12 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   let body = bodyMatch[2];
   let foot = bodyMatch[3];
 
+  // Wrap page content in markdown-body for proper styling (tables, headings, etc.)
+  body = body.replace(
+    /(<article class="page-content">)([\s\S]*?)(<\/article>)/,
+    '$1<div class="markdown-body">$2</div>$3'
+  );
+
   // Convert [[wiki/...]] links — only within body content
   body = body.replace(/\[\[wiki(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
     const cleanPath = path.replace(/&#x2F;/g, '/').replace(/\.md$/, '');
