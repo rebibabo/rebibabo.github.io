@@ -158,6 +158,41 @@ def safe_click(page, selector: str, timeout: int = 2000):
 
 
 # ============================================================
+# 登录状态检测 + 自动重新登录
+# ============================================================
+def ensure_login(browser, context) -> bool:
+    """检查 auth.json 是否有效，过期则重新登录"""
+    page = context.new_page()
+    page.goto("https://mp.csdn.net/", wait_until="domcontentloaded")
+    page.wait_for_timeout(2000)
+
+    # 检查是否已登录（有头像或用户信息）
+    logged_in = page.evaluate("""() => {
+        const el = document.querySelector('.user-info, .user-img, .avatar, .user-name, [class*="login"], .user');
+        return el ? !!el.textContent.trim() : !!document.querySelector('img[class*="avatar"]');
+    }""")
+
+    if logged_in:
+        print("  ✅ 登录状态有效")
+        page.close()
+        return True
+
+    # 登录过期，重新走登录流程
+    print("  ⚠️  登录已过期，请在浏览器中重新登录...")
+    page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
+    print("\n" + "=" * 50)
+    print("请在浏览器窗口中完成登录（扫码/密码均可）")
+    print("登录成功后，回到这里按 Enter 继续...")
+    print("=" * 50 + "\n")
+    input()
+
+    context.storage_state(path=AUTH_FILE)
+    print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
+    page.close()
+    return True
+
+
+# ============================================================
 # DeepSeek API — 摘要 + 标签
 # ============================================================
 def extract_metadata_via_ai(body: str, title: str) -> dict | None:
@@ -234,6 +269,9 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
         locale="zh-CN",
         permissions=["clipboard-read", "clipboard-write"],
     )
+    # ---- 第零步：检查登录状态 ----
+    ensure_login(browser, context)
+
     page = context.new_page()
 
     # ---- 第一步：打开 CSDN 后台，关闭广告 ----
