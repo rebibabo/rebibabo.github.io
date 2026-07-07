@@ -255,13 +255,16 @@ body > header .header-inner {
 }
 
 /* ===== Mermaid 流程图缩放 ===== */
-.mermaid {
+.markdown-body pre .mermaid,
+.markdown-body .mermaid {
   max-width: 100%;
   overflow-x: auto;
   text-align: center;
 }
-.mermaid svg {
+.markdown-body pre .mermaid > svg,
+.markdown-body .mermaid > svg {
   max-width: 100% !important;
   min-width: auto !important;
+  width: auto !important;
   height: auto !important;
 }
