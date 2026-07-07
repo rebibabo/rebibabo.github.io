@@ -104,7 +104,7 @@ async function renderBlock(mmdContent, outputPath) {
   const mmdPath = outputPath.replace(/\.png$/, '.mmd');
   fs.writeFileSync(mmdPath, mmdContent, 'utf-8');
 
-  const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
+  const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b transparent --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
 
   // 保留源码 .mmd
@@ -169,8 +169,7 @@ async function main() {
     for (const block of blocks) {
       const basename = generateFilename(globalIndex++);
       const outputPath = path.join(catImagesDir, `${basename}.png`);
-      const imgSrc = path.posix.join('/images', category, `${basename}.png`);
-      const imgRef = `![](${imgSrc})`;
+      const imgRef = `![](${path.posix.join('/images', category, `${basename}.png`)})`;
 
       tasks.push({
         category,

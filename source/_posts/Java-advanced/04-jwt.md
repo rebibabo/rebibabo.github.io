@@ -422,13 +422,13 @@ public class SecurityConfig {
 
 配置里几个关键决定：
 
-| 配置                | 作用          | 为什么                        |
-| ----------------- | ----------- | -------------------------- |
-| `csrf.disable()`  | 关闭 CSRF 防护  | JWT 不依赖 Cookie，不需要 CSRF 防护 |
-| `STATELESS`       | 不创建 Session | JWT 无状态，用不到 Session        |
-| `permitAll()`     | 放行指定接口      | 登录接口本身不能要求登录               |
-| `authenticated()` | 要求登录        | 管理接口必须先认证                  |
-| `addFilterBefore` | 插入 JWT 过滤器  | 让它在 Spring 默认认证过滤器之前执行     |
+| 配置 | 作用 | 为什么 |
+|------|------|--------|
+| `csrf.disable()` | 关闭 CSRF 防护 | JWT 不依赖 Cookie，不需要 CSRF 防护 |
+| `STATELESS` | 不创建 Session | JWT 无状态，用不到 Session |
+| `permitAll()` | 放行指定接口 | 登录接口本身不能要求登录 |
+| `authenticated()` | 要求登录 | 管理接口必须先认证 |
+| `addFilterBefore` | 插入 JWT 过滤器 | 让它在 Spring 默认认证过滤器之前执行 |
 
 ### 6.6 基于角色的授权
 
