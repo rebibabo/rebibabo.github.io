@@ -1,6 +1,0 @@
-graph LR
-    Key["服务端密钥"] --> Compute["重新计算签名<br/>HMAC-SHA256(Header.Payload, 密钥)"]
-    Token["收到 JWT"] --> Compare[""算出的签名<br/>=<br/>Token 中的签名?""]
-    Compute --> Compare
-    Compare -->|相等 ✅| Trust["没被篡改，可信"]
-    Compare -->|不相等 ❌| Reject["被人改过，拒绝"]

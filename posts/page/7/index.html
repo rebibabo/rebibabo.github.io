@@ -78,7 +78,119 @@
 
 
   
-<meta name="generator" content="Hexo 8.1.2"></head>
+<meta name="generator" content="Hexo 8.1.2"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
 
 
 <body>
@@ -226,481 +338,6 @@
                 
 
 <h1 style="display: none">AI Infra</h1>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/15/" target="_self">
-          Java高并发底层原理（十五）—— FutureTask 如何保存异步任务的结果和异常
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/15/" target="_self">
-        <div>
-          上一章介绍了线程池如何复用工作线程。线程池中的 Worker 会不断取得任务，并调用任务的 run()： 123while ((task = getTask()) != null) &#123;    task.run();&#125;  这解决了线程反复创建和销毁的问题，但也带来一个新问题：Runnable.run() 没有返回值。如果一个计算任务在线程池的工作线程中执行，提交任务的线程怎样取得
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-03 00:00" pubdate>
-              2026-07-03
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/Future/">#Future</a>
-            
-              <a href="/tags/FutureTask/">#FutureTask</a>
-            
-              <a href="/tags/Callable/">#Callable</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/16/" target="_self">
-          Java高并发底层原理（十六）—— CompletableFuture 如何编排多个异步任务
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/16/" target="_self">
-        <div>
-          上一章介绍 FutureTask 时，我们已经知道，异步任务执行结束后，正常结果或异常会保存在 FutureTask 中，提交任务的线程可以通过 get() 取得最终结果。 例如： 1234Future&lt;User&gt; userFuture =        executorService.submit(() -&gt; queryUser());User user = userFutur
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-03 00:00" pubdate>
-              2026-07-03
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/CompletableFuture/">#CompletableFuture</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/17/" target="_self">
-          Java高并发底层原理（十七）—— CompletableFuture 如何处理异步结果与异常
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/17/" target="_self">
-        <div>
-          上一章介绍了 CompletableFuture 如何编排多个异步任务。任务正常完成时，结果会沿着任务链继续向后传递；但真实程序中，数据库查询可能失败，远程调用可能超时，任务代码也可能抛出运行时异常。 这一章继续沿用上一章的任务链视角，只讨论一个问题：异步阶段失败以后，异常如何保存、传播、恢复，以及调用线程最终如何感知这个失败。 一、异步任务中的异常为什么不会直接抛给调用线程先看一个异步任务： 1
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-03 00:00" pubdate>
-              2026-07-03
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/CompletableFuture/">#CompletableFuture</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/18/" target="_self">
-          Java高并发底层原理（十八）—— ThreadLocal 的线程隔离与线程池问题
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/18/" target="_self">
-        <div>
-          ThreadLocal 要解决的不是“如何让共享对象变得线程安全”，而是换一条思路：既然多个线程共享同一份可变状态会产生竞争，那就让每个线程各自持有一份数据。这样一来，线程之间没有共享，也就不需要通过锁或 CAS 去协调访问顺序。 但这个模型有一个隐含前提：线程的生命周期最好和任务的生命周期一致。在线程池里，线程会被反复复用，一个任务结束并不代表线程结束，挂在线程身上的 ThreadLocal 数
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-02 00:00" pubdate>
-              2026-07-02
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/JVM/">#JVM</a>
-            
-              <a href="/tags/ThreadLocal/">#ThreadLocal</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/19/" target="_self">
-          Java高并发底层原理（十九）—— AQS 独占与共享模式如何完成排队与唤醒
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/19/" target="_self">
-        <div>
-          1. AQS 先解决什么问题AQS，全名是 AbstractQueuedSynchronizer。它本身不是一把具体的锁，而是一套用于构建同步器的基础框架。ReentrantLock、Semaphore、CountDownLatch 等工具可以基于 AQS 实现不同语义，但它们都会遇到同一个底层问题：当多个线程同时竞争同一份资源时，成功的线程继续执行，失败的线程不能一直空转抢资源，而要进入等待队列
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-04 00:00" pubdate>
-              2026-07-04
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/Semaphore/">#Semaphore</a>
-            
-              <a href="/tags/AQS/">#AQS</a>
-            
-              <a href="/tags/ReentrantLock/">#ReentrantLock</a>
-            
-              <a href="/tags/CountDownLatch/">#CountDownLatch</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/20/" target="_self">
-          Java高并发底层原理（二十）—— ReentrantReadWriteLock 与 StampedLock
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/20/" target="_self">
-        <div>
-          一、从互斥锁到读写锁普通互斥锁解决的是“同一时刻只能有一个线程进入临界区”的问题。无论临界区里是读取数据，还是修改数据，只要一个线程持有锁，其他线程都必须等待。 以一个二维坐标对象为例： 12345678910111213class Point &#123;    private double x;    private double y;    double distanceFromOrigi
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-04 00:00" pubdate>
-              2026-07-04
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/AQS/">#AQS</a>
-            
-              <a href="/tags/ReentrantReadWriteLock/">#ReentrantReadWriteLock</a>
-            
-              <a href="/tags/StampedLock/">#StampedLock</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/21/" target="_self">
-          Java高并发底层原理（二十一）—— 无锁设计、ABA 与 LongAdder
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/21/" target="_self">
-        <div>
-          前面讲锁时，核心问题一直是：多个线程同时访问共享状态时，如何保证结果正确。synchronized、ReentrantLock、读写锁、StampedLock 都是在这个问题上给出的不同答案。 但是，锁不是唯一方案。如果线程获取不到锁，通常要进入阻塞、唤醒、重新竞争的过程；无锁设计则换了一个方向：不让线程因为竞争失败而进入阻塞队列，而是通过 CAS、快照替换、版本校验、分散竞争等方式，在用户态完成
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-04 00:00" pubdate>
-              2026-07-04
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/CAS/">#CAS</a>
-            
-              <a href="/tags/ABA/">#ABA</a>
-            
-              <a href="/tags/LongAdder/">#LongAdder</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
 
   <div class="row mx-auto index-card">
     
@@ -898,6 +535,449 @@
               <a href="/tags/%E7%BA%BF%E7%A8%8B%E4%B8%AD%E6%96%AD/">#线程中断</a>
             
           </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/25/" target="_self">
+          Java高并发底层原理（二十五）—— LockSupport 如何挂起和唤醒线程
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/25/" target="_self">
+        <div>
+          前面分析 AQS、ReentrantLock、线程等待队列时，经常会看到一个底层工具：LockSupport。它不是一把锁，也不维护等待队列，而是提供两个更底层的能力：让当前线程暂停，以及唤醒指定线程。 理解 LockSupport 时，先不要把它和完整的锁混在一起。完整的锁至少还需要状态判断、等待队列和唤醒策略；LockSupport 只负责其中最底层的一步：线程如何停下，以及如何被指定线程唤
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/LockSupport/">#LockSupport</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E9%98%BB%E5%A1%9E/">#线程阻塞</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/26/" target="_self">
+          Java高并发底层原理（二十六）—— ForkJoinPool 如何通过工作窃取执行任务
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/26/" target="_self">
+        <div>
+          普通线程池更适合处理一个个相对独立的任务：任务提交到队列，工作线程从队列中取任务执行。ForkJoinPool 面向的是另一类任务：一个大任务可以拆成多个子任务，子任务继续拆分，最后把结果合并起来。 这类任务如果仍然只依赖一个共享队列，会遇到一个问题：某个线程在执行任务时继续拆出了很多子任务，而其他线程可能已经空闲。如果这些子任务只停留在当前线程的执行路径里，其他线程就没法帮忙；如果所有子任务都放
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/ForkJoinPool/">#ForkJoinPool</a>
+            
+              <a href="/tags/%E5%B7%A5%E4%BD%9C%E7%AA%83%E5%8F%96/">#工作窃取</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/27/" target="_self">
+          Java高并发底层原理（二十七）—— 死锁、活锁与线程饥饿是如何发生的
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/27/" target="_self">
+        <div>
+          前面几章已经讲过锁、线程池、AQS、Condition、BlockingQueue 等并发组件。它们本质上都在解决同一个问题：多个线程如何安全、有序地共享资源。但只要线程之间存在资源竞争，就不只会出现数据错误，还可能出现另一类问题：程序看起来“卡住了”。 “卡住”并不是一种问题。线程可能真的互相等待，可能一直在运行但没有推进，也可能只是长期轮不到执行。本文从死锁、活锁与线程饥饿三个问题出发，解释它
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8/">#线程安全</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%8E%92%E6%9F%A5/">#线程排查</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/28/" target="_self">
+          Java高并发底层原理（二十八）—— 并发任务处理系统如何设计：从任务模型到 Worker 执行
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/28/" target="_self">
+        <div>
+          在后端系统中，并不是所有任务都适合放在请求线程里同步执行。文件解析、图片处理、用户通知、报表生成、缓存刷新这类任务，通常耗时较长，并且不一定要阻塞当前请求。如果它们全部压在请求线程里，接口响应会变慢，请求线程也会被长时间占用。 并发任务处理系统要解决的核心问题，不只是“开几个线程异步执行任务”，而是：当任务不断产生，而系统资源有限时，如何让任务有边界地排队、被工作线程处理，并在队列堆积、执行失败、
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">#线程池</a>
+            
+              <a href="/tags/BlockingQueue/">#BlockingQueue</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">#并发编程</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/29/" target="_self">
+          Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/29/" target="_self">
+        <div>
+          上一章讨论的是单机内存版任务处理系统：请求线程把 Task 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。 一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E4%BB%BB%E5%8A%A1/">#并发任务</a>
+            
+              <a href="/tags/MQ/">#MQ</a>
+            
+              <a href="/tags/%E4%BB%BB%E5%8A%A1%E8%A1%A5%E5%81%BF/">#任务补偿</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/llm-inference/1/" target="_self">
+          LLM推理优化实战(一)：RTX3090部署Qwen2.5-7B全记录：TPOT-19.7ms，已逼近显存带宽极限
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/1/" target="_self">
+        <div>
+          一、前言在做任何优化之前，你需要一份可信的基线数据——否则你永远不知道优化到底有没有效果。 本文记录在一台 RTX 3090 上从零部署 Qwen2.5-7B-Instruct BF16，并建立完整精度与性能基线的全过程，包括环境搭建、踩坑实录、参数扫描实验和结果分析。这份基线将作为后续量化、投机采样等优化实验的对照组，每次优化都要打败它。 先看结论：    指标 数值    单请求 TPOT 1
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-01 00:00" pubdate>
+              2026-04-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/llm-inference/2/" target="_self">
+          LLM推理优化实战(二)：AWQ INT4 量化实战：TPOT 降 65%、有效吞吐提升 5.5 倍
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/2/" target="_self">
+        <div>
+          一、前言上一篇文章我们在 RTX 3090 上建立了 Qwen2.5-7B-Instruct BF16 的完整基线，得出了一个关键结论：单请求 TPOT 已逼近显存带宽的物理极限（19.7ms vs 理论下限 15ms），纯软件调参已经到顶。 想进一步压缩延迟，必须减少每次 decode 需要搬运的权重字节数——这正是量化要做的事。 本文使用 AWQ INT4 量化，把模型权重从 BF16（每参数
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-02 00:00" pubdate>
+              2026-04-02
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
         
       </div>
     </article>

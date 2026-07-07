@@ -1,5 +1,0 @@
-graph LR
-    S1["① 用户 POST /login<br/>带上用户名 + 密码"] --> S2["② 服务端查数据库<br/>用 PasswordEncoder 校验密码"]
-    S2 --> S3["③ 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]
-    S3 --> S4["④ 把 JWT 返回给客户端"]
-    S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]

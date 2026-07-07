@@ -26,14 +26,17 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言上一篇用 Docker Compose 把 Mini-SSP 的几个服务跑起来了。但 Compose 只能管理一台机器上的容器——如果服务要跑在几十台机器上、某个容器挂了要自动重启、流量大了要自动扩容，Compose 就力不从心了。这时候就需要">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000011.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000012.png">
 <meta property="article:published_time" content="2026-05-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:06:04.866Z">
+<meta property="article:modified_time" content="2026-07-07T13:29:37.393Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="K8s">
 <meta property="article:tag" content="Kubernetes">
 <meta property="article:tag" content="容器编排">
 <meta property="article:tag" content="部署">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000011.png">
   
   
   
@@ -229,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.2k 字
+          5.6k 字
         
       </span>
     
@@ -240,7 +243,7 @@
         
         
         
-          52 分钟
+          47 分钟
         
       </span>
     
@@ -316,25 +319,9 @@
 
 <p>Service 通过**标签（label）**找到它要管理的 Pod——这是 K8s 里最常出问题的地方，标签对不上，Service 就找不到 Pod（后面示例会讲）。</p>
 <h3 id="2-4-Ingress：HTTP-路由入口"><a href="#2-4-Ingress：HTTP-路由入口" class="headerlink" title="2.4 Ingress：HTTP 路由入口"></a>2.4 Ingress：HTTP 路由入口</h3><p>Service 解决了”集群内部怎么访问 Pod”，Ingress 解决”集群外部的 HTTP 请求怎么进来、怎么路由到不同的 Service”。</p>
-<pre><code class=" mermaid">graph TB
-    Request[&quot;外部请求&quot;] --&gt; Ingress[&quot;Ingress&lt;br/&gt;根据路径/域名路由&quot;]
-    Ingress --&gt;|/api/ssp/*| SSP[&quot;SSP Service&quot;]
-    Ingress --&gt;|/api/dsp/*| DSP[&quot;DSP Service&quot;]
-    Ingress --&gt;|/admin/*| Admin[&quot;管理后台 Service&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000011.png" srcset="/img/loading.gif" lazyload></p>
 <p>多个服务可以共享一个外部 IP，由 Ingress 根据 URL 分发——类似 Nginx 的反向代理。</p>
-<h3 id="2-5-四者关系图"><a href="#2-5-四者关系图" class="headerlink" title="2.5 四者关系图"></a>2.5 四者关系图</h3><pre><code class=" mermaid">graph TB
-    Request[&quot;外部请求&quot;] --&gt; Ingress[&quot;Ingress&lt;br/&gt;根据 URL 路由&quot;]
-    Ingress --&gt; Service[&quot;Service&lt;br/&gt;固定入口 + 负载均衡&quot;]
-    Service --&gt;|通过 label 找到 Pod| P1[&quot;Pod&quot;]
-    Service --&gt; P2[&quot;Pod&quot;]
-    Service --&gt; P3[&quot;Pod&quot;]
-    Deploy[&quot;Deployment&lt;br/&gt;统一管理&quot;] -.-&gt; P1
-    Deploy -.-&gt; P2
-    Deploy -.-&gt; P3
-</code></pre>
-
+<h3 id="2-5-四者关系图"><a href="#2-5-四者关系图" class="headerlink" title="2.5 四者关系图"></a>2.5 四者关系图</h3><p><img src="/images/Java-advanced/IMG-20260707-000012.png" srcset="/img/loading.gif" lazyload></p>
 <hr>
 <h2 id="3-集群架构（简单理解）"><a href="#3-集群架构（简单理解）" class="headerlink" title="3. 集群架构（简单理解）"></a>3. 集群架构（简单理解）</h2><p>一个 K8s 集群由两类机器组成：</p>
 <h3 id="3-1-控制平面（Control-Plane）——-大脑"><a href="#3-1-控制平面（Control-Plane）——-大脑" class="headerlink" title="3.1 控制平面（Control Plane）—— 大脑"></a>3.1 控制平面（Control Plane）—— 大脑</h3><p>负责决策和调度，主要组件：</p>
