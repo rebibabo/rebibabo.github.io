@@ -121,12 +121,19 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   let bodyEnd = btn + '\n';
 
   if (/class="[^"]*mermaid[^"]*"/.test(html)) {
+    // Inject mermaid JS after all other content, load async, init on load
     bodyEnd += `<script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
-    if (typeof mermaid === 'undefined') return;
+(function initMermaid(){
+  var el = document.querySelector('.mermaid');
+  if (!el) return;
+  var s = document.createElement('script');
+  s.src = 'https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js';
+  s.onload = function(){
     mermaid.initialize({"theme":"default"});
     mermaid.init();
-  });
+  };
+  document.body.appendChild(s);
+})();
 </script>\n`;
   }
 
