@@ -55,6 +55,11 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
     return '<a href="' + url + '" class="wiki-link">' + display + '</a>';
   });
 
+  // Convert mermaid click directives: .md → .html, make URLs absolute
+  body = body.replace(/(click\s+\w+\s+(?:&quot;|"))(wiki\/[^"&]+)\.md((?:&quot;|"))/g, function(m, prefix, path, suffix) {
+    return prefix + '/' + path + '.html' + suffix;
+  });
+
   // Convert [[_posts/...]] links — only within body content
   body = body.replace(/\[\[_posts(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
     const key = '_posts/' + path;
