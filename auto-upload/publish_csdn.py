@@ -93,6 +93,7 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
 
         # GitHub raw CDN 有延迟，等几秒再重试（最多 30s）
         import time
+        print(f"     🔍 检查: {raw_url}")
         for retry in range(10):
             time.sleep(3)
             if _check_url(raw_url):
