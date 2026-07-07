@@ -27,7 +27,7 @@
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T10:35:10.401Z">
+<meta property="article:modified_time" content="2026-07-07T10:36:30.980Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JWT">
 <meta property="article:tag" content="Spring Boot">
@@ -405,7 +405,7 @@
 </tbody></table>
 <p>前两部分只是 Base64 编码（<strong>不是加密</strong>，任何人都能解开看到内容），所以<strong>不能往 Payload 里放密码等敏感信息</strong>。</p>
 <h3 id="3-2-签名怎么防篡改"><a href="#3-2-签名怎么防篡改" class="headerlink" title="3.2 签名怎么防篡改"></a>3.2 签名怎么防篡改</h3><p>签名是 JWT 安全的核心：</p>
-<pre><code class=" mermaid">graph LR
+<pre><code class=" mermaid">graph TB
     Key[&quot;服务端密钥&quot;] --&gt; Compute[&quot;重新计算签名&lt;br/&gt;HMAC-SHA256(Header.Payload, 密钥)&quot;]
     Token[&quot;收到 JWT&quot;] --&gt; Compare&#123;&quot;算出的签名&lt;br/&gt;=&lt;br/&gt;Token 中的签名?&quot;&#125;
     Compute --&gt; Compare
@@ -414,7 +414,7 @@
 </code></pre>
 
 <p>关键点：<strong>密钥只有服务端知道</strong>。攻击者即使改了 Payload（比如把 <code>role</code> 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。</p>
-<pre><code class=" mermaid">graph LR
+<pre><code class=" mermaid">graph TB
     Attack[&quot;攻击者篡改 Payload&lt;br/&gt;role: user → role: admin&quot;] --&gt; NoKey&#123;&quot;不知道密钥&lt;br/&gt;无法生成新签名&quot;&#125;
     NoKey --&gt; ServerCheck[&quot;服务端用密钥重新计算签名&quot;]
     ServerCheck --&gt; Mismatch&#123;&quot;和 token 里的签名一致?&quot;&#125;
@@ -660,13 +660,13 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/Spring-Boot/" class="print-no-link">#Spring Boot</a>
+      
         <a href="/tags/Spring-Security/" class="print-no-link">#Spring Security</a>
       
         <a href="/tags/JWT/" class="print-no-link">#JWT</a>
       
         <a href="/tags/%E8%AE%A4%E8%AF%81%E6%8E%88%E6%9D%83/" class="print-no-link">#认证授权</a>
-      
-        <a href="/tags/Spring-Boot/" class="print-no-link">#Spring Boot</a>
       
     </div>
   
