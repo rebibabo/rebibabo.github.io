@@ -20,7 +20,6 @@ from playwright.sync_api import Playwright, sync_playwright
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAME = "Java高并发"          # 专栏名
 DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签
-USE_AI_DECLARATION = True          # 是否勾选"部分内容由AI辅助生成"，默认不勾选（无声明）
 
 
 # ============================================================
@@ -196,21 +195,8 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     except Exception as e:
         print(f"  ⚠️  填写摘要失败: {e}")
 
-    # ---- 第十一步：创作声明 + 文章备份 ----
-    print("11. 创作声明与备份...")
-
-    if USE_AI_DECLARATION:
-        # 打开创作声明下拉框
-        page2.locator(".creation-statement-select input").click()
-        page2.wait_for_timeout(300)
-        # 选择「部分内容由AI辅助生成」
-        page2.locator(".el-select-dropdown__item.hover").click()
-        page2.wait_for_timeout(300)
-        print("  ✅ 已选择: 部分内容由AI辅助生成")
-    else:
-        print("  ⏭️  创作声明: 无声明（默认，跳过）")
-
-    # 勾选文章备份复选框
+    # ---- 第十一步：勾选文章备份 ----
+    print("11. 勾选文章备份...")
     try:
         cb = page2.locator(".el-checkbox__inner")
         cb.wait_for(timeout=5000)
