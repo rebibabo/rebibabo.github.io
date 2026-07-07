@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/programmatic-ads/09-openRTB.md",
+                "file": "_posts/Java-advanced/01-microservices-intro.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "09-openRTB"
+              "title": "01-microservices-intro"
             }
           }
         ],
@@ -194,6 +194,9 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "images/Java-advanced",
+    "images/Java-advanced/IMG-20260707181206235.png",
+    "_posts/programmatic-ads/09-openRTB.md",
     "skills/playwright-automation.md",
     "_posts/programmatic-ads/08-key-metrics.md",
     "_posts/programmatic-ads/07-trading-mode-part2.md",
@@ -222,7 +225,6 @@
     "images/Java-concurrency/IMG-20260707162148479.png",
     "images/Java-concurrency/IMG-20260707161957123.png",
     "images/Java-concurrency/IMG-20260707161757891.png",
-    "images/Java-concurrency/IMG-20260707161604072.png",
     "images/Java-concurrency",
     "_posts/Java-concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
     "附件",
@@ -233,8 +235,6 @@
     "_posts/test.md",
     "wiki/maps/java-basic.md",
     "wiki/glossary/concurrency/ThreadLocal.md",
-    "wiki/glossary/concurrency/Cache-Line.md",
-    "wiki/glossary/concurrency/BlockingQueue.md",
     "wiki/_index.md.bak",
     "_posts/programmatic-ads",
     "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_plot.cpython-312.pyc",
