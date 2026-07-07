@@ -1,37 +1,12 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T13:33:57.768Z",
+  "updatedAt": "2026-07-07T13:35:21.035Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
-  "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
-    "vaultPath": "_posts/Java-advanced/02-docker.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
-    "hasFocus": false
-  },
-  "openFiles": [
-    {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
-      "vaultPath": "_posts/Java-advanced/02-docker.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
-      "isActive": true
-    }
-  ],
-  "selection": {
-    "text": "",
-    "isEmpty": true,
-    "from": {
-      "line": 368,
-      "ch": 18,
-      "offset": 6476
-    },
-    "to": {
-      "line": 368,
-      "ch": 18,
-      "offset": 6476
-    }
-  }
+  "activeFile": null,
+  "openFiles": [],
+  "selection": null
 }
