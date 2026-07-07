@@ -5,6 +5,6 @@ graph LR
     end
     subgraph Heap["堆"]
         direction LR
-        arr["Throwable[1] @ 0x1000<br>element[0] = exception"]
+    arr --- Throwable --- element
     end
     err --> arr

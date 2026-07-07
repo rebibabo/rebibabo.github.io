@@ -6,4 +6,4 @@ graph LR
     subgraph cas["CAS"]
         direction LR
         C1["先计算，再验证旧值"] --> C2["失败则放弃并重试"]
-    end
+    end    S1 --> C1
