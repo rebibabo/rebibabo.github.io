@@ -67,7 +67,7 @@ graph TB
     Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
     Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
 </pre>
-![|300](/images/Java-advanced/IMG-20260707-000019.png)
+![](/images/Java-advanced/IMG-20260707-000019.png)
 
 
 
