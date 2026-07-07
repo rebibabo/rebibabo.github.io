@@ -1,4 +1,4 @@
-graph TB
+graph LR
     Frontend["前端"] --> Gateway["API 网关 (Gateway)<br/>统一鉴权 · 限流 · 日志"]
     Gateway --> US["用户服务"]
     Gateway --> TS["投放服务"]

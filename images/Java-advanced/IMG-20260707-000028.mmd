@@ -1,4 +1,4 @@
-graph TB
+graph LR
     Trace["Trace: traceId = abc123"] --> A["Span A 网关处理请求（0ms ~ 850ms）"]
     A --> B["Span B 订单服务下单（20ms ~ 840ms）"]
     B --> C["Span C 调用库存服务（50ms ~ 180ms）"]
