@@ -67,6 +67,8 @@ function normalizeMermaid(code) {
   code = code.replace(/^graph\s+T[BD]\b/m, 'graph LR');
   // flowchart TB / flowchart TD → flowchart LR
   code = code.replace(/^flowchart\s+T[BD]\b/m, 'flowchart LR');
+  // subgraph 内部 direction TB/TD → direction LR
+  code = code.replace(/^(\s+)direction\s+T[BD]\b/mg, '$1direction LR');
   // 菱形节点 id{"..."} → 方框 id["..."]
   code = code.replace(/(?<!\/>)\b(\w+)\{([^}]+)\}/g, '$1[$2]');
   return code;

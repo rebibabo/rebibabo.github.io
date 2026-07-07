@@ -1,14 +1,14 @@
 graph LR
     subgraph "① 订单服务"
-        direction TB
+        direction LR
         App["埋点产生指标<br/>/actuator/prometheus"]
     end
     subgraph "② Prometheus"
-        direction TB
+        direction LR
         Prom["定时来抓 + 存储<br/>（时序数据库）"]
     end
     subgraph "③ Grafana"
-        direction TB
+        direction LR
         Graf["定时去查 + 画图<br/>（可视化大盘）"]
     end
     App -->|被抓取| Prom

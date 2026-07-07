@@ -1,9 +1,9 @@
 flowchart LR
     subgraph put["put()"]
-        direction TB
+        direction LR
         p1["获取锁"] --> p2["写入尾部"] --> p3["更新 count"] --> p4["释放锁"]
     end
     subgraph take["take()"]
-        direction TB
+        direction LR
         t1["获取锁"] --> t2["读取头部"] --> t3["更新 count"] --> t4["释放锁"]
     end
