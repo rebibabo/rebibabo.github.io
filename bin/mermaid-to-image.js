@@ -2,7 +2,7 @@
 /**
  * 将 markdown 中的 mermaid 代码块渲染为 PNG 片
  * 片按分类存入 source/images/<category>/
- * 源码以 .mmd 文件与 PNG 并列保存，方便后续修改
+ * 源码以 .mmd 文件保存在 source/images/<category>/ 中
  * markdown 中的 ```mermaid 替换为 ![](/images/<category>/IMG-xxx.png)
  *
  * 用法:
@@ -109,8 +109,7 @@ async function renderBlock(mmdContent, outputPath) {
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
 
-  // 删除临时 .mmd 文件
-  try { fs.unlinkSync(mmdPath); } catch {}
+  // .mmd 源码保留在 images 目录中
 }
 
 // --- 主流程 ---
@@ -220,14 +219,9 @@ async function main() {
     let content = fs.readFileSync(mdFile, 'utf-8');
 
     for (const edit of edits) {
-      const prefix =
-        '<pre style="display:none">\n' +
-        edit.sourceCode +
-        '\n</pre>\n';
       const imgLine = edit.imgRef;
       content =
         content.slice(0, edit.block.startIndex) +
-        prefix +
         imgLine +
         '\n' +
         content.slice(edit.block.endIndex);
@@ -243,7 +237,7 @@ async function main() {
   try { fs.rmSync(TMP_DIR, { recursive: true, force: true }); } catch {}
 
   console.log(`\n✅ 完成: ${modifiedCount} 个文件, ${totalBlocks} 张`);
-  console.log(`   源码 .mmd 文件保存在 images 目录中，与 PNG 并列`);
+  console.log(`   源码 .mmd 保存在 source/images/${filterDir || '*'}/ 中`);
 }
 
 main().catch(console.error);
