@@ -222,10 +222,6 @@ synchronized (lock) {
 
 调用 `wait()` 的线程原本已经持有 `lock`，执行 `wait()` 后会释放这把锁，并进入该对象的 Wait Set。Wait Set 可以理解为保存“正在等待这个对象通知的线程”的集合。
 
-![](/images/Java-concurrency/IMG-20260707-000060.png)
-
-
-
 
 
 

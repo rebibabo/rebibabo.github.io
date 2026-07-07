@@ -252,10 +252,6 @@ Thread worker = new Thread(() -> {
 
 Lambda 试图重新给局部变量 `error` 赋值，所以它不再是事实上 `final`。使用数组后，局部变量 `error` 保存的数组引用没有变化，线程修改的是数组对象内部的元素。
 
-![](/images/Java-concurrency/IMG-20260707-000054.png)
-
-
-
 
 
 
