@@ -40,13 +40,15 @@ categories:
 
 现在一个"用户下单"的请求，可能要经过这样一条链路：
 
-![](/images/Java-advanced/IMG-20260707-000027.png)
-
-
-
-
-
-
+```mermaid
+graph TB
+    User["用户"] --> Gateway["API 网关"]
+    Gateway --> Order["订单服务"]
+    Order --> Stock["库存服务"]
+    Order --> Coupon["优惠券服务"]
+    Stock --> Payment["支付服务"]
+    Payment --> DB["数据库"]
+```
 
 
 同一个请求，被拆到了 5、6 个**不同的进程**里执行，这些进程可能还跑在不同的机器上。这时候原来的排查手段全部失灵了：
@@ -120,13 +122,15 @@ SF123456
 
 还是用下单的例子，一次请求产生的 Span 树长这样：
 
-![](/images/Java-advanced/IMG-20260707-000028.png)
-
-
-
-
-
-
+```mermaid
+graph TB
+    Trace["Trace: traceId = abc123"] --> A["Span A 网关处理请求（0ms ~ 850ms）"]
+    A --> B["Span B 订单服务下单（20ms ~ 840ms）"]
+    B --> C["Span C 调用库存服务（50ms ~ 180ms）"]
+    B --> D["Span D 调用优惠券服务（60ms ~ 120ms）"]
+    B --> E["Span E 调用支付服务 ← 慢！（200ms ~ 800ms）"]
+    E --> F["Span F 支付服务查数据库 ← 根因在这（250ms ~ 780ms）"]
+```
 
 
 - 所有 Span 的 `traceId` 都是 `abc123`（同一次请求）
@@ -153,13 +157,13 @@ SF123456
 
 答案是存在 **ThreadLocal** 里——这是 Java 里"线程私有变量"的机制，可以理解成"每个线程身上挂着的一个小口袋"。请求一进来，框架就把当前的追踪上下文（traceId、当前 spanId）塞进这个线程的小口袋里。之后这个线程跑到任何一层代码，想用的时候伸手到口袋里一掏就有了，**不需要在每个方法的参数里一层层传 traceId**。
 
-![](/images/Java-advanced/IMG-20260707-000029.png)
-
-
-
-
-
-
+```mermaid
+graph TB
+    Enter["请求进入"] --> Pocket["线程 T1 的口袋里放入<br/>{traceId=abc123, spanId=A}"]
+    Pocket --> Log["Controller 想打日志<br/>→ 从口袋掏出 traceId=abc123"]
+    Log --> Span["Service 要建子 Span<br/>→ 掏出 spanId=A 作为 parent"]
+    Span --> Clean["请求结束<br/>→ 清空 T1 的口袋<br/>{否则会串味影响下一个请求}"]
+```
 
 
 这也解释了一个常见的坑（第 8 节细讲）：一旦你把活儿丢到**线程池/异步线程**里执行，新线程是另一个口袋，里面是空的，上下文就"丢"了。
@@ -174,13 +178,13 @@ SF123456
 
 具体传什么？业界已经有了统一标准 **W3C Trace Context**，它规定用一个叫 `traceparent` 的请求头来携带：
 
-![](/images/Java-advanced/IMG-20260707-000030.png)
-
-
-
-
-
-
+```mermaid
+graph LR
+    Header["traceparent:"] --> Version["00<br/>版本"]
+    Version --> TraceId["abc123def456...<br/>traceId"]
+    TraceId --> ParentId["00f067aa0ba902b7<br/>parentSpanId"]
+    ParentId --> Flags["01<br/>采样标志"]
+```
 
 
 - 调用方（订单服务）发请求前，把"我的 traceId + 我当前的 spanId"编码进 `traceparent` 头
@@ -188,13 +192,11 @@ SF123456
 
 整个传递链路串起来就是：
 
-![](/images/Java-advanced/IMG-20260707-000031.png)
-
-
-
-
-
-
+```mermaid
+graph TB
+    GW["网关<br/>生成 traceId=abc123, spanId=A"] -->|"HTTP 请求头带上<br/>traceparent: ...abc123-A..."| Order["订单服务<br/>读出 traceId=abc123, parent=A<br/>→ 新建 spanId=B"]
+    Order -->|"HTTP 请求头带上<br/>traceparent: ...abc123-B..."| Payment["支付服务<br/>读出 traceId=abc123, parent=B<br/>→ 新建 spanId=E"]
+```
 
 
 **注意全程 traceId 始终是 abc123 没变**（这是把所有 Span 绑在一起的关键），变的是每一跳新建自己的 spanId、并把 parent 指向上一跳。
@@ -258,13 +260,20 @@ try {
 
 把上面几节串起来，一条 Span 数据从"产生"到"被你看见"，要走完这条流水线：
 
-![](/images/Java-advanced/IMG-20260707-000032.png)
-
-
-
-
-
-
+```mermaid
+graph TB
+    subgraph "① 各个服务（埋点产生 Span）"
+        direction TB
+        O["订单服务"]
+        P["支付服务"]
+        S["库存服务"]
+    end
+    O -->|异步上报| Collector["② Collector 收集器<br/>按 traceId 归拢 Span<br/>重建成树"]
+    P -->|异步上报| Collector
+    S -->|异步上报| Collector
+    Collector --> Store["③ 存储（时序/检索数据库）<br/>按 traceId、耗时、服务检索"]
+    Store --> UI["④ UI 可视化<br/>画成甘特图，一眼看出慢在哪"]
+```
 
 
 这套流水线，市面上的主流工具基本都是这个骨架，只是分工和侧重不同：
@@ -366,13 +375,12 @@ threadPool.submit(() -> {
 
 到这里，可观测性三件套你就齐了。它们不是三选一，而是**分工协作、层层下钻**：
 
-![](/images/Java-advanced/IMG-20260707-000033.png)
-
-
-
-
-
-
+```mermaid
+graph TB
+    Metrics["① Metrics 指标大盘告警<br/>下单接口 P99 从 200ms 涨到 2s 了！<br/>知道有问题，但不知道为什么"] --> Tracing["② Tracing<br/>翻出慢的 trace<br/>原来卡在调用支付服务那一段<br/>知道卡在哪步，但不知道内部发生了什么"]
+    Tracing --> Logging["③ Logging<br/>拿 traceId 搜日志<br/>支付服务: 数据库连接池耗尽"]
+    Logging --> RootCause["根因找到 ✅"]
+```
 
 
 一句话记住三者的角色：
