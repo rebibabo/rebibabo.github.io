@@ -194,7 +194,6 @@ layout: page
   padding: 32px 28px 24px;
   border-radius: 16px;
   text-decoration: none !important;
-  color: inherit !important;
   overflow: hidden;
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               box-shadow 0.35s ease;
