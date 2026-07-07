@@ -1,7 +1,5 @@
 graph TD
-    subgraph CacheLine["Cache Line"]
-        F1["count: 4 bytes"]
-        F2["status: 4 bytes"]
-        F3["version: 8 bytes"]
-        F4["other data: ..."]
-    end
+    First["执行首个任务"] --> Loop["从队列获取任务"]
+    Loop -->|有任务| Run["执行下一个任务"]
+    Run --> Loop
+    Loop -->|超时/关闭| Exit["线程退出"]

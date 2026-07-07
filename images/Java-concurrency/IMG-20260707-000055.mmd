@@ -1,4 +1,5 @@
 graph TD
-    Read --> Calculate
-    Calculate --> Validate
-    Validate --> Commit["Commit or Retry"]
+    Init["初始: 3 张许可证"] --> A["线程 A acquire: 3 → 2"]
+    A --> B["线程 B acquire: 2 → 1"]
+    B --> C["线程 C acquire: 1 → 0"]
+    C --> D["线程 D acquire: 等待"]

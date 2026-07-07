@@ -1,8 +1,4 @@
 graph TD
-    subgraph A["线程 A"]
-        A1["检查 ready = false"] --> A2["进入 wait"]
-        A2 --> A3["错过通知"]
-    end
-    subgraph B["线程 B"]
-        B1["设置 ready = true"] --> B2["notify"]
-    end
+    RRWL["ReentrantReadWriteLock"] --> ReadLock["ReadLock"]
+    RRWL --> WriteLock["WriteLock"]
+    WriteLock --> Sync["Sync(AQS)"]

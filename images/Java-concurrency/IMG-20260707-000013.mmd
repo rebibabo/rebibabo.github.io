@@ -1,0 +1,5 @@
+graph TD
+    A["Acquire lock"] --> B["Read count"]
+    B --> C["Calculate count + 1"]
+    C --> D["Write count"]
+    D --> E["Release lock"]

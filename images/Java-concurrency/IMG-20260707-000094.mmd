@@ -1,9 +1,7 @@
-graph TD
-    subgraph Monitor["Object Monitor"]
-        direction TB
-        Owner["Owner<br>持有锁的线程"]
-        Entry["Entry Set<br>等待锁的线程"]
-        Wait["Wait Set<br>等待 notify 的线程"]
+graph LR
+    subgraph CondQueue["条件队列"]
+        C2["Node C2"]
     end
-    Owner --> Entry
-    Entry --> Wait
+    subgraph SyncQueue["AQS 同步队列"]
+        Head["head"] <--> B["Node B"] <--> C1["Node C1"] <--> Tail["tail"]
+    end

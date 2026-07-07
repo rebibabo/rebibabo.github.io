@@ -1,2 +1,7 @@
-graph LR
-    Head["head(哨兵)"] <--> B["Node B<br>线程 B"] <--> C["Node C<br>线程 C"]
+flowchart LR
+    subgraph 写入前
+        Ab["A"] --> Bb["B"] --> nullb["null"]
+    end
+    subgraph 写入后
+        Aa["A"] --> Ba["B"] --> Ca["C"]
+    end

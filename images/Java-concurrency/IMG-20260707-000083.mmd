@@ -1,11 +1,2 @@
 graph TD
-    subgraph Core_A["Thread A / Core A"]
-        A1["x = 1"] --> A2["Store Buffer A"]
-        A2 --> A3["x 对 B 不可见"]
-        A3 --> A4["read y → 0"]
-    end
-    subgraph Core_B["Thread B / Core B"]
-        B1["y = 1"] --> B2["Store Buffer B"]
-        B2 --> B3["y 对 A 不可见"]
-        B3 --> B4["read x → 0"]
-    end
+    A["Thread-1"] --> B["Task-A"] --> C["Task-B"] --> D["Task-C"]

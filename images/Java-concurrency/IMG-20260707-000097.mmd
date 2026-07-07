@@ -1,5 +1,2 @@
-graph TD
-    subgraph Worker
-        T["线程 = 工作线程"]
-        F["首个任务 = 提交的任务"]
-    end
+graph LR
+    Head["head"] --> RA["读 A<br>shared"] --> RB["读 B<br>shared"] --> WC["写 C<br>exclusive"] --> RD["读 D<br>shared"]

@@ -1,0 +1,6 @@
+graph TD
+    Read["Read Current"] --> Calc["Calculate New"]
+    Calc --> Cas["CAS"]
+    Cas -->|Success| Return
+    Cas -->|Failure| Retry["Retry"]
+    Retry --> Read

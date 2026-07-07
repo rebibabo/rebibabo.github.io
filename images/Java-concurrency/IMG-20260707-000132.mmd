@@ -1,7 +1,6 @@
 graph TD
-    subgraph 加锁方式
-        A1[获取锁] --> A2[进入临界区] --> A3[释放锁]
-    end
-    subgraph 无锁方式
-        B1[读取旧值] --> B2[计算新值] --> B3[CAS 发布]
-    end
+    oldTable["oldTable 长度=4"]
+    oldTable --> o0["[0] A → B"]
+    o0 --> o1["[1] C"]
+    o1 --> o2["[2] null"]
+    o2 --> o3["[3] D → E"]

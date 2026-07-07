@@ -1,17 +1,9 @@
 graph TD
-    subgraph Initial
-        top1["Top"] --> A1["Node A"]
-        A1 --> B1["Node B"]
-        B1 --> C1["Node C"]
+    subgraph Monitor["Object Monitor"]
+        direction TB
+        Owner["Owner<br>持有锁的线程"]
+        Entry["Entry Set<br>等待锁的线程"]
+        Wait["Wait Set<br>等待 notify 的线程"]
     end
-    subgraph After_pop_A["After pop A"]
-        top2["Top"] --> B2["Node B"]
-        B2 --> C2["Node C"]
-    end
-    subgraph After_pop_B["After pop B"]
-        top3["Top"] --> C3["Node C"]
-    end
-    subgraph After_push_A["After push A"]
-        top4["Top"] --> A4["Node A"]
-        A4 --> C4["Node C"]
-    end
+    Owner --> Entry
+    Entry --> Wait

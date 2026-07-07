@@ -1,12 +1,8 @@
 graph TD
-    subgraph Thread_A[Thread A Stack]
-        counter_a[counter = 0x1000]
+    subgraph Write["Write Thread"]
+        D["data = 42"] --> VR["volatile write: ready = true"]
     end
-    subgraph Thread_B[Thread B Stack]
-        counter_b[counter = 0x1000]
+    subgraph Read["Read Thread"]
+        VD["volatile read: ready == true"] --> RD["read data"]
     end
-    subgraph Heap
-        obj[0x1000: Counter Object]
-    end
-    counter_a --> obj
-    counter_b --> obj
+    VR -->|synchronizes-with| VD

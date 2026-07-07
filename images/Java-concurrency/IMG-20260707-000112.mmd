@@ -1,2 +1,8 @@
 graph TD
-    A["ThreadLocal"] --> B["Thread -> User"]
+    LA["LongAdder"]
+    LA --> B["base"]
+    LA --> C["cells[]"]
+    C --> C0["cell[0].value"]
+    C --> C1["cell[1].value"]
+    C --> C2["cell[2].value"]
+    C --> C3["cell[3].value"]

@@ -1,8 +1,5 @@
-flowchart TB
-    subgraph dq["DelayQueue"]
-        direction TB
-        top["堆顶: B<br>剩余 3 秒"]
-        mid["下一个: C<br>剩余 5 秒"]
-        bot["下一个: A<br>剩余 10 秒"]
-    end
-    dq --> consumer["take() 等待 B 到期才返回"]
+flowchart TD
+    A["创建任务"] --> B["放入内存队列"]
+    B --> C["服务重启"]
+    C --> D["内存队列被清空"]
+    D --> E["任务丢失"]

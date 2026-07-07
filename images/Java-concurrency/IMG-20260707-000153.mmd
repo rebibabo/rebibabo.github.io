@@ -1,5 +1,3 @@
-graph TD
-    chm["ConcurrentHashMap"]
-    chm --> seg0["Segment 0<br>lock"]
-    seg0 --> seg1["Segment 1<br>lock"]
-    seg1 --> seg2["Segment 2<br>lock"]
+flowchart TD
+    oldHead["旧 head<br>item = null"] --> newHead["新 head（原 A 节点）<br>item = null"] --> b["节点 B<br>item = B"]
+    last["last"] --> b

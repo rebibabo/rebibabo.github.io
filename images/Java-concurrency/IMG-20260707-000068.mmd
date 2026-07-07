@@ -1,5 +1,4 @@
 graph TD
-    C1["Core 1: requests ownership"] --> Arb["Hardware Arbitration"]
-    C2["Core 2: requests ownership"] --> Arb
-    Arb --> Win["One request succeeds"]
-    Win --> Invalid["Other copy → Invalid"]
+    Submit["提交 Callable"] --> Create["创建 FutureTask"]
+    Create --> Exec["作为 Runnable 执行"]
+    Exec --> Return["返回 FutureTask"]

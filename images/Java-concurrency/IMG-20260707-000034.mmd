@@ -1,5 +1,5 @@
 graph TD
-    A["Java Source .java"] --> B["ByteCode .class"]
-    B --> C["JVM"]
-    C --> D["Operating System"]
-    D --> E["CPU"]
+    C1["Core 1: requests ownership"] --> Arb["Hardware Arbitration"]
+    C2["Core 2: requests ownership"] --> Arb
+    Arb --> Win["One request succeeds"]
+    Win --> Invalid["Other copy → Invalid"]

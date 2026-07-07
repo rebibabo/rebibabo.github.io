@@ -1,8 +1,2 @@
 graph TD
-    subgraph Thread_A[Thread A]
-        A1[写 data = 42] -->|program order| A2[volatile 写 ready]
-    end
-    subgraph Thread_B[Thread B]
-        B1[volatile 读 ready] -->|program order| B2[读 data]
-    end
-    A2 -->|synchronizes-with| B1
+    A["Thread-A 执行 Task-A"] --> B["Task-A 结束"] --> C["Thread-A 结束"] --> D["ThreadLocalMap 随 Thread-A 一起回收"]

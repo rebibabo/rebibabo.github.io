@@ -1,4 +1,5 @@
-graph LR
-    FA["futureA: 成功"] --> All["allOf: 失败"]
-    FB["futureB: 失败"] --> All
-    FC["futureC: 成功"] --> All
+graph TD
+    A[线程 A] --> C0["cell[0]"]
+    B[线程 B] --> C1["cell[1]"]
+    C[线程 C] --> C2["cell[2]"]
+    D[线程 D] --> C3["cell[3]"]

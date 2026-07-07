@@ -1,8 +1,3 @@
-flowchart TD
-    A["execute(task)"] --> B[""workerCount < corePoolSize?""]
-    B -->|"是"| C["创建核心工作线程"]
-    B -->|"否"| D[""workQueue.offer(task)?""]
-    D -->|"是（入队成功）"| E["任务已排队"]
-    D -->|"否（队列满）"| F[""workerCount < maximumPoolSize?""]
-    F -->|"是"| G["创建非核心工作线程"]
-    F -->|"否"| H["执行拒绝策略"]
+flowchart LR
+    InstanceA["实例 A"] --> TaskTable["数据库任务表"]
+    InstanceB["实例 B"] --> TaskTable

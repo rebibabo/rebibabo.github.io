@@ -1,4 +1,6 @@
-graph LR
-    FA["futureA: 首个失败"] --> Any["anyOf: 失败"]
-    FB["futureB: 后续成功"]
-    FC["futureC: 后续成功"]
+graph TD
+    B["base"] --> S["sum"]
+    C0["cell[0]"] --> S
+    C1["cell[1]"] --> S
+    C2["cell[2]"] --> S
+    C3["..."] --> S

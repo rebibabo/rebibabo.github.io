@@ -1,2 +1,5 @@
-graph LR
-    A["A"] --> B["B"] --> C["C"]
+graph TD
+    A["Worker 线程<br>正在执行 compute()"] -->|"fork 子任务"| B["本地双端队列"]
+    B --> C["子任务-1"]
+    B --> D["子任务-2"]
+    B --> E["子任务-3"]

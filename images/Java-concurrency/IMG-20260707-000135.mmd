@@ -1,3 +1,3 @@
-graph LR
-    A["localSettings"] --> B["新版本"]
-    C["localFeatureRules"] --> D["旧版本"]
+flowchart TD
+    old["oldTable[i]"] --> fn["ForwardingNode"]
+    fn --> nt["nextTable"]

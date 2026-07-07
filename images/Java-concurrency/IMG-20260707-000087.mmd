@@ -1,6 +1,11 @@
-graph LR
-    W1["工作线程 1<br>countDown<br>state 3 → 2"] --> W2["工作线程 2<br>countDown<br>state 2 → 1"]
-    W2 --> W3["工作线程 3<br>countDown<br>state 1 → 0"]
-    W3 -->|唤醒| Aw["等待线程<br>await 返回"]
-    W1 -.->|不释放| Aw
-    W2 -.->|不释放| Aw
+graph TD
+    subgraph "GC 之前"
+        A1["Thread"] --> A2["ThreadLocalMap"] --> A3["Entry"]
+        A3 --> A4["key: ThreadLocal 实例"]
+        A3 --> A5["value: User 实例"]
+    end
+    subgraph "GC 之后"
+        B1["Thread"] --> B2["ThreadLocalMap"] --> B3["Entry"]
+        B3 --> B4["key: null"]
+        B3 --> B5["value: User 实例"]
+    end

@@ -1,9 +1,6 @@
-flowchart TB
-    subgraph put["put()"]
-        direction TB
-        p1["获取锁"] --> p2["写入尾部"] --> p3["更新 count"] --> p4["释放锁"]
-    end
-    subgraph take["take()"]
-        direction TB
-        t1["获取锁"] --> t2["读取头部"] --> t3["更新 count"] --> t4["释放锁"]
-    end
+flowchart TD
+    A["top -Hp 找到高 CPU 线程"] --> B["线程 ID 转十六进制"]
+    B --> C["在 jstack 中搜索 nid"]
+    C --> D["找到 Java 线程名"]
+    D --> E["读取栈顶"]
+    E --> F["定位业务代码"]

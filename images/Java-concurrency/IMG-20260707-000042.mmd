@@ -1,13 +1,4 @@
 graph TD
-    A[Java Source] --> B[ByteCode]
-    B --> C[JVM]
-    C --> D[Operating System]
-    D --> E[CPU]
-    E --> F[Core]
-    F --> G[Register]
-    F --> H[Cache]
-    F --> I[Stack]
-    F --> J[Heap]
-    I --> K[Shared Objects]
-    J --> K
-    K --> L[Thread Safety]
+    D["data = 42"] -->|Program Order| R["ready = true"]
+    R -->|Volatile Rule| RR["read ready == true"]
+    RR -->|Program Order| RD["read data"]

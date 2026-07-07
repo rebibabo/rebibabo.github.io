@@ -1,8 +1,9 @@
-graph TD
-    LA["LongAdder"]
-    LA --> B["base"]
-    LA --> C["cells[]"]
-    C --> C0["cell[0].value"]
-    C --> C1["cell[1].value"]
-    C --> C2["cell[2].value"]
-    C --> C3["cell[3].value"]
+flowchart TB
+    subgraph put["put()"]
+        direction TB
+        p1["获取锁"] --> p2["写入尾部"] --> p3["更新 count"] --> p4["释放锁"]
+    end
+    subgraph take["take()"]
+        direction TB
+        t1["获取锁"] --> t2["读取头部"] --> t3["更新 count"] --> t4["释放锁"]
+    end

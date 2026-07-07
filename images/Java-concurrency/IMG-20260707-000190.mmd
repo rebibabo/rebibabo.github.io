@@ -1,2 +1,2 @@
 flowchart LR
-    A["生产者 put(A)"] <--> B["消费者 take()"]
+    Request["请求线程"] --> MemoryQueue["内存队列"] --> Worker["工作线程"]

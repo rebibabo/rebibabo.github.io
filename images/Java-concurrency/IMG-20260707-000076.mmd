@@ -1,4 +1,4 @@
-graph TD
-    D["data = 42"] -->|Program Order| R["ready = true"]
-    R -->|Volatile Rule| RR["read ready == true"]
-    RR -->|Program Order| RD["read data"]
+graph LR
+    FA["futureA: 成功"] --> All["allOf: 失败"]
+    FB["futureB: 失败"] --> All
+    FC["futureC: 成功"] --> All

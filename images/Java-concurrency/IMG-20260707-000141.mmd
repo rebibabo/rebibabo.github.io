@@ -1,2 +1,5 @@
-graph TD
-    H["head"] --> B[B] --> C[C]
+graph LR
+    base["baseCount"] --> total["total<br>baseCount + sum(CounterCell[])"]
+    cc0["CounterCell[0]"] --> total
+    cc1["CounterCell[1]"] --> total
+    ccN["CounterCell[...]"] --> total

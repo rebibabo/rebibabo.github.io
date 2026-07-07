@@ -1,3 +1,2 @@
 graph TD
-    Alloc["Allocate memory"] --> Init["Initialize object"]
-    Init --> Assign["Assign reference"]
+    A["Thread-A"] --> B["ThreadLocalMap"] --> C["Entry<br>key = ThreadLocal object<br>value = UserA"]

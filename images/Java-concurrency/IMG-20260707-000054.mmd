@@ -1,7 +1,8 @@
-graph TD
-    subgraph sync["synchronized"]
-        S1["获取独占权限"] --> S2["只允许一个线程进入"]
+graph LR
+    subgraph Stack["工作线程栈"]
+        err["error = 0x1000"]
     end
-    subgraph cas["CAS"]
-        C1["先计算，再验证旧值"] --> C2["失败则放弃并重试"]
+    subgraph Heap["堆"]
+        arr["Throwable[1] @ 0x1000<br>element[0] = exception"]
     end
+    err --> arr

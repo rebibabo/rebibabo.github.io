@@ -1,4 +1,4 @@
-graph TD
-    A["ForkJoinPool"] --> B["管理 Worker"]
-    B --> C["每个 Worker 拥有本地双端队列"]
-    C --> D["ForkJoinTask 可以入队、弹出、窃取、执行、合并"]
+flowchart TD
+    A["接收消息"] --> B["处理文件任务"]
+    B --> C["业务成功"]
+    C --> D["确认消息 ack"]

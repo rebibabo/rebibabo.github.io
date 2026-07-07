@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant A as Thread A
+    participant Lock
+    participant B as Thread B
+    participant CD as Thread C/D
+
+    A->>Lock: Acquire → Execute → Release
+    B-->>Lock: Wait
+    CD-->>Lock: Wait
+    A->>Lock: Release
+    B->>Lock: Acquire → Execute
+    Note over CD: Still waiting

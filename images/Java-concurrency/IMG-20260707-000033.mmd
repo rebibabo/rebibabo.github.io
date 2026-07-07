@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant C1 as Core 1
+    participant Bus
+    participant C2 as Core 2
+
+    Note over C1,C2: 1. Both Shared, count = 0
+    C1->>Bus: 2. Request ownership
+    Bus->>C2: 3. Invalidate
+    Note over C1: 4. Modified, count = 1
+    Note over C2: Invalid

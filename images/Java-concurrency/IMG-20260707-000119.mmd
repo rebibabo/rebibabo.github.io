@@ -1,3 +1,5 @@
 graph TD
-    A["外部变量 tl"] -- strong --> B["ThreadLocal 实例"]
-    C["Entry.key"] -- weak --> B
+    chm["ConcurrentHashMap"]
+    chm --> seg0["Segment 0<br>lock"]
+    seg0 --> seg1["Segment 1<br>lock"]
+    seg1 --> seg2["Segment 2<br>lock"]

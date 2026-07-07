@@ -1,5 +1,5 @@
-graph TD
-    A[线程 A] --> V["value"]
-    B[线程 B] --> V
-    C[线程 C] --> V
-    D[线程 D] --> V
+flowchart LR
+    subgraph items["items 数组（容量 5）"]
+        direction LR
+        i0["[0] A"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] 空"] ~~~ i4["[4] 空"]
+    end

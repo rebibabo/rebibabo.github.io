@@ -1,8 +1,5 @@
 graph LR
-    subgraph Thread_Stack[Thread Stack]
-        user[user = 0x1000]
-    end
-    subgraph Heap
-        obj[0x1000: User Object]
-    end
-    user --> obj
+    A["Thread A"] --> Cell0["Cell 0"]
+    B["Thread B"] --> Cell2["Cell 2"]
+    C["Thread C"] --> Cell1["Cell 1"]
+    D["Thread D"] --> Cell3["Cell 3"]

@@ -1,5 +1,5 @@
-graph TD
-    A[Register] --> B[L1 Cache]
-    B --> C[L2 Cache]
-    C --> D[L3 Cache]
-    D --> E[Main Memory]
+graph LR
+    A["Thread A"] --> AI["AtomicInteger"]
+    B["Thread B"] --> AI
+    C["Thread C"] --> AI
+    D["Thread D"] --> AI

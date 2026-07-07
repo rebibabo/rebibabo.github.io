@@ -1,5 +1,2 @@
-graph LR
-    A["Thread A"] --> AI["AtomicInteger"]
-    B["Thread B"] --> AI
-    C["Thread C"] --> AI
-    D["Thread D"] --> AI
+graph TD
+    Nested["CompletableFuture<br>嵌套版本"] --> Flat["CompletableFuture<br>扁平版本"]

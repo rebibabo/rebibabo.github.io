@@ -1,4 +1,2 @@
 flowchart LR
-    tail["tail link"] --> putLock["putLock 保护"]
-    head["head link"] --> takeLock["takeLock 保护"]
-    count["count"] --> atomic["AtomicInteger 保护"]
+    A["生产者"] --> B["任务队列"] --> C["工作线程"] --> D["处理器"]

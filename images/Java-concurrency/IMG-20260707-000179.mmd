@@ -1,5 +1,5 @@
-flowchart LR
-    subgraph items["items 数组（容量 5）"]
-        direction LR
-        i0["[0] F"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] D"] ~~~ i4["[4] E"]
-    end
+graph TD
+    A["Worker 执行外层任务"] --> B["外层任务提交内层任务"]
+    B --> C["外层任务等待内层任务"]
+    C --> D["内层任务等待可用 Worker"]
+    D -.-> A
