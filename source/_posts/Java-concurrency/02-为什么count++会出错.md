@@ -82,7 +82,22 @@ count = next；            // 写
 
 假设 `count` 初始为 `0`，A、B 两个线程各执行一次 `count++`。下面是一种真实可能发生的执行顺序:
 
-![](/images/Java-concurrency/IMG-20260707-000009.png)
+```mermaid
+sequenceDiagram
+    participant A as Thread A
+    participant Heap
+    participant B as Thread B
+
+    Note over Heap: count = 0
+    A->>Heap: 1. Read count = 0
+    Note right of A: 2. Calculate next = 1
+    B->>Heap: 3. Read count = 0
+    Note right of B: 4. Calculate next = 1
+    A->>Heap: 5. Write count = 1
+    Note over Heap: count = 1
+    B->>Heap: 6. Write count = 1
+    Note over Heap: count = 1（A 的更新被覆盖）
+```
 
 
 

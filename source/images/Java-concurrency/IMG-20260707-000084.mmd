@@ -1,4 +1,2 @@
 graph LR
-    E["Entry"]
-    E --> K["key: ThreadLocal 实例"]
-    E --> V["value: 业务对象"]
+    A["Thread"] --> B["ThreadLocalMap"] --> C["Entry.key"] -- strong --> D["ThreadLocal 实例"]

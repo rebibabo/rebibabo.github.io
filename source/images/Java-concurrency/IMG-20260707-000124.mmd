@@ -1,7 +1,10 @@
 flowchart LR
     subgraph 写入前
+        direction LR
         Ab["A"] --> Bb["B"] --> nullb["null"]
     end
     subgraph 写入后
+        direction LR
         Aa["A"] --> Ba["B"] --> Ca["C"]
     end
+    nullb --> Aa

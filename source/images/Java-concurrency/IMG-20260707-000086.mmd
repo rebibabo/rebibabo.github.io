@@ -1,2 +1,2 @@
 graph LR
-    A["Thread"] --> B["ThreadLocalMap"] --> C["Entry.key"] -- strong --> D["ThreadLocal 实例"]
+    A["Thread"] --> B["ThreadLocalMap"] --> C["Entry"] --> D["value"]

@@ -237,7 +237,12 @@ if (queue.isEmpty()) {
 
 这一步是理解 `Condition` 的关键：
 
-![](/images/Java-concurrency/IMG-20260707-000052.png)
+```mermaid
+graph LR
+    CondQueue["条件队列"] -->|signal| SyncQueue["同步队列"]
+    CondQueue -->|await 阻塞| Parked["线程挂起"]
+    SyncQueue -->|重新获取锁| Return["await 返回"]
+```
 
 
 

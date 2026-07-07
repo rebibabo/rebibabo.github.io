@@ -267,7 +267,12 @@ CompletableFuture<Price> priceFuture =
 
 执行关系可以表示为：
 
-![](/images/Java-concurrency/IMG-20260707-000072.png)
+```mermaid
+graph LR
+    UF["userFuture → User"] --> CP["计算价格"]
+    CF["couponFuture → Coupon"] --> CP
+    CP --> Price["价格"]
+```
 
 
 

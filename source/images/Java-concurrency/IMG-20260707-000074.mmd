@@ -1,17 +1,4 @@
 graph LR
-    subgraph Main["主线程"]
-        direction LR
-        M1["调用 supplyAsync"] --> M2["拿到 future"]
-        M2 --> M3["继续执行"]
-    end
-    subgraph Worker["工作线程"]
-        direction LR
-        W1["执行 Supplier"] --> W2["抛出异常"]
-        W2 --> W3["完成 future"]
-    end
-    subgraph Heap["堆"]
-        direction LR
-        CF["CompletableFuture<br>result = 异常对象<br>state = 完成"]
-    end
-    M2 --> CF
-    W3 --> CF
+    FA["futureA: 成功"] --> All["allOf: 失败"]
+    FB["futureB: 失败"] --> All
+    FC["futureC: 成功"] --> All

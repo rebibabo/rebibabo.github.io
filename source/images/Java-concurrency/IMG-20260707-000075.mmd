@@ -1,9 +1,4 @@
 graph LR
-    subgraph Normal["正常路径"]
-        direction LR
-        SA["supplyAsync"] --> TA["thenApply"] --> TAc["thenAccept"] --> TR["thenRun"]
-    end
-    subgraph Error["异常路径"]
-        direction LR
-        SA2["supplyAsync"] --> EX["exceptionally<br>handle<br>whenComplete"]
-    end    SA --> SA2
+    FA["futureA: 首个失败"] --> Any["anyOf: 失败"]
+    FB["futureB: 后续成功"]
+    FC["futureC: 后续成功"]

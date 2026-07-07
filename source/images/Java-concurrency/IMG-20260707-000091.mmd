@@ -1,2 +1,9 @@
 graph LR
-    Head["head"] <--> B["Node B<br>waitStatus = SIGNAL"] <--> C["Node C<br>park 阻塞中"]
+    subgraph CondQueue["条件队列"]
+        direction LR
+        C1["Node C1"] --> C2["Node C2"]
+    end
+    subgraph SyncQueue["AQS 同步队列"]
+        direction LR
+        Head["head"] <--> B["Node B"] <--> Tail["tail"]
+    end    C1 --> Head
