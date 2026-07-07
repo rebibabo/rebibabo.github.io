@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（十七）—— ForkJoinPool 如何通过工作窃取执行任务
+title: Java高并发底层原理（二十六）—— ForkJoinPool 如何通过工作窃取执行任务
 date: 2026-07-05
 tags:
   - Java
@@ -10,7 +10,7 @@ categories:
   - Java高并发底层原理
 ---
 
-# Java高并发底层原理（十七）—— ForkJoinPool 如何通过工作窃取执行任务
+# Java高并发底层原理（二十六）—— ForkJoinPool 如何通过工作窃取执行任务
 
 普通线程池更适合处理一个个相对独立的任务：任务提交到队列，工作线程从队列中取任务执行。ForkJoinPool 面向的是另一类任务：一个大任务可以拆成多个子任务，子任务继续拆分，最后把结果合并起来。
 
