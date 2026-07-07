@@ -56,7 +56,7 @@ categories:
 
 先建立全局认知，避免一上来陷进细节。整条链路有三个角色：
 
-<pre style="display:none">
+```mermaid
 graph TB
     subgraph "你的应用（订单服务）"
         direction TB
@@ -66,9 +66,7 @@ graph TB
     end
     Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
     Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000019.png)
-
+```
 
 | 角色 | 职责 | 类比 |
 |------|------|------|
@@ -89,15 +87,13 @@ graph TB
 
 你应该还记得日志体系里的 SLF4J——它本身不打日志，只是一个统一的接口，背后可以接 Logback、Log4j 等不同实现。**Micrometer 之于监控，就像 SLF4J 之于日志**：
 
-<pre style="display:none">
+```mermaid
 graph TB
     Code["你的代码"] -->|调用统一 API 埋点| Facade["Micrometer（门面，统一接口）"]
     Facade --> Prom["Prometheus<br/>（你选这个）"]
     Facade --> Other["其他监控系统<br/>（Datadog 等）"]
     Facade --> Another["又一个监控系统<br/>（CloudWatch 等）"]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000020.png)
-
+```
 
 好处：你的埋点代码只调 Micrometer 的 API，将来要从 Prometheus 换成别的监控系统，**业务代码一行不用改**，只换底层依赖。
 
@@ -107,12 +103,10 @@ graph TB
 
 **Meter（仪表）** 是 Micrometer 里"一个指标"的统称（Counter、Gauge、Timer 都是 Meter）。**Registry（注册表）** 就是管理所有这些指标的容器。
 
-<pre style="display:none">
+```mermaid
 graph TB
     Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000021.png)
-
+```
 
 | 概念 | 是什么 | 类比 |
 |------|--------|------|
@@ -258,14 +252,12 @@ else if (channel.equals("wechat")) wechatCount.increment();
 
 **标签（Tag）= 给一个指标补上一个"按什么分类"的维度。** 用一张表来理解最直观：
 
-<pre style="display:none">
+```mermaid
 graph TB
     Metric["指标名: order.create.total<br/>← 相当于一张表的表名"] --> R1["channel: alipay<br/>计数: 1200"]
     Metric --> R2["channel: wechat<br/>计数: 980"]
     Metric --> R3["channel: unionpay<br/>计数: 450"]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000022.png)
-
+```
 
 - **指标名**（`order.create.total`）：相当于表名，整张表共用一个。
 - **标签的名字**（`channel`）：相当于**列名**，是固定写死的字符串，表示"我按哪个维度分类"。
@@ -637,16 +629,14 @@ histogram_quantile(0.99, rate(order_create_duration_seconds_bucket[5m]))
 
 写 PromQL 基本就是这套组合拳，按需叠加：
 
-<pre style="display:none">
+```mermaid
 graph LR
     M["指标名<br/>选哪个指标"] --> L["{标签筛选}<br/>选哪些序列"]
     L --> R["[时间范围]<br/>取一段"]
     R --> Rate["rate() 算速率<br/>变成 QPS"]
     Rate --> Sum["sum() by() 聚合<br/>按维度汇总"]
     Sum --> Div["相除/比较<br/>算比率"]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000023.png)
-
+```
 
 记住几个最高频的就够日常用了：`rate()` 算速率（QPS）、两个 rate 相除算比率（成功率）、`sum by()` 按维度汇总、`histogram_quantile` 算 P99。Grafana 大盘里每个面板背后，写的就是这样一行 PromQL（下一篇会讲）。
 
