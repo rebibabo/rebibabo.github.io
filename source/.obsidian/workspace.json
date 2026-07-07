@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
+                "file": "_posts/Java-concurrency/08-Java内存到底规定什么.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "06-多核CPU如何保持缓存一致"
+              "title": "08-Java内存到底规定什么"
             }
           }
         ],
@@ -194,6 +194,8 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "_posts/Java-concurrency/07-volatile到底解决了什么问题.md",
+    "_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
     "images/Java-concurrency/IMG-20260707-000201.png",
     "images/Java-concurrency/IMG-20260707-000200.png",
     "images/Java-concurrency/IMG-20260707-000199.png",
@@ -204,7 +206,6 @@
     "images/Java-concurrency/IMG-20260707-000195.png",
     "images/Java-concurrency/IMG-20260707-000192.png",
     "images/Java-concurrency/IMG-20260707-000194.png",
-    "images/Java-concurrency/IMG-20260707-000191.png",
     "images/Java-concurrency/IMG-20260707-000201.mmd",
     "images/Java-concurrency/IMG-20260707-000200.mmd",
     "images/Java-concurrency/IMG-20260707-000199.mmd",
@@ -238,7 +239,6 @@
     "_posts/Java-advanced copy/01-microservices-intro.md",
     "_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
     "_posts/programmatic-ads/02-DSP.md",
-    "_posts/programmatic-ads/09-openRTB.md",
-    "skills/playwright-automation.md"
+    "_posts/programmatic-ads/09-openRTB.md"
   ]
 }
