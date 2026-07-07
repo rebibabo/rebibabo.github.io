@@ -91,14 +91,14 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
         print(f"     正在 git add → commit → push...")
         _git_sync()
 
-        # GitHub raw CDN 有延迟，等几秒再重试
+        # GitHub raw CDN 有延迟，等几秒再重试（最多 30s）
         import time
-        for retry in range(5):
-            time.sleep(2)
+        for retry in range(10):
+            time.sleep(3)
             if _check_url(raw_url):
                 print(f"     ✅ push 后外链可用")
                 return f"![{alt}]({raw_url})"
-            print(f"     等待 CDN 同步... ({retry + 1}/5)")
+            print(f"     等待 CDN 同步... ({retry + 1}/10)")
 
         print(f"     ❌ 等待超时，保留本地路径")
         return match.group(0)
@@ -107,14 +107,16 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
 
 
 def _check_url(url: str) -> bool:
-    """HEAD 请求检查 URL 是否可访问"""
-    try:
-        ctx = ssl._create_unverified_context()
-        req = urllib.request.Request(url, method="HEAD")
-        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
-            return resp.status == 200
-    except Exception:
-        return False
+    """检查 URL 是否可访问（HEAD 优先，GET 兜底）"""
+    ctx = ssl._create_unverified_context()
+    for method in ("HEAD", "GET"):
+        try:
+            req = urllib.request.Request(url, method=method)
+            with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+                return resp.status == 200
+        except Exception:
+            continue
+    return False
 
 
 def _git_sync():
