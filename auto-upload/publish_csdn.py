@@ -171,12 +171,7 @@ def _check_logged_in(context) -> bool:
         page.close()
         return False
     # 多策略检测登录态
-    logged_in = page.evaluate("""() => {
-        if (document.querySelector('img[class*="avatar"]')) return true;
-        if (document.querySelector('.user-info, .user-name, .csdn-avatar')) return true;
-        if (document.querySelector('a[href*="editor"], a:has-text("创作")')) return true;
-        return false;
-    }""")
+    logged_in = page.evaluate("() => !!document.querySelector('.hasAvatar')")
     page.close()
     return logged_in
 
