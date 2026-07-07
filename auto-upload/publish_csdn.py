@@ -28,7 +28,8 @@ DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = "deepseek-chat"    # flash 模型
 
 # GitHub 图片外链配置
-GITHUB_RAW_BASE = "https://raw.githubusercontent.com/rebibabo/rebibabo.github.io/source/source"
+# 图片外链：用 jsDelivr CDN 代理 GitHub raw（国内访问更稳定，CSDN 不会转存失败）
+GITHUB_RAW_BASE = "https://cdn.jsdelivr.net/gh/rebibabo/rebibabo.github.io@source/source"
 BLOG_SOURCE_DIR = os.path.join(os.path.dirname(__file__), "..", "source")  # source/images/...
 
 
