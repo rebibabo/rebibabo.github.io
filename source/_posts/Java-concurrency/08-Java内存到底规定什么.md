@@ -135,16 +135,7 @@ program order 只能连接线程内部。要让一个线程的写入对另一个
 
 所以线程 B 读到 `ready == true` 后，必须能够看到 `data = 42`。这里不是 `volatile ready` 把 `data` 也变成了 volatile，而是 `ready` 在两个线程之间建立了一座桥，把线程 A 中 volatile 写之前的内存效果传递给线程 B 中 volatile 读之后的操作。
 
-```mermaid
-graph LR
-    subgraph Thread_A[Thread A]
-        A1[写 data = 42] -->|program order| A2[volatile 写 ready]
-    end
-    subgraph Thread_B[Thread B]
-        B1[volatile 读 ready] -->|program order| B2[读 data]
-    end
-    A2 -->|synchronizes-with| B1    A1 --> B1
-```
+![](/images/Java-concurrency/IMG-20260707-000048.png)
 
 
 
