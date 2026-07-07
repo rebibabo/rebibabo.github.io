@@ -26,14 +26,21 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000013.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000014.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000015.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000016.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000017.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000018.png">
 <meta property="article:published_time" content="2026-05-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:46:21.351Z">
+<meta property="article:modified_time" content="2026-07-07T13:47:49.034Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JWT">
 <meta property="article:tag" content="Spring Boot">
 <meta property="article:tag" content="Spring Security">
 <meta property="article:tag" content="认证授权">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000013.png">
   
   
   
@@ -229,7 +236,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          10k 字
+          8.6k 字
         
       </span>
     
@@ -240,7 +247,7 @@
         
         
         
-          86 分钟
+          72 分钟
         
       </span>
     
@@ -374,14 +381,7 @@
 <p>无状态、天然支持多机，是 JWT 在微服务架构里流行的主要原因。</p>
 <hr>
 <h2 id="3-JWT-长什么样"><a href="#3-JWT-长什么样" class="headerlink" title="3. JWT 长什么样"></a>3. JWT 长什么样</h2><h3 id="3-1-三段式结构"><a href="#3-1-三段式结构" class="headerlink" title="3.1 三段式结构"></a>3.1 三段式结构</h3><p>一个 JWT 就是一个用两个点分隔的字符串：</p>
-<pre><code class=" mermaid">graph LR
-    Header[&quot;Header（头部）&lt;br/&gt;&#123;alg: HS256, typ: JWT&#125;&quot;] --&gt; Payload[&quot;Payload（载荷）&lt;br/&gt;&#123;sub: 1001, role: admin&#125;&quot;]
-    Payload --&gt; Signature[&quot;Signature（签名）&lt;br/&gt;防篡改校验值&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-advanced/IMG-20260707-000013.png" srcset="/img/loading.gif" lazyload></p>
 <table>
 <thead>
 <tr>
@@ -408,38 +408,12 @@
 </tbody></table>
 <p>前两部分只是 Base64 编码（<strong>不是加密</strong>，任何人都能解开看到内容），所以<strong>不能往 Payload 里放密码等敏感信息</strong>。</p>
 <h3 id="3-2-签名怎么防篡改"><a href="#3-2-签名怎么防篡改" class="headerlink" title="3.2 签名怎么防篡改"></a>3.2 签名怎么防篡改</h3><p>签名是 JWT 安全的核心：</p>
-<pre><code class=" mermaid">graph LR
-    Key[&quot;服务端密钥&quot;] --&gt; Compute[&quot;重新计算签名&lt;br/&gt;HMAC-SHA256(Header.Payload, 密钥)&quot;]
-    Token[&quot;收到 JWT&quot;] --&gt; Compare[&quot;算出的签名&lt;br/&gt;=&lt;br/&gt;Token 中的签名?&quot;]
-    Compute --&gt; Compare
-    Compare --&gt;|相等 ✅| Trust[&quot;没被篡改，可信&quot;]
-    Compare --&gt;|不相等 ❌| Reject[&quot;被人改过，拒绝&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-advanced/IMG-20260707-000014.png" srcset="/img/loading.gif" lazyload></p>
 <p>关键点：<strong>密钥只有服务端知道</strong>。攻击者即使改了 Payload（比如把 <code>role</code> 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。</p>
-<pre><code class=" mermaid">graph LR
-    Attack[&quot;攻击者篡改 Payload&lt;br/&gt;role: user → role: admin&quot;] --&gt; NoKey[&quot;不知道密钥&lt;br/&gt;无法生成新签名&quot;]
-    NoKey --&gt; ServerCheck[&quot;服务端用密钥重新计算签名&quot;]
-    ServerCheck --&gt; Mismatch[&quot;和 token 里的签名一致?&quot;]
-    Mismatch --&gt;|不一致 ❌| Reject[&quot;拒绝 ✅&quot;]
-</code></pre>
-
-
-
-
+<p><img src="/images/Java-advanced/IMG-20260707-000015.png" srcset="/img/loading.gif" lazyload></p>
 <hr>
 <h2 id="4-Spring-Security-核心概念"><a href="#4-Spring-Security-核心概念" class="headerlink" title="4. Spring Security 核心概念"></a>4. Spring Security 核心概念</h2><p>Spring Security 的工作方式是在请求到达 Controller <strong>之前</strong>，先经过一条”过滤器链”层层检查。</p>
-<h3 id="4-1-过滤器链（Filter-Chain）"><a href="#4-1-过滤器链（Filter-Chain）" class="headerlink" title="4.1 过滤器链（Filter Chain）"></a>4.1 过滤器链（Filter Chain）</h3><pre><code class=" mermaid">graph LR
-    Request[&quot;HTTP 请求&quot;] --&gt; FilterChain[&quot;Spring Security 过滤器链&lt;br/&gt;过滤器1 → 过滤器2 → ... → JWT过滤器&lt;br/&gt;← 在这里做认证授权检查&quot;]
-    FilterChain --&gt;|检查通过| Controller[&quot;Controller（你的业务代码）&quot;]
-</code></pre>
-
-
-
-
+<h3 id="4-1-过滤器链（Filter-Chain）"><a href="#4-1-过滤器链（Filter-Chain）" class="headerlink" title="4.1 过滤器链（Filter Chain）"></a>4.1 过滤器链（Filter Chain）</h3><p><img src="/images/Java-advanced/IMG-20260707-000016.png" srcset="/img/loading.gif" lazyload></p>
 <p>我们做 JWT 认证，就是往这条链里加一个<strong>自定义过滤器</strong>，专门负责解析和验证请求里的 JWT。</p>
 <h3 id="4-2-几个核心组件"><a href="#4-2-几个核心组件" class="headerlink" title="4.2 几个核心组件"></a>4.2 几个核心组件</h3><table>
 <thead>
@@ -471,27 +445,8 @@
 </tbody></table>
 <hr>
 <h2 id="5-完整流程：从登录到访问受保护接口"><a href="#5-完整流程：从登录到访问受保护接口" class="headerlink" title="5. 完整流程：从登录到访问受保护接口"></a>5. 完整流程：从登录到访问受保护接口</h2><p>把整个链路拆成两个阶段看：</p>
-<h3 id="5-1-阶段一：登录拿-token"><a href="#5-1-阶段一：登录拿-token" class="headerlink" title="5.1 阶段一：登录拿 token"></a>5.1 阶段一：登录拿 token</h3><pre><code class=" mermaid">graph LR
-    S1[&quot;① 用户 POST /login&lt;br/&gt;带上用户名 + 密码&quot;] --&gt; S2[&quot;② 服务端查数据库&lt;br/&gt;用 PasswordEncoder 校验密码&quot;]
-    S2 --&gt; S3[&quot;③ 密码正确 → 生成 JWT&lt;br/&gt;把用户 id、角色打包签名&quot;]
-    S3 --&gt; S4[&quot;④ 把 JWT 返回给客户端&quot;]
-    S4 --&gt; S5[&quot;⑤ 客户端保存 JWT&lt;br/&gt;比如存在 localStorage&quot;]
-</code></pre>
-
-
-
-
-<h3 id="5-2-阶段二：带-token-访问接口"><a href="#5-2-阶段二：带-token-访问接口" class="headerlink" title="5.2 阶段二：带 token 访问接口"></a>5.2 阶段二：带 token 访问接口</h3><pre><code class=" mermaid">graph LR
-    S1[&quot;① 客户端请求受保护接口&lt;br/&gt;Authorization: Bearer eyJhbGci...&quot;] --&gt; S2[&quot;② JWT 过滤器拦截请求，取出 token&quot;]
-    S2 --&gt; S3[&quot;③ 用密钥验证签名&lt;br/&gt;验证是否过期&quot;]
-    S3 --&gt;|通过 ✅| S4[&quot;④ 解析用户信息&lt;br/&gt;存入 SecurityContext&quot;]
-    S4 --&gt; S5[&quot;⑤ 放行到 Controller&lt;br/&gt;业务代码拿到当前用户&quot;]
-    S3 --&gt;|失败 ❌| Fail[&quot;直接返回 401&lt;br/&gt;不进 Controller&quot;]
-</code></pre>
-
-
-
-
+<h3 id="5-1-阶段一：登录拿-token"><a href="#5-1-阶段一：登录拿-token" class="headerlink" title="5.1 阶段一：登录拿 token"></a>5.1 阶段一：登录拿 token</h3><p><img src="/images/Java-advanced/IMG-20260707-000017.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="5-2-阶段二：带-token-访问接口"><a href="#5-2-阶段二：带-token-访问接口" class="headerlink" title="5.2 阶段二：带 token 访问接口"></a>5.2 阶段二：带 token 访问接口</h3><p><img src="/images/Java-advanced/IMG-20260707-000018.png" srcset="/img/loading.gif" lazyload></p>
 <p>注意阶段二<strong>全程不查数据库</strong>——验签 + 解析 token 即可，这就是 JWT “无状态”的体现。</p>
 <hr>
 <h2 id="6-实战：给-Mini-SSP-加上-JWT-认证"><a href="#6-实战：给-Mini-SSP-加上-JWT-认证" class="headerlink" title="6. 实战：给 Mini-SSP 加上 JWT 认证"></a>6. 实战：给 Mini-SSP 加上 JWT 认证</h2><p>下面分步骤实现，每步只看关键部分。</p>
@@ -678,13 +633,13 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/Spring-Boot/" class="print-no-link">#Spring Boot</a>
+      
         <a href="/tags/Spring-Security/" class="print-no-link">#Spring Security</a>
       
         <a href="/tags/JWT/" class="print-no-link">#JWT</a>
       
         <a href="/tags/%E8%AE%A4%E8%AF%81%E6%8E%88%E6%9D%83/" class="print-no-link">#认证授权</a>
-      
-        <a href="/tags/Spring-Boot/" class="print-no-link">#Spring Boot</a>
       
     </div>
   
