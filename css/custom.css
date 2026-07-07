@@ -256,11 +256,11 @@ body > header .header-inner {
 
 /* ===== Mermaid 生成的图片 ===== */
 .markdown-body pre[style*="display:none"] + p > img {
-  display: block;
+  display: block !important;
   width: auto !important;
-  max-width: min(760px, 100%) !important;
-  max-height: 720px;
+  max-width: 480px !important;
+  max-height: 720px !important;
   height: auto !important;
-  margin: 1.5rem auto;
-  object-fit: contain;
+  margin: 1.5rem auto !important;
+  object-fit: contain !important;
 }
