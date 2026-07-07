@@ -2,10 +2,11 @@
 CSDN 自动发布文章脚本
 =====================
 用法：
-    python3 auto-upload/publish_csdn.py <markdown文件路径> [标签1] [标签2] ...
+    python3 auto-upload/publish_csdn.py <markdown文件路径> [-c 专栏1,专栏2] [标签1] [标签2] ...
 
 示例：
     python3 auto-upload/publish_csdn.py source/_posts/xxx.md Java 高并发
+    python3 auto-upload/publish_csdn.py source/_posts/xxx.md -c Java高并发,Java基础
 """
 
 import re
@@ -474,7 +475,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
 # ============================================================
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("用法: python3 auto-upload/publish_csdn.py <markdown文件路径> [标签1] [标签2] ...")
+        print("用法: python3 auto-upload/publish_csdn.py <markdown文件路径> [-c 专栏1,专栏2] [标签1] [标签2] ...")
         sys.exit(1)
 
     filepath = sys.argv[1]
@@ -482,13 +483,28 @@ if __name__ == "__main__":
         print(f"文件不存在: {filepath}")
         sys.exit(1)
 
+    # 解析 --columns/-c 参数
+    cli_columns = None
+    cli_tags = []
+    args = sys.argv[2:]
+    i = 0
+    while i < len(args):
+        if args[i] in ("-c", "--columns") and i + 1 < len(args):
+            cli_columns = [c.strip() for c in args[i + 1].split(",") if c.strip()]
+            i += 2
+        else:
+            cli_tags.append(args[i])
+            i += 1
+
+    if cli_columns:
+        COLUMN_NAMES[:] = cli_columns
+        print(f"专栏覆盖: {COLUMN_NAMES}")
+
     article = parse_markdown(filepath)
 
     # 替换本地图片为 GitHub raw 外链
     print("-1. 替换图片为外链...", flush=True)
     article["body"] = resolve_images_in_body(article["body"], filepath)
-
-    cli_tags = sys.argv[2:] if len(sys.argv) > 2 else []
 
     # 先调 AI 提取摘要和标签
     print("0. 调用 DeepSeek 提取摘要和标签...", flush=True)
