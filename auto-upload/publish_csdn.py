@@ -110,17 +110,22 @@ def _check_url(url: str) -> bool:
 
 
 def _git_sync():
-    """在博客根目录执行 git add → commit → push"""
+    """在博客根目录执行 git add → commit → push（push 失败不影响主流程）"""
     import subprocess
     blog_root = os.path.join(os.path.dirname(__file__), "..")
 
     subprocess.run(["git", "add", "source/images/"], cwd=blog_root, capture_output=True)
-    # commit 可能因为没变更而失败，不影响 push
     subprocess.run(
         ["git", "commit", "-m", "auto: sync images for CSDN upload"],
         cwd=blog_root, capture_output=True,
     )
-    subprocess.run(["git", "push", "origin", "source"], cwd=blog_root, capture_output=True)
+    result = subprocess.run(
+        ["git", "push", "origin", "source"],
+        cwd=blog_root, capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        print(f"     ⚠️  git push 失败: {result.stderr.strip()}")
+        print(f"     请手动 push 后重试")
 
 
 # ============================================================
