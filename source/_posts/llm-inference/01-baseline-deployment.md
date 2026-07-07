@@ -1,5 +1,7 @@
 ---
-title: baseline-deployment
+title: 
+    LLM推理优化实战(一)：RTX3090部署Qwen2.5-7B全记录：TPOT-19.7ms，已逼近显存带宽极限
+
 date: 2026-04-01
 categories:
     llm-inference
