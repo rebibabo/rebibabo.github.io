@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T11:49:56.959Z",
+  "updatedAt": "2026-07-07T11:54:24.747Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "vaultPath": "_posts/Java-advanced/04-jwt.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/06-grafana.md",
+    "vaultPath": "_posts/Java-advanced/06-grafana.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/06-grafana.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-      "vaultPath": "_posts/Java-advanced/04-jwt.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/06-grafana.md",
+      "vaultPath": "_posts/Java-advanced/06-grafana.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/06-grafana.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 104,
+      "line": 207,
       "ch": 0,
-      "offset": 1822
+      "offset": 5835
     },
     "to": {
-      "line": 104,
+      "line": 207,
       "ch": 0,
-      "offset": 1822
+      "offset": 5835
     }
   }
 }
