@@ -208,6 +208,7 @@
   },
   "active": "f290e5fcda3f3c3e",
   "lastOpenFiles": [
+    "index.html",
     "series/index.md",
     "series",
     "js/back-to-category.js",
@@ -240,7 +241,6 @@
     "_posts/concurrency/08-Java内存到底规定什么.md",
     "_posts/concurrency/07-volatile到底解决了什么问题.md",
     "_posts/concurrency/06-多核CPU如何保持缓存一致.md",
-    "_posts/concurrency/05-CAS为什么能够在不加锁的情况下更新共享数据.md",
     "tags",
     "about",
     "categories",

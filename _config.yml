@@ -32,6 +32,7 @@ skip_render:
   # - "wiki/**"
   # - "schema/**"
   # - "skills/**"
+  - "index.html"
 
 # Writing
 new_post_name: :title.md # File name of new posts
