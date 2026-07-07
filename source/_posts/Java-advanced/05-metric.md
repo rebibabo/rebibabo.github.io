@@ -56,17 +56,8 @@ categories:
 
 先建立全局认知，避免一上来陷进细节。整条链路有三个角色：
 
-```mermaid
-graph LR
-    subgraph "你的应用（订单服务）"
-        direction TB
-        MC["Micrometer<br/>在代码里埋点，把指标存在内存里<br/>（下单 +1、记录耗时...）"]
-        Endpoint["/actuator/prometheus<br/>← 暴露成 HTTP 端点，吐出指标文本"]
-        MC --- Endpoint
-    end
-    Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
-    Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
-```
+![](/images/Java-advanced/IMG-20260707-000019.png)
+
 
 
 
@@ -89,13 +80,8 @@ graph LR
 
 你应该还记得日志体系里的 SLF4J——它本身不打日志，只是一个统一的接口，背后可以接 Logback、Log4j 等不同实现。**Micrometer 之于监控，就像 SLF4J 之于日志**：
 
-```mermaid
-graph LR
-    Code["你的代码"] -->|调用统一 API 埋点| Facade["Micrometer（门面，统一接口）"]
-    Facade --> Prom["Prometheus<br/>（你选这个）"]
-    Facade --> Other["其他监控系统<br/>（Datadog 等）"]
-    Facade --> Another["又一个监控系统<br/>（CloudWatch 等）"]
-```
+![](/images/Java-advanced/IMG-20260707-000020.png)
+
 
 
 
@@ -107,10 +93,8 @@ graph LR
 
 **Meter（仪表）** 是 Micrometer 里"一个指标"的统称（Counter、Gauge、Timer 都是 Meter）。**Registry（注册表）** 就是管理所有这些指标的容器。
 
-```mermaid
-graph LR
-    Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
-```
+![](/images/Java-advanced/IMG-20260707-000021.png)
+
 
 
 
@@ -258,12 +242,8 @@ else if (channel.equals("wechat")) wechatCount.increment();
 
 **标签（Tag）= 给一个指标补上一个"按什么分类"的维度。** 用一张表来理解最直观：
 
-```mermaid
-graph LR
-    Metric["指标名: order.create.total<br/>← 相当于一张表的表名"] --> R1["channel: alipay<br/>计数: 1200"]
-    Metric --> R2["channel: wechat<br/>计数: 980"]
-    Metric --> R3["channel: unionpay<br/>计数: 450"]
-```
+![](/images/Java-advanced/IMG-20260707-000022.png)
+
 
 
 
@@ -637,14 +617,8 @@ histogram_quantile(0.99, rate(order_create_duration_seconds_bucket[5m]))
 
 写 PromQL 基本就是这套组合拳，按需叠加：
 
-```mermaid
-graph LR
-    M["指标名<br/>选哪个指标"] --> L["{标签筛选}<br/>选哪些序列"]
-    L --> R["[时间范围]<br/>取一段"]
-    R --> Rate["rate() 算速率<br/>变成 QPS"]
-    Rate --> Sum["sum() by() 聚合<br/>按维度汇总"]
-    Sum --> Div["相除/比较<br/>算比率"]
-```
+![](/images/Java-advanced/IMG-20260707-000023.png)
+
 
 
 

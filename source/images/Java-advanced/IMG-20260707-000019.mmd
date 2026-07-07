@@ -1,0 +1,9 @@
+graph LR
+    subgraph "你的应用（订单服务）"
+        direction TB
+        MC["Micrometer<br/>在代码里埋点，把指标存在内存里<br/>（下单 +1、记录耗时...）"]
+        Endpoint["/actuator/prometheus<br/>← 暴露成 HTTP 端点，吐出指标文本"]
+        MC --- Endpoint
+    end
+    Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
+    Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]

@@ -1,0 +1,6 @@
+graph LR
+    S1["① 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["② JWT 过滤器拦截请求，取出 token"]
+    S2 --> S3["③ 用密钥验证签名<br/>验证是否过期"]
+    S3 -->|通过 ✅| S4["④ 解析用户信息<br/>存入 SecurityContext"]
+    S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
+    S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]

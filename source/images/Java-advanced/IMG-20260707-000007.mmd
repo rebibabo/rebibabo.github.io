@@ -1,0 +1,8 @@
+graph LR
+    subgraph "容器 (Container)"
+        direction TB
+        C_Apps["应用 A (依赖) | 应用 B (依赖) | 应用 C (依赖)<br/>← 只打包应用和依赖，共享宿主机内核"]
+        C_Engine["Docker Engine"]
+        C_Host["宿主机操作系统<br/>← 所有容器共享这一个内核"]
+        C_Apps --- C_Engine --- C_Host
+    end
