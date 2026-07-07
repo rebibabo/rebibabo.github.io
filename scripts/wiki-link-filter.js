@@ -27,24 +27,43 @@ hexo.extend.filter.register('before_post_render', function(data) {
   if (!data.source || !data.raw) return data;
 
   const sourcePath = data.source;
-  const isWiki = sourcePath.startsWith('wiki/');
 
-  if (isWiki) {
-    // Inject layout for wiki pages that don't have one
-    if (!data.layout) {
-      data.layout = 'page';
-    }
-
-    // Convert Obsidian wikilinks
-    data.raw = convertWikilinks(data.raw, data);
-  }
-
-  if (sourcePath.startsWith('_posts/')) {
+  if (sourcePath.indexOf('_posts') !== -1) {
     data.raw = convertWikilinks(data.raw, data);
   }
 
   return data;
 }, 9);
+
+// For wiki pages (rendered as pages not posts), use after_render:html
+hexo.extend.filter.register('after_render:html', function(html, data) {
+  if (!data.path || !/^wiki\//.test(data.path)) return html;
+
+  // Convert remaining [[wiki/...]] links (handle URL-encoded slashes)
+  // Match both raw and encoded: [[wiki/path|text]] or [[wiki&#x2F;path&#x2F;...|text]]
+  html = html.replace(/\[\[wiki(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
+    // Decode URL-encoded separators in the path
+    const cleanPath = path.replace(/&#x2F;/g, '/').replace(/\.md$/, '');
+    const display = text || cleanPath.split('/').pop();
+    const url = cleanPath === 'index' ? '/wiki/' : '/wiki/' + cleanPath + '.html';
+    return '<a href="' + url + '" class="wiki-link">' + display + '</a>';
+  });
+
+  // Convert [[_posts/...]] links (handle URL-encoded)
+  html = html.replace(/\[\[_posts(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
+    const key = '_posts/' + path;
+    const keyNoExt = key.replace(/\.md$/, '');
+    const url = sourceToUrl[key] || sourceToUrl[keyNoExt];
+    if (url) {
+      const display = text || url.split('/').filter(Boolean).pop();
+      return '<a href="' + url + '">' + display + '</a>';
+    }
+    const display = text || path.split('/').pop().replace(/\.md$/, '');
+    return '<a href="/wiki/">' + display + ' (unresolved)</a>';
+  });
+
+  return html;
+}, 15);
 
 function convertWikilinks(content, data) {
   // [[wiki/path|text]] → [text](/wiki/path/)
