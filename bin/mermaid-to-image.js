@@ -79,9 +79,10 @@ async function runConcurrent(tasks, concurrency) {
   let running = 0;
   let idx = 0;
 
+  let done = 0;
   return new Promise((resolve) => {
     function next() {
-      if (results.length === tasks.length) {
+      if (done === tasks.length) {
         resolve(results);
         return;
       }
@@ -92,7 +93,7 @@ async function runConcurrent(tasks, concurrency) {
         task()
           .then((r) => { results[taskIdx] = r; })
           .catch((e) => { results[taskIdx] = { error: e }; })
-          .finally(() => { running--; next(); });
+          .finally(() => { running--; done++; next(); });
       }
     }
     next();
