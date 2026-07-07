@@ -85,8 +85,8 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
     prompt = (
         "根据以下文章内容生成摘要和标签。\n"
         "要求：\n"
-        "1. 摘要：不超过150字，只概括核心内容，不要评价\n"
-        "2. 标签：不超过7个，用简短关键词描述文章主题\n"
+        "1. 摘要：必须严格控制在150个字符以内，只概括核心内容，不要评价\n"
+        "2. 标签：5~7个，用简短关键词描述文章主题\n"
         "严格只返回 JSON，不要包含其他文字：\n"
         '{"summary": "...", "tags": ["...", "..."]}\n\n'
         f"文章标题：{title}\n\n文章内容：\n{body[:5000]}"
@@ -124,8 +124,9 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
             ai_tags = metadata.get("tags", [])
 
             if len(summary) > 250:
-                print(f"  ⚠️  摘要过长（{len(summary)} 字），重试 {attempt + 1}/3...")
-                continue
+                orig_len = len(summary)
+                summary = summary[:250].rstrip("，。；、！？,.;!?")
+                print(f"  ⚠️  摘要过长（{orig_len} 字），已截断至 {len(summary)} 字")
 
             print(f"  ✅ AI 摘要: {len(summary)} 字")
             print(f"  ✅ AI 标签: {ai_tags}")
