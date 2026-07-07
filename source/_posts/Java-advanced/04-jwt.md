@@ -127,15 +127,7 @@ graph LR
 
 签名是 JWT 安全的核心：
 
-<pre style="display:none">
-graph TB
-    Key["服务端密钥"] --> Compute["重新计算签名<br/>HMAC-SHA256(Header.Payload, 密钥)"]
-    Token["收到 JWT"] --> Compare{"算出的签名<br/>=<br/>Token 中的签名?"}
-    Compute --> Compare
-    Compare -->|相等 ✅| Trust["没被篡改，可信"]
-    Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
 
-![](/images/Java-advanced/IMG-20260707-000014.png)
 
 
 
@@ -145,14 +137,7 @@ graph TB
 
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
 
-<pre style="display:none">
-graph TB
-    Attack["攻击者篡改 Payload<br/>role: user → role: admin"] --> NoKey{"不知道密钥<br/>无法生成新签名"}
-    NoKey --> ServerCheck["服务端用密钥重新计算签名"]
-    ServerCheck --> Mismatch{"和 token 里的签名一致?"}
-    Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 
-![](/images/Java-advanced/IMG-20260707-000015.png)
 
 
 
@@ -168,12 +153,7 @@ Spring Security 的工作方式是在请求到达 Controller **之前**，先经
 
 ### 4.1 过滤器链（Filter Chain）
 
-<pre style="display:none">
-graph TB
-    Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
-    FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
 
-![](/images/Java-advanced/IMG-20260707-000016.png)
 
 
 
