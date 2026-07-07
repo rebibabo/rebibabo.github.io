@@ -20,7 +20,7 @@ from playwright.sync_api import Playwright, sync_playwright
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAME = "Java高并发"          # 专栏名
 DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签
-USE_AI_DECLARATION = False          # 是否勾选"部分内容由AI辅助生成"，默认不勾选（无声明）
+USE_AI_DECLARATION = True          # 是否勾选"部分内容由AI辅助生成"，默认不勾选（无声明）
 
 
 # ============================================================
@@ -196,24 +196,32 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     except Exception as e:
         print(f"  ⚠️  填写摘要失败: {e}")
 
-    # ---- 第十一步：勾选 AI 声明 ----
-    print("11. 勾选 AI 辅助生成声明...")
-    page2.get_by_text("部分内容由AI辅助生成").click()
-    page2.wait_for_timeout(500)
+    # ---- 第十一步：创作声明 + 文章备份 ----
+    print("11. 创作声明与备份...")
 
-    # 确认复选框：只勾选，不取消
+    if USE_AI_DECLARATION:
+        # 打开创作声明下拉框
+        page2.locator(".creation-statement-select input").click()
+        page2.wait_for_timeout(300)
+        # 选择「部分内容由AI辅助生成」
+        page2.locator(".el-select-dropdown__item.hover").click()
+        page2.wait_for_timeout(300)
+        print("  ✅ 已选择: 部分内容由AI辅助生成")
+    else:
+        print("  ⏭️  创作声明: 无声明（默认，跳过）")
+
+    # 勾选文章备份复选框
     try:
         cb = page2.locator(".el-checkbox__inner")
         cb.wait_for(timeout=5000)
-        # 检查是否已勾选，没勾才点
         is_checked = cb.evaluate("el => el.classList.contains('is-checked') || el.parentElement.classList.contains('is-checked')")
         if not is_checked:
             cb.click()
-            print("  ✅ 已勾选确认复选框")
+            print("  ✅ 已勾选文章备份")
         else:
-            print("  ✅ 确认复选框已勾选，跳过")
+            print("  ✅ 文章备份已勾选，跳过")
     except Exception as e:
-        print(f"  ⚠️  复选框操作失败: {e}")
+        print(f"  ⚠️  文章备份复选框操作失败: {e}")
 
     # ---- 第十二步：最终发布（暂时禁用，测试用）----
     print("12. 🔒 跳过最终发布（测试模式）")
