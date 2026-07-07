@@ -10,7 +10,7 @@ tags:
 - 线程阻塞
 categories:
 - java-concurrency
--------------
+---
 
 
 前面分析 AQS、ReentrantLock、线程等待队列时，经常会看到一个底层工具：`LockSupport`。它不是一把锁，也不维护等待队列，而是提供两个更底层的能力：让当前线程暂停，以及唤醒指定线程。
