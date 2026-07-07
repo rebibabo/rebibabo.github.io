@@ -89,26 +89,13 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             print(f"  🔗 {rel_path}")
             return f"![{alt}]({raw_url})"
 
-        # 外链不可用，本地有 → git sync + 刷新 jsDelivr 缓存
-        print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
-        print(f"     正在 git add → commit → push...")
-        _git_sync()
-        _purge_jsdelivr(encoded_path)
-        print(f"     ✅ 已推送并刷新 CDN 缓存")
+        # 外链不可用，本地有 → 提示手动 push
+        print(f"  ⚠️  图片外链不可用: {rel_path}")
+        print(f"     👉 请先手动 git push，然后再跑脚本")
+        print(f"     🔗 将使用: {raw_url}")
         return f"![{alt}]({raw_url})"
 
     return image_pattern.sub(replace_image, body)
-
-
-def _purge_jsdelivr(encoded_path: str):
-    """刷新 jsDelivr 缓存（encoded_path 已预先 URL 编码）"""
-    purge_url = f"https://purge.jsdelivr.net/gh/rebibabo/rebibabo.github.io@source/source/{encoded_path}"
-    try:
-        ctx = ssl._create_unverified_context()
-        req = urllib.request.Request(purge_url, method="GET")
-        urllib.request.urlopen(req, timeout=10, context=ctx)
-    except Exception:
-        pass  # purge 失败不影响主流程
 
 
 def _check_url(url: str) -> bool:
@@ -122,26 +109,6 @@ def _check_url(url: str) -> bool:
         except Exception:
             continue
     return False
-
-
-def _git_sync():
-    """在博客根目录执行 git add → commit → push"""
-    import subprocess
-    blog_root = os.path.join(os.path.dirname(__file__), "..")
-
-    subprocess.run(["git", "add", "source/images/"], cwd=blog_root, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "auto: sync images for CSDN upload"],
-        cwd=blog_root, capture_output=True,
-    )
-    # 直接用 HTTPS URL push，绕过 SSH 认证问题
-    result = subprocess.run(
-        ["git", "push", "origin", "source"],
-        cwd=blog_root, capture_output=True, text=True,
-        env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
-    )
-    if result.returncode != 0:
-        print(f"     ⚠️  git push 失败: {result.stderr.strip()}")
 
 
 # ============================================================
