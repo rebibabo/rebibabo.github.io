@@ -288,9 +288,10 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
         img_items = page2.locator(".img-selection-item")
         if img_items.count() > 0:
             print("4.5 选择图片...")
-            img_items.first.click()
+            # 点第一个图片的 img 标签（嵌套层太多，直接 force click）
+            img_items.first.locator("img").first.click(force=True, timeout=5000)
             page2.wait_for_timeout(500)
-            page2.locator(".vicp-operate-btn").click()
+            page2.locator(".vicp-operate-btn").click(force=True, timeout=5000)
             page2.wait_for_timeout(500)
             print("  ✅ 图片已选择")
     except Exception:
