@@ -26,21 +26,17 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000013.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000014.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000015.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000016.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000017.png">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000018.png">
 <meta property="article:published_time" content="2026-05-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T12:53:55.463Z">
+<meta property="article:modified_time" content="2026-07-07T12:54:44.511Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JWT">
 <meta property="article:tag" content="Spring Boot">
 <meta property="article:tag" content="Spring Security">
 <meta property="article:tag" content="认证授权">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000013.png">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000017.png">
   
   
   
@@ -236,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          9.7k 字
+          9.9k 字
         
       </span>
     
@@ -247,7 +243,7 @@
         
         
         
-          81 分钟
+          83 分钟
         
       </span>
     
@@ -385,34 +381,27 @@
 graph LR
     Header["Header（头部）<br/>{alg: HS256, typ: JWT}"] --> Payload["Payload（载荷）<br/>{sub: 1001, role: admin}"]
     Payload --> Signature["Signature（签名）<br/>防篡改校验值"]
-</pre>
-<p><img src="/images/Java-advanced/IMG-20260707-000013.png" srcset="/img/loading.gif" lazyload></p>
-<table>
-<thead>
-<tr>
-<th>部分</th>
-<th>内容</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Header（头部）</td>
-<td>签名算法、token 类型</td>
-<td>比如 <code>{&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}</code></td>
-</tr>
-<tr>
-<td>Payload（载荷）</td>
-<td>用户信息、过期时间等</td>
-<td>比如 <code>{&quot;sub&quot;:&quot;1001&quot;,&quot;role&quot;:&quot;admin&quot;,&quot;exp&quot;:...}</code></td>
-</tr>
-<tr>
-<td>Signature（签名）</td>
-<td>防篡改的校验值</td>
-<td>用密钥对前两部分签名得到</td>
-</tr>
-</tbody></table>
-<p>前两部分只是 Base64 编码（<strong>不是加密</strong>，任何人都能解开看到内容），所以<strong>不能往 Payload 里放密码等敏感信息</strong>。</p>
-<h3 id="3-2-签名怎么防篡改"><a href="#3-2-签名怎么防篡改" class="headerlink" title="3.2 签名怎么防篡改"></a>3.2 签名怎么防篡改</h3><p>签名是 JWT 安全的核心：</p>
+
+![](/images/Java-advanced/IMG-20260707-000013.png)
+
+
+
+
+
+
+
+| 部分 | 内容 | 说明 |
+|------|------|------|
+| Header（头部） | 签名算法、token 类型 | 比如 `{"alg":"HS256","typ":"JWT"}` |
+| Payload（载荷） | 用户信息、过期时间等 | 比如 `{"sub":"1001","role":"admin","exp":...}` |
+| Signature（签名） | 防篡改的校验值 | 用密钥对前两部分签名得到 |
+
+前两部分只是 Base64 编码（**不是加密**，任何人都能解开看到内容），所以**不能往 Payload 里放密码等敏感信息**。
+
+### 3.2 签名怎么防篡改
+
+签名是 JWT 安全的核心：
+
 <pre style="display:none">
 graph TB
     Key["服务端密钥"] --> Compute["重新计算签名<br/>HMAC-SHA256(Header.Payload, 密钥)"]
@@ -420,57 +409,74 @@ graph TB
     Compute --> Compare
     Compare -->|相等 ✅| Trust["没被篡改，可信"]
     Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
-</pre>
-<p><img src="/images/Java-advanced/IMG-20260707-000014.png" srcset="/img/loading.gif" lazyload></p>
-<p>关键点：<strong>密钥只有服务端知道</strong>。攻击者即使改了 Payload（比如把 <code>role</code> 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。</p>
+
+![](/images/Java-advanced/IMG-20260707-000014.png)
+
+
+
+
+
+
+
+关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
+
 <pre style="display:none">
 graph TB
     Attack["攻击者篡改 Payload<br/>role: user → role: admin"] --> NoKey{"不知道密钥<br/>无法生成新签名"}
     NoKey --> ServerCheck["服务端用密钥重新计算签名"]
     ServerCheck --> Mismatch{"和 token 里的签名一致?"}
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
-</pre>
-<p><img src="/images/Java-advanced/IMG-20260707-000015.png" srcset="/img/loading.gif" lazyload></p>
-<hr>
-<h2 id="4-Spring-Security-核心概念"><a href="#4-Spring-Security-核心概念" class="headerlink" title="4. Spring Security 核心概念"></a>4. Spring Security 核心概念</h2><p>Spring Security 的工作方式是在请求到达 Controller <strong>之前</strong>，先经过一条”过滤器链”层层检查。</p>
-<h3 id="4-1-过滤器链（Filter-Chain）"><a href="#4-1-过滤器链（Filter-Chain）" class="headerlink" title="4.1 过滤器链（Filter Chain）"></a>4.1 过滤器链（Filter Chain）</h3><pre style="display:none">
+
+![](/images/Java-advanced/IMG-20260707-000015.png)
+
+
+
+
+
+
+
+---
+
+## 4. Spring Security 核心概念
+
+Spring Security 的工作方式是在请求到达 Controller **之前**，先经过一条"过滤器链"层层检查。
+
+### 4.1 过滤器链（Filter Chain）
+
+<pre style="display:none">
 graph TB
     Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
-</pre>
-<p><img src="/images/Java-advanced/IMG-20260707-000016.png" srcset="/img/loading.gif" lazyload></p>
-<p>我们做 JWT 认证，就是往这条链里加一个<strong>自定义过滤器</strong>，专门负责解析和验证请求里的 JWT。</p>
-<h3 id="4-2-几个核心组件"><a href="#4-2-几个核心组件" class="headerlink" title="4.2 几个核心组件"></a>4.2 几个核心组件</h3><table>
-<thead>
-<tr>
-<th>组件</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>SecurityFilterChain</code></td>
-<td>配置整条过滤器链的规则（哪些接口要登录、哪些放行）</td>
-</tr>
-<tr>
-<td><code>Authentication</code></td>
-<td>代表”当前认证信息”（是谁、有什么权限）</td>
-</tr>
-<tr>
-<td><code>SecurityContext</code></td>
-<td>存放当前请求的 <code>Authentication</code>，全局可取</td>
-</tr>
-<tr>
-<td><code>UserDetailsService</code></td>
-<td>根据用户名加载用户信息（查数据库）</td>
-</tr>
-<tr>
-<td><code>PasswordEncoder</code></td>
-<td>密码加密&#x2F;校验（密码绝不能明文存）</td>
-</tr>
-</tbody></table>
-<hr>
-<h2 id="5-完整流程：从登录到访问受保护接口"><a href="#5-完整流程：从登录到访问受保护接口" class="headerlink" title="5. 完整流程：从登录到访问受保护接口"></a>5. 完整流程：从登录到访问受保护接口</h2><p>把整个链路拆成两个阶段看：</p>
-<h3 id="5-1-阶段一：登录拿-token"><a href="#5-1-阶段一：登录拿-token" class="headerlink" title="5.1 阶段一：登录拿 token"></a>5.1 阶段一：登录拿 token</h3><pre style="display:none">
+
+![](/images/Java-advanced/IMG-20260707-000016.png)
+
+
+
+
+
+
+
+我们做 JWT 认证，就是往这条链里加一个**自定义过滤器**，专门负责解析和验证请求里的 JWT。
+
+### 4.2 几个核心组件
+
+| 组件 | 作用 |
+|------|------|
+| `SecurityFilterChain` | 配置整条过滤器链的规则（哪些接口要登录、哪些放行） |
+| `Authentication` | 代表"当前认证信息"（是谁、有什么权限） |
+| `SecurityContext` | 存放当前请求的 `Authentication`，全局可取 |
+| `UserDetailsService` | 根据用户名加载用户信息（查数据库） |
+| `PasswordEncoder` | 密码加密/校验（密码绝不能明文存） |
+
+---
+
+## 5. 完整流程：从登录到访问受保护接口
+
+把整个链路拆成两个阶段看：
+
+### 5.1 阶段一：登录拿 token
+
+<pre style="display:none">
 graph TB
     S1["① 用户 POST /login<br/>带上用户名 + 密码"] --> S2["② 服务端查数据库<br/>用 PasswordEncoder 校验密码"]
     S2 --> S3["③ 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]

@@ -255,11 +255,12 @@ body > header .header-inner {
 }
 
 /* ===== Mermaid 生成的图片 ===== */
-.markdown-body img[src*="/images/Java-advanced/"] {
+.markdown-body pre[style*="display:none"] + p > img {
   display: block;
-  max-width: 760px !important;
-  max-height: 700px !important;
   width: auto !important;
+  max-width: min(760px, 100%) !important;
+  max-height: 700px;
   height: auto !important;
   margin: 1.5rem auto;
+  object-fit: contain;
 }
