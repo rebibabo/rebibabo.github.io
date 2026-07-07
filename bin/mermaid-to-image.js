@@ -109,7 +109,7 @@ async function renderBlock(mmdContent, outputPath) {
   await execAsync(cmd, { timeout: 60000 });
 
   // 限制图片最大高度，保持宽高比
-  const MAX_H = 1080;
+  const MAX_H = 700;
   try {
     const { stdout } = await execAsync(`sips --getProperty pixelHeight "${outputPath}"`, { timeout: 5000 });
     const h = parseInt(stdout.match(/\d+/)[0], 10);

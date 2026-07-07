@@ -113,6 +113,7 @@ graph LR
 
 
 
+
 | 部分 | 内容 | 说明 |
 |------|------|------|
 | Header（头部） | 签名算法、token 类型 | 比如 `{"alg":"HS256","typ":"JWT"}` |
@@ -139,6 +140,7 @@ graph TB
 
 
 
+
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
 
 <pre style="display:none">
@@ -149,6 +151,7 @@ graph TB
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000015.png)
+
 
 
 
@@ -168,6 +171,7 @@ graph TB
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000016.png)
+
 
 
 
@@ -206,6 +210,7 @@ graph TB
 
 
 
+
 ### 5.2 阶段二：带 token 访问接口
 
 <pre style="display:none">
@@ -217,6 +222,7 @@ graph TB
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000018.png)
+
 
 
 
