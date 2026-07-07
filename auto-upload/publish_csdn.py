@@ -32,10 +32,10 @@ def parse_markdown(filepath: str) -> dict:
 
     front_matter = {}
     body = content
-    m = re.match(r"^(---\s*\n)?(.*?)\n---\s*\n", content, re.DOTALL)
+    m = re.match(r"^(---+\s*\n)?(.*?)\n---+\s*\n", content, re.DOTALL)
     if m:
         body = content[m.end():]
-        for line in m.group(1).strip().split("\n"):
+        for line in m.group(2).strip().split("\n"):
             line = line.strip()
             if ":" in line:
                 key, _, val = line.partition(":")
