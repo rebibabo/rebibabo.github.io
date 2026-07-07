@@ -540,7 +540,7 @@ if __name__ == "__main__":
             _do_login(playwright)
         else:
             print("-2. 检查登录状态...")
-            b = playwright.chromium.launch(headless=True)
+            b = playwright.chromium.launch(headless=False)
             c = b.new_context(storage_state=AUTH_FILE)
             if _check_logged_in(c):
                 print("  ✅ 登录有效")
