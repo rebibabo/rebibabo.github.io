@@ -1,0 +1,8 @@
+graph TD
+    Runnable --> TryAcquire["Try Acquire"]
+    TryAcquire --> Check["Lock Acquired?"]
+    Check -->|Yes| Running
+    Check -->|No| Blocked
+    Blocked --> Released["Lock Released"]
+    Released --> Compete["Compete Again"]
+    Compete --> TryAcquire

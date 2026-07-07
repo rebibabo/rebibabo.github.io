@@ -1,0 +1,9 @@
+graph TD
+    subgraph Monitor["Object Monitor"]
+        direction TB
+        Owner["Owner<br>持有锁的线程"]
+        Entry["Entry Set<br>等待锁的线程"]
+        Wait["Wait Set<br>等待 notify 的线程"]
+    end
+    Owner --> Entry
+    Entry --> Wait

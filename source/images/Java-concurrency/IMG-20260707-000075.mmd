@@ -1,0 +1,8 @@
+graph TD
+    subgraph Write["Write Thread"]
+        D["data = 42"] --> VR["volatile write: ready = true"]
+    end
+    subgraph Read["Read Thread"]
+        VD["volatile read: ready == true"] --> RD["read data"]
+    end
+    VR -->|synchronizes-with| VD

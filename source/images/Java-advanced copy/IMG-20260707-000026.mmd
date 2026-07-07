@@ -1,0 +1,6 @@
+graph LR
+    Timer["每隔 1 分钟"] --> Query["跑一遍查询<br/>下单失败率 = rate(order_create_failed[5m]) / rate(order_create_total[5m])"]
+    Query --> Compare[""和阈值比：> 5% 吗？""]
+    Compare -->|没超| OK["状态 OK<br/>啥也不做"]
+    Compare -->|超了| Alert["状态 Alerting → 触发！"]
+    Alert --> Notify["通过通知渠道发出去<br/>钉钉/企业微信/邮件/Slack…"]

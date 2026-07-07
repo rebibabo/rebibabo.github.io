@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant A as Thread A
+    participant Lock
+    participant B as Thread B
+
+    A->>Lock: 1. Acquire
+    Note over Lock: Owner = A
+    A->>A: 2. Read, Calculate, Write
+    B-->>Lock: Acquire failed
+    Note over B: Waiting
+    A->>Lock: 3. Release
+    Note over Lock: Free
+    B->>Lock: 4. Acquire
+    Note over Lock: Owner = B
+    B->>B: 5. Read, Calculate, Write
+    B->>Lock: 6. Release
+    Note over Lock: Free

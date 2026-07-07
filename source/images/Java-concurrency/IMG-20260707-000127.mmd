@@ -1,0 +1,7 @@
+graph LR
+    subgraph CondQueue["条件队列"]
+        C1["Node C1"] --> C2["Node C2"]
+    end
+    subgraph SyncQueue["AQS 同步队列"]
+        Head["head"] <--> B["Node B"] <--> Tail["tail"]
+    end

@@ -65,9 +65,9 @@ function extractMermaidBlocks(content) {
 function normalizeMermaid(code) {
   // graph TB → graph LR
   code = code.replace(/^graph\s+TB\b/m, 'graph LR');
-  // 菱形节点 {"..."} → 方框 ["..."]
-  // 匹配形如 id{"text"} 的菱形节点，保留 id 和内容，改为方框
-  code = code.replace(/\b(\w+)\{("[^"]*")\}/g, '$1[$2]');
+  // 菱形节点 id{...} → 方框 id[...]
+  // 用负向后顾避免误伤文本中的 {sub: 1001} 等大括号
+  code = code.replace(/(?<!\/>)\b(\w+)\{([^}]+)\}/g, '$1["$2"]');
   return code;
 }
 

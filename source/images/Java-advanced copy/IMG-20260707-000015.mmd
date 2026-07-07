@@ -1,0 +1,5 @@
+graph LR
+    Attack["攻击者篡改 Payload<br/>role: user → role: admin"] --> NoKey[""不知道密钥<br/>无法生成新签名""]
+    NoKey --> ServerCheck["服务端用密钥重新计算签名"]
+    ServerCheck --> Mismatch[""和 token 里的签名一致?""]
+    Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]

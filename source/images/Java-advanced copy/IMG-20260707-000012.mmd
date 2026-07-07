@@ -1,0 +1,9 @@
+graph LR
+    Request["外部请求"] --> Ingress["Ingress<br/>根据 URL 路由"]
+    Ingress --> Service["Service<br/>固定入口 + 负载均衡"]
+    Service -->|通过 label 找到 Pod| P1["Pod"]
+    Service --> P2["Pod"]
+    Service --> P3["Pod"]
+    Deploy["Deployment<br/>统一管理"] -.-> P1
+    Deploy -.-> P2
+    Deploy -.-> P3
