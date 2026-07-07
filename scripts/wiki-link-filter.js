@@ -120,13 +120,15 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
   let bodyEnd = btn + '\n';
 
-  // Add mermaid (matching Fluid theme's loading logic exactly)
+  // Load newer mermaid (10.x) that supports complex subgraphs,
+  // and wait for DOM ready before rendering
   if (/class="[^"]*mermaid[^"]*"/.test(html)) {
-    bodyEnd += `<script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    bodyEnd += `<script src="https://lib.baomitu.com/mermaid/10.9.0/mermaid.min.js"></script>
+<script>
+  window.addEventListener('load', function() {
     if (typeof mermaid === 'undefined') return;
-    mermaid.initialize({"theme":"default"});
-    mermaid.init();
+    mermaid.initialize({ startOnLoad: false, theme: 'default' });
+    mermaid.run({ querySelector: '.mermaid' });
   });
 </script>\n`;
   }
