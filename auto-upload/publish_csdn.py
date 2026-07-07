@@ -171,8 +171,15 @@ def _check_logged_in(context) -> bool:
     if "passport.csdn.net" in url:
         page.close()
         return False
-    # 多策略检测登录态
-    logged_in = page.evaluate("() => !!document.querySelector('.hasAvatar')")
+    # 多策略检测登录态：有创作入口或用户头像即为已登录
+    logged_in = page.evaluate("""() => {
+        return !!(
+            document.querySelector('.hasAvatar') ||
+            document.querySelector('[class*="avatar"]') ||
+            document.querySelector('a[href*="editor"]') ||
+            document.querySelector('a:has-text("创作")')
+        );
+    }""")
     page.close()
     return logged_in
 
