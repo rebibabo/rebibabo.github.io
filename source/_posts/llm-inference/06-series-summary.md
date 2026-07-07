@@ -1,7 +1,7 @@
 ---
 title: LLM推理优化实战(六)：系列总结——RTX 3090+7B最优部署配置与避坑指南
 date: 2026-04-06
-mathjax: true
+abbrlink: 06mathjax: true
 categories:
     llm-inference
 tags:

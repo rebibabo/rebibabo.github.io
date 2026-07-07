@@ -2,7 +2,7 @@
 
 title: Java高并发底层原理（二十五）—— LockSupport 如何挂起和唤醒线程
 date: 2026-07-05
-tags:
+abbrlink: 25tags:
 - Java
 - 高并发
 - LockSupport

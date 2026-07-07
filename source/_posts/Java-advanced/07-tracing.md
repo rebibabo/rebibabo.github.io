@@ -1,7 +1,7 @@
 ---
 title: 'Java进阶(7) | 链路追踪入门：一个请求是怎么被"全程跟拍"的'
 date: 2026-05-07
-tags:
+abbrlink: 07tags:
   - 链路追踪
   - Tracing
   - OpenTelemetry

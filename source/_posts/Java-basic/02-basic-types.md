@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(2) | 基本数据类型：八大原始类型与那些必踩的坑'
 date: 2026-05-02
-tags:
+abbrlink: 02tags:
   - Java
   - 数据类型
   - 基础

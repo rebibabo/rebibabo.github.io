@@ -1,7 +1,7 @@
 ---
 title: Java高并发底层原理（七）—— volatile 到底解决了什么问题
 date: 2026-07-02
-tags:
+abbrlink: 07tags:
   - Java
   - 高并发
   - volatile

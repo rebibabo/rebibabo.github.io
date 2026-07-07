@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(6) | 泛型：类型擦除、通配符与 PECS 原则'
 date: 2026-05-06
-tags:
+abbrlink: 06tags:
   - Java
   - 泛型
 categories:

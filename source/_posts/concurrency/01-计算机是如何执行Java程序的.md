@@ -2,7 +2,7 @@
 categories:
      - java-concurrency
 date: 2026-07-02
-tags:
+abbrlink: 01tags:
      - Java
      - 高并发
      - JVM

@@ -1,6 +1,6 @@
 title: Java高并发底层原理（三）—— synchronized 为什么能够保证线程安全
 date: 2026-07-02
-tags:
+abbrlink: 03tags:
   - Java
   - 高并发
   - synchronized

@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(19) | 设计模式：Java 中最常见的几种模式实战'
 date: 2026-05-19
-tags:
+abbrlink: 19tags:
   - Java
   - 设计模式
 categories:

@@ -1,7 +1,7 @@
 ---
 title: 程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"
 date: 2026-06-09
-categories:
+abbrlink: 04categories:
   - programmatic-ads
 tags:
   - 广告

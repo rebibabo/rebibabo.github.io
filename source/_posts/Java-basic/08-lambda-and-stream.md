@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(8) | Lambda 与 Stream API：函数式编程核心工具'
 date: 2026-05-08
-tags:
+abbrlink: 08tags:
   - Java
   - Lambda
   - Stream

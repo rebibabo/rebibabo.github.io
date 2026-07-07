@@ -1,7 +1,7 @@
 ---
 title: 'Java进阶(4) | Spring Security + JWT：认证授权入门'
 date: 2026-05-04
-tags:
+abbrlink: 04tags:
   - Spring Security
   - JWT
   - 认证授权

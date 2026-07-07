@@ -1,7 +1,7 @@
 ---
 title: 程序化广告 (1)：DSP——广告主的"代理人"
 date: 2026-06-07
-categories:
+abbrlink: 02categories:
   - programmatic-ads
 tags:
   - 广告

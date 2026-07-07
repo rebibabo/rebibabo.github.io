@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(5) | 继承与多态：extends、重写、抽象类与接口'
 date: 2026-05-05
-tags:
+abbrlink: 05tags:
   - Java
   - 面向对象
   - 继承

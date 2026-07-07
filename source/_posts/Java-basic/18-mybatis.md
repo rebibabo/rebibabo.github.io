@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(18) | MyBatis 数据访问：SQL 映射、动态 SQL 与 MyBatis-Plus'
 date: 2026-05-18
-tags:
+abbrlink: 18tags:
   - Java
   - MyBatis
   - 数据库

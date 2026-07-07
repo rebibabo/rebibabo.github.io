@@ -1,7 +1,7 @@
 ---
 title: LLM推理优化实战(三)：KV Cache 与 PagedAttention 详解:理论推导 + RTX 3090 实测数据
 date: 2026-04-03
-mathjax: true
+abbrlink: 03mathjax: true
 categories:
     llm-inference
 tags:

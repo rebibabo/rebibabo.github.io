@@ -1,7 +1,7 @@
 ---
 title: Java高并发底层原理（五）—— CAS 为什么能够在不加锁的情况下更新共享数据
 date: 2026-07-02
-tags:
+abbrlink: 05tags:
   - Java
   - 高并发
   - CAS

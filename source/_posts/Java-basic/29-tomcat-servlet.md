@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(番外) | Tomcat 与 Servlet：Spring Boot 背后的请求处理流程'
 date: 2026-05-29
-tags:
+abbrlink: 29tags:
   - Tomcat
   - Servlet
   - Spring Boot

@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(20) | 单元测试：JUnit 5 + Mockito 实战'
 date: 2026-05-20
-tags:
+abbrlink: 20tags:
   - Java
   - JUnit
   - Mockito

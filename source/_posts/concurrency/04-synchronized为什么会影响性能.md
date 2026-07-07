@@ -1,7 +1,7 @@
 ---
 title: Java高并发底层原理（四）—— synchronized 为什么会影响性能
 date: 2026-07-02
-tags:
+abbrlink: 04tags:
   - Java
   - 高并发
   - synchronized

@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(1) | 从源码到运行：理解Java程序的一生'
 date: 2026-05-01
-tags:
+abbrlink: 01tags:
   - Java
   - JVM
   - 字节码

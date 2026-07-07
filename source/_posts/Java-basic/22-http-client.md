@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用'
 date: 2026-05-22
-tags:
+abbrlink: 22tags:
   - Java
   - HTTP
   - RestTemplate

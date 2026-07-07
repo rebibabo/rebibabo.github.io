@@ -1,7 +1,7 @@
 ---
 title: 'Java基础(番外) | 消息队列入门：为什么用、怎么用、踩坑点'
 date: 2026-05-30
-tags:
+abbrlink: 30tags:
   - 消息队列
   - RabbitMQ
   - Kafka

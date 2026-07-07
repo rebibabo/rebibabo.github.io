@@ -1,7 +1,7 @@
 ---
 title: LLM推理优化实战(五)：投机采样原理详解与单卡场景失效分析
 date: 2026-04-05
-mathjax: true
+abbrlink: 05mathjax: true
 categories:
     llm-inference
 tags:
