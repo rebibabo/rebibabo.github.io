@@ -47,15 +47,8 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   const display = CATEGORY_MAP[slug];
   if (!display) return html;
 
-  // Replace title: "分类 - slug - site" → "display - site"
-  // Also fix og:title
-  html = html.replace(/<title>[^<]*<\/title>/, function(match) {
-    // Match "分类 - slug" or just "slug" followed by " - site"
-    return match.replace(/分类 - [^-]+/, display);
-  });
-  html = html.replace(/<meta property="og:title" content="[^"]*">/, function(match) {
-    return match.replace(/分类 - [^-]+/, display);
-  });
+  // Replace "分类 - slug" with display name
+  html = html.split('分类 - ' + slug).join(display);
 
   return html;
 }, 10);
