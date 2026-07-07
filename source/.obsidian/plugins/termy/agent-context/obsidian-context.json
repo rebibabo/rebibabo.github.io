@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T08:00:27.284Z",
+  "updatedAt": "2026-07-07T08:01:40.276Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -21,7 +21,7 @@
     }
   ],
   "selection": {
-    "text": "![](/images/Java高并发底层原理/IMG-20260707155834495.png)",
+    "text": "![](images/Java高并发底层原理/IMG-20260707155834495.png)",
     "isEmpty": false,
     "from": {
       "line": 189,
@@ -30,8 +30,8 @@
     },
     "to": {
       "line": 189,
-      "ch": 50,
-      "offset": 3407
+      "ch": 49,
+      "offset": 3406
     }
   }
 }
