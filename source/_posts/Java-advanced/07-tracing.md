@@ -52,6 +52,7 @@ graph TB
 ![](/images/Java-advanced/IMG-20260707-000027.png)
 
 
+
 同一个请求，被拆到了 5、6 个**不同的进程**里执行，这些进程可能还跑在不同的机器上。这时候原来的排查手段全部失灵了：
 
 | 单体里好用的手段 | 到了微服务里 |
@@ -135,6 +136,7 @@ graph TB
 ![](/images/Java-advanced/IMG-20260707-000028.png)
 
 
+
 - 所有 Span 的 `traceId` 都是 `abc123`（同一次请求）
 - Span B 的 `parentSpanId` 指向 Span A，C/D/E 的 parent 指向 B……父子关系就是这么连起来的
 - 每个 Span 自带起止时间，画在时间轴上就成了上面这种"甘特图"
@@ -169,6 +171,7 @@ graph TB
 ![](/images/Java-advanced/IMG-20260707-000029.png)
 
 
+
 这也解释了一个常见的坑（第 8 节细讲）：一旦你把活儿丢到**线程池/异步线程**里执行，新线程是另一个口袋，里面是空的，上下文就"丢"了。
 
 ### 4.2 跨进程传递：把上下文塞进 HTTP 请求头
@@ -191,6 +194,7 @@ graph LR
 ![](/images/Java-advanced/IMG-20260707-000030.png)
 
 
+
 - 调用方（订单服务）发请求前，把"我的 traceId + 我当前的 spanId"编码进 `traceparent` 头
 - 被调用方（支付服务）一收到请求，解析这个头，就知道了："哦，我属于 traceId=abc123 这条链路，我的上游 span 是那个,我要新建一个 span 并把 parent 指向它"
 
@@ -202,6 +206,7 @@ graph TB
     Order -->|"HTTP 请求头带上<br/>traceparent: ...abc123-B..."| Payment["支付服务<br/>读出 traceId=abc123, parent=B<br/>→ 新建 spanId=E"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000031.png)
+
 
 
 **注意全程 traceId 始终是 abc123 没变**（这是把所有 Span 绑在一起的关键），变的是每一跳新建自己的 spanId、并把 parent 指向上一跳。
@@ -280,6 +285,7 @@ graph TB
     Store --> UI["④ UI 可视化<br/>画成甘特图，一眼看出慢在哪"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000032.png)
+
 
 
 这套流水线，市面上的主流工具基本都是这个骨架，只是分工和侧重不同：
@@ -388,6 +394,7 @@ graph TB
     Logging --> RootCause["根因找到 ✅"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000033.png)
+
 
 
 一句话记住三者的角色：

@@ -110,6 +110,7 @@ graph LR
 ![](/images/Java-advanced/IMG-20260707-000013.png)
 
 
+
 | 部分 | 内容 | 说明 |
 |------|------|------|
 | Header（头部） | 签名算法、token 类型 | 比如 `{"alg":"HS256","typ":"JWT"}` |
@@ -133,6 +134,7 @@ graph TB
 ![](/images/Java-advanced/IMG-20260707-000014.png)
 
 
+
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
 
 <pre style="display:none">
@@ -143,6 +145,7 @@ graph TB
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000015.png)
+
 
 
 ---
@@ -159,6 +162,7 @@ graph TB
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000016.png)
+
 
 
 我们做 JWT 认证，就是往这条链里加一个**自定义过滤器**，专门负责解析和验证请求里的 JWT。
@@ -191,6 +195,7 @@ graph TB
 ![](/images/Java-advanced/IMG-20260707-000017.png)
 
 
+
 ### 5.2 阶段二：带 token 访问接口
 
 <pre style="display:none">
@@ -202,6 +207,7 @@ graph TB
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000018.png)
+
 
 
 注意阶段二**全程不查数据库**——验签 + 解析 token 即可，这就是 JWT "无状态"的体现。
