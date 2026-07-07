@@ -105,7 +105,7 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   html = html.replace('</body>', btn + '\n</body>');
 
   // Add CSS for the button
-  const style = `
+  const style = `<style>
 .back-to-wiki-btn {
   position: fixed;
   left: 24px;
