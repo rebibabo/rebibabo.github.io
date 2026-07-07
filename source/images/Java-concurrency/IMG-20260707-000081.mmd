@@ -1,5 +1,2 @@
 graph TD
-    Register[Register] -->|执行写入| StoreBuffer[Store Buffer]
-    StoreBuffer -->|提交到本 Core 缓存体系| CacheLine[Cache Line]
-    CacheLine -->|通过一致性协议传播| OtherCache[Other Core Cache]
-    OtherCache --> Lower["更低层 Cache / DRAM<br>可能在之后才被写回"]
+    A["第一次 set: tl -> userA"] --> B["第二次 set: tl -> userB"]

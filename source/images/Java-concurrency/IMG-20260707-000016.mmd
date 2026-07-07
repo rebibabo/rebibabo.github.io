@@ -1,0 +1,3 @@
+graph TD
+    A["Thread A<br>Register Snapshot<br>Program Position<br>Stack Pointer"] -->|Save| CPU["CPU Core"]
+    CPU -->|Restore| B["Thread B<br>Register Snapshot<br>Program Position<br>Stack Pointer"]

@@ -1,2 +1,7 @@
-graph LR
-    Head["head"] --> RA["读 A<br>shared"] --> RB["读 B<br>shared"] --> WC["写 C<br>exclusive"] --> RD["读 D<br>shared"]
+graph TD
+    subgraph 全局["全局路径"]
+        t["table[i]"] --> A_g["A"] --> C_g["C"]
+    end
+    subgraph 局部["读线程局部引用"]
+        e["e 局部变量"] --> B_g["B"] --> C_g2["C"]
+    end

@@ -1,8 +1,2 @@
-graph LR
-    subgraph Stack["工作线程栈"]
-        err["error = 0x1000"]
-    end
-    subgraph Heap["堆"]
-        arr["Throwable[1] @ 0x1000<br>element[0] = exception"]
-    end
-    err --> arr
+graph TD
+    A["Thread"] --> B["ThreadLocalMap"] --> C["Entry"] --> D["value"]

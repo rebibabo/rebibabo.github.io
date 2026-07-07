@@ -1,6 +1,3 @@
 graph TD
-    oldTable2["oldTable"]
-    oldTable2 --> f0["[0] ForwardingNode"]
-    oldTable2 --> f1["[1] A -> B"]
-    oldTable2 --> f2["[2] ForwardingNode"]
-    oldTable2 --> f3["[3] C -> D"]
+    A["order-worker-1<br>持有 orderLock"] -->|等待| B["stockLock<br>被 order-worker-2 持有"]
+    C["order-worker-2<br>持有 stockLock"] -->|等待| D["orderLock<br>被 order-worker-1 持有"]

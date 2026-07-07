@@ -1,3 +1,4 @@
-flowchart TD
-    old["oldTable[i]"] --> fn["ForwardingNode"]
-    fn --> nt["nextTable"]
+graph TD
+    A["compute()"] --> B["返回结果"]
+    B --> C["记录结果"]
+    C --> D["标记为已完成"]

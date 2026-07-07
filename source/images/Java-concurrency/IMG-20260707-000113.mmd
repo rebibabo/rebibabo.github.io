@@ -1,2 +1,9 @@
 graph TD
-    A["Thread-A"] --> B["ThreadLocalMap"] --> C["Entry<br>key = ThreadLocal object<br>value = UserA"]
+    A["add(1)"] --> B["尝试 CAS base"]
+    B --> C["成功?"]
+    C -->|"是"| D["返回"]
+    C -->|"否"| E["根据 probe 选择 Cell"]
+    E --> F["尝试 CAS Cell.value"]
+    F --> G["冲突?"]
+    G -->|"是"| H["rehash 或扩容 cells"]
+    G -->|"否"| D

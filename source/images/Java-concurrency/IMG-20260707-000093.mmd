@@ -1,8 +1,7 @@
-graph TD
-    Init["初始 state = 3"] --> A["A 获取: 3 → 2"]
-    A --> B["B 获取: 2 → 1"]
-    B --> C["C 获取: 1 → 0"]
-    C --> AR["A 释放: 0 → 1"]
-    AR --> D["D 获取: 1 → 0"]
-    D --> BR["B 释放: 0 → 1"]
-    BR --> E["E 获取: 1 → 0"]
+graph LR
+    subgraph CondQueue["条件队列"]
+        C1["Node C1"] --> C2["Node C2"]
+    end
+    subgraph SyncQueue["AQS 同步队列"]
+        Head["head"] <--> B["Node B"] <--> Tail["tail"]
+    end

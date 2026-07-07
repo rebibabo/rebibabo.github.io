@@ -1,0 +1,18 @@
+graph TD
+    subgraph JVM
+        subgraph Heap
+            Counter
+            User
+            ArrayList
+        end
+        subgraph Thread_A[Thread A Stack]
+            local_a[local vars]
+            refs_a[references]
+            frames_a[frames]
+        end
+        subgraph Thread_B[Thread B Stack]
+            local_b[local vars]
+            refs_b[references]
+            frames_b[frames]
+        end
+    end

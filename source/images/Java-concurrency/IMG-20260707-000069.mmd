@@ -1,4 +1,5 @@
 graph TD
-    Request["请求修改权限"] --> Compare["比较当前值与期望值"]
-    Compare -->|相等| Write["写入新值"]
-    Write --> Return["返回成功或失败"]
+    W["工作线程拿到 FutureTask"] --> Call["调用 callable.call"]
+    Call --> Save["保存结果或异常"]
+    Save --> Publish["发布最终状态"]
+    Publish --> Wake["唤醒等待 get 的线程"]

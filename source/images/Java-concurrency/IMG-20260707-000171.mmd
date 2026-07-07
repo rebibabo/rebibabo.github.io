@@ -1,10 +1,3 @@
 graph TD
-    oldTable["oldTable"]
-    oldTable --> slot0["[0]"]
-    slot0 --> slot1["[1]"]
-    slot1 --> slot2["[2]"]
-    slot2 --> slot3["[3]"]
-    slot3 --> slot4["[4]"]
-    slot4 --> slot5["[5]"]
-    slot5 --> slot6["[6]"]
-    slot6 --> slot7["[7]"]
+    A["parallelism"] --> B["目标活跃 Worker 数量"]
+    B --> C["不是严格的最大线程数"]

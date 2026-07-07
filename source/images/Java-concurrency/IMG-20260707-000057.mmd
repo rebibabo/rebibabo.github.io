@@ -1,2 +1,9 @@
-graph LR
-    Read --> Calculate --> CAS["CAS Success"]
+graph TD
+    subgraph A["线程 A"]
+        A1["读取 state = 1"] --> A2["计算 1 - 1"]
+        A2 --> A3["写入 state = 0 / 获取成功"]
+    end
+    subgraph B["线程 B"]
+        B1["读取 state = 1"] --> B2["计算 1 - 1"]
+        B2 --> B3["写入 state = 0 / 获取成功"]
+    end

@@ -1,5 +1,7 @@
 graph TD
-    First["执行首个任务"] --> Loop[""从队列获取任务""]
-    Loop -->|有任务| Run["执行下一个任务"]
-    Run --> Loop
-    Loop -->|超时/关闭| Exit["线程退出"]
+    subgraph 加锁方式
+        A1[获取锁] --> A2[进入临界区] --> A3[释放锁]
+    end
+    subgraph 无锁方式
+        B1[读取旧值] --> B2[计算新值] --> B3[CAS 发布]
+    end

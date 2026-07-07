@@ -1,7 +1,14 @@
-graph TD
-    root["计数结构"]
-    root --> baseCount["baseCount"]
-    baseCount --> cc0["CounterCell[0]"]
-    cc0 --> cc1["CounterCell[1]"]
-    cc1 --> cc2["CounterCell[2]"]
-    cc2 --> ccN["..."]
+sequenceDiagram
+    participant T1 as order-worker-1
+    participant T2 as order-worker-2
+    participant L as orderLock
+    participant S as stockLock
+
+    T1->>L: 拿到 orderLock
+    T2->>L: 等待 orderLock
+    T1->>S: 拿到 stockLock
+    T1->>T1: 执行完成
+    T1->>S: 释放 stockLock
+    T1->>L: 释放 orderLock
+    T2->>L: 拿到 orderLock
+    T2->>T2: 继续执行

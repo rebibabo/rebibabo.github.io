@@ -1,12 +1,8 @@
-sequenceDiagram
-    participant A as Thread A
-    participant Lock
-    participant B as Thread B
-    participant CD as Thread C/D
-
-    A->>Lock: Acquire → Execute → Release
-    B-->>Lock: Wait
-    CD-->>Lock: Wait
-    A->>Lock: Release
-    B->>Lock: Acquire → Execute
-    Note over CD: Still waiting
+graph TD
+    subgraph Thread_A[Thread A]
+        A1[写 data = 42] -->|program order| A2[volatile 写 ready]
+    end
+    subgraph Thread_B[Thread B]
+        B1[volatile 读 ready] -->|program order| B2[读 data]
+    end
+    A2 -->|synchronizes-with| B1

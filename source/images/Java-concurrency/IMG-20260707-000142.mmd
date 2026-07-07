@@ -1,2 +1,2 @@
-graph LR
-    A["(A, 1)"] --> B["(B, 2)"] --> C["(A, 3)"]
+flowchart LR
+    A["生产者<br>put task"] --> B["BlockingQueue<br>store tasks"] --> C["消费者<br>take task"]

@@ -1,14 +1,2 @@
-sequenceDiagram
-    participant A as Thread A
-    participant V as count
-    participant B as Thread B
-
-    Note over V: 0
-    A->>V: 1. Read 0
-    B->>V: 2. Read 0
-    Note over A: 3. Calculate 1
-    Note over B: 3. Calculate 1
-    A->>V: 4. Write 1
-    Note over V: 1
-    B->>V: 5. Write 1
-    Note over V: 1
+graph TD
+    A["ThreadLocal"] --> B["Thread -> User"]

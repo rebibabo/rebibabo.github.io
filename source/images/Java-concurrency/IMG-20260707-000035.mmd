@@ -1,7 +1,4 @@
 graph TD
-    subgraph CPU
-        Core1[Core 1]
-        Core2[Core 2]
-        Core3[Core 3]
-        More[...]
-    end
+    Request["请求修改权限"] --> Compare["比较当前值与期望值"]
+    Compare -->|相等| Write["写入新值"]
+    Write --> Return["返回成功或失败"]

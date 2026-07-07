@@ -1,0 +1,5 @@
+graph TD
+    Browser[Browser Process] --> Render[Render Thread]
+    Browser --> Network[Network Thread]
+    Browser --> JS[JavaScript Thread]
+    Browser --> GC[GC Thread]

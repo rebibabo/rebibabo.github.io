@@ -1,6 +1,10 @@
-graph TD
-    oldTable["oldTable 长度=4"]
-    oldTable --> o0["[0] A → B"]
-    o0 --> o1["[1] C"]
-    o1 --> o2["[2] null"]
-    o2 --> o3["[3] D → E"]
+graph LR
+    subgraph Deque["本地双端队列"]
+        direction LR
+        T1["任务-1<br>（base 端）"]
+        T2["任务-2"]
+        T3["任务-3"]
+        T4["任务-4<br>（top 端）"]
+    end
+    Stealer["其他 Worker<br>（窃取者）"] -->|"窃取"| T1
+    Owner["当前 Worker<br>（拥有者）"] -->|"push / pop"| T4

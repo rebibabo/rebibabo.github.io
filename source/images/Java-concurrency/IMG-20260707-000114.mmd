@@ -1,3 +1,2 @@
-graph LR
-    A["Thread-A"] --> B["ThreadLocalMap"] --> C["tl -> UserA"]
-    D["Thread-B"] --> E["ThreadLocalMap"] --> F["tl -> UserB"]
+graph TD
+    A["读取 base"] --> B["读取 cell[0]"] --> C["读取 cell[1]"] --> D["读取 cell[2]"] --> E["返回 total"]
