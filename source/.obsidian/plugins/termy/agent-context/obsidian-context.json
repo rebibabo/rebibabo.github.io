@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T10:54:31.964Z",
+  "updatedAt": "2026-07-07T11:24:58.741Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-    "vaultPath": "_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture%20%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E7%BB%93%E6%9E%9C%E4%B8%8E%E5%BC%82%E5%B8%B8.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
+    "vaultPath": "_posts/Java-advanced/04-jwt.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-      "vaultPath": "_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture%20%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E7%BB%93%E6%9E%9C%E4%B8%8E%E5%BC%82%E5%B8%B8.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
+      "vaultPath": "_posts/Java-advanced/04-jwt.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 11,
+      "line": 12,
       "ch": 0,
-      "offset": 179
+      "offset": 177
     },
     "to": {
-      "line": 11,
+      "line": 12,
       "ch": 0,
-      "offset": 179
+      "offset": 177
     }
   }
 }

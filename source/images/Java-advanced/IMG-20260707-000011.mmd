@@ -1,5 +1,0 @@
-graph TB
-    Request["外部请求"] --> Ingress["Ingress<br/>根据路径/域名路由"]
-    Ingress -->|/api/ssp/*| SSP["SSP Service"]
-    Ingress -->|/api/dsp/*| DSP["DSP Service"]
-    Ingress -->|/admin/*| Admin["管理后台 Service"]
