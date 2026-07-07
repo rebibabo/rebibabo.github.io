@@ -100,10 +100,11 @@ async function runConcurrent(tasks, concurrency) {
   });
 }
 
-/** 渲染单个 mermaid 块 */
+/** 渲染单个 mermaid 块，使用 ELK 渲染器产生更紧凑的布局 */
 async function renderBlock(mmdContent, outputPath) {
   const mmdPath = outputPath.replace(/\.png$/, '.mmd');
-  fs.writeFileSync(mmdPath, mmdContent, 'utf-8');
+  const ELK_INIT = '%%{init: {"flowchart": {"defaultRenderer": "elk"}}}%%\n';
+  fs.writeFileSync(mmdPath, ELK_INIT + mmdContent, 'utf-8');
 
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
