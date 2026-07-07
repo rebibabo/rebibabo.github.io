@@ -1,38 +1,45 @@
 /* global hexo */
 'use strict';
 
-hexo.extend.filter.register('after_init', function() {
-  // After init, replace the built-in post generator to sort by source
-  // The original post.js generator does: locals.posts.sort('-date').toArray()
-  // We re-register and rely on our version running after the built-in one
+// Get sibling posts in the same categories, sorted by source file ascending
+function getSiblings(post) {
+  var all = hexo.model('Post').toArray();
+  if (!all.length) return [];
 
-  // Actually, directly monkey-patch the built-in post generator module
-  // to change '-date' to 'source'
-  try {
-    var postGenPath = require.resolve('hexo/dist/plugins/generator/post');
-    delete require.cache[postGenPath];
-    var genModule = require(postGenPath);
-    // We can't easily patch this, so let's try another way
-  } catch(e) {}
+  var catNames = [];
+  if (post.categories && post.categories.length) {
+    catNames = post.categories.map(function(c) { return c.name; });
+  }
+  if (!catNames.length) return [];
+
+  return all
+    .filter(function(p) {
+      if (p._id === post._id) return false;
+      if (!p.categories || !p.categories.length) return false;
+      var pCats = p.categories.map(function(c) { return c.name; });
+      return catNames.some(function(cn) { return pCats.indexOf(cn) !== -1; });
+    })
+    .sort(function(a, b) {
+      return a.source.localeCompare(b.source);
+    });
+}
+
+hexo.extend.helper.register('prev_post', function(post) {
+  var sibs = getSiblings(post);
+  for (var i = 0; i < sibs.length; i++) {
+    if (sibs[i].source.localeCompare(post.source) >= 0) {
+      return i > 0 ? sibs[i - 1] : null;
+    }
+  }
+  return sibs.length ? sibs[sibs.length - 1] : null;
 });
 
-// Cleanest approach: intercept at the locals level
-// Override how locals.posts.sort works to always sort by source
-hexo.extend.filter.register('before_generate', function() {
-  var origGet = hexo.locals.get.bind(hexo.locals);
-
-  // Store sorted posts array so everyone gets the same order
-  var sortedPosts = null;
-
-  // Monkey-patch hexo.locals.get to wrap 'posts'
-  hexo.locals.get = function(name) {
-    var result = origGet(name);
-    if (name === 'posts' && result) {
-      if (!sortedPosts) {
-        sortedPosts = result.sort('source');
-      }
-      return sortedPosts;
+hexo.extend.helper.register('next_post', function(post) {
+  var sibs = getSiblings(post);
+  for (var i = sibs.length - 1; i >= 0; i--) {
+    if (sibs[i].source.localeCompare(post.source) <= 0) {
+      return i < sibs.length - 1 ? sibs[i + 1] : null;
     }
-    return result;
-  };
+  }
+  return sibs.length ? sibs[0] : null;
 });
