@@ -1,0 +1,7 @@
+graph LR
+    User["用户"] --> Gateway["API 网关"]
+    Gateway --> Order["订单服务"]
+    Order --> Stock["库存服务"]
+    Order --> Coupon["优惠券服务"]
+    Stock --> Payment["支付服务"]
+    Payment --> DB["数据库"]

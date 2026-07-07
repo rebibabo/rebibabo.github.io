@@ -1,0 +1,8 @@
+graph TD
+    Get["get 检查状态"] --> Check[""已完成?""]
+    Check -->|否| Wait["阻塞等待"]
+    Wait --> Check
+    Check -->|是| Result[""结果类型?""]
+    Result -->|正常| Return["返回结果"]
+    Result -->|异常| Ex["抛出 ExecutionException"]
+    Result -->|取消| Cancel["抛出 CancellationException"]

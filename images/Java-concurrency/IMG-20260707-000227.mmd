@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> CREATED
+    CREATED --> RUNNING
+    RUNNING --> SUCCESS
+    RUNNING --> FAILED
+    FAILED --> RETRYING
+    RETRYING --> RUNNING
+    RUNNING --> DEAD
+    SUCCESS --> [*]
+    DEAD --> [*]

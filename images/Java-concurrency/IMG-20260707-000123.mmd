@@ -1,0 +1,2 @@
+graph TD
+    A["ThreadLocal key 被 GC 回收"] --> B["Entry.key 变成 null"] --> C["Entry.value 仍然存在"] --> D["等待后续 get/set/remove/rehash 时顺带清理"]

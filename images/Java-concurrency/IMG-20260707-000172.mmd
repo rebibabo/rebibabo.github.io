@@ -1,0 +1,6 @@
+graph TD
+    transferIndex["transferIndex = 8"]
+    transferIndex --> t1["线程1 认领 [6, 7]"]
+    t1 --> t2["线程2 认领 [4, 5]"]
+    t2 --> t3["线程3 认领 [2, 3]"]
+    t3 --> t4["线程4 认领 [0, 1]"]

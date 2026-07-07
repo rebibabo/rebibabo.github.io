@@ -1,0 +1,12 @@
+graph TD
+    subgraph Sub["提交线程"]
+        future["future = 0x1000"]
+    end
+    subgraph Worker["工作线程"]
+        task["task = 0x1000"]
+    end
+    subgraph Heap["堆"]
+        ft["FutureTask @ 0x1000<br>callable = 原始任务<br>state = 任务状态<br>outcome = 结果或异常"]
+    end
+    future --> ft
+    task --> ft

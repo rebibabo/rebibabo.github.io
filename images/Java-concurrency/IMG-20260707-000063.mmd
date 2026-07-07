@@ -1,0 +1,9 @@
+graph TD
+    subgraph Core1["Core 1"]
+        L1a["L1 Cache: count = 0"]
+    end
+    subgraph Core2["Core 2"]
+        L1b["L1 Cache: count = 0"]
+    end
+    L1a --> Mem["Main Memory: count = 0"]
+    L1b --> Mem
