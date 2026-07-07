@@ -121,7 +121,7 @@ graph TB
 graph TB
     Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
 </pre>
-![329](/images/Java-advanced/IMG-20260707-000021.png)
+![](/images/Java-advanced/IMG-20260707-000021.png)
 
 
 

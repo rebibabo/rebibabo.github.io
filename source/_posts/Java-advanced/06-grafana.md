@@ -216,7 +216,7 @@ graph TB
     Compare -->|超了| Alert["状态 Alerting → 触发！"]
     Alert --> Notify["通过通知渠道发出去<br/>钉钉/企业微信/邮件/Slack…"]
 </pre>
-![402](/images/Java-advanced/IMG-20260707-000026.png)
+![](/images/Java-advanced/IMG-20260707-000026.png)
 
 
 

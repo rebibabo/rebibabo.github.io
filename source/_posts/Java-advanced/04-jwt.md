@@ -135,7 +135,7 @@ graph TB
     Compare -->|相等 ✅| Trust["没被篡改，可信"]
     Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
 </pre>
-![374](/images/Java-advanced/IMG-20260707-000014.png)
+![](/images/Java-advanced/IMG-20260707-000014.png)
 
 
 
@@ -152,7 +152,7 @@ graph TB
     ServerCheck --> Mismatch{"和 token 里的签名一致?"}
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 </pre>
-![305](/images/Java-advanced/IMG-20260707-000015.png)
+![](/images/Java-advanced/IMG-20260707-000015.png)
 
 
 
@@ -173,7 +173,7 @@ graph TB
     Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
 </pre>
-![300](/images/Java-advanced/IMG-20260707-000016.png)
+![](/images/Java-advanced/IMG-20260707-000016.png)
 
 
 
