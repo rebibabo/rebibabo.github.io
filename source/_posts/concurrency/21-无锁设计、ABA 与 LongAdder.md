@@ -11,7 +11,6 @@ categories:
     - Java高并发底层原理
 ---
 
-# Java高并发底层原理（十五）—— 无锁设计、ABA 与 LongAdder
 
 前面讲锁时，核心问题一直是：多个线程同时访问共享状态时，如何保证结果正确。`synchronized`、`ReentrantLock`、读写锁、`StampedLock` 都是在这个问题上给出的不同答案。
 

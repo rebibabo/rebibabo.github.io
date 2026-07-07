@@ -11,7 +11,6 @@ categories:
     - Java高并发底层原理
 ---
 
-# Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥
 
 `synchronized` 可以通过对象监视器实现互斥，同一时刻只允许一个线程进入临界区。Java 还提供了另一种常用锁：
 

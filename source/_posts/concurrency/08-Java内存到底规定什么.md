@@ -12,7 +12,6 @@ categories:
 
 ---
 
-# Java 内存模型到底规定了什么
 
 Java 程序最终运行在 CPU 上。CPU 有寄存器、Store Buffer 和多级 Cache，JIT 编译器会调整指令，CPU 也可能乱序执行。相同的 Java 代码可以运行在 x86、ARM 等不同架构上，而不同架构提供的内存顺序保证并不完全相同。
 

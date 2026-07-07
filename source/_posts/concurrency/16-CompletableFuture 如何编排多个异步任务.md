@@ -9,7 +9,6 @@ categories:
     - Java高并发底层原理
 ---
 
-# Java高并发底层原理（十六）—— CompletableFuture 如何编排多个异步任务
 
 上一章介绍 `FutureTask` 时，我们已经知道，异步任务执行结束后，正常结果或异常会保存在 `FutureTask` 中，提交任务的线程可以通过 `get()` 取得最终结果。
 
