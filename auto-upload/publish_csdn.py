@@ -165,24 +165,28 @@ def safe_click(page, selector: str, timeout: int = 2000):
 def _check_logged_in(context) -> bool:
     """快速检查当前 auth 是否有效"""
     page = context.new_page()
-    page.goto("https://mp.csdn.net/", wait_until="domcontentloaded")
-    page.wait_for_timeout(2000)
-    url = page.url
-    # 如果被重定向到登录页，说明过期
-    if "passport.csdn.net" in url:
-        page.close()
+    try:
+        page.goto("https://mp.csdn.net/", wait_until="domcontentloaded", timeout=15000)
+        page.wait_for_timeout(2000)
+        url = page.url
+        # 如果被重定向到登录页，说明过期
+        if "passport.csdn.net" in url:
+            return False
+        # 多策略检测登录态
+        logged_in = page.evaluate("""() => {
+            return !!(
+                document.querySelector('.hasAvatar') ||
+                document.querySelector('[class*="avatar"]') ||
+                document.querySelector('a[href*="editor"]') ||
+                document.querySelector('a:has-text("创作")')
+            );
+        }""")
+        return logged_in
+    except Exception as e:
+        print(f"  ⚠️  登录检测异常: {e}")
         return False
-    # 多策略检测登录态：有创作入口或用户头像即为已登录
-    logged_in = page.evaluate("""() => {
-        return !!(
-            document.querySelector('.hasAvatar') ||
-            document.querySelector('[class*="avatar"]') ||
-            document.querySelector('a[href*="editor"]') ||
-            document.querySelector('a:has-text("创作")')
-        );
-    }""")
-    page.close()
-    return logged_in
+    finally:
+        page.close()
 
 
 def _do_login(playwright=None):
@@ -469,10 +473,14 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
 
     # ---- 第十二步：最终发布 ----
     print("12. 发布文章...")
-    input()
     page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
-    page2.wait_for_timeout(5000)
-    print("  ✅ 发布完成")
+
+    # 等待"发布成功"提示出现（最多等 30 秒）
+    try:
+        page2.locator('.content-title:has-text("发布成功")').wait_for(timeout=30000)
+        print("  ✅ 发布成功！正在审核中")
+    except Exception:
+        print("  ⚠️  未检测到发布成功提示，继续...")
 
     print("\n🎉 发布流程完成！")
     context.close()

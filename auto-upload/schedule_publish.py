@@ -70,13 +70,21 @@ def main():
         cmd.extend(tags)
 
         blog_root = os.path.join(SCRIPT_DIR, "..")
-        result = subprocess.run(cmd, cwd=blog_root)
+        try:
+            result = subprocess.run(cmd, cwd=blog_root, timeout=300,
+                                    capture_output=True, text=True)
+        except subprocess.TimeoutExpired:
+            log(f"   ⏱️  发布超时（5分钟），保留在队列")
+            remaining.append(article)
+            continue
 
         if result.returncode == 0:
             published += 1
             log(f"   ✅ 发布成功")
         else:
-            log(f"   ❌ 发布失败 (exit={result.returncode})，保留在队列")
+            err = result.stderr.strip()[-200:] if result.stderr else "无错误输出"
+            log(f"   ❌ 发布失败 (exit={result.returncode}): {err}")
+            remaining.append(article)
             remaining.append(article)
 
     # 写回剩余
