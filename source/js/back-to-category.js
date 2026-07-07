@@ -57,22 +57,11 @@
   }
 
   let target = "/categories/";
-  let canBackToCategory = false;
 
-  if (document.referrer) {
-    try {
-      const ref = new URL(document.referrer);
-
-      if (
-        ref.origin === location.origin &&
-        ref.pathname.startsWith(CATEGORY_PREFIX)
-      ) {
-        target = ref.pathname;
-        canBackToCategory = true;
-      }
-    } catch (e) {
-      target = "/categories/";
-    }
+  // 优先从页面自身的分类链接获取（文章页一定有 .category-chain-item）
+  const catLink = document.querySelector(".category-chain-item");
+  if (catLink) {
+    target = catLink.getAttribute("href");
   }
 
   const link = document.createElement("a");
@@ -83,14 +72,12 @@
   link.addEventListener("click", function (event) {
     event.preventDefault();
 
-    // 从分类页点进文章时，优先 history.back()
-    // 浏览器通常会自动恢复原来的滚动位置
-    if (canBackToCategory && history.length > 1) {
+    // 优先用 history.back()，浏览器会恢复滚动位置
+    if (history.length > 1) {
       history.back();
       return;
     }
 
-    // 不是从分类页进入的，就跳到分类总页或 referrer 分类页
     location.href = target;
   });
 
