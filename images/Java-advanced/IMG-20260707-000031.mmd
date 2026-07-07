@@ -1,3 +1,0 @@
-graph LR
-    GW["网关<br/>生成 traceId=abc123, spanId=A"] -->|"HTTP 请求头带上<br/>traceparent: ...abc123-A..."| Order["订单服务<br/>读出 traceId=abc123, parent=A<br/>→ 新建 spanId=B"]
-    Order -->|"HTTP 请求头带上<br/>traceparent: ...abc123-B..."| Payment["支付服务<br/>读出 traceId=abc123, parent=B<br/>→ 新建 spanId=E"]

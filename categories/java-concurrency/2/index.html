@@ -26,13 +26,15 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="先看一段代码。两个线程，各对同一个计数器自增一百万次，理论上最终值应该是两百万。 123456789101112131415161718192021222324252627282930313233343536373839404142public class CountDemo &#123;    private static final int TIMES &#x3D; 1_000_000；    stat">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000009.png">
 <meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:46:21.344Z">
+<meta property="article:modified_time" content="2026-07-07T13:47:11.999Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="线程安全">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000009.png">
   
   
   
@@ -228,7 +230,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.5k 字
+          3.2k 字
         
       </span>
     
@@ -239,7 +241,7 @@
         
         
         
-          30 分钟
+          27 分钟
         
       </span>
     
@@ -298,24 +300,7 @@
 
 <p>这三步之间没有任何保护，线程可以在读完之后、写回之前被切走，让另一个线程插进来。这才是问题的根源。</p>
 <h2 id="2-一次更新是怎么丢的"><a href="#2-一次更新是怎么丢的" class="headerlink" title="2. 一次更新是怎么丢的"></a>2. 一次更新是怎么丢的</h2><p>假设 <code>count</code> 初始为 <code>0</code>，A、B 两个线程各执行一次 <code>count++</code>。下面是一种真实可能发生的执行顺序:</p>
-<pre><code class=" mermaid">sequenceDiagram
-    participant A as Thread A
-    participant Heap
-    participant B as Thread B
-
-    Note over Heap: count = 0
-    A-&gt;&gt;Heap: 1. Read count = 0
-    Note right of A: 2. Calculate next = 1
-    B-&gt;&gt;Heap: 3. Read count = 0
-    Note right of B: 4. Calculate next = 1
-    A-&gt;&gt;Heap: 5. Write count = 1
-    Note over Heap: count = 1
-    B-&gt;&gt;Heap: 6. Write count = 1
-    Note over Heap: count = 1（A 的更新被覆盖）
-</code></pre>
-
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000009.png" srcset="/img/loading.gif" lazyload></p>
 <p>A 和 B 各自的三步都执行得很正常，没有任何一步出错。问题出在第 3 步:B 读 <code>count</code> 的时候，A 已经算完了 <code>1</code>，但还没来得及写回去，所以 B 看到的还是旧值 <code>0</code>。两边各自算出 <code>1</code>，分别写回，B 的写操作发生在最后，直接把 A 的结果覆盖掉了。A 那次自增，相当于白做了——这就是<strong>丢失更新(Lost Update)</strong>。</p>
 <p>单核 CPU 上，线程来回切换就能凑出这种顺序；多核上两个线程甚至可以真的同时执行，读写窗口直接重叠，效果是一样的。只要读、算、写这三步之间没有硬性的先后约束，这种覆盖就随时可能发生。</p>
 <p>同样这段代码，换一种执行顺序结果就是对的——比如 A 三步都执行完了，B 才开始读，这时候读到的就是 <code>1</code>，最后能拿到 <code>2</code>。所以这类 bug 出现得毫无规律:源码没有问题，问题出在每次运行时线程被调度的顺序不一样。</p>
