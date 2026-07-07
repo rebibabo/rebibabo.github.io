@@ -26,19 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="并发程序需要同时处理多个任务，最直接的做法是为每个任务创建一个线程： 1new Thread(() -&gt; handleRequest()).start();  任务数量较少时，这种写法没有明显问题。但如果短时间内到来大量任务，程序就会不断创建线程。线程创建、启动和销毁都需要成本，过多线程还会争夺 CPU 和内存，导致上下文切换频繁，甚至耗尽系统资源。 线程池解决的核心问题是：把“任务”和“线">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000063.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000064.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000065.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000066.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:38:04.096Z">
+<meta property="article:modified_time" content="2026-07-07T13:40:36.135Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="ThreadPoolExecutor">
 <meta property="article:tag" content="线程池">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000063.png">
   
   
   
@@ -234,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          7.4k 字
+          8.3k 字
         
       </span>
     
@@ -245,7 +240,7 @@
         
         
         
-          62 分钟
+          69 分钟
         
       </span>
     
@@ -323,9 +318,23 @@
 
 <p>任务表示“要做什么”；线程表示“由谁来做”。没有线程池时，一个线程通常只执行一个任务：线程启动，执行任务，任务结束，线程也结束。在线程池中，一个工作线程执行完当前任务后不会立刻结束，而是继续寻找下一个任务。</p>
 <p>线程池内部会使用 <code>Worker</code> 管理工作线程。可以先把 <code>Worker</code> 理解为线程池内部的工作单元：它关联一个真正的 Java 线程，并保存这个线程启动后要执行的第一个任务。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000063.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph TD
+    subgraph Worker
+        T[&quot;线程 = 工作线程&quot;]
+        F[&quot;首个任务 = 提交的任务&quot;]
+    end
+</code></pre>
+
+
 <p>工作线程启动后，先执行 <code>firstTask</code>。执行完之后，它会继续调用 <code>getTask()</code> 从任务队列中获取后续任务。只要还能拿到任务，这个线程就会继续复用。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000064.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph TD
+    First[&quot;执行首个任务&quot;] --&gt; Loop[&quot;从队列获取任务&quot;]
+    Loop --&gt;|有任务| Run[&quot;执行下一个任务&quot;]
+    Run --&gt; Loop
+    Loop --&gt;|超时/关闭| Exit[&quot;线程退出&quot;]
+</code></pre>
+
+
 <p>因此，线程池复用的不是任务，而是工作线程。同一个 <code>Worker Thread</code> 可以在生命周期内执行多个不同的 <code>Runnable</code>。</p>
 <h2 id="三、ThreadPoolExecutor-的核心参数"><a href="#三、ThreadPoolExecutor-的核心参数" class="headerlink" title="三、ThreadPoolExecutor 的核心参数"></a>三、ThreadPoolExecutor 的核心参数</h2><p>Java 线程池的核心实现类是 <code>ThreadPoolExecutor</code>。一个常见的创建方式如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ThreadPoolExecutor</span> <span class="hljs-variable">executor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadPoolExecutor</span>(<br>        <span class="hljs-number">2</span>,<br>        <span class="hljs-number">4</span>,<br>        <span class="hljs-number">60</span>,<br>        TimeUnit.SECONDS,<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayBlockingQueue</span>&lt;&gt;(<span class="hljs-number">100</span>),<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadPoolExecutor</span>.AbortPolicy()<br>);<br></code></pre></td></tr></table></figure>
@@ -366,7 +375,17 @@
 <p>假设 <code>corePoolSize = 2</code>，<code>maximumPoolSize = 4</code>，队列容量为 <code>100</code>，可以理解为：正常情况下先创建最多两个核心工作线程；核心线程都忙时，任务进入队列；队列也满时，继续创建非核心线程；线程总数最多增加到四个；如果线程和队列都达到上限，就执行拒绝策略。</p>
 <p>最大线程数不是线程池一开始就会创建的线程数量，而是任务过载时允许扩展到的上限。</p>
 <h2 id="四、新任务到来后如何被调度"><a href="#四、新任务到来后如何被调度" class="headerlink" title="四、新任务到来后如何被调度"></a>四、新任务到来后如何被调度</h2><p>线程池接收到新任务时，不是直接入队，也不是立即把线程数扩展到最大值。<code>execute()</code> 的核心分流顺序是：先核心线程，再任务队列，再非核心线程，最后拒绝策略。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000065.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph TD
+    Submit[&quot;提交任务&quot;] --&gt; Check[&quot;线程数 &lt;br&gt;&lt; 核心线程数?&quot;]
+    Check --&gt;|是| Core[&quot;创建核心线程&lt;br&gt;执行任务&quot;]
+    Check --&gt;|否| Queue[&quot;工作队列&lt;br&gt;是否已满?&quot;]
+    Queue --&gt;|否| QueueWait[&quot;任务入队等待&quot;]
+    Queue --&gt;|是| MaxCheck[&quot;线程数 &lt;br&gt;&lt; 最大线程数?&quot;]
+    MaxCheck --&gt;|是| Extra[&quot;创建额外线程&lt;br&gt;执行任务&quot;]
+    MaxCheck --&gt;|否| Reject[&quot;拒绝任务&quot;]
+</code></pre>
+
+
 <p>假设核心线程数是 <code>2</code>，最大线程数是 <code>4</code>，队列容量是 <code>2</code>。连续提交七个执行时间较长的任务时，会出现这样的结果：</p>
 <table>
 <thead>
@@ -535,7 +554,20 @@
 
 <p>即使调用了 <code>shutdownNow()</code>，如果任务忽略中断，线程池仍然可能无法及时终止。</p>
 <h2 id="十三、线程池调度任务的完整过程"><a href="#十三、线程池调度任务的完整过程" class="headerlink" title="十三、线程池调度任务的完整过程"></a>十三、线程池调度任务的完整过程</h2><p>把前面的内容合在一起，一个任务从提交到执行结束，可以按这条主线理解：任务先进入 <code>execute()</code> 的分流逻辑，可能被核心 Worker 直接执行，可能进入队列等待，可能触发非核心 Worker 创建，也可能被拒绝；Worker 执行完当前任务后，再通过 <code>getTask()</code> 继续从队列获取后续任务；当线程池关闭或 Worker 空闲超时且满足回收条件时，Worker 才会退出。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000066.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph TD
+    subgraph 提交[&quot;提交任务&quot;]
+        S1[&quot;核心线程&quot;] --&gt; S2[&quot;工作队列&quot;]
+        S2 --&gt; S3[&quot;额外线程&quot;]
+        S3 --&gt; S4[&quot;拒绝&quot;]
+    end
+    subgraph 执行[&quot;工作线程执行&quot;]
+        W1[&quot;获取任务&quot;] --&gt; W2[&quot;执行任务&quot;]
+        W2 --&gt; W3[&quot;超时或关闭&quot;]
+        W3 --&gt; W4[&quot;退出&quot;]
+    end
+</code></pre>
+
+
 <p>线程池控制的是任务如何分配给有限数量的线程，而不是保证任务中的共享数据自动安全。多个线程池工作线程同时修改共享变量时，仍然需要使用 <code>synchronized</code>、<code>ReentrantLock</code>、CAS、线程安全容器或其他正确的同步机制。</p>
 <h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p>线程池的因果链条可以从“任务和线程分离”开始理解：任务只是待执行的工作，Worker 才是可以复用的执行单元。任务提交后，线程池先用核心线程承接稳定负载，再用任务队列吸收短时峰值；当队列也无法承受时，才创建非核心线程继续扩展；如果线程数和队列都达到上限，拒绝策略决定系统如何在过载时退让。</p>
 <p>Worker 执行完首个任务后，会通过 <code>getTask()</code> 继续从队列中获取后续任务，所以线程池节省的是反复创建和销毁线程的成本。空闲回收、预启动和关闭流程，都是围绕 Worker 生命周期展开：需要降低首个任务延迟时可以预启动，需要释放空闲资源时可以超时回收，不再使用时必须主动关闭。</p>
