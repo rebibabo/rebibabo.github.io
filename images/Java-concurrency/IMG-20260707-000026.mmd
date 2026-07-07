@@ -1,5 +1,6 @@
 graph LR
     subgraph Initial
+        direction LR
         top1["Top"] --> A1["Node A"]
         A1 --> B1["Node B"]
         B1 --> C1["Node C"]
@@ -17,4 +18,4 @@ graph LR
         direction LR
         top4["Top"] --> A4["Node A"]
         A4 --> C4["Node C"]
-    end
+    end    top1 ~~~ top2

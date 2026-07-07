@@ -8,6 +8,7 @@ graph LR
         user_b["user = 0x1000"]
     end
     subgraph Heap
+        direction LR
         obj["User @ 0x1000<br>age = 18"]
     end
     user_a --> obj

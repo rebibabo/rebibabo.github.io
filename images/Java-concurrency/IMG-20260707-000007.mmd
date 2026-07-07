@@ -6,6 +6,7 @@ graph LR
         counter_b[counter = 0x1000]
     end
     subgraph Heap
+        direction LR
         obj[0x1000: Counter Object]
     end
     counter_a --> obj
