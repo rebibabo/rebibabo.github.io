@@ -25,7 +25,7 @@ from playwright.sync_api import Playwright, sync_playwright
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAMES = ["Java高并发", "Java基础"]       # 专栏名列表，可多选
 DEFAULT_TAGS = ["学习笔记"]   # 默认标签（AI 失败时的兜底）
-HEADLESS = os.environ.get("CSDN_HEADLESS", "1") == "1"  # 默认无头，设 CSDN_HEADLESS=0 开启有头
+HEADLESS = os.environ.get("CSDN_HEADLESS", "0") == "1"  # 默认有头，设 CSDN_HEADLESS=1 开启无头
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = "deepseek-chat"    # v4 pro 模型
 
