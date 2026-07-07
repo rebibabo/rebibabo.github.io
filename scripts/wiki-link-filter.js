@@ -53,7 +53,7 @@ function convertWikilinks(content, data) {
     // Remove .md extension if present
     const cleanPath = path.replace(/\.md$/, '');
     // Handle wiki/index → wiki/
-    const url = cleanPath === 'index' ? '/wiki/' : '/wiki/' + cleanPath + '/';
+    const url = cleanPath === 'index' ? '/wiki/' : '/wiki/' + cleanPath + '.html';
     return '[' + display + '](' + url + ')';
   });
 

@@ -106,7 +106,7 @@ hexo.extend.generator.register('wiki-index', function(locals) {
   // Generate concept list
   function buildList(entries, prefix) {
     return entries.map(e =>
-      `<li><a href="/wiki/${prefix}/${e.path}/">${e.title}</a></li>`
+      `<li><a href="/wiki/${prefix}/${e.path}.html">${e.title}</a></li>`
     ).join('\n');
   }
 
@@ -131,11 +131,11 @@ hexo.extend.generator.register('wiki-index', function(locals) {
   }).join('\n');
 
   const mapsList = result.maps.sort((a,b) => a.title.localeCompare(b.title)).map(m =>
-    `<li><a href="/wiki/maps/${m.path}/">${m.title}</a></li>`
+    `<li><a href="/wiki/maps/${m.path}.html">${m.title}</a></li>`
   ).join('\n');
 
   const seriesList = result.series.sort((a,b) => a.title.localeCompare(b.title)).map(s =>
-    `<li><a href="/wiki/series/${s.path}/">${s.title}</a></li>`
+    `<li><a href="/wiki/series/${s.path}.html">${s.title}</a></li>`
   ).join('\n');
 
   const pageContent = `
