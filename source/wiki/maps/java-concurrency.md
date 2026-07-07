@@ -83,16 +83,16 @@ graph TD
 
 ### 路线 A：系统学习（从底向上）
 
-| 阶段 | 主题 | 核心概念 | 原始文章 |
-| --- | --- | --- | --- |
-| 0 硬件 | CPU 如何执行 Java 程序 | 执行模型、Cache Line、MESI | post 01, 06 |
-| 1 内存 | Java 内存模型 | JMM、Happens-Before、volatile、重排序 | post 02, 07, 08 |
-| 2 同步 | 锁与同步原语 | synchronized、Monitor、锁升级、ReentrantLock、AQS、LockSupport | post 03-04, 09, 13, 19, 25 |
-| 3 高级 | 高级同步器 | Condition、CountDownLatch、Semaphore、ReentrantReadWriteLock、StampedLock | post 10-12, 20 |
-| 4 无锁 | 无锁与并发工具 | CAS、ABA、LongAdder、ConcurrentHashMap、BlockingQueue、ThreadLocal | post 05, 18, 21-23 |
-| 5 执行 | 线程池与异步 | ThreadPoolExecutor、Future/CompletableFuture、ForkJoinPool | post 14-17, 26 |
-| 6 故障 | 故障排查 | 死锁/活锁/饥饿、线程中断、jstack | post 24, 27 |
-| 7 系统 | 任务系统设计 | Worker Model、有界队列、任务表、MQ、幂等 | post 28-29 |
+| 阶段   | 主题               | 核心概念                                                                  | 原始文章                       |
+| ---- | ---------------- | --------------------------------------------------------------------- | -------------------------- |
+| 0 硬件 | CPU 如何执行 Java 程序 | 执行模型、Cache Line、MESI                                                  | post 01, 06                |
+| 1 内存 | Java 内存模型        | JMM、Happens-Before、volatile、重排序                                       | post 02, 07, 08            |
+| 2 同步 | 锁与同步原语           | synchronized、Monitor、锁升级、ReentrantLock、AQS、LockSupport                | post 03-04, 09, 13, 19, 25 |
+| 3 高级 | 高级同步器            | Condition、CountDownLatch、Semaphore、ReentrantReadWriteLock、StampedLock | post 10-12, 20             |
+| 4 无锁 | 无锁与并发工具          | CAS、ABA、LongAdder、ConcurrentHashMap、BlockingQueue、ThreadLocal         | post 05, 18, 21-23         |
+| 5 执行 | 线程池与异步           | ThreadPoolExecutor、Future/CompletableFuture、ForkJoinPool              | post 14-17, 26             |
+| 6 故障 | 故障排查             | 死锁/活锁/饥饿、线程中断、jstack                                                  | post 24, 27                |
+| 7 系统 | 任务系统设计           | Worker Model、有界队列、任务表、MQ、幂等                                           | post 28-29                 |
 
 ### 路线 B：问题驱动（按痛点跳读）
 
