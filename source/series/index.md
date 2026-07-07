@@ -302,29 +302,29 @@ layout: page
 }
 
 /* ===== Dark Mode Adjustments ===== */
-html[data-theme="dark"] .series-card {
+[data-user-color-scheme="dark"] .series-card {
   background: rgba(255,255,255,0.04);
   border-color: rgba(255,255,255,0.08);
 }
 
-html[data-theme="dark"] .series-card:hover {
+[data-user-color-scheme="dark"] .series-card:hover {
   background: rgba(255,255,255,0.07);
 }
 
-html[data-theme="dark"] .series-card h2 {
+[data-user-color-scheme="dark"] .series-card h2 {
   color: #e1e5eb !important;
 }
 
-html[data-theme="dark"] .series-card p {
+[data-user-color-scheme="dark"] .series-card p {
   color: #e1e5eb !important;
   opacity: 1;
 }
 
-html[data-theme="dark"] .card-count {
+[data-user-color-scheme="dark"] .card-count {
   color: #e1e5eb !important;
 }
 
-html[data-theme="dark"] .card-arrow {
+[data-user-color-scheme="dark"] .card-arrow {
   color: #e1e5eb;
 }
 

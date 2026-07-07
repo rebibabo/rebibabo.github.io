@@ -20,7 +20,7 @@ navbar:
   blog_title: 主页
   menu:
     - { key: 'home', link: '/series/', icon: 'iconfont icon-home-fill', name: '首页' }
-    - { key: 'posts', link: '/posts/', icon: 'iconfont icon-archive-fill', name: '文章' }
+    # - { key: 'posts', link: '/posts/', icon: 'iconfont icon-archive-fill', name: '文章' }
     # - { key: 'tag', link: '/tags/', icon: 'iconfont icon-tags-fill', name: '标签' }
     # - { key: 'about', link: '/about/', icon: 'iconfont icon-user-fill', name: '关于' }
 
