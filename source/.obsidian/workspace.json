@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "schema/update-workflow.md",
+                "file": "_posts/Java高并发底层原理/test.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "update-workflow"
+              "title": "test"
             }
           },
           {
@@ -30,21 +30,8 @@
               "icon": "terminal",
               "title": "Terminal"
             }
-          },
-          {
-            "id": "75531fe876e25251",
-            "type": "leaf",
-            "state": {
-              "type": "image",
-              "state": {
-                "file": "附件/Pasted image 20260707153208.png"
-              },
-              "icon": "lucide-image",
-              "title": "Pasted image 20260707153208"
-            }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -204,12 +191,13 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "75531fe876e25251",
+  "active": "9ea592f34f44e7dc",
   "lastOpenFiles": [
+    "schema/update-workflow.md",
+    "附件/Pasted image 20260707153208.png",
     "附件/Pasted image 20260707153108.png",
     "附件/Pasted image 20260707152802.png",
     "_posts/Java高并发底层原理/test.md",
-    "附件/Pasted image 20260707153208.png",
     "images/concurrency/debug-decision-tree.png",
     "_posts/Java高并发底层原理/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
     "附件",
