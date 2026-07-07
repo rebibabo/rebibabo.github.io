@@ -256,7 +256,7 @@ body > header .header-inner {
 
 /* ===== Mermaid 生成的图片限制宽度 ===== */
 .markdown-body pre[style*="display:none"] + p > img {
-  max-width: 480px;
+  max-width: 360px;
   display: block;
   margin: 1rem auto;
 }
