@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T11:25:55.941Z",
+  "updatedAt": "2026-07-07T11:26:58.740Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "",
-    "isEmpty": true,
+    "text": "<img class=\"mermaid-img\" src=\"/images/Java-advanced/IMG-20260707-000017.png\" alt=\"mermaid diagram\" style=\"display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain\">",
+    "isEmpty": false,
     "from": {
-      "line": 135,
-      "ch": 65,
-      "offset": 3161
+      "line": 190,
+      "ch": 0,
+      "offset": 4908
     },
     "to": {
-      "line": 135,
-      "ch": 65,
-      "offset": 3161
+      "line": 190,
+      "ch": 225,
+      "offset": 5133
     }
   }
 }
