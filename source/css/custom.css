@@ -12,20 +12,3 @@
 .tag-post-title {
   margin-left: 0 !important;
 }
-
-/* 隐藏归档 / 分类 / 标签页里的年份分组，比如 2026 */
-.archive-year,
-#board .archive-year,
-#board .category-year,
-#board .tag-year {
-  display: none !important;
-}
-
-/* Fluid 列表里的年份标题 */
-#board h2,
-#board h3,
-#board .h2,
-#board .h3,
-#board .h4 {
-  display: none !important;
-}
