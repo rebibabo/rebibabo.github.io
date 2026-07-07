@@ -59,7 +59,7 @@ graph LR
     end
     App -->|被抓取| Prom
     Prom -->|被查询| Graf
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000024.png)
 
 
@@ -98,7 +98,7 @@ graph TB
     DS -.- P2
     DS -.- P3
     DS -.- P4
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000025.png)
 
 
@@ -215,7 +215,7 @@ graph TB
     Compare -->|没超| OK["状态 OK<br/>啥也不做"]
     Compare -->|超了| Alert["状态 Alerting → 触发！"]
     Alert --> Notify["通过通知渠道发出去<br/>钉钉/企业微信/邮件/Slack…"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000026.png)
 
 

@@ -48,7 +48,7 @@ graph TB
     Order --> Coupon["优惠券服务"]
     Stock --> Payment["支付服务"]
     Payment --> DB["数据库"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000027.png)
 
 
@@ -136,7 +136,7 @@ graph TB
     B --> D["Span D 调用优惠券服务（60ms ~ 120ms）"]
     B --> E["Span E 调用支付服务 ← 慢！（200ms ~ 800ms）"]
     E --> F["Span F 支付服务查数据库 ← 根因在这（250ms ~ 780ms）"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000028.png)
 
 
@@ -175,7 +175,7 @@ graph TB
     Pocket --> Log["Controller 想打日志<br/>→ 从口袋掏出 traceId=abc123"]
     Log --> Span["Service 要建子 Span<br/>→ 掏出 spanId=A 作为 parent"]
     Span --> Clean["请求结束<br/>→ 清空 T1 的口袋<br/>{否则会串味影响下一个请求}"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000029.png)
 
 
@@ -202,7 +202,7 @@ graph LR
     Version --> TraceId["abc123def456...<br/>traceId"]
     TraceId --> ParentId["00f067aa0ba902b7<br/>parentSpanId"]
     ParentId --> Flags["01<br/>采样标志"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000030.png)
 
 
@@ -220,7 +220,7 @@ graph LR
 graph TB
     GW["网关<br/>生成 traceId=abc123, spanId=A"] -->|"HTTP 请求头带上<br/>traceparent: ...abc123-A..."| Order["订单服务<br/>读出 traceId=abc123, parent=A<br/>→ 新建 spanId=B"]
     Order -->|"HTTP 请求头带上<br/>traceparent: ...abc123-B..."| Payment["支付服务<br/>读出 traceId=abc123, parent=B<br/>→ 新建 spanId=E"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000031.png)
 
 
@@ -303,7 +303,7 @@ graph TB
     S -->|异步上报| Collector
     Collector --> Store["③ 存储（时序/检索数据库）<br/>按 traceId、耗时、服务检索"]
     Store --> UI["④ UI 可视化<br/>画成甘特图，一眼看出慢在哪"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000032.png)
 
 
@@ -416,7 +416,7 @@ graph TB
     Metrics["① Metrics 指标大盘告警<br/>下单接口 P99 从 200ms 涨到 2s 了！<br/>知道有问题，但不知道为什么"] --> Tracing["② Tracing<br/>翻出慢的 trace<br/>原来卡在调用支付服务那一段<br/>知道卡在哪步，但不知道内部发生了什么"]
     Tracing --> Logging["③ Logging<br/>拿 traceId 搜日志<br/>支付服务: 数据库连接池耗尽"]
     Logging --> RootCause["根因找到 ✅"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000033.png)
 
 

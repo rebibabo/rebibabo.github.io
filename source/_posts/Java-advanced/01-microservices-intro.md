@@ -50,7 +50,7 @@ graph TB
         M["广告平台 (一个进程)<br/>用户模块 · 投放模块 · 计费模块 · 报表模块"]
         M --> MySQL[(MySQL)]
     end
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000000.png)
 
 
@@ -67,7 +67,7 @@ graph LR
         TS <-->|网络调用| BS["计费服务<br/>+ DB"]
         BS <-->|网络调用| RS["报表服务<br/>+ DB"]
     end
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000001.png)
 
 
@@ -139,7 +139,7 @@ graph TB
     B2["计费服务实例2"] -->|① 注册 + 心跳| Registry
     B3["计费服务实例3"] -->|① 注册 + 心跳| Registry
     Registry -->|② 查询计费服务地址列表| Consumer["投放服务"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000002.png)
 
 
@@ -248,7 +248,7 @@ graph LR
     LB --> I1["实例1"]
     LB --> I2["实例2"]
     LB --> I3["实例3"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000003.png)
 
 
@@ -274,7 +274,7 @@ graph TB
     Gateway --> TS["投放服务"]
     Gateway --> BS["计费服务"]
     Gateway --> RS["报表服务"]
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000004.png)
 
 
@@ -373,7 +373,7 @@ graph LR
     Open -->|等待一段时间| Half["半开 (Half-Open)"]
     Half -->|试探请求成功| Closed
     Half -->|试探请求失败| Open
-</pre>
+
 ![](/images/Java-advanced/IMG-20260707-000005.png)
 
 
