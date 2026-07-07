@@ -284,14 +284,24 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
 
     # ---- 第4.5步：处理图片选择弹窗（如果有）----
     try:
-        page2.wait_for_timeout(2000)
-        img_items = page2.locator(".img-selection-item")
-        if img_items.count() > 0:
+        # 等久一点让 CSDN 处理粘贴的内容
+        page2.wait_for_timeout(3000)
+        # 用 JS 查找 .img-selection-item，存在就点第一个
+        clicked = page2.evaluate("""() => {
+            const items = document.querySelectorAll('.img-selection-item');
+            if (items.length > 0) {
+                items[0].click();
+                return true;
+            }
+            return false;
+        }""")
+        if clicked:
             print("4.5 选择图片...")
-            # 点第一个图片的 img 标签（嵌套层太多，直接 force click）
-            img_items.first.locator("img").first.click(force=True, timeout=5000)
             page2.wait_for_timeout(500)
-            page2.locator(".vicp-operate-btn").click(force=True, timeout=5000)
+            page2.evaluate("""() => {
+                const btn = document.querySelector('.vicp-operate-btn');
+                if (btn) btn.click();
+            }""")
             page2.wait_for_timeout(500)
             print("  ✅ 图片已选择")
     except Exception:
