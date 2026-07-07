@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T10:34:58.977Z",
+  "updatedAt": "2026-07-07T10:36:09.955Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "graph TB\n    S1[\"1. 用户 POST /login<br/>带上用户名 + 密码\"] --> S2[\"2. 服务端查数据库<br/>用 PasswordEncoder 校验密码\"]\n    S2 --> S3[\"3. 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名\"]\n    S3 --> S4[\"4. 把 JWT 返回给客户端\"]\n    S4 --> S5[\"5. 客户端保存 JWT<br/>比如存在 localStorage\"]",
-    "isEmpty": false,
+    "text": "",
+    "isEmpty": true,
     "from": {
-      "line": 176,
-      "ch": 0,
-      "offset": 3669
+      "line": 131,
+      "ch": 77,
+      "offset": 2681
     },
     "to": {
-      "line": 180,
-      "ch": 51,
-      "offset": 3905
+      "line": 131,
+      "ch": 77,
+      "offset": 2681
     }
   }
 }

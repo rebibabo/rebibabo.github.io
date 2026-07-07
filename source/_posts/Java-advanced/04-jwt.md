@@ -175,20 +175,20 @@ graph TB
 
 ```mermaid
 graph TB
-    S1["1. 用户 POST /login<br/>带上用户名 + 密码"] --> S2["2. 服务端查数据库<br/>用 PasswordEncoder 校验密码"]
-    S2 --> S3["3. 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]
-    S3 --> S4["4. 把 JWT 返回给客户端"]
-    S4 --> S5["5. 客户端保存 JWT<br/>比如存在 localStorage"]
+    S1["① 用户 POST /login<br/>带上用户名 + 密码"] --> S2["② 服务端查数据库<br/>用 PasswordEncoder 校验密码"]
+    S2 --> S3["③ 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]
+    S3 --> S4["④ 把 JWT 返回给客户端"]
+    S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]
 ```
 
 ### 5.2 阶段二：带 token 访问接口
 
 ```mermaid
 graph TB
-    S1["1. 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["2. JWT 过滤器拦截请求，取出 token"]
-    S2 --> S3{"3. 用密钥验证签名<br/>验证是否过期"}
-    S3 -->|通过 ✅| S4["4. 解析用户信息<br/>存入 SecurityContext"]
-    S4 --> S5["5. 放行到 Controller<br/>业务代码拿到当前用户"]
+    S1["① 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["② JWT 过滤器拦截请求，取出 token"]
+    S2 --> S3{"③ 用密钥验证签名<br/>验证是否过期"}
+    S3 -->|通过 ✅| S4["④ 解析用户信息<br/>存入 SecurityContext"]
+    S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 ```
 
