@@ -73,3 +73,94 @@
     padding: 7px 12px;
   }
 }
+
+/* ===== 分类/归档/标签页：卡片式文章列表 ===== */
+.list-group-item.list-group-item-action {
+  position: relative;
+  margin-bottom: 10px;
+  padding: 18px 22px 18px 56px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(128,128,128,0.12) !important;
+  background: rgba(255,255,255,0.02);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+}
+
+.list-group-item.list-group-item-action::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+  opacity: 0;
+  border-radius: 10px 0 0 10px;
+  transition: opacity 0.3s ease;
+}
+
+.list-group-item.list-group-item-action:hover::before {
+  opacity: 1;
+}
+
+.list-group-item.list-group-item-action:hover {
+  transform: translateX(6px);
+  border-color: rgba(102,126,234,0.2) !important;
+  background: rgba(102,126,234,0.04) !important;
+  box-shadow: 0 8px 25px rgba(102,126,234,0.08);
+}
+
+.list-group-item-title {
+  font-size: 0.98rem;
+  font-weight: 550;
+  line-height: 1.6;
+  color: inherit;
+}
+
+/* 为每篇加序号标记 */
+.list-group-item.list-group-item-action::after {
+  content: counter(category-post);
+  counter-increment: category-post;
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(128,128,128,0.35);
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+  text-align: right;
+}
+
+/* 重置计数器 */
+.list-group {
+  counter-reset: category-post;
+}
+
+/* 暗色模式 */
+html[data-theme="dark"] .list-group-item.list-group-item-action {
+  background: rgba(255,255,255,0.02);
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme="dark"] .list-group-item.list-group-item-action:hover {
+  background: rgba(102,126,234,0.08) !important;
+  border-color: rgba(102,126,234,0.25) !important;
+}
+
+/* 移动端 */
+@media (max-width: 768px) {
+  .list-group-item.list-group-item-action {
+    padding: 14px 14px 14px 44px !important;
+    margin-bottom: 8px;
+    border-radius: 8px !important;
+  }
+
+  .list-group-item.list-group-item-action::after {
+    left: 12px;
+    font-size: 0.7rem;
+  }
+
+  .list-group-item-title {
+    font-size: 0.9rem;
+  }
+}
