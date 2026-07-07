@@ -108,7 +108,16 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
 
   // Add back-to-wiki button before </body>
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
-  html = html.replace('</body>', btn + '\n</body>');
+
+  // Add mermaid JS for wiki pages that have mermaid diagrams
+  const hasMermaid = html.indexOf('class=" mermaid"') !== -1 || html.indexOf('class="mermaid"') !== -1;
+  const mermaidScript = hasMermaid ? `
+<script src="https://lib.baomitu.com/mermaid/10.9.0/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: document.documentElement.getAttribute('data-user-color-scheme') === 'dark' ? 'dark' : 'default' });
+</script>` : '';
+
+  html = html.replace('</body>', mermaidScript + '\n' + btn + '\n</body>');
 
   // Add CSS for the button
   const style = `<style>
