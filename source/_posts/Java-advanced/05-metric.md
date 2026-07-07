@@ -67,7 +67,7 @@ graph TB
     Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
     Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
 </pre>
-![](/images/Java-advanced/IMG-20260707-000019.png)
+![|300](/images/Java-advanced/IMG-20260707-000019.png)
 
 
 
@@ -121,7 +121,7 @@ graph TB
 graph TB
     Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
 </pre>
-![](/images/Java-advanced/IMG-20260707-000021.png)
+![329](/images/Java-advanced/IMG-20260707-000021.png)
 
 
 

@@ -135,7 +135,7 @@ graph TB
     Compare -->|相等 ✅| Trust["没被篡改，可信"]
     Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
 </pre>
-![400](/images/Java-advanced/IMG-20260707-000014.png)
+![374](/images/Java-advanced/IMG-20260707-000014.png)
 
 
 
