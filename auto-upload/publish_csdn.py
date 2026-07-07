@@ -78,12 +78,14 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             return match.group(0)
 
         local_file = os.path.join(BLOG_SOURCE_DIR, rel_path)
-        # URL 编码路径（处理中文等特殊字符）
+        # markdown 中保留原始路径（中文不编码，避免 CSDN 处理异常）
+        raw_url = f"{GITHUB_RAW_BASE}/{rel_path}"
+        # 内部检查用编码后的 URL
         encoded_path = "/".join(quote(part, safe="") for part in rel_path.split("/"))
-        raw_url = f"{GITHUB_RAW_BASE}/{encoded_path}"
+        check_url = f"{GITHUB_RAW_BASE}/{encoded_path}"
 
         # 先查外链
-        if _check_url(raw_url):
+        if _check_url(check_url):
             print(f"  🔗 {rel_path}")
             return f"![{alt}]({raw_url})"
 
@@ -91,16 +93,15 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
         print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
         print(f"     正在 git add → commit → push...")
         _git_sync()
-        _purge_jsdelivr(rel_path)
+        _purge_jsdelivr(encoded_path)
         print(f"     ✅ 已推送并刷新 CDN 缓存")
         return f"![{alt}]({raw_url})"
 
     return image_pattern.sub(replace_image, body)
 
 
-def _purge_jsdelivr(rel_path: str):
-    """刷新 jsDelivr 缓存，让新推送的图片立即可用"""
-    encoded_path = "/".join(quote(part, safe="") for part in rel_path.split("/"))
+def _purge_jsdelivr(encoded_path: str):
+    """刷新 jsDelivr 缓存（encoded_path 已预先 URL 编码）"""
     purge_url = f"https://purge.jsdelivr.net/gh/rebibabo/rebibabo.github.io@source/source/{encoded_path}"
     try:
         ctx = ssl._create_unverified_context()
