@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
+                "file": "_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "13-Object Monitor 如何实现对象锁与线程等待"
+              "title": "14-线程池如何复用和调度线程"
             }
           }
         ],
@@ -194,27 +194,28 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
-    "images/Java-concurrency/IMG-20260707-000200.png",
-    "images/Java-concurrency/IMG-20260707-000201.png",
-    "images/Java-concurrency/IMG-20260707-000199.png",
-    "images/Java-concurrency/IMG-20260707-000198.png",
-    "images/Java-concurrency/IMG-20260707-000197.png",
-    "images/Java-concurrency/IMG-20260707-000196.png",
-    "images/Java-concurrency/IMG-20260707-000195.png",
-    "images/Java-concurrency/IMG-20260707-000194.png",
-    "images/Java-concurrency/IMG-20260707-000191.png",
-    "images/Java-concurrency/IMG-20260707-000193.png",
-    "images/Java-concurrency/IMG-20260707-000190.png",
-    "images/Java-concurrency/IMG-20260707-000201.mmd",
-    "images/Java-concurrency/IMG-20260707-000200.mmd",
-    "images/Java-concurrency/IMG-20260707-000199.mmd",
-    "images/Java-concurrency/IMG-20260707-000198.mmd",
-    "images/Java-concurrency/IMG-20260707-000197.mmd",
-    "images/Java-concurrency/IMG-20260707-000196.mmd",
-    "images/Java-concurrency/IMG-20260707-000195.mmd",
-    "images/Java-concurrency/IMG-20260707-000194.mmd",
-    "images/Java-concurrency/IMG-20260707-000193.mmd",
-    "images/Java-concurrency/IMG-20260707-000192.mmd",
+    "images/Java-advanced/IMG-20260707-000032.png",
+    "images/Java-advanced/IMG-20260707-000033.png",
+    "images/Java-advanced/IMG-20260707-000027.png",
+    "images/Java-advanced/IMG-20260707-000031.png",
+    "images/Java-advanced/IMG-20260707-000028.png",
+    "images/Java-advanced/IMG-20260707-000018.png",
+    "images/Java-advanced/IMG-20260707-000030.png",
+    "images/Java-advanced/IMG-20260707-000029.png",
+    "images/Java-advanced/IMG-20260707-000023.png",
+    "images/Java-advanced/IMG-20260707-000025.png",
+    "images/Java-advanced/IMG-20260707-000019.png",
+    "images/Java-advanced/IMG-20260707-000033.mmd",
+    "images/Java-advanced/IMG-20260707-000032.mmd",
+    "images/Java-advanced/IMG-20260707-000031.mmd",
+    "images/Java-advanced/IMG-20260707-000030.mmd",
+    "images/Java-advanced/IMG-20260707-000029.mmd",
+    "images/Java-advanced/IMG-20260707-000028.mmd",
+    "images/Java-advanced/IMG-20260707-000027.mmd",
+    "images/Java-advanced/IMG-20260707-000026.mmd",
+    "images/Java-advanced/IMG-20260707-000025.mmd",
+    "images/Java-advanced/IMG-20260707-000024.mmd",
+    "_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
     "_posts/Java-concurrency/12-Semaphore 如何控制并发线程数量.md",
     "_posts/Java-concurrency/11-CountDownLatch 如何等待多个线程完成.md",
     "_posts/Java-concurrency/10-Condition 如何实现线程等待与通知.md",
@@ -238,7 +239,6 @@
     "_posts/Java-advanced/01-microservices-intro.md",
     "_posts/Java-advanced copy/07-tracing.md",
     "_posts/Java-advanced copy/06-grafana.md",
-    "_posts/Java-advanced copy/05-metric.md",
-    "_posts/Java-advanced copy/04-jwt.md"
+    "_posts/Java-advanced copy/05-metric.md"
   ]
 }

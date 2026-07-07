@@ -102,11 +102,8 @@ JWT（JSON Web Token）反过来——**把用户信息直接编码进 token 本
 
 一个 JWT 就是一个用两个点分隔的字符串：
 
-```mermaid
-graph LR
-    Header["Header（头部）<br/>{alg: HS256, typ: JWT}"] --> Payload["Payload（载荷）<br/>{sub: 1001, role: admin}"]
-    Payload --> Signature["Signature（签名）<br/>防篡改校验值"]
-```
+![](/images/Java-advanced/IMG-20260707-000013.png)
+
 
 
 
@@ -123,27 +120,16 @@ graph LR
 
 签名是 JWT 安全的核心：
 
-```mermaid
-graph LR
-    Key["服务端密钥"] --> Compute["重新计算签名<br/>HMAC-SHA256(Header.Payload, 密钥)"]
-    Token["收到 JWT"] --> Compare["算出的签名<br/>=<br/>Token 中的签名?"]
-    Compute --> Compare
-    Compare -->|相等 ✅| Trust["没被篡改，可信"]
-    Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
-```
+![](/images/Java-advanced/IMG-20260707-000014.png)
+
 
 
 
 
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
 
-```mermaid
-graph LR
-    Attack["攻击者篡改 Payload<br/>role: user → role: admin"] --> NoKey["不知道密钥<br/>无法生成新签名"]
-    NoKey --> ServerCheck["服务端用密钥重新计算签名"]
-    ServerCheck --> Mismatch["和 token 里的签名一致?"]
-    Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
-```
+![](/images/Java-advanced/IMG-20260707-000015.png)
+
 
 
 
@@ -156,11 +142,8 @@ Spring Security 的工作方式是在请求到达 Controller **之前**，先经
 
 ### 4.1 过滤器链（Filter Chain）
 
-```mermaid
-graph LR
-    Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
-    FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
-```
+![](/images/Java-advanced/IMG-20260707-000016.png)
+
 
 
 
@@ -185,27 +168,16 @@ graph LR
 
 ### 5.1 阶段一：登录拿 token
 
-```mermaid
-graph LR
-    S1["① 用户 POST /login<br/>带上用户名 + 密码"] --> S2["② 服务端查数据库<br/>用 PasswordEncoder 校验密码"]
-    S2 --> S3["③ 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]
-    S3 --> S4["④ 把 JWT 返回给客户端"]
-    S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]
-```
+![](/images/Java-advanced/IMG-20260707-000017.png)
+
 
 
 
 
 ### 5.2 阶段二：带 token 访问接口
 
-```mermaid
-graph LR
-    S1["① 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["② JWT 过滤器拦截请求，取出 token"]
-    S2 --> S3["③ 用密钥验证签名<br/>验证是否过期"]
-    S3 -->|通过 ✅| S4["④ 解析用户信息<br/>存入 SecurityContext"]
-    S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
-    S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
-```
+![](/images/Java-advanced/IMG-20260707-000018.png)
+
 
 
 

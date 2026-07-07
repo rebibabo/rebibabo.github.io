@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T13:47:23.969Z",
+  "updatedAt": "2026-07-07T13:47:56.971Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
-    "vaultPath": "_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/13-Object%20Monitor%20%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E9%94%81%E4%B8%8E%E7%BA%BF%E7%A8%8B%E7%AD%89%E5%BE%85.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
+    "vaultPath": "_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%A6%82%E4%BD%95%E5%A4%8D%E7%94%A8%E5%92%8C%E8%B0%83%E5%BA%A6%E7%BA%BF%E7%A8%8B.md",
     "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
-      "vaultPath": "_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/13-Object%20Monitor%20%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E9%94%81%E4%B8%8E%E7%BA%BF%E7%A8%8B%E7%AD%89%E5%BE%85.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
+      "vaultPath": "_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%A6%82%E4%BD%95%E5%A4%8D%E7%94%A8%E5%92%8C%E8%B0%83%E5%BA%A6%E7%BA%BF%E7%A8%8B.md",
       "isActive": true
     }
   ],
   "selection": {
-    "text": "",
-    "isEmpty": true,
+    "text": "![](/images/Java-concurrency/IMG-20260707-000066.png)",
+    "isEmpty": false,
     "from": {
-      "line": 223,
+      "line": 300,
       "ch": 0,
-      "offset": 3725
+      "offset": 8303
     },
     "to": {
-      "line": 223,
-      "ch": 0,
-      "offset": 3725
+      "line": 300,
+      "ch": 53,
+      "offset": 8356
     }
   }
 }
