@@ -1,7 +1,8 @@
 ---
 title: 程序化广告 (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记
 date: 2026-06-14
-abbrlink: 09categories:
+abbrlink: 09
+categories:
   - programmatic-ads
 tags:
   - 广告

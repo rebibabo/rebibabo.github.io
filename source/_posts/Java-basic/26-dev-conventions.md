@@ -1,7 +1,8 @@
 ---
 title: 'Java基础(番外) | 开发规范全集：命名、代码、目录、文档、Git 一站式速查'
 date: 2026-05-26
-abbrlink: 26tags:
+abbrlink: 26
+tags:
   - 开发规范
   - 代码风格
   - 最佳实践

@@ -1,7 +1,8 @@
 ---
 title: 'Java基础(10) | 并发编程：线程、锁、线程池与 CompletableFuture'
 date: 2026-05-10
-abbrlink: 10tags:
+abbrlink: 10
+tags:
   - Java
   - 并发
   - 多线程

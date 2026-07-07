@@ -1,7 +1,8 @@
 ---
 title: 程序化广告 (7)：考核指标——程序化广告的"成绩单"
 date: 2026-06-13
-abbrlink: 08categories:
+abbrlink: 08
+categories:
   - programmatic-ads
 tags:
   - 广告

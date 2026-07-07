@@ -1,8 +1,9 @@
 ---
 title: 程序化广告 (0)：先看清楚整个江湖
 date: 2026-06-06
-abbrlink: 01categories:
-  - programmatic-ads
+abbrlink: 01
+categories:
+  - programmatic-ads2
 tags:
   - 广告
   - 学习笔记

@@ -1,7 +1,8 @@
 ---
 title: 'Claude Code 入门：日常对话、Skills 与 Subagents'
 date: 2026-05-25
-abbrlink: 25tags:
+abbrlink: 25
+tags:
   - Claude Code
   - AI 工具
   - 开发效率

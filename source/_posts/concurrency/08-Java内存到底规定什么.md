@@ -2,7 +2,8 @@
 
 title: Java高并发底层原理（八）—— Java 内存模型到底规定了什么
 date: 2026-07-03
-abbrlink: 08tags:
+abbrlink: 08
+tags:
     - Java
     - 高并发
     - JMM

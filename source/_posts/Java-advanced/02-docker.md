@@ -1,7 +1,8 @@
 ---
 title: 'Java进阶(2) | Docker 容器入门：从原理到打包部署'
 date: 2026-05-02
-abbrlink: 02tags:
+abbrlink: 02
+tags:
   - Docker
   - 容器
   - 部署

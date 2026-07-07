@@ -1,7 +1,8 @@
 ---
 title: 'Java全貌(5) | 监控指标入门：Micrometer + Prometheus'
 date: 2026-05-05
-abbrlink: 05tags:
+abbrlink: 05
+tags:
   - Micrometer
   - Prometheus
   - 监控

@@ -1,7 +1,8 @@
 ---
 title: Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量
 date: 2026-07-03
-abbrlink: 12tags:
+abbrlink: 12
+tags:
     - Java
     - 高并发
     - Semaphore

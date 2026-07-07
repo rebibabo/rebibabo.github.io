@@ -1,7 +1,8 @@
 ---
 title: Java高并发底层原理（二十三）—— BlockingQueue 如何协调生产者和消费者
 date: 2026-07-04
-abbrlink: 23tags:
+abbrlink: 23
+tags:
     - Java
     - 高并发
     - BlockingQueue

@@ -1,7 +1,8 @@
 ---
 title: 'Java基础(15) | 构建工具：Maven vs Gradle，依赖管理与项目结构'
 date: 2026-05-15
-abbrlink: 15tags:
+abbrlink: 15
+tags:
   - Java
   - Maven
   - Gradle

@@ -1,7 +1,8 @@
 ---
 title: Java高并发底层原理（十）—— Condition 如何实现线程等待与通知
 date: 2026-07-03
-abbrlink: 10tags:
+abbrlink: 10
+tags:
     - Java
     - 高并发
     - Condition

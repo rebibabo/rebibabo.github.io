@@ -1,7 +1,8 @@
 ---
 title: 'Java基础(13) | 枚举：不只是常量，还能做策略模式和单例'
 date: 2026-05-13
-abbrlink: 13tags:
+abbrlink: 13
+tags:
   - Java
   - 枚举
 categories:

@@ -1,7 +1,8 @@
 ---
 title: LLM推理优化实战(二)：AWQ INT4 量化实战：TPOT 降 65%、有效吞吐提升 5.5 倍
 date: 2026-04-02
-abbrlink: 02mathjax: true
+abbrlink: 02
+mathjax: true
 categories:
     llm-inference
 tags:

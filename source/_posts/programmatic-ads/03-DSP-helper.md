@@ -1,7 +1,8 @@
 ---
 title: 程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解
 date: 2026-06-08
-abbrlink: 03categories:
+abbrlink: 03
+categories:
   - programmatic-ads
 tags:
   - 广告

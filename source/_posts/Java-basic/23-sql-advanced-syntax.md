@@ -1,7 +1,8 @@
 ---
 title: 'Java基础(23) | SQL 进阶语法：常用函数、CTE 与窗口函数'
 date: 2026-05-23
-abbrlink: 23tags:
+abbrlink: 23
+tags:
   - SQL
   - MySQL
   - 窗口函数

@@ -1,7 +1,8 @@
 ---
 title: Java高并发底层原理（十九）—— AQS 独占与共享模式如何完成排队与唤醒
 date: 2026-07-04
-abbrlink: 19tags:
+abbrlink: 19
+tags:
     - Java
     - 高并发
     - AQS

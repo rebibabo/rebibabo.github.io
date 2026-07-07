@@ -1,7 +1,8 @@
 ---
 title: Java高并发底层原理（二十八）—— 并发任务处理系统如何设计：从任务模型到 Worker 执行
 date: 2026-07-05
-abbrlink: 28tags:
+abbrlink: 28
+tags:
   - Java
   - 并发编程
   - 线程池

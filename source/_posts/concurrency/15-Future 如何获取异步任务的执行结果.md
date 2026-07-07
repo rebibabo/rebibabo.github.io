@@ -1,7 +1,8 @@
 ---
 title: Java高并发底层原理（十五）—— FutureTask 如何保存异步任务的结果和异常
 date: 2026-07-03
-abbrlink: 15tags:
+abbrlink: 15
+tags:
     - Java
     - 高并发
     - Future
