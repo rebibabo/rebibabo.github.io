@@ -11,6 +11,8 @@ CSDN 自动发布文章脚本
 import re
 import sys
 import os
+import json
+import urllib.request
 from pathlib import Path
 from playwright.sync_api import Playwright, sync_playwright
 
@@ -19,7 +21,9 @@ from playwright.sync_api import Playwright, sync_playwright
 # ============================================================
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAMES = ["Java高并发", "Java基础"]       # 专栏名列表，可多选
-DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签
+DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签（AI 失败时的兜底）
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_MODEL = "deepseek-chat"    # flash 模型
 
 
 # ============================================================
@@ -66,6 +70,70 @@ def safe_click(page, selector: str, timeout: int = 2000):
         print(f"  ✅ 点击了: {selector}")
     except Exception:
         print(f"  ⏭️  未找到，跳过: {selector}")
+
+
+# ============================================================
+# DeepSeek API — 摘要 + 标签
+# ============================================================
+def extract_metadata_via_ai(body: str, title: str) -> dict | None:
+    """调用 DeepSeek 提取摘要（≤150字）和标签（≤7个），摘要超过250字则重试最多3次"""
+    if not DEEPSEEK_API_KEY:
+        print("  ⚠️  DEEPSEEK_API_KEY 未设置，将使用默认摘要和标签")
+        return None
+
+    prompt = (
+        "根据以下文章内容生成摘要和标签。\n"
+        "要求：\n"
+        "1. 摘要：不超过150字，只概括核心内容，不要评价\n"
+        "2. 标签：不超过7个，用简短关键词描述文章主题\n"
+        "严格只返回 JSON，不要包含其他文字：\n"
+        '{"summary": "...", "tags": ["...", "..."]}\n\n'
+        f"文章标题：{title}\n\n文章内容：\n{body[:5000]}"
+    )
+
+    for attempt in range(3):
+        try:
+            data = json.dumps({
+                "model": DEEPSEEK_MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.3,
+            }).encode("utf-8")
+
+            req = urllib.request.Request(
+                "https://api.deepseek.com/chat/completions",
+                data=data,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                },
+            )
+
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+
+            content = result["choices"][0]["message"]["content"]
+            # 提取 JSON（兼容 markdown 代码块包裹）
+            m = re.search(r"\{.*\}", content, re.DOTALL)
+            if not m:
+                raise ValueError(f"未找到 JSON: {content[:100]}")
+
+            metadata = json.loads(m.group())
+            summary = metadata.get("summary", "").strip()
+            ai_tags = metadata.get("tags", [])
+
+            if len(summary) > 250:
+                print(f"  ⚠️  摘要过长（{len(summary)} 字），重试 {attempt + 1}/3...")
+                continue
+
+            print(f"  ✅ AI 摘要: {len(summary)} 字")
+            print(f"  ✅ AI 标签: {ai_tags}")
+            return {"summary": summary, "tags": ai_tags[:7]}
+
+        except Exception as e:
+            print(f"  ⚠️  API 调用失败（尝试 {attempt + 1}/3）: {e}")
+
+    print("  ⚠️  AI 提取失败（已重试3次），使用默认摘要和标签")
+    return None
 
 
 # ============================================================
@@ -243,10 +311,32 @@ if __name__ == "__main__":
         sys.exit(1)
 
     article = parse_markdown(filepath)
-    tags = sys.argv[2:] if len(sys.argv) > 2 else (article["tags"] or DEFAULT_TAGS)
+    tags = sys.argv[2:] if len(sys.argv) > 2 else []
+
+    # 先调 AI 提取摘要和标签
+    print("0. 调用 DeepSeek 提取摘要和标签...")
+    ai_result = extract_metadata_via_ai(article["body"], article["title"])
+
+    # 标签优先级：命令行 > AI > front matter > 默认
+    if not tags:
+        if ai_result and ai_result.get("tags"):
+            tags = ai_result["tags"]
+            print(f"  使用 AI 标签: {tags}")
+        else:
+            tags = article["tags"] or DEFAULT_TAGS
+            print(f"  使用 front matter 标签: {tags}")
+
+    # 摘要优先级：AI > 正文截取
+    summary = ""
+    if ai_result and ai_result.get("summary"):
+        summary = ai_result["summary"]
+        print(f"  使用 AI 摘要: {summary}")
+    else:
+        summary = article["body"][:200].replace("\n", " ").strip()
+        print(f"  使用截取摘要（兜底）")
 
     print(f"文章标题: {article['title']}")
     print(f"标签: {tags}\n")
 
     with sync_playwright() as playwright:
-        run(playwright, article["title"], article["body"], tags)
+        run(playwright, article["title"], article["body"], tags, summary)
