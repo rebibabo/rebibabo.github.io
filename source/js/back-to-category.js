@@ -71,13 +71,6 @@
 
   link.addEventListener("click", function (event) {
     event.preventDefault();
-
-    // 优先用 history.back()，浏览器会恢复滚动位置
-    if (history.length > 1) {
-      history.back();
-      return;
-    }
-
     location.href = target;
   });
 
