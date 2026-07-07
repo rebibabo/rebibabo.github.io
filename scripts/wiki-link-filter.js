@@ -121,7 +121,7 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   let bodyEnd = btn + '\n';
 
   // Add mermaid (same CDN & init as Fluid theme, wait for script load)
-  if (/class=" ?mermaid"/.test(html)) {
+  if (/class="[^"]*mermaid[^"]*"/.test(html)) {
     bodyEnd += `<script>
 (function(){
   var s = document.createElement('script');
