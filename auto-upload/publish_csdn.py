@@ -179,29 +179,38 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
     page2.wait_for_timeout(1000)
 
     result = page2.evaluate("""
-        (content) => {
+        () => {
             const cm = document.querySelector('.CodeMirror');
-            if (cm && cm.CodeMirror) {
-                cm.CodeMirror.setValue(content);
-                return 'codemirror';
-            }
-            // Monaco editor fallback
-            if (window.monaco) {
-                const model = window.monaco.editor.getModels()[0];
-                if (model) { model.setValue(content); return 'monaco'; }
-            }
+            if (cm && cm.CodeMirror) { return 'codemirror'; }
+            if (window.monaco) { return 'monaco'; }
+            // 通用 textarea / contenteditable
+            const ta = document.querySelector('.editor-pane textarea, .markdown-editor textarea, .editor textarea');
+            if (ta) { return 'textarea'; }
+            const ce = document.querySelector('[contenteditable="true"]');
+            if (ce) { return 'contenteditable'; }
             return 'fallback';
         }
-    """, body)
+    """)
 
-    if result == "fallback":
-        print("  ⚠️  CodeMirror 未找到，改用剪贴板粘贴...")
+    if result == "codemirror":
+        page2.evaluate("(content) => { document.querySelector('.CodeMirror').CodeMirror.setValue(content); }", body)
+        print("  ✅ 通过 CodeMirror API 填入")
+    elif result == "monaco":
+        page2.evaluate("(content) => { window.monaco.editor.getModels()[0].setValue(content); }", body)
+        print("  ✅ 通过 Monaco API 填入")
+    elif result == "textarea":
+        page2.locator(".editor-pane textarea, .markdown-editor textarea, .editor textarea").first.fill(body)
+        print("  ✅ 通过 textarea 填入")
+    elif result == "contenteditable":
+        page2.locator('[contenteditable="true"]').first.fill(body)
+        print("  ✅ 通过 contenteditable 填入")
+    else:
+        print("  ⚠️  未识别编辑器类型，改用剪贴板粘贴...")
         page2.locator(".editor-pane, .CodeMirror, .markdown-editor, .editor").first.click()
         page2.wait_for_timeout(500)
         page2.keyboard.press("ControlOrMeta+a")
         page2.wait_for_timeout(100)
-        # 通过 JS 写入剪贴板再粘贴
-        page2.evaluate("navigator.clipboard.writeText(arguments[0])", body)
+        page2.evaluate("(content) => navigator.clipboard.writeText(content)", body)
         page2.wait_for_timeout(300)
         page2.keyboard.press("ControlOrMeta+v")
 
