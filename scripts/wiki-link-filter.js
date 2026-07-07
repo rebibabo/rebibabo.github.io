@@ -127,16 +127,11 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
   let bodyEnd = btn + '\n';
 
-  // Load newer mermaid (10.x) that supports complex subgraphs,
-  // and wait for DOM ready before rendering
+  // Inject mermaid 10.x via after_render — mermaid renders server-side code blocks
   if (/class="[^"]*mermaid[^"]*"/.test(html)) {
     bodyEnd += `<script src="https://lib.baomitu.com/mermaid/10.9.0/mermaid.min.js"></script>
 <script>
-  window.addEventListener('load', function() {
-    if (typeof mermaid === 'undefined') return;
-    mermaid.initialize({ startOnLoad: false, theme: 'default' });
-    mermaid.run({ querySelector: '.mermaid' });
-  });
+  mermaid.initialize({ startOnLoad: true, theme: 'default' });
 </script>\n`;
   }
 
