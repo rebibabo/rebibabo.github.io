@@ -93,7 +93,12 @@ class Point {
 
 读线程申请读锁时，需要知道当前有没有写线程正在写；写线程申请写锁时，需要知道当前有没有读线程正在读，以及有没有其他写线程正在写。因此，读锁和写锁背后必须共享同一份同步状态。
 
-![](/images/Java-concurrency/IMG-20260707-000095.png)
+```mermaid
+graph TD
+    RRWL["ReentrantReadWriteLock"] --> ReadLock["ReadLock"]
+    RRWL --> WriteLock["WriteLock"]
+    WriteLock --> Sync["Sync(AQS)"]
+```
 
 
 可以把 `ReadLock` 和 `WriteLock` 理解成两个入口，把 `Sync` 理解成统一的状态管理者。线程从不同入口进入，但最终都要根据同一份状态判断能不能获取锁。
@@ -203,7 +208,11 @@ try {
 
 `state` 的高 16 bit 只记录读锁总数，但它不知道这些读锁分别属于哪个线程。例如：
 
-![](/images/Java-concurrency/IMG-20260707-000096.png)
+```mermaid
+graph TD
+    A["线程 A: 读计数 = 2"] --> Sum["state 读计数 = 3"]
+    B["线程 B: 读计数 = 1"] --> Sum
+```
 
 
 从 `state` 看，只能知道当前总共有 3 次读锁持有，无法知道线程 A 持有了几次，线程 B 持有了几次。问题会出现在释放读锁时：如果线程 A 调用 `readLock.unlock()`，它必须确认自己确实持有读锁，并且只能减少自己的那一部分计数。
@@ -230,7 +239,10 @@ try {
 
 队列结构可以这样理解：
 
-![](/images/Java-concurrency/IMG-20260707-000097.png)
+```mermaid
+graph LR
+    Head["head"] --> RA["读 A<br>shared"] --> RB["读 B<br>shared"] --> WC["写 C<br>exclusive"] --> RD["读 D<br>shared"]
+```
 
 
 当锁释放后，如果队列前面是连续的读节点，`reader A` 和 `reader B` 可以一起被放行，因为读读共享。传播到 `writer C` 时停止，因为写节点必须等所有`reader A` 和 `reader B` 可以一起被放读锁释放后才能获取写锁。`reader D` 虽然也是读节点，但它排在 `writer C` 后面，不能越过写节点。

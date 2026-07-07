@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-concurrency/05-CAS为什么能够在不加锁的情况下更新共享数据.md",
+                "file": "_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "05-CAS为什么能够在不加锁的情况下更新共享数据"
+              "title": "06-多核CPU如何保持缓存一致"
             }
           }
         ],
@@ -194,10 +194,10 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "_posts/Java-concurrency/05-CAS为什么能够在不加锁的情况下更新共享数据.md",
     "_posts/Java-concurrency/02-为什么count++会出错.md",
     "_posts/Java-concurrency/03-synchronized为什么能够保证线程安全.md",
     "_posts/Java-concurrency/04-synchronized为什么会影响性能.md",
-    "_posts/Java-concurrency/05-CAS为什么能够在不加锁的情况下更新共享数据.md",
     "images/Java-concurrency/IMG-20260707-000194.png",
     "images/Java-concurrency/IMG-20260707-000154.png",
     "images/Java-concurrency/IMG-20260707-000033.png",

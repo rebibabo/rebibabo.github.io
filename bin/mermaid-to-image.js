@@ -61,12 +61,13 @@ function extractMermaidBlocks(content) {
   return blocks;
 }
 
-/** 统一规范化：TB→LR、菱形{...}→方框[...] */
+/** 统一规范化：竖向→横向、菱形{...}→方框[...] */
 function normalizeMermaid(code) {
-  // graph TB → graph LR
-  code = code.replace(/^graph\s+TB\b/m, 'graph LR');
-  // 菱形节点 id{...} → 方框 id[...]
-  // 用负向后顾避免误伤文本中的 {sub: 1001} 等大括号
+  // graph TB / graph TD → graph LR
+  code = code.replace(/^graph\s+T[BD]\b/m, 'graph LR');
+  // flowchart TB / flowchart TD → flowchart LR
+  code = code.replace(/^flowchart\s+T[BD]\b/m, 'flowchart LR');
+  // 菱形节点 id{"..."} → 方框 id["..."]
   code = code.replace(/(?<!\/>)\b(\w+)\{([^}]+)\}/g, '$1[$2]');
   return code;
 }
