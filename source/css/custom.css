@@ -232,11 +232,11 @@ body > header .header-inner {
 
 /* 暗色模式 */
 [data-user-color-scheme="dark"] .series-card h2 {
-  color: #e1e5eb;
+  color: #a8b0b8;
 }
 
 [data-user-color-scheme="dark"] .series-card p {
-  color: #e1e5eb !important;
+  color: #a8b0b8 !important;
   opacity: 1;
 }
 

@@ -312,20 +312,20 @@ layout: page
 }
 
 [data-user-color-scheme="dark"] .series-card h2 {
-  color: #e1e5eb !important;
+  color: #a8b0b8 !important;
 }
 
 [data-user-color-scheme="dark"] .series-card p {
-  color: #e1e5eb !important;
+  color: #a8b0b8 !important;
   opacity: 1;
 }
 
 [data-user-color-scheme="dark"] .card-count {
-  color: #e1e5eb !important;
+  color: #a8b0b8 !important;
 }
 
 [data-user-color-scheme="dark"] .card-arrow {
-  color: #e1e5eb;
+  color: #a8b0b8;
 }
 
 /* 隐藏卡片图标 */
