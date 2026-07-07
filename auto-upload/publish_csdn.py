@@ -140,9 +140,19 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     except Exception:
         print("  ⚠️  未找到专栏选择按钮，尝试直接选择...")
 
-    # 选中目标专栏（不可见就卡着等）
-    page2.get_by_text(COLUMN_NAME, exact=True).click(timeout=600_000)
-    print(f"  ✅ 已选择专栏: {COLUMN_NAME}")
+    # 遍历所有专栏，找到匹配名称的
+    columns = page2.locator(".spanIsAgree").all()
+    found = False
+    for col in columns:
+        if col.text_content().strip() == COLUMN_NAME:
+            col.click(timeout=600_000)
+            found = True
+            print(f"  ✅ 已选择专栏: {COLUMN_NAME}")
+            break
+
+    if not found:
+        print(f"  ⚠️  未找到专栏「{COLUMN_NAME}」，跳过专栏选择")
+
     page2.wait_for_timeout(500)
 
     # ---- 第八步：删除已有标签 ----
