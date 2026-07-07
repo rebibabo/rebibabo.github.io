@@ -1,12 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T07:46:48.040Z",
+  "updatedAt": "2026-07-07T07:47:31.261Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
-  "activeFile": null,
-  "openFiles": [],
-  "selection": null
+  "activeFile": {
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java高并发底层原理/test.md",
+    "vaultPath": "_posts/Java高并发底层原理/test.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/test.md",
+    "hasFocus": false
+  },
+  "openFiles": [
+    {
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java高并发底层原理/test.md",
+      "vaultPath": "_posts/Java高并发底层原理/test.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java%E9%AB%98%E5%B9%B6%E5%8F%91%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/test.md",
+      "isActive": true
+    }
+  ],
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 12,
+      "ch": 0,
+      "offset": 171
+    },
+    "to": {
+      "line": 12,
+      "ch": 0,
+      "offset": 171
+    }
+  }
 }
