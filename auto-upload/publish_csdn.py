@@ -214,10 +214,11 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     except Exception as e:
         print(f"  ⚠️  复选框操作失败: {e}")
 
-    # ---- 第十二步：最终发布 ----
-    print("12. 最终确认发布...")
-    page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
-    page2.wait_for_timeout(50000)
+    # ---- 第十二步：最终发布（暂时禁用，测试用）----
+    print("12. 🔒 跳过最终发布（测试模式）")
+    # page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
+    # page2.wait_for_timeout(50000)
+    page2.wait_for_timeout(600_000)  # 停 10 分钟让你手动检查
 
     print("\n🎉 发布流程完成！")
     context.close()
