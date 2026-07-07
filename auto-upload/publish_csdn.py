@@ -172,31 +172,33 @@ def _check_logged_in(context) -> bool:
     return logged_in
 
 
-def _do_login(browser):
-    """无头或有头模式打开登录页，等用户手动登录后保存 auth"""
-    login_context = browser.new_context(
-        viewport={"width": 1280, "height": 900},
-        locale="zh-CN",
-    )
-    page = login_context.new_page()
-    page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
-    print("\n" + "=" * 50)
-    print("请在浏览器窗口中完成登录（扫码/密码均可）")
-    print("登录成功后，回到这里按 Enter 继续...")
-    print("=" * 50 + "\n")
-    input()
-    # 跳过引导页
-    page.wait_for_timeout(2000)
-    try:
-        page.locator(".btn-skip").click(timeout=5000)
-        page.wait_for_timeout(500)
-        print("  ✅ 已跳过引导")
-    except Exception:
-        pass
-
-    login_context.storage_state(path=AUTH_FILE)
-    print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
-    login_context.close()
+def _do_login():
+    """有头模式打开登录页，等用户手动登录后保存 auth"""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 900},
+            locale="zh-CN",
+        )
+        page = context.new_page()
+        page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
+        print("\n" + "=" * 50)
+        print("请在浏览器窗口中完成登录（扫码/密码均可）")
+        print("登录成功后，回到这里按 Enter 继续...")
+        print("=" * 50 + "\n")
+        input()
+        # 跳过引导页
+        page.wait_for_timeout(2000)
+        try:
+            page.locator(".btn-skip").click(timeout=5000)
+            page.wait_for_timeout(500)
+            print("  ✅ 已跳过引导")
+        except Exception:
+            pass
+        context.storage_state(path=AUTH_FILE)
+        print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
+        context.close()
+        browser.close()
 
 
 # ============================================================
@@ -269,7 +271,7 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # 主流程
 # ============================================================
 def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=True)
 
     # ---- 第零步：检查/创建登录态 ----
     if not os.path.exists(AUTH_FILE):
@@ -445,11 +447,11 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
     except Exception as e:
         print(f"  ⚠️  文章备份复选框操作失败: {e}")
 
-    # ---- 第十二步：最终发布（暂时禁用，测试用）----
-    print("12. 🔒 跳过最终发布（测试模式）")
-    # page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
-    # page2.wait_for_timeout(50000)
-    page2.wait_for_timeout(600_000)  # 停 10 分钟让你手动检查
+    # ---- 第十二步：最终发布 ----
+    print("12. 发布文章...")
+    page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
+    page2.wait_for_timeout(5000)
+    print("  ✅ 发布完成")
 
     print("\n🎉 发布流程完成！")
     context.close()
