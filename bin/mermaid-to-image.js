@@ -61,7 +61,7 @@ function extractMermaidBlocks(content) {
   return blocks;
 }
 
-/** 统一规范化：竖向→横向、菱形{...}→方框[...] */
+/** 统一规范化：竖向→横向、菱形→方框、子图无连线自动补 */
 function normalizeMermaid(code) {
   // graph TB / graph TD → graph LR
   code = code.replace(/^graph\s+T[BD]\b/m, 'graph LR');
@@ -70,9 +70,54 @@ function normalizeMermaid(code) {
   // subgraph 内部 direction TB/TD → direction LR
   code = code.replace(/^(\s+)direction\s+T[BD]\b/mg, '$1direction LR');
   // subgraph 开头如果没有 direction，自动插入 direction LR
-  code = code.replace(/^(\s+)(subgraph\s+\w+\["[^"]*"\])\n(?!\s*direction\b)/gm, '$1$2\n$1    direction LR\n');
+  code = code.replace(/^(\s+)(subgraph\s+\w+(?:\["[^"]*"\])?)\n(?!\s*direction\b)/gm, '$1$2\n$1    direction LR\n');
   // 菱形节点 id{"..."} → 方框 id["..."]
   code = code.replace(/(?<!\/>)\b(\w+)\{([^}]+)\}/g, '$1[$2]');
+  // 修复 Obsidian 转义: &#40;→( &#41;→)
+  code = code.replace(/&#40;/g, '(').replace(/&#41;/g, ')');
+
+  // 子图内独立节点（无 --> / --- 连接）串成链
+  code = code.replace(
+    /(subgraph\s+\w+(?:\["[^"]*"\])?\n\s+direction LR\n)((?:\s+\w+\["[^"]*"\]\n)+)(?=\s*end)/g,
+    (m, prefix, nodes) => {
+      const ids = nodes.match(/\b(\w+)\[/g).map(s => s.replace('[', ''));
+      if (ids.length < 2) return m;
+      return prefix + '    ' + ids.join(' --- ') + '\n';
+    }
+  );
+
+  // 多子图无跨连接 → 末尾加 ~~~ 隐性连接
+  const subIds = [...code.matchAll(/^\s*subgraph\s+(\S+)/gm)].map(m => m[1].replace(/\[.*/, ''));
+  if (subIds.length >= 2) {
+    const lastEnd = code.lastIndexOf('\n    end');
+    const after = code.slice(lastEnd);
+    if (!/\w+\s*(-->|~~~|---)\s*\w+/.test(after)) {
+      // 取第一个和最后一个子图内末尾节点
+      const lastNodes = [];
+      const lines = code.split('\n');
+      let inSub = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (/^\s*subgraph/.test(line)) inSub = true;
+        if (inSub && /^\s+(\w+)\[/.test(line)) {
+          const id = line.match(/^\s+(\w+)\[/)[1];
+          // 覆盖式记录当前子图最后一个节点
+          lastNodes[lastNodes.length ? lastNodes.length - 1 : 0] = id;
+        }
+        if (/^\s*end\s*$/.test(line) && inSub) {
+          inSub = false;
+          if (lastNodes.length === 0 || lastNodes[lastNodes.length - 1] !== undefined) {
+            lastNodes.push(undefined);
+          }
+        }
+      }
+      const nodes = lastNodes.filter(Boolean);
+      if (nodes.length >= 2) {
+        code += `    ${nodes[0]} ~~~ ${nodes[1]}\n`;
+      }
+    }
+  }
+
   return code;
 }
 
