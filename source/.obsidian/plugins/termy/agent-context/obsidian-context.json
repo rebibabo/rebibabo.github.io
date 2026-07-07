@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T13:52:55.843Z",
+  "updatedAt": "2026-07-07T13:53:59.040Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-    "vaultPath": "_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture%20%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E7%BB%93%E6%9E%9C%E4%B8%8E%E5%BC%82%E5%B8%B8.md",
-    "hasFocus": true
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
+    "vaultPath": "_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/21-%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1%E3%80%81ABA%20%E4%B8%8E%20LongAdder.md",
+    "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-      "vaultPath": "_posts/Java-concurrency/17-CompletableFuture 如何处理异步结果与异常.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/17-CompletableFuture%20%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E7%BB%93%E6%9E%9C%E4%B8%8E%E5%BC%82%E5%B8%B8.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
+      "vaultPath": "_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/21-%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1%E3%80%81ABA%20%E4%B8%8E%20LongAdder.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 11,
+      "line": 13,
       "ch": 0,
-      "offset": 179
+      "offset": 183
     },
     "to": {
-      "line": 11,
+      "line": 13,
       "ch": 0,
-      "offset": 179
+      "offset": 183
     }
   }
 }
