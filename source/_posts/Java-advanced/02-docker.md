@@ -59,6 +59,7 @@ graph TB
         VM_Apps --- VM_Hyper --- VM_Host
     end
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000006.png)
 
 
@@ -77,6 +78,7 @@ graph TB
         C_Apps --- C_Engine --- C_Host
     end
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000007.png)
 
 
@@ -106,6 +108,7 @@ graph LR
     DF["Dockerfile<br/>（打包脚本）"] -->|build| Image["镜像（Image）<br/>（打包好的模板）"]
     Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000008.png)
 
 
@@ -188,6 +191,7 @@ graph LR
     Browser["浏览器 localhost:9090"] -->|外部访问| Host["宿主机 9090 端口"]
     Host -->|Docker 转发| Container["容器内部 8080 端口<br/>Spring Boot 应用监听 8080"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000009.png)
 
 
@@ -377,6 +381,7 @@ graph TB
     L2 --> L3["Layer 3: 复制进 jar 包"]
     L3 --> View["合并视图：完整的运行环境"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000010.png)
 
 

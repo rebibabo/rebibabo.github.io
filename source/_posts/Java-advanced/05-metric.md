@@ -67,6 +67,7 @@ graph TB
     Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
     Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000019.png)
 
 
@@ -101,6 +102,7 @@ graph TB
     Facade --> Other["其他监控系统<br/>（Datadog 等）"]
     Facade --> Another["又一个监控系统<br/>（CloudWatch 等）"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000020.png)
 
 
@@ -121,6 +123,7 @@ graph TB
 graph TB
     Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000021.png)
 
 
@@ -279,6 +282,7 @@ graph TB
     Metric --> R2["channel: wechat<br/>计数: 980"]
     Metric --> R3["channel: unionpay<br/>计数: 450"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000022.png)
 
 
@@ -665,6 +669,7 @@ graph LR
     Rate --> Sum["sum() by() 聚合<br/>按维度汇总"]
     Sum --> Div["相除/比较<br/>算比率"]
 
+</pre>
 ![](/images/Java-advanced/IMG-20260707-000023.png)
 
 
