@@ -1,6 +1,6 @@
 {
   "alwaysUpdateLinks": true,
-  "attachmentFolderPath": "附件",
+  "attachmentFolderPath": "source/images",
   "readableLineLength": true,
   "rightToLeft": false
 }
