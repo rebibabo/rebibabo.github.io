@@ -86,23 +86,12 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             print(f"  🔗 {rel_path}")
             return f"![{alt}]({raw_url})"
 
-        # 外链不可用，本地有 → git sync 再试
+        # 外链不可用，本地有 → git sync，直接用外链
         print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
         print(f"     正在 git add → commit → push...")
         _git_sync()
-
-        # GitHub raw CDN 有延迟，等几秒再重试（最多 30s）
-        import time
-        print(f"     🔍 检查: {raw_url}")
-        for retry in range(10):
-            time.sleep(3)
-            if _check_url(raw_url):
-                print(f"     ✅ push 后外链可用")
-                return f"![{alt}]({raw_url})"
-            print(f"     等待 CDN 同步... ({retry + 1}/10)")
-
-        print(f"     ❌ 等待超时，保留本地路径")
-        return match.group(0)
+        print(f"     ✅ 已推送，直接使用外链")
+        return f"![{alt}]({raw_url})")
 
     return image_pattern.sub(replace_image, body)
 
