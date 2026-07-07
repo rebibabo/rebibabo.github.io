@@ -3,5 +3,6 @@
   "attachmentFolderPath": "images",
   "readableLineLength": true,
   "rightToLeft": false,
-  "useMarkdownLinks": true
+  "useMarkdownLinks": true,
+  "newLinkFormat": "absolute"
 }
