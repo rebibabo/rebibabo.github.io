@@ -51,7 +51,7 @@ graph TB
         M --> MySQL[(MySQL)]
     end
 </pre>
-![](/images/Java-advanced/IMG-20260707-000000.png)
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000000.png" alt="mermaid diagram">
 
 
 <pre style="display:none">
@@ -63,7 +63,7 @@ graph LR
         BS <-->|网络调用| RS["报表服务<br/>+ DB"]
     end
 </pre>
-![](/images/Java-advanced/IMG-20260707-000001.png)
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000001.png" alt="mermaid diagram">
 
 
 ### 1.3 微服务不是免费的午餐
@@ -130,7 +130,7 @@ graph TB
     B3["计费服务实例3"] -->|① 注册 + 心跳| Registry
     Registry -->|② 查询计费服务地址列表| Consumer["投放服务"]
 </pre>
-![](/images/Java-advanced/IMG-20260707-000002.png)
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000002.png" alt="mermaid diagram">
 
 
 常见注册中心：Netflix Eureka（Spring Cloud 早期默认）、阿里 Nacos（同时支持注册中心 + 配置中心，国内更主流）。
@@ -234,7 +234,7 @@ graph LR
     LB --> I2["实例2"]
     LB --> I3["实例3"]
 </pre>
-![](/images/Java-advanced/IMG-20260707-000003.png)
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000003.png" alt="mermaid diagram">
 
 
 ## 6. API 网关
@@ -255,7 +255,7 @@ graph TB
     Gateway --> BS["计费服务"]
     Gateway --> RS["报表服务"]
 </pre>
-![](/images/Java-advanced/IMG-20260707-000004.png)
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000004.png" alt="mermaid diagram">
 
 
 网关的核心能力：
@@ -349,7 +349,7 @@ graph LR
     Half -->|试探请求成功| Closed
     Half -->|试探请求失败| Open
 </pre>
-![](/images/Java-advanced/IMG-20260707-000005.png)
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000005.png" alt="mermaid diagram">
 
 
 - **关闭**：正常状态，请求正常发给计费服务

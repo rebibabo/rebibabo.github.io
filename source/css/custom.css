@@ -261,17 +261,13 @@ body > header .header-inner {
   margin: 1rem auto;
 }
 
-/* ===== Mermaid 流程图缩放 ===== */
-.markdown-body pre .mermaid,
-.markdown-body .mermaid {
-  max-width: 100%;
-  overflow-x: auto;
-  text-align: center;
-}
-.markdown-body pre .mermaid > svg,
-.markdown-body .mermaid > svg {
-  max-width: 100% !important;
-  min-width: auto !important;
+/* ===== Mermaid 生成的图片 ===== */
+img.mermaid-img {
+  display: block;
   width: auto !important;
+  max-width: min(760px, 100%) !important;
+  max-height: 720px;
   height: auto !important;
+  margin: 1.5rem auto;
+  object-fit: contain;
 }

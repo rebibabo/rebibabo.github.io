@@ -169,7 +169,8 @@ async function main() {
     for (const block of blocks) {
       const basename = generateFilename(globalIndex++);
       const outputPath = path.join(catImagesDir, `${basename}.png`);
-      const imgRef = `![](${path.posix.join('/images', category, `${basename}.png`)})`;
+      const imgSrc = path.posix.join('/images', category, `${basename}.png`);
+      const imgRef = `<img class="mermaid-img" src="${imgSrc}" alt="mermaid diagram">`;
 
       tasks.push({
         category,
