@@ -192,8 +192,11 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "36e60ba979dacb50",
+  "active": "65aff21f3d59f825",
   "lastOpenFiles": [
+    "images/Java高并发底层原理/IMG-20260707162701951.png.md",
+    "images/Java高并发底层原理",
+    "_posts/Java高并发底层原理/test.md",
     "images/Java-concurrency/IMG-20260707162701951.png",
     "images/Java-concurrency/IMG-20260707162356535.png",
     "images/Java-concurrency/IMG-20260707162148479.png",
@@ -204,11 +207,8 @@
     "images/Java-concurrency/IMG-20260707160818368.png",
     "images/Java-concurrency/IMG-20260707160622857.png",
     "images/Java-concurrency/IMG-20260707160423962.png",
-    "images/Java-concurrency/IMG-20260707155834495.png",
     "images/Java-concurrency",
-    "_posts/Java高并发底层原理/test.md",
     "_posts/Java高并发底层原理/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
-    "images/Java高并发底层原理",
     "附件",
     "source/images",
     "source",
@@ -231,14 +231,14 @@
     "_posts/程序化广告/05-Ad network&server.md",
     "_posts/程序化广告/04-SSP.md",
     "_posts/程序化广告",
-    "_posts/LLM Inference/scripts/prefix_caching/__pycache__/prefix_length_plot.cpython-312.pyc",
-    "_posts/LLM Inference/scripts/prefix_caching/__pycache__/prefix_length_exp.cpython-312.pyc",
-    "_posts/LLM Inference/scripts/speculative_decoding/time_test.sh",
-    "_posts/LLM Inference/06-series-summary.md",
-    "_posts/LLM Inference/05-spectulative-decoding.md",
-    "_posts/LLM Inference/04-prefix-caching.md",
-    "_posts/LLM Inference/03-kvcache.md",
-    "_posts/LLM Inference/02-quantization.md",
-    "_posts/LLM Inference/01-baseline-deployment.md"
+    "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_plot.cpython-312.pyc",
+    "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_exp.cpython-312.pyc",
+    "_posts/llm-inference/scripts/speculative_decoding/time_test.sh",
+    "_posts/llm-inference/06-series-summary.md",
+    "_posts/llm-inference/05-spectulative-decoding.md",
+    "_posts/llm-inference/04-prefix-caching.md",
+    "_posts/llm-inference/03-kvcache.md",
+    "_posts/llm-inference/02-quantization.md",
+    "_posts/llm-inference/01-baseline-deployment.md"
   ]
 }

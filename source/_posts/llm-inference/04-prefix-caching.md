@@ -414,7 +414,7 @@ if __name__ == "__main__":
 | 2649 | 574.0 | 56.1 | 517.9 | 90.2% |
 | 3961 | 852.7 | 62.8 | 789.9 | 92.6% |
 
-![Impact of Prefix Length on TTFT](images/llm-inference/prefix_length_exp.png)
+![Impact of Prefix Length on TTFT](images/llm-inference/IMG-20260604215456909.png)
 
 图 (a) 展示了 TTFT 随 Prompt Tokens 的变化趋势。关闭 Prefix Cache 时（蓝色实线），TTFT 从 353 tokens 下的 111ms 线性增长至 3961 tokens 下的 853ms，绿色虚线拟合斜率为 207.6 ms/k tokens，线性关系拟合极好，说明 Prefill 计算量与输入长度严格正比。开启 Prefix Cache 后（橙色实线），TTFT 几乎没有随前缀长度变化，始终维持在 37~63ms 的低位，粉色虚线拟合斜率仅 6.9 ms/k tokens，两条曲线的差距随前缀增长持续扩大。
 

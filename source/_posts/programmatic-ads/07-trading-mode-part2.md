@@ -36,7 +36,7 @@ Google AdX、字节穿山甲、腾讯优量汇、Magnite、PubMatic……
 
 讲具体内容之前，先看这张图——**程序化广告所有交易模式的完整决策树**：
 
-![程序化广告交易模式决策树](/images/programmatic-ads/trade-workflow.png)
+![程序化广告交易模式决策树](images/programmatic-ads/IMG-20260609102010684.png)
 
 <p style="text-align: center; color: #888; font-size: 0.9em;">
 图片来源：参考《程序化广告：个性化精准投放实用手册》梁丽丽

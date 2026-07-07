@@ -208,7 +208,7 @@ DSP 实际带来的投放效果如何？
 
 主要有三种模式：
 
-![SaaS / PaaS / IaaS 对比](/images/programmatic-ads/service-types.jpg)
+![SaaS / PaaS / IaaS 对比](images/programmatic-ads/IMG-20260608201929000.jpg)
 > 图片来源：《程序化广告：个性化精准投放实用手册》梁丽丽 著
 
 | 模式 | 全称 | 中文 | 使用方式 | 附加服务 |
