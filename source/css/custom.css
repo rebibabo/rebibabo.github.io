@@ -236,7 +236,8 @@ html[data-theme="dark"] .series-card h2 {
 }
 
 html[data-theme="dark"] .series-card p {
-  opacity: 0.55;
+  color: #e1e5eb !important;
+  opacity: 1;
 }
 
 html[data-theme="dark"] .card-count {
