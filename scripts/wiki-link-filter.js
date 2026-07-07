@@ -76,3 +76,39 @@ function convertWikilinks(content, data) {
 
   return content;
 }
+
+// Add "返回 Wiki" button to wiki detail pages
+hexo.extend.filter.register('after_render:html', function(html, data) {
+  if (!data.path || !/^wiki\/(concepts|glossary|maps|series)\//.test(data.path)) return html;
+
+  // Add back-to-wiki button before </body>
+  const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
+  html = html.replace('</body>', btn + '\n</body>');
+
+  // Add CSS for the button
+  const style = `
+.back-to-wiki-btn {
+  position: fixed;
+  left: 24px;
+  bottom: 32px;
+  z-index: 9999;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(102,126,234,0.9);
+  color: #fff !important;
+  font-size: 14px;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+.back-to-wiki-btn:hover {
+  background: rgba(118,75,162,0.95);
+  color: #fff !important;
+}
+@media (max-width: 768px) {
+  .back-to-wiki-btn { left: 16px; bottom: 20px; font-size: 13px; padding: 7px 12px; }
+}
+</style>`;
+
+  html = html.replace('</head>', style + '\n</head>');
+  return html;
+}, 20);
