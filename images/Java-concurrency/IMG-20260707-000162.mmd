@@ -1,0 +1,4 @@
+graph LR
+    A["ForkJoinPool"] --> B["管理 Worker"]
+    B --> C["每个 Worker 拥有本地双端队列"]
+    C --> D["ForkJoinTask 可以入队、弹出、窃取、执行、合并"]
