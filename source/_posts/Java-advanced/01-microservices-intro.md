@@ -1,5 +1,5 @@
 ---
-title: 'java-advanced(1) | 微服务入门：从单体到 Spring Cloud 全家桶'
+title: 'Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶'
 date: 2026-05-01
 tags:
   - Java

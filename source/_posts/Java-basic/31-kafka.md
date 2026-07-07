@@ -1,5 +1,5 @@
 ---
-title: 'java-basics(番外) | Kafka 入门：分区、副本与消费者组原理'
+title: 'Java基础(番外) | Kafka 入门：分区、副本与消费者组原理'
 date: 2026-05-31
 tags:
   - Kafka

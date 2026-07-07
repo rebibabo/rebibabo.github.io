@@ -1,5 +1,5 @@
 ---
-title: programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"
+title: 程序化广告 (7)：考核指标——programmatic-ads的"成绩单"
 date: 2026-06-13
 categories:
   - programmatic-ads

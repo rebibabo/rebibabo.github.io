@@ -1,5 +1,5 @@
 ---
-title: programmatic-ads (4)：Ad Network 和 Ad Server——被忽略的两个重要角色
+title: 程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色
 date: 2026-06-10
 categories:
   - programmatic-ads

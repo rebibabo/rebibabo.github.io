@@ -1,5 +1,5 @@
 ---
-title: programmatic-ads (5)：交易模式（上）——单 SSP 内部的演化史
+title: 程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史
 date: 2026-06-11
 categories:
   - programmatic-ads

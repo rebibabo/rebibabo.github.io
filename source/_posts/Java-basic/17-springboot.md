@@ -1,5 +1,5 @@
 ---
-title: 'java-basics(17) | Spring Boot 快速上手：自动配置与 REST 服务实战'
+title: 'Java基础(17) | Spring Boot 快速上手：自动配置与 REST 服务实战'
 date: 2026-05-17
 tags:
   - Java

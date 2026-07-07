@@ -37,12 +37,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
+                "file": "_posts/concurrency/01-计算机是如何执行Java程序的.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "27-死锁、活锁与线程饥饿是如何发生的"
+              "title": "01-计算机是如何执行Java程序的"
             }
           }
         ],
@@ -206,8 +206,9 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "65aff21f3d59f825",
+  "active": "f290e5fcda3f3c3e",
   "lastOpenFiles": [
+    "_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
     "js/prev-next-by-source.js",
     "_posts/llm-inference/07-series-summary copy.md",
     "_posts/llm-inference/06-series-summary copy.md",
@@ -219,7 +220,6 @@
     "css/custom.css",
     "css",
     "_posts/concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
-    "_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
     "images/concurrency",
     "_posts/concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
     "_posts/concurrency/28-并发任务处理系统如何设计：从任务模型到 Worker 执行.md",
@@ -243,7 +243,6 @@
     "_posts/concurrency/09-ReentrantLock 为什么能够实现互斥.md",
     "_posts/concurrency/08-Java内存到底规定什么.md",
     "tags",
-    "about",
     "images/Java-basic/arraydeque-methods.png",
     "images/Java-basic/IMG-20260706212847507.png",
     "images/Java-basic/IMG-20260706212906174.png",

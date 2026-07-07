@@ -1,5 +1,5 @@
 ---
-title: 'java-basics(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树'
+title: 'Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树'
 date: 2026-06-01
 tags:
   - 数据结构

@@ -1,5 +1,5 @@
 ---
-title: 'java-basics(1) | 从源码到运行：理解Java程序的一生'
+title: 'Java基础(1) | 从源码到运行：理解Java程序的一生'
 date: 2026-05-01
 tags:
   - Java

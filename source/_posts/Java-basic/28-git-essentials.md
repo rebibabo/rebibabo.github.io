@@ -1,5 +1,5 @@
 ---
-title: 'java-basics(番外) | Git 日常操作实战：从提交到协作全流程'
+title: 'Java基础(番外) | Git 日常操作实战：从提交到协作全流程'
 date: 2026-05-28
 tags:
   - Git
