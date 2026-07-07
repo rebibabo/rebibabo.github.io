@@ -487,7 +487,7 @@ mjx-container[display="true"] + br {
       
       <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/24/" target="_self">
         <div>
-          线程停止不是一个简单的 API 调用问题。真正的问题是：一个线程可能正在修改共享状态，可能正在持有锁，可能正在阻塞等待队列、I&#x2F;O 或其他资源。如果外部直接把线程强行终止，线程可能停在任意位置，留下半完成状态。Java 不推荐强制停止线程，而是提供了中断机制，让外部线程发出停止请求，再由任务自己在合适的位置退出。 中断的核心不是“杀死线程”，而是“通知线程该停止了”。线程是否退出、什么
+          线程停止不是一个简单的 API 调用问题。真正的问题是：一个线程可能正在修改共享状态，可能正在持有锁，可能正在阻塞等待队列、I&#x2F;O 或其他资源。如果外部直接把线程强行终止，线程可能停在任意位置，留下半完成状态。Java 不推荐强制停止线程，而是提供了中断机制，让外部线程发出停止请求，再由任务自己在合适的位置退出。 中断的核心不是“杀死线程”，而是“通知线程该停止了”。线程是否退出、什么时
         </div>
       </a>
 
@@ -554,7 +554,7 @@ mjx-container[display="true"] + br {
       
       <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/25/" target="_self">
         <div>
-          前面分析 AQS、ReentrantLock、线程等待队列时，经常会看到一个底层工具：LockSupport。它不是一把锁，也不维护等待队列，而是提供两个更底层的能力：让当前线程暂停，以及唤醒指定线程。 理解 LockSupport 时，先不要把它和完整的锁混在一起。完整的锁至少还需要状态判断、等待队列和唤醒策略；LockSupport 只负责其中最底层的一步：线程如何停下，以及如何被指定线程唤
+          前面分析 AQS、ReentrantLock、线程等待队列时，经常会看到一个底层工具：LockSupport。它不是一把锁，也不维护等待队列，而是提供两个更底层的能力：让当前线程暂停，以及唤醒指定线程。 理解 LockSupport 时，先不要把它和完整的锁混在一起。完整的锁至少还需要状态判断、等待队列和唤醒策略；LockSupport 只负责其中最底层的一步：线程如何停下，以及如何被指定线程唤醒
         </div>
       </a>
 
