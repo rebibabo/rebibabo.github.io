@@ -1,4 +1,4 @@
-graph TD
+graph LR
     Request["请求修改权限"] --> Compare["比较当前值与期望值"]
     Compare -->|相等| Write["写入新值"]
     Write --> Return["返回成功或失败"]

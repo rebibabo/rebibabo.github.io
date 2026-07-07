@@ -1,4 +1,4 @@
-graph TD
+graph LR
     D["data = 42"] -->|Program Order| R["ready = true"]
     R -->|Volatile Rule| RR["read ready == true"]
     RR -->|Program Order| RD["read data"]

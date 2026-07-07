@@ -1,4 +1,4 @@
-graph TD
+graph LR
     A["外部线程"] --> B["pool.invoke(rootTask)"]
     B --> C["ForkJoinPool 接收 rootTask"]
     C --> D["Worker-1 执行 rootTask.compute()"]

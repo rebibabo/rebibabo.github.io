@@ -20,22 +20,14 @@ categories:
 
 `HashMap` 的底层可以先理解成一个数组，数组中的每个位置称为一个桶。多个 key 经过 hash 计算后会落到不同桶中，如果多个 key 落到同一个桶，就会形成链表或红黑树。
 
-```mermaid
-graph TD
-    table["table"]
-    table --> bucket0["[0] null"]
-    table --> bucket1["[1] A -> B"]
-    table --> bucket2["[2] null"]
-    table --> bucket3["[3] C"]
-```
+![](/images/Java-concurrency/IMG-20260707-000116.png)
+
 
 
 单线程下，`put` 的过程大致是：计算 key 的 hash，定位数组下标，再根据桶的状态插入新节点或覆盖旧 value。问题出现在多线程同时修改同一个桶时。假设 `table[1]` 原来只有节点 `A`，两个线程同时向这个桶插入节点 `B` 和 `C`，它们可能都先看到同一个旧状态：
 
-```mermaid
-graph LR
-    t1["table[1]"] --> A["A"]
-```
+![](/images/Java-concurrency/IMG-20260707-000117.png)
+
 
 
 如果没有并发控制，两个线程都会基于 `A` 构造自己的新链表，然后分别写回 `table[1]`。后写回的线程可能覆盖先写回的结果，导致其中一个新节点丢失。这类问题的本质不是“多线程不能访问 `HashMap`”，而是多个线程同时修改数组、链表或红黑树时，可能破坏内部结构或造成数据丢失。
@@ -46,12 +38,8 @@ graph LR
 
 最直接的办法是给整张表加一把锁。`Hashtable` 的很多方法都是 `synchronized` 的，可以把它理解成所有 `get`、`put`、`remove` 都必须先抢同一把锁。
 
-```mermaid
-graph TD
-    subgraph Hashtable
-        lock["全局锁<br>get / put / remove"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000118.png)
+
 
 
 这种方式能保证线程安全，但锁的粒度太粗。比如两个线程分别操作完全不同的桶，它们本来没有结构冲突，却仍然必须串行执行。
@@ -64,13 +52,8 @@ graph TD
 
 JDK 1.7 的 `ConcurrentHashMap` 使用 `Segment` 分段锁。可以把整张 Map 拆成多个小区域，每个 `Segment` 内部像一个小型 `HashMap`，并且每个 `Segment` 有自己的锁。
 
-```mermaid
-graph TD
-    chm["ConcurrentHashMap"]
-    chm --> seg0["Segment 0<br>lock"]
-    seg0 --> seg1["Segment 1<br>lock"]
-    seg1 --> seg2["Segment 2<br>lock"]
-```
+![](/images/Java-concurrency/IMG-20260707-000119.png)
+
 
 
 一个segment包含有多个 `table[0]` 到 `table[i]` ，这种方式比 `Hashtable` 好，因为不同线程如果落到不同 `Segment`，就可以并发执行。但它仍然不是最细的粒度：同一个 `Segment` 里有多个桶，如果两个线程操作的是同一个 `Segment` 中的不同桶，它们仍然要竞争同一把锁。
@@ -94,11 +77,8 @@ table[i] = null
 
 这时写入只需要做一件事：把 `table[i]` 从 `null` 改成新节点。这个动作可以用 CAS 完成。
 
-```mermaid
-flowchart TD
-    A["读取 table[i]"] --> B["table[i] == null?"]
-    B -->|是| C["CAS null -> newNode"]
-```
+![](/images/Java-concurrency/IMG-20260707-000120.png)
+
 
 
 如果两个线程同时向同一个空桶插入，只有一个线程的 CAS 能成功，另一个线程会失败并重新判断桶状态。这样不会出现两个线程互相覆盖的问题。
@@ -109,10 +89,8 @@ flowchart TD
 
 如果桶已经不是空的，例如：
 
-```mermaid
-graph LR
-    ti["table[i]"] --> A["A"] --> B["B"]
-```
+![](/images/Java-concurrency/IMG-20260707-000121.png)
+
 
 
 再插入新节点 `C` 时，就不只是修改 `table[i]` 这个数组引用了。线程需要遍历链表，判断 key 是否已经存在，存在则覆盖 value，不存在则追加新节点。这个过程由多个步骤组成，不能简单用一次 CAS 解决。
@@ -128,15 +106,8 @@ synchronized (f) {
 
 这里锁住的是 `table[i]` 对应的桶头，而不是整张表。其他线程如果修改的是不同桶，就不会被这把锁阻塞。
 
-```mermaid
-graph TD
-    table2["table"]
-    table2 --> b0["[0] null"]
-    table2 --> b1["[1] X -> Y"]
-    table2 --> b2["[2] null"]
-    table2 --> b3["[3] A -> B"]
-    b3 --> lock["🔒 锁住 A"]
-```
+![](/images/Java-concurrency/IMG-20260707-000122.png)
+
 
 
 这就是桶级并发控制的核心：写同一个桶时串行，不同桶之间尽量并行。
@@ -145,12 +116,8 @@ graph TD
 
 `get` 不修改结构，只是沿着已经发布出来的结构向下查找：
 
-```mermaid
-flowchart TD
-    A["计算 hash"] --> B["读取 table[i]"]
-    B --> C["比较 key"]
-    C --> D["跟随 next"]
-```
+![](/images/Java-concurrency/IMG-20260707-000123.png)
+
 
 
 它不插入节点、不删除节点、不调整链表，也不触发结构变化。因此，它不需要像 `put` 一样保护一个修改过程。
@@ -170,15 +137,8 @@ static class Node<K,V> {
 
 这里要注意，`get` 不保证一定读到全局最新的一瞬间状态。比如一个线程正在向链表尾部追加 `C`：
 
-```mermaid
-flowchart LR
-    subgraph 写入前
-        Ab["A"] --> Bb["B"] --> nullb["null"]
-    end
-    subgraph 写入后
-        Aa["A"] --> Ba["B"] --> Ca["C"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000124.png)
+
 
 
 并发的 `get(C)` 可能发生在 `C` 发布之前，也可能发生在发布之后。因此它可能返回 `null`，也可能返回 `C` 对应的 value。两种结果都允许。`ConcurrentHashMap` 保证的是读线程不会读到被破坏的半截结构，而不是保证读到某个绝对最新的全局快照。
@@ -187,10 +147,8 @@ flowchart LR
 
 非空桶新增节点时，JDK 1.8 通常是在链表尾部追加，而不是头插。假设原链表是：
 
-```mermaid
-graph LR
-    A["A"] --> B["B"] --> null["null"]
-```
+![](/images/Java-concurrency/IMG-20260707-000125.png)
+
 
 
 要追加 `C`，线程会先构造好完整的 `C` 节点，然后在锁内执行一次关键发布动作：
@@ -201,26 +159,20 @@ B.next = C;
 
 对读线程来说，结构只有两种可能：
 
-```mermaid
-graph LR
-    A1["A"] --> B1["B"] --> null1["null"]
-```
+![](/images/Java-concurrency/IMG-20260707-000126.png)
+
 
 
 或者：
 
-```mermaid
-graph LR
-    A2["A"] --> B2["B"] --> C2["C"]
-```
+![](/images/Java-concurrency/IMG-20260707-000127.png)
+
 
 
 不会出现：
 
-```mermaid
-graph LR
-    A["A"] --> X["???（断裂）"] -.-> C["C"]
-```
+![](/images/Java-concurrency/IMG-20260707-000128.png)
+
 
 
 原因是没有先破坏旧链路，也没有把半成品节点暴露出去。新节点在局部变量中构造完成后，才通过一次 `volatile next` 写接入共享链表。
@@ -240,10 +192,8 @@ C.next = A
 
 继续沿用前面的链表，假设桶中节点为：
 
-```mermaid
-graph LR
-    A["A"] --> B["B"] --> C["C"]
-```
+![](/images/Java-concurrency/IMG-20260707-000129.png)
+
 
 
 如果要删除 `B`，关键动作不是先把 `B.next` 断开，而是让前驱节点直接跳过它：
@@ -254,23 +204,14 @@ A.next = C;
 
 删除后，从 `table[i]` 出发的新路径变成：
 
-```mermaid
-graph LR
-    A["A"] --> C["C"]
-```
+![](/images/Java-concurrency/IMG-20260707-000130.png)
+
 
 
 如果读线程在删除之前已经走到了 `B`，它的局部变量仍然可以继续指向 `B`：
 
-```mermaid
-graph TD
-    subgraph 全局["全局路径"]
-        t["table[i]"] --> A_g["A"] --> C_g["C"]
-    end
-    subgraph 局部["读线程局部引用"]
-        e["e 局部变量"] --> B_g["B"] --> C_g2["C"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000131.png)
+
 
 
 这里不是把 `A` 也删除了，而是读线程手里已经拿到了旧节点引用。Java 对象不会因为从链表主路径中被绕过就立刻消失，只要某个线程的局部变量还引用它，它就仍然可达。
@@ -281,41 +222,22 @@ graph TD
 
 哈希表的数组长度是固定的，创建之后不能原地变大。当元素越来越多时，桶会变挤，冲突增多，链表变长，查找和写入成本都会上升。因此需要创建一个更大的数组，并把旧数组中的节点重新分散过去。
 
-```mermaid
-graph TD
-    oldTable["oldTable 长度=4"]
-    oldTable --> o0["[0] A → B"]
-    o0 --> o1["[1] C"]
-    o1 --> o2["[2] null"]
-    o2 --> o3["[3] D → E"]
-```
+![](/images/Java-concurrency/IMG-20260707-000132.png)
+
 
 
 扩容后会创建新数组：
 
-```mermaid
-graph TD
-    newTable["newTable 长度=8"]
-    newTable --> n0["[0] null"]
-    n0 --> n1["[1] null"]
-    n1 --> n2["[2] null"]
-    n2 --> n3["[3] null"]
-    n3 --> n4["[4] null"]
-    n4 --> n5["[5] null"]
-    n5 --> n6["[6] null"]
-    n6 --> n7["[7] null"]
-```
+![](/images/Java-concurrency/IMG-20260707-000133.png)
+
 
 
 节点不是简单复制到相同下标，而是根据新数组长度重新分配。因为长度变了，同一个 hash 对应的新下标也可能变化。
 
 在扩容过程中，旧表和新表会同时存在：
 
-```mermaid
-graph LR
-    table["table"] --> oldTable["oldTable"]
-    nextTable["nextTable"] --> newTable["newTable"]
-```
+![](/images/Java-concurrency/IMG-20260707-000134.png)
+
 
 
 `ConcurrentHashMap` 不能长时间停住所有线程，等一个线程慢慢搬完整张表。因此旧表中的桶会被逐步迁移到新表。
@@ -324,22 +246,14 @@ graph LR
 
 某个旧桶迁移完成后，旧表对应位置会被放入一个特殊节点：`ForwardingNode`。它可以理解成一个路标。
 
-```mermaid
-flowchart TD
-    old["oldTable[i]"] --> fn["ForwardingNode"]
-    fn --> nt["nextTable"]
-```
+![](/images/Java-concurrency/IMG-20260707-000135.png)
+
 
 
 `ForwardingNode` 保存的是整张新表的引用，而不是保存某一个新下标。线程在旧表中遇到它后，会拿着 key 的 hash，到 `nextTable` 中根据新数组长度重新计算下标。
 
-```mermaid
-flowchart TD
-    A["读取 oldTable[i]"] --> B["发现 ForwardingNode"]
-    B --> C["读取 nextTable"]
-    C --> D["根据 hash 和 nextTable.length<br>计算新下标"]
-    D --> E["在 nextTable 中继续查找"]
-```
+![](/images/Java-concurrency/IMG-20260707-000136.png)
+
 
 
 这里说“重新定位”更准确，不是重新调用一次 `key.hashCode()`，而是使用已经计算好的 hash，结合新数组长度重新计算数组下标。
@@ -352,32 +266,16 @@ flowchart TD
 
 假设旧表有多个桶：
 
-```mermaid
-graph TD
-    oldTable["oldTable"]
-    oldTable --> slot0["[0]"]
-    slot0 --> slot1["[1]"]
-    slot1 --> slot2["[2]"]
-    slot2 --> slot3["[3]"]
-    slot3 --> slot4["[4]"]
-    slot4 --> slot5["[5]"]
-    slot5 --> slot6["[6]"]
-    slot6 --> slot7["[7]"]
-```
+![](/images/Java-concurrency/IMG-20260707-000137.png)
+
 
 
 一个线程触发扩容后，会创建 `nextTable` 并开始迁移部分桶。其他线程如果在 `put` 时发现当前 Map 正在扩容，也可以领取一段旧桶参与搬迁。
 
 为了避免两个线程搬同一个桶，`ConcurrentHashMap` 会维护迁移进度，可以简化理解成一个任务分配指针。线程通过 CAS 领取一段桶，领取成功后再迁移这段范围。
 
-```mermaid
-graph TD
-    transferIndex["transferIndex = 8"]
-    transferIndex --> t1["线程1 认领 [6, 7]"]
-    t1 --> t2["线程2 认领 [4, 5]"]
-    t2 --> t3["线程3 认领 [2, 3]"]
-    t3 --> t4["线程4 认领 [0, 1]"]
-```
+![](/images/Java-concurrency/IMG-20260707-000138.png)
+
 
 
 每个桶迁移完成后都会被标记为 `ForwardingNode`。这个标记有两个作用：一是告诉读写线程去新表继续操作，二是告诉迁移线程这个桶已经处理过了。
@@ -388,14 +286,8 @@ graph TD
 
 扩容期间不能简单说 `put` 一定写旧表，或者一定写新表。它取决于当前 key 落到的旧桶是否已经迁移。
 
-```mermaid
-graph TD
-    oldTable2["oldTable"]
-    oldTable2 --> f0["[0] ForwardingNode"]
-    oldTable2 --> f1["[1] A -> B"]
-    oldTable2 --> f2["[2] ForwardingNode"]
-    oldTable2 --> f3["[3] C -> D"]
-```
+![](/images/Java-concurrency/IMG-20260707-000139.png)
+
 
 
 如果 `put` 落到还没迁移的普通桶，例如 `[1]`，这个桶仍然属于旧表。线程可以锁住桶头，在旧桶上完成写入。之后该桶迁移时，新写入的节点会一起搬到新表。
@@ -418,26 +310,14 @@ table = nextTable;
 
 JDK 1.8 的 `ConcurrentHashMap` 使用类似 `LongAdder` 的分散计数思路：
 
-```mermaid
-graph TD
-    root["计数结构"]
-    root --> baseCount["baseCount"]
-    baseCount --> cc0["CounterCell[0]"]
-    cc0 --> cc1["CounterCell[1]"]
-    cc1 --> cc2["CounterCell[2]"]
-    cc2 --> ccN["..."]
-```
+![](/images/Java-concurrency/IMG-20260707-000140.png)
+
 
 
 低竞争时，线程尽量更新 `baseCount`；竞争激烈时，更新压力会被分散到多个 `CounterCell` 中。统计总数时，再把这些值加起来：
 
-```mermaid
-graph LR
-    base["baseCount"] --> total["total<br>baseCount + sum(CounterCell[])"]
-    cc0["CounterCell[0]"] --> total
-    cc1["CounterCell[1]"] --> total
-    ccN["CounterCell[...]"] --> total
-```
+![](/images/Java-concurrency/IMG-20260707-000141.png)
+
 
 
 因此，`ConcurrentHashMap` 的内部计数更新是线程安全的，不会像普通 `int size++` 那样随意丢失更新。但 `size()` 在并发修改时不是强一致快照。它统计时，其他线程可能仍然在 `put` 或 `remove`，所以结果只能代表统计过程附近观察到的状态。

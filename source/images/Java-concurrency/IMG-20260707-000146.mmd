@@ -1,4 +1,4 @@
-flowchart TB
+flowchart LR
     subgraph put["put()"]
         direction TB
         p1["获取锁"] --> p2["写入尾部"] --> p3["更新 count"] --> p4["释放锁"]

@@ -1,4 +1,4 @@
-graph TD
+graph LR
     subgraph A["线程 A"]
         A1["读取 state = 1"] --> A2["计算 1 - 1"]
         A2 --> A3["写入 state = 0 / 获取成功"]

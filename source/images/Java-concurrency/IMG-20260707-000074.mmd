@@ -1,4 +1,4 @@
-graph TD
+graph LR
     subgraph Main["主线程"]
         M1["调用 supplyAsync"] --> M2["拿到 future"]
         M2 --> M3["继续执行"]

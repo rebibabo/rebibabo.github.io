@@ -1,4 +1,4 @@
-flowchart TD
+flowchart LR
     A["生产者 put(e)"] --> B["获取 putLock"]
     B --> C["队列已满?"]
     C -->|"是"| D["等待 notFull"]
