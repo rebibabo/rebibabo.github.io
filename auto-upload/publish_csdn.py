@@ -174,45 +174,26 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
     page2.wait_for_load_state("domcontentloaded")
     page2.wait_for_timeout(2000)
 
-    # ---- 第四步：通过 CodeMirror API 注入正文（保留 markdown 格式）----
+    # ---- 第四步：剪贴板粘贴正文（保留 markdown 格式）----
     print("4. 填入文章内容...")
     page2.wait_for_timeout(1000)
 
-    result = page2.evaluate("""
-        () => {
-            const cm = document.querySelector('.CodeMirror');
-            if (cm && cm.CodeMirror) { return 'codemirror'; }
-            if (window.monaco) { return 'monaco'; }
-            // 通用 textarea / contenteditable
-            const ta = document.querySelector('.editor-pane textarea, .markdown-editor textarea, .editor textarea');
-            if (ta) { return 'textarea'; }
-            const ce = document.querySelector('[contenteditable="true"]');
-            if (ce) { return 'contenteditable'; }
-            return 'fallback';
-        }
-    """)
-
-    if result == "codemirror":
+    # 先尝试 CodeMirror API，没有就用剪贴板粘贴
+    is_cm = page2.evaluate("() => { const cm = document.querySelector('.CodeMirror'); return !!(cm && cm.CodeMirror); }")
+    if is_cm:
         page2.evaluate("(content) => { document.querySelector('.CodeMirror').CodeMirror.setValue(content); }", body)
         print("  ✅ 通过 CodeMirror API 填入")
-    elif result == "monaco":
-        page2.evaluate("(content) => { window.monaco.editor.getModels()[0].setValue(content); }", body)
-        print("  ✅ 通过 Monaco API 填入")
-    elif result == "textarea":
-        page2.locator(".editor-pane textarea, .markdown-editor textarea, .editor textarea").first.fill(body)
-        print("  ✅ 通过 textarea 填入")
-    elif result == "contenteditable":
-        page2.locator('[contenteditable="true"]').first.fill(body)
-        print("  ✅ 通过 contenteditable 填入")
     else:
-        print("  ⚠️  未识别编辑器类型，改用剪贴板粘贴...")
-        page2.locator(".editor-pane, .CodeMirror, .markdown-editor, .editor").first.click()
+        # 点编辑器获取焦点，全选，剪贴板粘贴
+        page2.locator(".editor-pane, .CodeMirror, .markdown-editor, .editor, [contenteditable='true']").first.click()
         page2.wait_for_timeout(500)
         page2.keyboard.press("ControlOrMeta+a")
-        page2.wait_for_timeout(100)
+        page2.wait_for_timeout(200)
         page2.evaluate("(content) => navigator.clipboard.writeText(content)", body)
-        page2.wait_for_timeout(300)
+        page2.wait_for_timeout(500)
         page2.keyboard.press("ControlOrMeta+v")
+        page2.wait_for_timeout(1000)
+        print("  ✅ 通过剪贴板粘贴填入")
 
     print(f"  ✅ 已填入正文（{len(body)} 字）")
 
