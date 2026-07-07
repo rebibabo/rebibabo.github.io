@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-06T16:27:32.201Z",
+  "updatedAt": "2026-07-07T01:35:55.677Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
-    "vaultPath": "_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
+    "vaultPath": "_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/27-%E6%AD%BB%E9%94%81%E3%80%81%E6%B4%BB%E9%94%81%E4%B8%8E%E7%BA%BF%E7%A8%8B%E9%A5%A5%E9%A5%BF%E6%98%AF%E5%A6%82%E4%BD%95%E5%8F%91%E7%94%9F%E7%9A%84.md",
     "hasFocus": false
   },
   "openFiles": [
@@ -20,9 +20,9 @@
       "isActive": false
     },
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
-      "vaultPath": "_posts/concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/23-BlockingQueue%20%E5%A6%82%E4%BD%95%E5%8D%8F%E8%B0%83%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
+      "vaultPath": "_posts/concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/concurrency/27-%E6%AD%BB%E9%94%81%E3%80%81%E6%B4%BB%E9%94%81%E4%B8%8E%E7%BA%BF%E7%A8%8B%E9%A5%A5%E9%A5%BF%E6%98%AF%E5%A6%82%E4%BD%95%E5%8F%91%E7%94%9F%E7%9A%84.md",
       "isActive": true
     }
   ],
@@ -30,14 +30,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 11,
+      "line": 14,
       "ch": 0,
-      "offset": 164
+      "offset": 134
     },
     "to": {
-      "line": 11,
+      "line": 14,
       "ch": 0,
-      "offset": 164
+      "offset": 134
     }
   }
 }
