@@ -312,32 +312,34 @@ if __name__ == "__main__":
         sys.exit(1)
 
     article = parse_markdown(filepath)
-    tags = sys.argv[2:] if len(sys.argv) > 2 else []
+    cli_tags = sys.argv[2:] if len(sys.argv) > 2 else []
 
     # 先调 AI 提取摘要和标签
-    print("0. 调用 DeepSeek 提取摘要和标签...")
+    print("0. 调用 DeepSeek 提取摘要和标签...", flush=True)
     ai_result = extract_metadata_via_ai(article["body"], article["title"])
 
     # 标签优先级：命令行 > AI > front matter > 默认
-    if not tags:
-        if ai_result and ai_result.get("tags"):
-            tags = ai_result["tags"]
-            print(f"  使用 AI 标签: {tags}")
-        else:
-            tags = article["tags"] or DEFAULT_TAGS
-            print(f"  使用 front matter 标签: {tags}")
+    if cli_tags:
+        tags = cli_tags
+        print(f"  📌 使用命令行标签: {tags}", flush=True)
+    elif ai_result and ai_result.get("tags"):
+        tags = ai_result["tags"]
+        print(f"  📌 使用 AI 标签: {tags}", flush=True)
+    else:
+        tags = article["tags"] or DEFAULT_TAGS
+        print(f"  📌 使用兜底标签: {tags}", flush=True)
 
     # 摘要优先级：AI > 正文截取
-    summary = ""
     if ai_result and ai_result.get("summary"):
         summary = ai_result["summary"]
-        print(f"  使用 AI 摘要: {summary}")
+        print(f"  📌 使用 AI 摘要: {summary[:50]}...", flush=True)
     else:
         summary = article["body"][:200].replace("\n", " ").strip()
-        print(f"  使用截取摘要（兜底）")
+        print(f"  📌 使用截取摘要（兜底）", flush=True)
 
-    print(f"文章标题: {article['title']}")
-    print(f"标签: {tags}\n")
+    print(f"\n文章标题: {article['title']}")
+    print(f"最终标签: {tags}")
+    print()
 
     with sync_playwright() as playwright:
         run(playwright, article["title"], article["body"], tags, summary)
