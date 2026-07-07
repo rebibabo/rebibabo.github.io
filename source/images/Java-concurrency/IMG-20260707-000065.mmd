@@ -1,0 +1,8 @@
+graph LR
+    Submit["提交任务"] --> Check["线程数 <br>< 核心线程数?"]
+    Check -->|是| Core["创建核心线程<br>执行任务"]
+    Check -->|否| Queue["工作队列<br>是否已满?"]
+    Queue -->|否| QueueWait["任务入队等待"]
+    Queue -->|是| MaxCheck["线程数 <br>< 最大线程数?"]
+    MaxCheck -->|是| Extra["创建额外线程<br>执行任务"]
+    MaxCheck -->|否| Reject["拒绝任务"]

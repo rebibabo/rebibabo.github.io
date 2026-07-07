@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant T1 as order-worker-1
+    participant T2 as order-worker-2
+    participant OL as orderLock
+    participant SL as stockLock
+
+    Note over T1,T2: 第1轮
+    T1->>OL: 拿到 orderLock
+    T2->>SL: 拿到 stockLock
+    T1--xSL: 拿不到 stockLock
+    T2--xOL: 拿不到 orderLock
+    T1->>OL: 释放 orderLock
+    T2->>SL: 释放 stockLock
+
+    Note over T1,T2: 第2轮
+    T1->>OL: 再次拿到 orderLock
+    T2->>SL: 再次拿到 stockLock
+    T1--xSL: 再次失败
+    T2--xOL: 再次失败

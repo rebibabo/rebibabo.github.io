@@ -222,15 +222,8 @@ synchronized (lock) {
 
 调用 `wait()` 的线程原本已经持有 `lock`，执行 `wait()` 后会释放这把锁，并进入该对象的 Wait Set。Wait Set 可以理解为保存“正在等待这个对象通知的线程”的集合。
 
-```mermaid
-graph LR
-    subgraph Monitor["Object Monitor"]
-        direction LR
-    Owner --- Entry --- Wait
-    end
-    Owner --> Entry
-    Entry --> Wait
-```
+![](/images/Java-concurrency/IMG-20260707-000060.png)
+
 
 
 
@@ -261,18 +254,8 @@ synchronized (lock) {
 
 必须持锁的根本原因是：检查条件、进入等待、修改条件和发送通知，都必须围绕同一个锁对象完成。否则就可能发生丢失通知。
 
-```mermaid
-graph LR
-    subgraph A["线程 A"]
-        direction LR
-        A1["检查 ready = false"] --> A2["进入 wait"]
-        A2 --> A3["错过通知"]
-    end
-    subgraph B["线程 B"]
-        direction LR
-        B1["设置 ready = true"] --> B2["notify"]
-    end    A1 ~~~ B1
-```
+![](/images/Java-concurrency/IMG-20260707-000061.png)
+
 
 
 
@@ -296,21 +279,8 @@ synchronized (lock) {
 
 在上面的代码中，通知线程调用 `notify()` 后仍然处于同步代码块中，所以仍然持有 `lock`。等待线程即使已经收到通知，也必须等通知线程退出同步区域、释放对象锁后，才有机会重新获得锁。
 
-```mermaid
-sequenceDiagram
-    participant A as 线程 A
-    participant Lock as 锁
-    participant B as 线程 B
+![](/images/Java-concurrency/IMG-20260707-000062.png)
 
-    A->>Lock: wait / 释放锁 / 进入 Wait Set
-    B->>Lock: 获取锁
-    B->>B: 设置 ready = true
-    B->>A: notify
-    B->>B: 继续执行
-    B->>Lock: 释放锁
-    A->>Lock: 重新获取锁
-    Note over A: wait 返回
-```
 
 
 

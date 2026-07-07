@@ -48,20 +48,8 @@ Thread threadB = new Thread(() -> {
 
 两个线程的栈中保存的是同一个对象地址，真正的 `State` 对象只有一份：
 
-```mermaid
-graph LR
-    subgraph Thread_A[Thread A Stack]
-        state_a[state = 0x1000]
-    end
-    subgraph Thread_B[Thread B Stack]
-        state_b[state = 0x1000]
-    end
-    subgraph Heap
-        obj["State @ 0x1000<br>data = 0<br>ready = false"]
-    end
-    state_a --> obj
-    state_b --> obj
-```
+![](/images/Java-concurrency/IMG-20260707-000046.png)
+
 
 
 
@@ -77,13 +65,8 @@ graph LR
 
 这个过程跨越了内存层级，因此可以画出传播路径：
 
-```mermaid
-graph LR
-    Register[Register] -->|执行写入| StoreBuffer[Store Buffer]
-    StoreBuffer -->|提交到本 Core 缓存体系| CacheLine[Cache Line]
-    CacheLine -->|通过一致性协议传播| OtherCache[Other Core Cache]
-    OtherCache --> Lower["更低层 Cache / DRAM<br>可能在之后才被写回"]
-```
+![](/images/Java-concurrency/IMG-20260707-000047.png)
+
 
 
 
@@ -261,21 +244,8 @@ int r2 = x;
 
 这个场景涉及两个线程和两个 Core 的交错时序，因此可以画图：
 
-```mermaid
-graph LR
-    subgraph Core_A["Thread A / Core A"]
-        direction LR
-        A1["x = 1"] --> A2["Store Buffer A"]
-        A2 --> A3["x 对 B 不可见"]
-        A3 --> A4["read y → 0"]
-    end
-    subgraph Core_B["Thread B / Core B"]
-        direction LR
-        B1["y = 1"] --> B2["Store Buffer B"]
-        B2 --> B3["y 对 A 不可见"]
-        B3 --> B4["read x → 0"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000049.png)
+
 
 
 
@@ -370,22 +340,8 @@ User user = sharedUser;
 
 线程 A 把对象地址写入共享字段 `sharedUser`，线程 B 通过这个字段得到同一个地址：
 
-```mermaid
-graph LR
-    subgraph Thread_A["Thread A Stack"]
-        direction LR
-        user_a["user = 0x1000"]
-    end
-    subgraph Thread_B["Thread B Stack"]
-        direction LR
-        user_b["user = 0x1000"]
-    end
-    subgraph Heap
-        obj["User @ 0x1000<br>age = 18"]
-    end
-    user_a --> obj
-    user_b --> obj
-```
+![](/images/Java-concurrency/IMG-20260707-000050.png)
+
 
 
 
@@ -418,10 +374,8 @@ class User {
 
 这个场景涉及对象引用在堆上的提前暴露，可以用引用关系表达：
 
-```mermaid
-graph LR
-    Static["Static Field<br>sharedUser = 0x1000"] --> Heap["Heap: User @ 0x1000<br>age = 0"]
-```
+![](/images/Java-concurrency/IMG-20260707-000051.png)
+
 
 
 

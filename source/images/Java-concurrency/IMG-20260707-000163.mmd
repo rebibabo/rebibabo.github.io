@@ -1,0 +1,10 @@
+graph LR
+    A["外部线程"] --> B["pool.invoke(rootTask)"]
+    B --> C["ForkJoinPool 接收 rootTask"]
+    C --> D["Worker-1 执行 rootTask.compute()"]
+    D --> E["拆分为 left 和 right"]
+    E --> F["left.fork()"]
+    F --> G["left 进入 Worker-1 本地双端队列"]
+    G --> H["Worker-1 执行 right.compute()"]
+    H --> I["left.join()"]
+    I --> J["合并 leftResult 和 rightResult"]

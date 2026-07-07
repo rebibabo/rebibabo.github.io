@@ -1,0 +1,6 @@
+flowchart LR
+    subgraph dq["DelayQueue"]
+        direction LR
+    top --- mid --- bot
+    end
+    dq --> consumer["take() 等待 B 到期才返回"]

@@ -1,0 +1,11 @@
+graph LR
+    subgraph "GC 之前"
+        A1["Thread"] --> A2["ThreadLocalMap"] --> A3["Entry"]
+        A3 --> A4["key: ThreadLocal 实例"]
+        A3 --> A5["value: User 实例"]
+    end
+    subgraph "GC 之后"
+        B1["Thread"] --> B2["ThreadLocalMap"] --> B3["Entry"]
+        B3 --> B4["key: null"]
+        B3 --> B5["value: User 实例"]
+    end    A1 ~~~ B1

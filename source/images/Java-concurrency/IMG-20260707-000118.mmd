@@ -1,0 +1,3 @@
+flowchart LR
+    A["读取 table[i]"] --> B["table[i] == null?"]
+    B -->|是| C["CAS null -> newNode"]

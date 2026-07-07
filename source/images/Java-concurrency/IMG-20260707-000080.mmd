@@ -1,0 +1,2 @@
+graph LR
+    A["Thread-A 执行 Task-A"] --> B["Task-A 结束"] --> C["Thread-A 结束"] --> D["ThreadLocalMap 随 Thread-A 一起回收"]
