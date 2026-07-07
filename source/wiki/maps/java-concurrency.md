@@ -76,7 +76,6 @@ graph TD
     end
 
     L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7
-    AQS2 -.-> L2
 ```
 
 ## 推荐阅读路线
@@ -126,7 +125,7 @@ graph TD
 
 ```mermaid
 graph LR
-    REQ["请求线程"] -->|"提交 Task"| BQ["有界队列<br/>ArrayBlockingQueue"]
+    REQ["请求线程"] -->|提交 Task| BQ["有界队列<br/>ArrayBlockingQueue"]
     BQ --> WPSUB
 
     subgraph WPSUB["Worker Pool"]
@@ -138,8 +137,8 @@ graph LR
     WPSUB --> PROC["Processor<br/>业务逻辑"]
     WPSUB --> FH["FailureHandler<br/>重试 · 死信"]
 
-    BQ -.->|"升级方案"| DB["数据库任务表<br/>可恢复 · 可追踪"]
-    BQ -.->|"升级方案"| MQ["MQ<br/>削峰 · 分布式投递"]
+    BQ -->|升级方案| DB["数据库任务表<br/>可恢复 · 可追踪"]
+    BQ -->|升级方案| MQ["MQ<br/>削峰 · 分布式投递"]
 ```
 
 ## 故障排查速查
