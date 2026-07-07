@@ -175,8 +175,8 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     print("10. 填写摘要...")
     summary = body[:200].replace("\n", " ").strip()
     try:
-        summary_input = page2.locator('[placeholder*="展现列表"], [placeholder*="若不填"]').first
-        summary_input.wait_for(timeout=3000)
+        summary_input = page2.locator(".desc-box textarea")
+        summary_input.wait_for(timeout=600_000)  # 10 分钟超时
         summary_input.click()
         summary_input.fill(summary)
         print(f"  ✅ 已填入摘要")
