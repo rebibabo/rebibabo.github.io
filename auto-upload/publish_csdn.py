@@ -177,7 +177,7 @@ def _do_login(playwright=None):
     if playwright is None:
         with sync_playwright() as p:
             return _do_login(p)
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=True)
     context = browser.new_context(
         viewport={"width": 1280, "height": 900},
         locale="zh-CN",
