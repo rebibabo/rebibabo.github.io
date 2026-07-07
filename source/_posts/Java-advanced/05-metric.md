@@ -105,11 +105,7 @@ graph TB
 
 ```mermaid
 graph TB
-    Registry["MeterRegistry（一个大容器，管理所有指标）"] --> C1["Counter: 下单请求总数"]
-    Registry --> C2["Counter: 下单失败次数"]
-    Registry --> T["Timer: 下单耗时"]
-    Registry --> G["Gauge: 当前队列长度"]
-    Registry --> More["..."]
+    Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
 ```
 
 | 概念 | 是什么 | 类比 |
