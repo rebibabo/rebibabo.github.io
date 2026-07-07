@@ -59,7 +59,7 @@ graph TB
         VM_Apps --- VM_Hyper --- VM_Host
     end
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000006.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000006.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 <pre style="display:none">
@@ -72,7 +72,7 @@ graph TB
         C_Apps --- C_Engine --- C_Host
     end
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000007.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000007.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 | 维度 | 虚拟机 | 容器 |
@@ -96,7 +96,7 @@ graph LR
     DF["Dockerfile<br/>（打包脚本）"] -->|build| Image["镜像（Image）<br/>（打包好的模板）"]
     Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000008.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000008.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 | 概念 | 是什么 | 类比 |
@@ -173,7 +173,7 @@ graph LR
     Browser["浏览器 localhost:9090"] -->|外部访问| Host["宿主机 9090 端口"]
     Host -->|Docker 转发| Container["容器内部 8080 端口<br/>Spring Boot 应用监听 8080"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000009.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000009.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 容器之间是隔离的，不做端口映射，外部就访问不到容器里的服务。
@@ -357,7 +357,7 @@ graph TB
     L2 --> L3["Layer 3: 复制进 jar 包"]
     L3 --> View["合并视图：完整的运行环境"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000010.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000010.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 分层的好处：

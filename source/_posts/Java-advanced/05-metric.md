@@ -67,7 +67,7 @@ graph TB
     Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
     Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000019.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000019.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 | 角色 | 职责 | 类比 |
@@ -96,7 +96,7 @@ graph TB
     Facade --> Other["其他监控系统<br/>（Datadog 等）"]
     Facade --> Another["又一个监控系统<br/>（CloudWatch 等）"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000020.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000020.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 好处：你的埋点代码只调 Micrometer 的 API，将来要从 Prometheus 换成别的监控系统，**业务代码一行不用改**，只换底层依赖。
@@ -111,7 +111,7 @@ graph TB
 graph TB
     Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000021.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000021.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 | 概念 | 是什么 | 类比 |
@@ -264,7 +264,7 @@ graph TB
     Metric --> R2["channel: wechat<br/>计数: 980"]
     Metric --> R3["channel: unionpay<br/>计数: 450"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000022.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000022.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 - **指标名**（`order.create.total`）：相当于表名，整张表共用一个。
@@ -645,7 +645,7 @@ graph LR
     Rate --> Sum["sum() by() 聚合<br/>按维度汇总"]
     Sum --> Div["相除/比较<br/>算比率"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000023.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000023.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 记住几个最高频的就够日常用了：`rate()` 算速率（QPS）、两个 rate 相除算比率（成功率）、`sum by()` 按维度汇总、`histogram_quantile` 算 P99。Grafana 大盘里每个面板背后，写的就是这样一行 PromQL（下一篇会讲）。

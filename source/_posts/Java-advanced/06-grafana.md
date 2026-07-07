@@ -60,7 +60,7 @@ graph LR
     App -->|被抓取| Prom
     Prom -->|被查询| Graf
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000024.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000024.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 这里有个**最关键的认知，一定要建立起来**：
@@ -94,7 +94,7 @@ graph TB
     DS -.- P3
     DS -.- P4
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000025.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000025.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 **记住这条主线：一个大盘装很多面板，每个面板背后是一行查询，查询跑在某个数据源上。** 搭大盘的过程，本质就是"加面板 → 给面板写一行 PromQL → 选个合适的图表样式"，重复 N 次。
@@ -206,7 +206,7 @@ graph TB
     Compare -->|超了| Alert["状态 Alerting → 触发！"]
     Alert --> Notify["通过通知渠道发出去<br/>钉钉/企业微信/邮件/Slack…"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000026.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000026.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 配一条告警，你需要定义三样东西：

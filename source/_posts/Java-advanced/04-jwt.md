@@ -107,7 +107,7 @@ graph LR
     Header["Header（头部）<br/>{alg: HS256, typ: JWT}"] --> Payload["Payload（载荷）<br/>{sub: 1001, role: admin}"]
     Payload --> Signature["Signature（签名）<br/>防篡改校验值"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000013.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000013.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 | 部分 | 内容 | 说明 |
@@ -130,7 +130,7 @@ graph TB
     Compare -->|相等 ✅| Trust["没被篡改，可信"]
     Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000014.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000014.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
@@ -142,7 +142,7 @@ graph TB
     ServerCheck --> Mismatch{"和 token 里的签名一致?"}
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000015.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000015.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 ---
@@ -158,7 +158,7 @@ graph TB
     Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000016.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000016.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 我们做 JWT 认证，就是往这条链里加一个**自定义过滤器**，专门负责解析和验证请求里的 JWT。
@@ -188,7 +188,7 @@ graph TB
     S3 --> S4["④ 把 JWT 返回给客户端"]
     S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000017.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000017.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 ### 5.2 阶段二：带 token 访问接口
@@ -201,7 +201,7 @@ graph TB
     S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 </pre>
-<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000018.png" alt="mermaid diagram">
+<img class="mermaid-img" src="/images/Java-advanced/IMG-20260707-000018.png" alt="mermaid diagram" style="display:block;width:auto;max-width:min(760px,100%);max-height:720px;height:auto;margin:1.5rem auto;object-fit:contain">
 
 
 注意阶段二**全程不查数据库**——验签 + 解析 token 即可，这就是 JWT "无状态"的体现。
