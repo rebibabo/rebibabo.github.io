@@ -78,6 +78,7 @@ graph TB
 
 
 
+
 | 角色 | 职责 | 类比 |
 |------|------|------|
 | **Micrometer** | 在 Java 代码里埋点、在内存里维护指标 | 商场里的计数器 |
@@ -115,6 +116,7 @@ graph TB
 
 
 
+
 好处：你的埋点代码只调 Micrometer 的 API，将来要从 Prometheus 换成别的监控系统，**业务代码一行不用改**，只换底层依赖。
 
 ### 3.2 MeterRegistry：指标的"注册中心"
@@ -128,6 +130,7 @@ graph TB
     Registry["MeterRegistry（一个大容器，管理所有指标）"] --> Meters["Counter: 下单请求总数<br/>Counter: 下单失败次数<br/>Timer: 下单耗时<br/>Gauge: 当前队列长度<br/>..."]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000021.png)
+
 
 
 
@@ -289,6 +292,7 @@ graph TB
     Metric --> R3["channel: unionpay<br/>计数: 450"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000022.png)
+
 
 
 
@@ -678,6 +682,7 @@ graph LR
     Sum --> Div["相除/比较<br/>算比率"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000023.png)
+
 
 
 

@@ -71,6 +71,7 @@ graph LR
 
 
 
+
 这里有个**最关键的认知，一定要建立起来**：
 
 > **Grafana 自己不存任何监控数据。** 它就是一个"画图的前端"——你打开一个面板，它实时去 Prometheus 跑一遍 PromQL 查询，把查回来的数字画成图；过几秒自动刷新，就再查一遍、再画一遍。
@@ -103,6 +104,7 @@ graph TB
     DS -.- P4
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000025.png)
+
 
 
 
@@ -223,6 +225,7 @@ graph TB
     Alert --> Notify["通过通知渠道发出去<br/>钉钉/企业微信/邮件/Slack…"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000026.png)
+
 
 
 

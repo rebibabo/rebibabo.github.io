@@ -100,11 +100,24 @@ async function runConcurrent(tasks, concurrency) {
   });
 }
 
-/** 渲染单个 mermaid 块，使用 ELK 渲染器产生更紧凑的布局 */
+/** 渲染单个 mermaid 块 */
 async function renderBlock(mmdContent, outputPath) {
   const mmdPath = outputPath.replace(/\.png$/, '.mmd');
-  const ELK_INIT = '%%{init: {"flowchart": {"defaultRenderer": "elk"}}}%%\n';
-  fs.writeFileSync(mmdPath, ELK_INIT + mmdContent, 'utf-8');
+
+  // 统一头：紧凑布局 + 直线箭头 + 小字号
+  const INIT = `%%{init: {
+  "flowchart": {
+    "nodeSpacing": 12,
+    "rankSpacing": 18,
+    "curve": "linear"
+  },
+  "themeVariables": {
+    "fontSize": "14px"
+  }
+}}%%
+`;
+
+  fs.writeFileSync(mmdPath, INIT + mmdContent, 'utf-8');
 
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
