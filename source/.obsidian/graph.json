@@ -1,11 +1,11 @@
 {
   "collapse-filter": false,
-  "search": "path:wiki/con",
+  "search": "path:wiki/concepts/concurrency  ",
   "showTags": false,
   "showAttachments": false,
   "hideUnresolved": false,
   "showOrphans": false,
-  "collapse-color-groups": false,
+  "collapse-color-groups": true,
   "colorGroups": [],
   "collapse-display": false,
   "showArrow": false,
@@ -17,6 +17,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 85,
-  "scale": 0.6650292595746468,
+  "scale": 1.628204499776698,
   "close": false
 }
