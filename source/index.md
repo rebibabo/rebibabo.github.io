@@ -35,8 +35,4 @@ layout: page
 
 [进入系列](/categories/程序化广告/)
 
-## 全部文章
-
-[查看全部文章](/posts/)
-
 </div>
