@@ -1,8 +1,3 @@
-graph LR
-    subgraph Controller["控制线程"]
-        C1["worker.interrupt"] --> C2["发出停止请求"]
-    end
-    subgraph Worker["工作线程"]
-        W1["正在执行任务"] --> W2["检查并决定"]
-    end
-    C1 -->|设置中断标记| W2
+flowchart TD
+    A["状态为 CREATED"] --> B["改为 RUNNING"]
+    B --> C["只有一个 Worker 成功"]

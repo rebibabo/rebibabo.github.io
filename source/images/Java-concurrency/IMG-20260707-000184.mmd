@@ -1,2 +1,2 @@
 flowchart TD
-    hl["head / last"] --> sentinel["哨兵节点<br>item = null"]
+    A["提交任务"] --> B["入队任务"] --> C["工作线程取任务"] --> D["处理器执行任务"] --> E["记录结果"]

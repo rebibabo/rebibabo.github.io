@@ -1,6 +1,2 @@
-graph LR
-    subgraph Pool["ForkJoinPool"]
-        W1["Worker-1"] --> D1["本地双端队列"]
-        W2["Worker-2"] --> D2["本地双端队列"]
-        W3["Worker-3"] --> D3["本地双端队列"]
-    end
+flowchart LR
+    Producer["生产者"] --> Broker["Broker"] --> Consumer["消费者"]

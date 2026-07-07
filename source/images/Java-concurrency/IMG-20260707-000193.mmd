@@ -1,3 +1,10 @@
-flowchart TD
-    A["原堆顶: A<br>10 秒后到期"] -->|"新任务 B 入队（1 秒后到期）"| B["B 成为新的堆顶"]
-    B --> C["唤醒等待线程<br>重新计算等待时间"]
+stateDiagram-v2
+    [*] --> CREATED
+    CREATED --> RUNNING
+    RUNNING --> SUCCESS
+    RUNNING --> FAILED
+    FAILED --> RETRYING
+    RETRYING --> RUNNING
+    RUNNING --> DEAD
+    SUCCESS --> [*]
+    DEAD --> [*]

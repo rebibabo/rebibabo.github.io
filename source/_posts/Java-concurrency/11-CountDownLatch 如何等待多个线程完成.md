@@ -106,14 +106,8 @@ for (;;) {
 
 只有某次 `countDown()` 成功把 `state` 从 `1` 减到 `0` 时，才表示所有完成事件都已经发生，此时需要唤醒等待线程。前面的递减，例如 `3 → 2`、`2 → 1`，都不会让 `await()` 返回。
 
-```mermaid
-graph LR
-    W1["工作线程 1<br>countDown<br>state 3 → 2"] --> W2["工作线程 2<br>countDown<br>state 2 → 1"]
-    W2 --> W3["工作线程 3<br>countDown<br>state 1 → 0"]
-    W3 -->|唤醒| Aw["等待线程<br>await 返回"]
-    W1 -.->|不释放| Aw
-    W2 -.->|不释放| Aw
-```
+![](/images/Java-concurrency/IMG-20260707-000053.png)
+
 
 `CountDownLatch` 使用的是 AQS 共享模式。共享的意思不是多个线程可以随意并发修改 `state`，而是当同步条件满足后，多个等待线程都可以通过。
 
@@ -254,16 +248,8 @@ Thread worker = new Thread(() -> {
 
 Lambda 试图重新给局部变量 `error` 赋值，所以它不再是事实上 `final`。使用数组后，局部变量 `error` 保存的数组引用没有变化，线程修改的是数组对象内部的元素。
 
-```mermaid
-graph LR
-    subgraph Stack["工作线程栈"]
-        err["error = 0x1000"]
-    end
-    subgraph Heap["堆"]
-        arr["Throwable[1] @ 0x1000<br>element[0] = exception"]
-    end
-    err --> arr
-```
+![](/images/Java-concurrency/IMG-20260707-000054.png)
+
 
 也可以使用普通 Holder 对象：
 

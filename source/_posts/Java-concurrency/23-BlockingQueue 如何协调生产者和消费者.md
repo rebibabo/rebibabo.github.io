@@ -15,10 +15,8 @@ categories:
 
 普通 `Queue` 只回答一个问题：元素如何进入队列、如何从队列中取出。`BlockingQueue` 额外回答了另一个问题：当队列暂时不能继续操作时，线程应该怎么办。这个问题在生产者消费者模型中非常常见：生产者负责放入任务，消费者负责取走任务；如果两边速度不一致，队列就会出现空或满。
 
-```mermaid
-flowchart LR
-    A["生产者<br>put task"] --> B["BlockingQueue<br>store tasks"] --> C["消费者<br>take task"]
-```
+![](/images/Java-concurrency/IMG-20260707-000142.png)
+
 
 因此，`BlockingQueue` 不是简单的“线程安全队列”，而是一个带等待语义的线程安全队列。线程安全保证多个线程同时访问队列时内部状态不会损坏；等待语义保证队列空或满时，线程可以按约定阻塞、超时、失败或抛异常。
 
@@ -60,33 +58,18 @@ Task task = queue.take();
 
 假设容量为 5，依次放入 `A`、`B`、`C` 后，数组状态大致如下：
 
-```mermaid
-flowchart LR
-    subgraph items["items 数组（容量 5）"]
-        direction LR
-        i0["[0] A"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] 空"] ~~~ i4["[4] 空"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000143.png)
+
 
 此时执行一次 `take()`，取出的不是移动整个数组，而是读取 `takeIndex` 指向的位置，然后让 `takeIndex` 后移。数组不会把 `B`、`C` 搬到前面，因为每次搬移都会带来额外成本。队列只需要维护“下次从哪里取”和“下次往哪里放”。
 
-```mermaid
-flowchart LR
-    subgraph items["items 数组（容量 5）"]
-        direction LR
-        i0["[0] 空"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] 空"] ~~~ i4["[4] 空"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000144.png)
+
 
 数组下标走到末尾后会回到 0，所以这个数组是循环使用的。继续放入 `D`、`E`，再放入 `F` 时，`putIndex` 会回到开头，把已经被取走的位置重新利用。
 
-```mermaid
-flowchart LR
-    subgraph items["items 数组（容量 5）"]
-        direction LR
-        i0["[0] F"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] D"] ~~~ i4["[4] E"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000145.png)
+
 
 这里可以看到一个细节：`putIndex == takeIndex` 并不一定表示队列为空，也可能表示队列已满。因此 `ArrayBlockingQueue` 不能只靠两个下标判断空满，而要用 `count` 区分。
 
@@ -125,17 +108,8 @@ return e;
 
 `ArrayBlockingQueue` 的所有核心状态都由同一把 `ReentrantLock` 保护。生产者修改 `items`、`putIndex` 和 `count`，消费者修改 `items`、`takeIndex` 和 `count`，其中 `count` 是双方共同修改的状态。使用一把锁可以让所有修改串行化，状态一致性更容易保证。
 
-```mermaid
-flowchart TB
-    subgraph put["put()"]
-        direction TB
-        p1["获取锁"] --> p2["写入尾部"] --> p3["更新 count"] --> p4["释放锁"]
-    end
-    subgraph take["take()"]
-        direction TB
-        t1["获取锁"] --> t2["读取头部"] --> t3["更新 count"] --> t4["释放锁"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000146.png)
+
 
 这也带来明显代价：即使队列既不空也不满，一个生产者正在 `put()`，一个消费者也不能同时 `take()`，因为二者竞争的是同一把锁。两个 `Condition` 只是把等待线程按业务条件分组，`notEmpty` 给消费者等待数据，`notFull` 给生产者等待空间，并不代表有两把锁。
 
@@ -152,26 +126,16 @@ flowchart TB
 
 这和前面的单锁模型形成对比：`ArrayBlockingQueue` 中生产者和消费者必须竞争同一把锁；`LinkedBlockingQueue` 中，只要队列既不空也不满，生产者可以持有 `putLock` 追加节点，消费者可以持有 `takeLock` 摘取节点，两类操作可以并发推进。
 
-```mermaid
-flowchart LR
-    producer["生产者 put()"] --> lock["单锁<br>single lock"]
-    consumer["消费者 take()"] --> lock
-```
+![](/images/Java-concurrency/IMG-20260707-000147.png)
 
-```mermaid
-flowchart LR
-    producer["生产者 put()"] --> putLock["putLock"]
-    consumer["消费者 take()"] --> takeLock["takeLock"]
-```
+
+![](/images/Java-concurrency/IMG-20260707-000148.png)
+
 
 两把锁提高了并发度，但也引出一个新问题：入队和出队都会修改元素数量，而它们并不持有同一把锁。为了解决这个共享计数问题，`LinkedBlockingQueue` 使用 `AtomicInteger count`。链表尾部由 `putLock` 保护，链表头部由 `takeLock` 保护，数量变化由原子变量保护。
 
-```mermaid
-flowchart LR
-    tail["tail link"] --> putLock["putLock 保护"]
-    head["head link"] --> takeLock["takeLock 保护"]
-    count["count"] --> atomic["AtomicInteger 保护"]
-```
+![](/images/Java-concurrency/IMG-20260707-000149.png)
+
 
 如果 `count` 是普通 `int`，生产者执行 `count++`、消费者执行 `count--` 时可能并发发生，导致丢失更新。原子变量使数量变化在两把锁之间仍然保持一致。
 
@@ -181,10 +145,8 @@ flowchart LR
 
 初始状态下，队列只有一个哨兵节点，`head` 和 `last` 都指向它。
 
-```mermaid
-flowchart TD
-    hl["head / last"] --> sentinel["哨兵节点<br>item = null"]
-```
+![](/images/Java-concurrency/IMG-20260707-000150.png)
+
 
 第一次放入 `A` 时，入队逻辑可以简化为：
 
@@ -195,27 +157,18 @@ last = node;
 
 第一句是把新节点接到旧尾节点后面，第二句是把尾指针移动到新节点。放入 `A` 后，`last` 指向 `A`，而不是让 `A.next` 指向自己。
 
-```mermaid
-flowchart TD
-    head["head"] --> sentinel["哨兵节点<br>item = null"] --> a["节点 A<br>item = A"]
-    last["last"] --> a
-```
+![](/images/Java-concurrency/IMG-20260707-000151.png)
+
 
 继续放入 `B`，就是把 `B` 接到旧尾节点 `A` 后面，再把 `last` 移到 `B`。
 
-```mermaid
-flowchart TD
-    head["head"] --> sentinel["哨兵节点<br>item = null"] --> a["节点 A<br>item = A"] --> b["节点 B<br>item = B"]
-    last["last"] --> b
-```
+![](/images/Java-concurrency/IMG-20260707-000152.png)
+
 
 出队时取的不是 `head`，而是 `head.next`。假设当前第一个真实节点是 `A`，`take()` 会读取 `A.item`，然后把 `head` 移动到 `A`，并把 `A.item` 置为 `null`。这样原来的 `A` 节点变成新的哨兵节点，`B` 成为新的第一个真实元素。
 
-```mermaid
-flowchart TD
-    oldHead["旧 head<br>item = null"] --> newHead["新 head（原 A 节点）<br>item = null"] --> b["节点 B<br>item = B"]
-    last["last"] --> b
-```
+![](/images/Java-concurrency/IMG-20260707-000153.png)
+
 
 这里的 `item = null` 不是原子并发控制手段，而是引用清理。由于头部摘取在 `takeLock` 下完成，同一时间不会有两个消费者同时移动 `head`；由于尾部追加在 `putLock` 下完成，同一时间不会有两个生产者同时修改 `last`。链表指针本身不需要 CAS，锁已经提供了互斥保护。
 
@@ -342,23 +295,8 @@ private void signalNotEmpty() {
 
 这样，生产者的一次 `put()` 就完整串起了三件事：
 
-```mermaid
-flowchart TD
-    A["生产者 put(e)"] --> B["获取 putLock"]
-    B --> C{"队列已满?"}
-    C -->|"是"| D["等待 notFull"]
-    D --> C
-    C -->|"否"| E["追加节点到尾部"]
-    E --> F["原子递增 count"]
-    F --> G{"入队后仍未满?"}
-    G -->|"是"| H["signal notFull<br>（唤醒其他生产者）"]
-    G -->|"否"| I["释放 putLock"]
-    H --> I
-    I --> J{"入队前队列为空?"}
-    J -->|"是"| K["获取 takeLock<br>signal notEmpty<br>释放 takeLock"]
-    J -->|"否"| L["结束"]
-    K --> L
-```
+![](/images/Java-concurrency/IMG-20260707-000154.png)
+
 
 这个例子体现了 `LinkedBlockingQueue` 的通知规则：生产者侧的尾部追加由 `putLock` 保护，数量变化由 `AtomicInteger count` 保证，放完后如果本侧条件仍然满足，就继续唤醒其他生产者；如果这次入队打破了“空队列”边界，就跨到 `takeLock` 一侧唤醒消费者。
 
@@ -388,18 +326,13 @@ new LinkedBlockingQueue<>(capacity);
 
 普通阻塞队列允许生产者和消费者在时间上错开：
 
-```mermaid
-flowchart TD
-    A["生产者 put(A)"] --> B["Queue 存储 A"]
-    B --> C["消费者 take(A)"]
-```
+![](/images/Java-concurrency/IMG-20260707-000155.png)
+
 
 `SynchronousQueue` 则要求双方同时在场：
 
-```mermaid
-flowchart LR
-    A["生产者 put(A)"] <--> B["消费者 take()"]
-```
+![](/images/Java-concurrency/IMG-20260707-000156.png)
+
 
 如果生产者先调用 `put(A)`，但没有消费者正在 `take()`，生产者就会阻塞；如果消费者先调用 `take()`，但没有生产者正在 `put()`，消费者也会阻塞。非阻塞的 `offer(A)` 在没有等待消费者时会直接返回 `false`，`poll()` 在没有等待生产者时会直接返回 `null`。
 
@@ -549,29 +482,15 @@ B → C → A
 
 这一点会带来一个和普通阻塞队列不同的行为：**队列非空，`take()` 也可能继续阻塞**。
 
-```mermaid
-flowchart TB
-    subgraph dq["DelayQueue"]
-        direction TB
-        top["堆顶: B<br>剩余 3 秒"]
-        mid["下一个: C<br>剩余 5 秒"]
-        bot["下一个: A<br>剩余 10 秒"]
-    end
-    dq --> consumer["take() 等待 B 到期才返回"]
-```
+![](/images/Java-concurrency/IMG-20260707-000157.png)
+
 
 普通队列只要非空，消费者就可以取元素；但 `DelayQueue` 会先看堆顶元素是否到期。如果堆顶没到期，说明后面的元素只会更晚到期，所以消费者没有必要扫描整个队列，只需要等待堆顶元素到期。
 
 可以简单理解为：
 
-```mermaid
-flowchart TD
-    A["take()"] --> B{"队列为空?"}
-    B -->|"是"| C["等待"]
-    B -->|"否"| D{"检查堆顶元素"}
-    D -->|"堆顶未到期"| E["等待剩余时间"]
-    D -->|"堆顶已到期"| F["取出并返回"]
-```
+![](/images/Java-concurrency/IMG-20260707-000158.png)
+
 
 多个消费者同时等待时，`DelayQueue` 内部使用 `leader` 优化。它不会让所有消费者都等待同一个到期时间，而是只让一个线程作为 leader，负责等待最近的到期时间；其他线程普通等待。这样可以避免到期时间一到，多个消费者同时醒来抢锁，最后却只有一个线程真正取到元素。
 
@@ -583,11 +502,8 @@ Consumer-3: awaits normally
 
 如果生产者新放入的任务比原堆顶更早到期，原来的等待时间就不准确了。这时队列会清空 leader 并唤醒一个等待线程，让它重新检查新的堆顶任务。
 
-```mermaid
-flowchart TD
-    A["原堆顶: A<br>10 秒后到期"] -->|"新任务 B 入队（1 秒后到期）"| B["B 成为新的堆顶"]
-    B --> C["唤醒等待线程<br>重新计算等待时间"]
-```
+![](/images/Java-concurrency/IMG-20260707-000159.png)
+
 
 所以，`DelayQueue` 的核心可以压缩成一句话：
 
@@ -599,16 +515,8 @@ flowchart TD
 
 `ThreadPoolExecutor` 的构造参数中，`workQueue` 就是 `BlockingQueue<Runnable>`。它不仅是任务容器，还会影响线程池的扩容路径。简化后的 `execute()` 流程是：
 
-```mermaid
-flowchart TD
-    A["execute(task)"] --> B{"workerCount < corePoolSize?"}
-    B -->|"是"| C["创建核心工作线程"]
-    B -->|"否"| D{"workQueue.offer(task)?"}
-    D -->|"是（入队成功）"| E["任务已排队"]
-    D -->|"否（队列满）"| F{"workerCount < maximumPoolSize?"}
-    F -->|"是"| G["创建非核心工作线程"]
-    F -->|"否"| H["执行拒绝策略"]
-```
+![](/images/Java-concurrency/IMG-20260707-000160.png)
+
 
 这里有一个容易忽略的点：线程池提交任务时，入队通常调用的是 `offer()`，不是 `put()`。也就是说，队列满了以后，提交线程不会在 `put()` 上一直阻塞，而是入队失败，然后线程池尝试创建非核心线程；如果线程数也达到上限，才执行拒绝策略。
 

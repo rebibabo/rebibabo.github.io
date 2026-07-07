@@ -237,12 +237,8 @@ if (queue.isEmpty()) {
 
 这一步是理解 `Condition` 的关键：
 
-```mermaid
-graph LR
-    CondQueue["条件队列"] -->|signal| SyncQueue["同步队列"]
-    CondQueue -->|await 阻塞| Parked["线程挂起"]
-    SyncQueue -->|重新获取锁| Return["await 返回"]
-```
+![](/images/Java-concurrency/IMG-20260707-000052.png)
+
 
 图中的 `Sync Queue` 就是 AQS 中用于竞争锁的等待队列。线程从 `await()` 返回时，已经重新持有了 `lock`，所以外层 `finally` 中可以安全执行 `unlock()`。
 

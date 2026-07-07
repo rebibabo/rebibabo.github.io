@@ -1,10 +1,5 @@
-graph LR
-    subgraph Deque["本地双端队列"]
-        direction LR
-        T1["任务-1<br>（base 端）"]
-        T2["任务-2"]
-        T3["任务-3"]
-        T4["任务-4<br>（top 端）"]
-    end
-    Stealer["其他 Worker<br>（窃取者）"] -->|"窃取"| T1
-    Owner["当前 Worker<br>（拥有者）"] -->|"push / pop"| T4
+flowchart TD
+    A["消费失败"] --> B["稍后重试"]
+    B --> C["仍然失败"]
+    C --> D["超过重试次数"]
+    D --> E["进入死信队列"]

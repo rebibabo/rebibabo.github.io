@@ -1,3 +1,4 @@
 flowchart TD
-    head["head"] --> sentinel["哨兵节点<br>item = null"] --> a["节点 A<br>item = A"] --> b["节点 B<br>item = B"]
-    last["last"] --> b
+    A["任务失败"] --> B["记录错误"] --> C["是否重试?"]
+    C -->|是| D["增加重试次数"] --> E["重新入队"]
+    C -->|否| F["标记为死信"] --> G["保存死信任务"]
