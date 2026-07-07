@@ -284,11 +284,12 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
 
     # ---- 第4.5步：处理图片选择弹窗（如果有）----
     try:
-        img_items = page2.locator(".img-selection-list .img-selection-item")
+        page2.wait_for_timeout(2000)
+        img_items = page2.locator(".img-selection-item")
         if img_items.count() > 0:
             print("4.5 选择图片...")
             img_items.first.click()
-            page2.wait_for_timeout(300)
+            page2.wait_for_timeout(500)
             page2.locator(".vicp-operate-btn").click()
             page2.wait_for_timeout(500)
             print("  ✅ 图片已选择")
