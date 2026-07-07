@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T14:05:50.974Z",
+  "updatedAt": "2026-07-07T14:09:13.975Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/22-ConcurrentHashMap 为什么能支持高并发访问.md",
-    "vaultPath": "_posts/Java-concurrency/22-ConcurrentHashMap 为什么能支持高并发访问.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/22-ConcurrentHashMap%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%94%AF%E6%8C%81%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BF%E9%97%AE.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/09-ReentrantLock 为什么能够实现互斥.md",
+    "vaultPath": "_posts/Java-concurrency/09-ReentrantLock 为什么能够实现互斥.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/09-ReentrantLock%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E5%A4%9F%E5%AE%9E%E7%8E%B0%E4%BA%92%E6%96%A5.md",
     "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/22-ConcurrentHashMap 为什么能支持高并发访问.md",
-      "vaultPath": "_posts/Java-concurrency/22-ConcurrentHashMap 为什么能支持高并发访问.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/22-ConcurrentHashMap%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%94%AF%E6%8C%81%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BF%E9%97%AE.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/09-ReentrantLock 为什么能够实现互斥.md",
+      "vaultPath": "_posts/Java-concurrency/09-ReentrantLock 为什么能够实现互斥.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/09-ReentrantLock%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E5%A4%9F%E5%AE%9E%E7%8E%B0%E4%BA%92%E6%96%A5.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 22,
+      "line": 13,
       "ch": 0,
-      "offset": 581
+      "offset": 188
     },
     "to": {
-      "line": 22,
+      "line": 13,
       "ch": 0,
-      "offset": 581
+      "offset": 188
     }
   }
 }
