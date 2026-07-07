@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T05:09:50.193Z",
+  "updatedAt": "2026-07-07T05:11:37.401Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-    "vaultPath": "wiki/maps/java-basic.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/glossary/concurrency/BlockingQueue.md",
+    "vaultPath": "wiki/glossary/concurrency/BlockingQueue.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/glossary/concurrency/BlockingQueue.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-      "vaultPath": "wiki/maps/java-basic.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/glossary/concurrency/BlockingQueue.md",
+      "vaultPath": "wiki/glossary/concurrency/BlockingQueue.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/glossary/concurrency/BlockingQueue.md",
       "isActive": true
     }
   ],
@@ -26,12 +26,12 @@
     "from": {
       "line": 11,
       "ch": 0,
-      "offset": 115
+      "offset": 146
     },
     "to": {
       "line": 11,
       "ch": 0,
-      "offset": 115
+      "offset": 146
     }
   }
 }
