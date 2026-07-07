@@ -143,7 +143,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     for i in range(count):
         try:
             delete_btns.nth(0).click()  # 每次点第一个，因为删掉后索引会变
-            page2.wait_for_timeout(200)
+            page2.wait_for_timeout(20000)
         except Exception:
             break
     print("  ✅ 标签清理完成")
@@ -151,7 +151,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     # ---- 第九步：添加新标签 ----
     print(f"9. 添加标签: {tags}")
     page2.get_by_role("button", name="添加文章标签").click()
-    page2.wait_for_timeout(500)
+    page2.wait_for_timeout(50000)
 
     for tag in tags:
         if not tag:
@@ -161,9 +161,9 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
             tag_input = page2.locator('[placeholder*="搜索"], [placeholder*="标签"]').last
             tag_input.click()
             tag_input.fill(tag)
-            page2.wait_for_timeout(300)
+            page2.wait_for_timeout(30000)
             tag_input.press("Enter")
-            page2.wait_for_timeout(500)
+            page2.wait_for_timeout(50000)
             print(f"  ✅ 添加标签: {tag}")
         except Exception as e:
             print(f"  ⚠️  添加标签 {tag} 失败: {e}")
@@ -186,7 +186,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     # ---- 第十一步：勾选 AI 声明 ----
     print("11. 勾选 AI 辅助生成声明...")
     page2.get_by_text("部分内容由AI辅助生成").click()
-    page2.wait_for_timeout(300)
+    page2.wait_for_timeout(30000)
 
     # 勾选确认复选框
     safe_click(page2, ".el-checkbox__inner")
