@@ -34,10 +34,32 @@ BLOG_SOURCE_DIR = os.path.join(os.path.dirname(__file__), "..", "source")  # sou
 # ============================================================
 # 图片外链替换
 # ============================================================
-def resolve_images_in_body(body: str) -> str:
+def resolve_images_in_body(body: str, md_filepath: str) -> str:
     """将 markdown 中的本地图片路径替换为 GitHub raw 外链"""
-    # 匹配 ![alt](path) 中的 path
     image_pattern = re.compile(r'!\[([^\]]*)\]\(([^)]+)\)')
+    md_dir = os.path.dirname(md_filepath)
+
+    def find_local_image(img_path: str) -> str | None:
+        """多策略查找本地图片，返回相对于 BLOG_SOURCE_DIR 的路径"""
+        # 策略1：绝对路径 /images/... → source/images/...
+        if img_path.startswith("/"):
+            candidate = os.path.join(BLOG_SOURCE_DIR, img_path.lstrip("/"))
+            if os.path.exists(candidate):
+                return img_path.lstrip("/")
+
+        # 策略2：相对路径（相对于 markdown 文件所在目录）
+        candidate = os.path.normpath(os.path.join(md_dir, img_path))
+        if os.path.exists(candidate):
+            # 转回相对于 source/ 的路径
+            return os.path.relpath(candidate, BLOG_SOURCE_DIR)
+
+        # 策略3：按文件名在 source/images/ 下全局搜索
+        filename = os.path.basename(img_path)
+        for root, _dirs, files in os.walk(os.path.join(BLOG_SOURCE_DIR, "images")):
+            if filename in files:
+                return os.path.relpath(os.path.join(root, filename), BLOG_SOURCE_DIR)
+
+        return None
 
     def replace_image(match: re.Match) -> str:
         alt = match.group(1)
@@ -47,33 +69,31 @@ def resolve_images_in_body(body: str) -> str:
         if img_path.startswith("http://") or img_path.startswith("https://"):
             return match.group(0)
 
-        # 去掉路径开头的 /
-        clean_path = img_path.lstrip("/")
-        local_file = os.path.join(BLOG_SOURCE_DIR, clean_path)
+        # 查找本地文件
+        rel_path = find_local_image(img_path)
+        if not rel_path:
+            print(f"  ⚠️  未找到图片: {img_path}")
+            return match.group(0)
 
-        # 构建 GitHub raw URL
-        raw_url = f"{GITHUB_RAW_BASE}/{clean_path}"
+        local_file = os.path.join(BLOG_SOURCE_DIR, rel_path)
+        raw_url = f"{GITHUB_RAW_BASE}/{rel_path}"
 
-        # 检查外链是否可访问
+        # 先查外链
         if _check_url(raw_url):
-            print(f"  🔗 图片外链可用: {clean_path}")
+            print(f"  🔗 {rel_path}")
             return f"![{alt}]({raw_url})"
 
-        # 外链不可用，检查本地文件
-        if os.path.exists(local_file):
-            print(f"  ⚠️  图片未推送到 GitHub: {clean_path}")
-            print(f"     正在 git add → commit → push...")
-            _git_sync()
-            # 再试一次
-            if _check_url(raw_url):
-                print(f"     ✅ push 后外链可用")
-                return f"![{alt}]({raw_url})"
-            else:
-                print(f"     ❌ push 后仍不可用，保留本地路径")
-        else:
-            print(f"  ⚠️  本地图片不存在: {local_file}")
+        # 外链不可用，本地有 → git sync
+        print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
+        print(f"     正在 git add → commit → push...")
+        _git_sync()
 
-        return match.group(0)  # 保留原样
+        if _check_url(raw_url):
+            print(f"     ✅ push 后外链可用")
+            return f"![{alt}]({raw_url})"
+        else:
+            print(f"     ❌ push 后仍不可用，保留本地路径")
+            return match.group(0)
 
     return image_pattern.sub(replace_image, body)
 
@@ -402,7 +422,7 @@ if __name__ == "__main__":
 
     # 替换本地图片为 GitHub raw 外链
     print("-1. 替换图片为外链...", flush=True)
-    article["body"] = resolve_images_in_body(article["body"])
+    article["body"] = resolve_images_in_body(article["body"], filepath)
 
     cli_tags = sys.argv[2:] if len(sys.argv) > 2 else []
 
