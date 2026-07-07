@@ -1,21 +1,67 @@
 (function () {
-  // 只在文章页显示：你的文章 URL 是 /2026/07/02/xxx/ 这种结构
-  if (!/^\/\d{4}\/\d{2}\/\d{2}\//.test(location.pathname)) {
+  const CATEGORY_PREFIX = "/categories/";
+  const SCROLL_KEY_PREFIX = "category-scroll:";
+
+  function isCategoryPage() {
+    return location.pathname.startsWith(CATEGORY_PREFIX);
+  }
+
+  function isPostPage() {
+    return /^\/\d{4}\/\d{2}\/\d{2}\//.test(location.pathname);
+  }
+
+  function scrollKey(pathname) {
+    return SCROLL_KEY_PREFIX + pathname;
+  }
+
+  // 1. 在分类页保存滚动位置，并在回来时恢复
+  if (isCategoryPage()) {
+    const key = scrollKey(location.pathname);
+
+    const savedY = sessionStorage.getItem(key);
+    if (savedY !== null) {
+      // 等页面渲染完成后再恢复，避免内容还没撑开导致滚动失败
+      setTimeout(function () {
+        window.scrollTo(0, Number(savedY));
+      }, 80);
+    }
+
+    let ticking = false;
+
+    window.addEventListener("scroll", function () {
+      if (ticking) {
+        return;
+      }
+
+      ticking = true;
+
+      requestAnimationFrame(function () {
+        sessionStorage.setItem(key, String(window.scrollY));
+        ticking = false;
+      });
+    });
+
+    return;
+  }
+
+  // 2. 只在文章页显示返回按钮
+  if (!isPostPage()) {
     return;
   }
 
   let target = "/categories/";
+  let canBackToCategory = false;
 
-  // 如果是从某个分类页点进来的，就返回那个分类页
   if (document.referrer) {
     try {
       const ref = new URL(document.referrer);
 
       if (
         ref.origin === location.origin &&
-        ref.pathname.startsWith("/categories/")
+        ref.pathname.startsWith(CATEGORY_PREFIX)
       ) {
         target = ref.pathname;
+        canBackToCategory = true;
       }
     } catch (e) {
       target = "/categories/";
@@ -26,6 +72,20 @@
   link.className = "back-to-category-btn";
   link.href = target;
   link.innerText = "← 返回分类列表";
+
+  link.addEventListener("click", function (event) {
+    event.preventDefault();
+
+    // 从分类页点进文章时，优先 history.back()
+    // 浏览器通常会自动恢复原来的滚动位置
+    if (canBackToCategory && history.length > 1) {
+      history.back();
+      return;
+    }
+
+    // 不是从分类页进入的，就跳到分类总页或 referrer 分类页
+    location.href = target;
+  });
 
   document.body.appendChild(link);
 })();
