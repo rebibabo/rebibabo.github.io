@@ -1,5 +1,5 @@
 ---
-title: java-concurrency（十七）—— CompletableFuture 如何处理异步结果与异常
+title: Java高并发底层原理（十七）—— CompletableFuture 如何处理异步结果与异常
 date: 2026-07-03
 tags:
     - Java

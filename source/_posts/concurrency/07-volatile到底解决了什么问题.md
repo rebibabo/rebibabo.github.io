@@ -1,5 +1,5 @@
 ---
-title: java-concurrency（七）—— volatile 到底解决了什么问题
+title: Java高并发底层原理（七）—— volatile 到底解决了什么问题
 date: 2026-07-02
 tags:
   - Java

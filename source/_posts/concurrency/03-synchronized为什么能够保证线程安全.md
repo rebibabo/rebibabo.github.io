@@ -1,4 +1,4 @@
-title: java-concurrency（三）—— synchronized 为什么能够保证线程安全
+title: Java高并发底层原理（三）—— synchronized 为什么能够保证线程安全
 date: 2026-07-02
 tags:
   - Java

@@ -1,5 +1,5 @@
 ---
-title: java-concurrency（十一）—— CountDownLatch 如何等待多个线程完成
+title: Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成
 date: 2026-07-03
 tags:
     - Java

@@ -1,5 +1,5 @@
 ---
-title: java-concurrency（十五）—— FutureTask 如何保存异步任务的结果和异常
+title: Java高并发底层原理（十五）—— FutureTask 如何保存异步任务的结果和异常
 date: 2026-07-03
 tags:
     - Java

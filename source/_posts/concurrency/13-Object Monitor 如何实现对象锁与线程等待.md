@@ -1,5 +1,5 @@
 ---
-title: java-concurrency（十三）—— Object Monitor 如何实现对象锁与线程等待
+title: Java高并发底层原理（十三）—— Object Monitor 如何实现对象锁与线程等待
 date: 2026-07-03
 tags:
     - Java

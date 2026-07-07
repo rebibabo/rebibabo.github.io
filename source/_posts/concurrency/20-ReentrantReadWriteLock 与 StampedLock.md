@@ -1,6 +1,6 @@
 ---
 
-title: java-concurrency（二十）—— ReentrantReadWriteLock 与 StampedLock
+title: Java高并发底层原理（二十）—— ReentrantReadWriteLock 与 StampedLock
 date: 2026-07-04
 tags:
 - Java
