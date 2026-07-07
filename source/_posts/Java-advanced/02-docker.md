@@ -87,9 +87,10 @@ graph TB
 
 理解 Docker 只需要先搞懂三个词的关系：
 
-```
-Dockerfile  ──build──▶  镜像（Image）  ──run──▶  容器（Container）
-（打包脚本）            （打包好的模板）          （运行中的实例）
+```mermaid
+graph LR
+    DF["Dockerfile<br/>（打包脚本）"] -->|build| Image["镜像（Image）<br/>（打包好的模板）"]
+    Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]
 ```
 
 | 概念 | 是什么 | 类比 |
@@ -161,16 +162,10 @@ docker exec -it my-ssp bash
 
 `-p 8080:8080` 这个参数最容易迷糊，记住格式是 **宿主机端口:容器端口**：
 
-```
-docker run -p 9090:8080 my-app
-
-外部访问宿主机的 9090 端口
-        ↓
-Docker 转发到容器内部的 8080 端口
-        ↓
-容器里的 Spring Boot 应用监听 8080
-
-所以浏览器访问 localhost:9090，实际打到了容器里的 8080
+```mermaid
+graph LR
+    Browser["浏览器 localhost:9090"] -->|外部访问| Host["宿主机 9090 端口"]
+    Host -->|Docker 转发| Container["容器内部 8080 端口<br/>Spring Boot 应用监听 8080"]
 ```
 
 容器之间是隔离的，不做端口映射，外部就访问不到容器里的服务。
@@ -348,13 +343,11 @@ docker run -m 512m --cpus 1 my-app
 
 镜像是**一层一层叠起来**的，每层只记录和上一层的差异：
 
-```
-镜像分层（从下到上）：
-  Layer 1: 基础 Linux 系统
-  Layer 2: 装上 JRE
-  Layer 3: 复制进 jar 包
-  ────────────────────
-  合并视图：完整的运行环境
+```mermaid
+graph TB
+    L1["Layer 1: 基础 Linux 系统"] --> L2["Layer 2: 装上 JRE"]
+    L2 --> L3["Layer 3: 复制进 jar 包"]
+    L3 --> View["──── 合并视图 ────<br/>完整的运行环境"]
 ```
 
 分层的好处：

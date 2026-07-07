@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-advanced/01-microservices-intro.md",
+                "file": "_posts/Java-advanced/02-docker.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01-microservices-intro"
+              "title": "02-docker"
             }
           }
         ],
@@ -194,6 +194,9 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "_posts/Java-advanced/03-k8s.md",
+    "_posts/Java-advanced/02-docker.md",
+    "_posts/Java-advanced/01-microservices-intro.md",
     "images/Java-advanced",
     "images/Java-advanced/IMG-20260707181206235.png",
     "_posts/programmatic-ads/09-openRTB.md",
@@ -233,12 +236,9 @@
     "schema/update-workflow.md",
     "wiki/maps/java-concurrency.md",
     "_posts/test.md",
-    "wiki/maps/java-basic.md",
-    "wiki/glossary/concurrency/ThreadLocal.md",
     "wiki/_index.md.bak",
     "_posts/programmatic-ads",
     "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_plot.cpython-312.pyc",
-    "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_exp.cpython-312.pyc",
-    "_posts/llm-inference/scripts/speculative_decoding/time_test.sh"
+    "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_exp.cpython-312.pyc"
   ]
 }
