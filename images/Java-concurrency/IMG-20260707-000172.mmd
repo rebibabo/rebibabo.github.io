@@ -1,3 +1,14 @@
-graph LR
-    A["order-worker-1"] --> B["orderLock"] --> C["stockLock"]
-    D["order-worker-2"] --> E["stockLock"] --> F["orderLock"]
+sequenceDiagram
+    participant T1 as order-worker-1
+    participant T2 as order-worker-2
+    participant L as orderLock
+    participant S as stockLock
+
+    T1->>L: 拿到 orderLock
+    T2->>L: 等待 orderLock
+    T1->>S: 拿到 stockLock
+    T1->>T1: 执行完成
+    T1->>S: 释放 stockLock
+    T1->>L: 释放 orderLock
+    T2->>L: 拿到 orderLock
+    T2->>T2: 继续执行

@@ -1,2 +1,3 @@
 graph LR
-    Head["head(哨兵)"] <--> B["Node B<br>线程 B"] <--> C["Node C<br>线程 C"]
+    Head["head"] <--> B["共享 Node B"] <--> C["共享 Node C"]
+    B --> BAcq["B 获取共享"] --> Set["设为 head<br>传播唤醒"]

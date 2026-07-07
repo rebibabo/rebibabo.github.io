@@ -1,4 +1,7 @@
 graph LR
-    A["ForkJoinPool"] --> B["管理 Worker"]
-    B --> C["每个 Worker 拥有本地双端队列"]
-    C --> D["ForkJoinTask 可以入队、弹出、窃取、执行、合并"]
+    subgraph Deque["本地双端队列"]
+        direction LR
+    T1 --- T2 --- T3 --- T4
+    end
+    Stealer["其他 Worker<br>（窃取者）"] -->|"窃取"| T1
+    Owner["当前 Worker<br>（拥有者）"] -->|"push / pop"| T4

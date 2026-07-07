@@ -1,5 +1,5 @@
-graph LR
-    base["baseCount"] --> total["total<br>baseCount + sum(CounterCell[])"]
-    cc0["CounterCell[0]"] --> total
-    cc1["CounterCell[1]"] --> total
-    ccN["CounterCell[...]"] --> total
+flowchart LR
+    subgraph items["items 数组（容量 5）"]
+        direction LR
+        i0["[0] A"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] 空"] ~~~ i4["[4] 空"]
+    end

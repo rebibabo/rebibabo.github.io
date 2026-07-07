@@ -1,2 +1,3 @@
 graph LR
-    A["Thread-1"] --> B["Task-A"] --> C["Task-B"] --> D["Task-C"]
+    A["外部变量 tl"] -- strong --> B["ThreadLocal 实例"]
+    C["Entry.key"] -- weak --> B

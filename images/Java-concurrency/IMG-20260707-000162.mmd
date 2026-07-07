@@ -1,7 +1,4 @@
 graph LR
-    subgraph Pool["ForkJoinPool"]
-        direction LR
-        W1["Worker-1"] --> D1["本地双端队列"]
-        W2["Worker-2"] --> D2["本地双端队列"]
-        W3["Worker-3"] --> D3["本地双端队列"]
-    end
+    A["ForkJoinPool"] --> B["管理 Worker"]
+    B --> C["每个 Worker 拥有本地双端队列"]
+    C --> D["ForkJoinTask 可以入队、弹出、窃取、执行、合并"]

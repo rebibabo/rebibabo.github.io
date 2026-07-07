@@ -1,9 +1,4 @@
 graph LR
-    subgraph CondQueue["条件队列"]
-        direction LR
-        C1["Node C1"] --> C2["Node C2"]
-    end
-    subgraph SyncQueue["AQS 同步队列"]
-        direction LR
-        Head["head"] <--> B["Node B"] <--> Tail["tail"]
-    end    C1 --> Head
+    RRWL["ReentrantReadWriteLock"] --> ReadLock["ReadLock"]
+    RRWL --> WriteLock["WriteLock"]
+    WriteLock --> Sync["Sync(AQS)"]

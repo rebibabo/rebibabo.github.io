@@ -26,22 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="在后端系统中，并不是所有任务都适合放在请求线程里同步执行。文件解析、图片处理、用户通知、报表生成、缓存刷新这类任务，通常耗时较长，并且不一定要阻塞当前请求。如果它们全部压在请求线程里，接口响应会变慢，请求线程也会被长时间占用。 并发任务处理系统要解决的核心问题，不只是“开几个线程异步执行任务”，而是：当任务不断产生，而系统资源有限时，如何让任务有边界地排队、被工作线程处理，并在队列堆积、执行失败、">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000183.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000184.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000185.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000186.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000187.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000188.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000189.png">
 <meta property="article:published_time" content="2026-07-04T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:51:07.916Z">
+<meta property="article:modified_time" content="2026-07-07T13:59:12.309Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="BlockingQueue">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="并发编程">
 <meta property="article:tag" content="线程池">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000183.png">
   
   
   
@@ -237,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          12k 字
+          13k 字
         
       </span>
     
@@ -248,7 +240,7 @@
         
         
         
-          99 分钟
+          106 分钟
         
       </span>
     
@@ -305,7 +297,14 @@
 <p>这段代码里，请求线程不再直接解析文件，而是创建一个 <code>Task</code> 并提交出去。后续由后台 Worker 线程执行解析、生成预览和通知。</p>
 <p>这个变化的本质是：请求线程负责产生任务，后台 Worker 负责执行任务，两者通过任务队列解耦。解耦之后，请求线程不需要等待整个文件处理完成，后台处理能力也可以通过 Worker 数量、队列容量、拒绝策略来单独控制。</p>
 <h2 id="2、一个任务系统里有哪些关键角色"><a href="#2、一个任务系统里有哪些关键角色" class="headerlink" title="2、一个任务系统里有哪些关键角色"></a>2、一个任务系统里有哪些关键角色</h2><p>一个单机并发任务处理系统，最小可以拆成四个角色：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000183.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;生产者&quot;] --&gt; B[&quot;任务队列&quot;] --&gt; C[&quot;工作线程&quot;] --&gt; D[&quot;处理器&quot;]
+</code></pre>
+
+
+
+
+
 <p>这几个角色分别承担不同职责：</p>
 <table>
 <thead>
@@ -343,7 +342,14 @@
 </tbody></table>
 <p>这里要注意，任务处理系统不是只有 Worker。Worker 只是执行者，如果没有任务模型，系统不知道自己执行的是什么；如果没有队列，任务提交速度和任务处理速度无法解耦；如果没有 Processor，业务逻辑会散落在 Worker 中，后续扩展和测试都会变得困难。</p>
 <p>所以第一步不是急着调线程数，而是先建立角色关系：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000184.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;提交任务&quot;] --&gt; B[&quot;入队任务&quot;] --&gt; C[&quot;工作线程取任务&quot;] --&gt; D[&quot;处理器执行任务&quot;] --&gt; E[&quot;记录结果&quot;]
+</code></pre>
+
+
+
+
+
 <p>后面的设计，都是围绕这条主线展开。</p>
 <h2 id="3、为什么要把任务建模成-Task"><a href="#3、为什么要把任务建模成-Task" class="headerlink" title="3、为什么要把任务建模成 Task"></a>3、为什么要把任务建模成 Task</h2><p>最简单的异步写法是直接提交一个 <code>Runnable</code>：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">executor.execute(() -&gt; &#123;<br>    parseFile(fileId);<br>    generatePreview(fileId);<br>    notifyUser(fileId);<br>&#125;);<br></code></pre></td></tr></table></figure>
@@ -449,7 +455,14 @@
 <p>启动多个 Worker 时，只需要按 <code>workerCount</code> 创建多个 <code>TaskWorker</code> 线程，并统一管理它们的启动和关闭即可。至此，单机任务系统的最小执行闭环已经形成：创建任务，放入队列，Worker 从队列取出任务，Processor 执行业务逻辑，最后更新任务状态。</p>
 <h2 id="6、Worker-数量和队列容量如何设计"><a href="#6、Worker-数量和队列容量如何设计" class="headerlink" title="6、Worker 数量和队列容量如何设计"></a>6、Worker 数量和队列容量如何设计</h2><p>Worker 数量决定系统同时执行多少个任务，队列容量决定系统最多允许多少任务等待。二者必须一起看，不能只调其中一个。</p>
 <p>如果 Worker 太少，处理速度跟不上提交速度，队列会持续堆积：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000185.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;提交速度 &gt; 处理速度&quot;] --&gt; B[&quot;队列积压增长&quot;] --&gt; C[&quot;任务等待时间增加&quot;]
+</code></pre>
+
+
+
+
+
 <p>如果 Worker 太多，也不一定更快。文件解析任务可能会读文件、写数据库、调用通知接口。Worker 太多时，任务虽然并发执行了，但数据库连接池、磁盘 I&#x2F;O、HTTP 下游可能被打满，单个任务耗时反而变长。</p>
 <p>所以 Worker 数量的上限不只由线程决定，还受任务类型和下游资源影响：</p>
 <table>
@@ -535,7 +548,16 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskFailureHandler</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Task&gt; taskQueue;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RetryPolicy retryPolicy;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(Task task, Exception e)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> e.getMessage();<br>        task.markFailed(error);<br><br>        <span class="hljs-keyword">if</span> (shouldRetry(e) &amp;&amp; retryPolicy.canRetry(task)) &#123;<br>            task.increaseRetryCount();<br><br>            <span class="hljs-keyword">if</span> (!taskQueue.offer(task)) &#123;<br>                task.markDead(<span class="hljs-string">&quot;queue full when retry: &quot;</span> + error);<br>                saveDeadTask(task);<br>            &#125;<br><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        task.markDead(error);<br>        saveDeadTask(task);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">shouldRetry</span><span class="hljs-params">(Exception e)</span> &#123;<br>        <span class="hljs-keyword">return</span> e <span class="hljs-keyword">instanceof</span> TimeoutException<br>                || e <span class="hljs-keyword">instanceof</span> IOException;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">saveDeadTask</span><span class="hljs-params">(Task task)</span> &#123;<br>        <span class="hljs-comment">// save to log, local file, monitoring system, or later persistent storage</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>这段逻辑表达的是：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000186.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;任务失败&quot;] --&gt; B[&quot;记录错误&quot;] --&gt; C[&quot;是否重试?&quot;]
+    C --&gt;|是| D[&quot;增加重试次数&quot;] --&gt; E[&quot;重新入队&quot;]
+    C --&gt;|否| F[&quot;标记为死信&quot;] --&gt; G[&quot;保存死信任务&quot;]
+</code></pre>
+
+
+
+
+
 <p>重试必须有边界。不能因为任务失败就无限重试，否则失败任务会一直占用 Worker。尤其当下游服务已经异常时，无限重试会持续放大故障。</p>
 <p>也不是所有异常都适合重试：</p>
 <table>
@@ -579,14 +601,29 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> createTime;<br><span class="hljs-keyword">private</span> <span class="hljs-type">long</span> startTime;<br><span class="hljs-keyword">private</span> <span class="hljs-type">long</span> finishTime;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markRunning</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">this</span>.status = TaskStatus.RUNNING;<br>    <span class="hljs-built_in">this</span>.startTime = System.currentTimeMillis();<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">markSuccess</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">this</span>.status = TaskStatus.SUCCESS;<br>    <span class="hljs-built_in">this</span>.finishTime = System.currentTimeMillis();<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">getWaitTime</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> startTime - createTime;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">getExecuteTime</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> finishTime - startTime;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>这两个指标能帮助定位问题：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000187.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;等待时间增加&quot;] --&gt; B[&quot;问题可能在排队环节&quot;]
+    C[&quot;执行时间增加&quot;] --&gt; D[&quot;问题可能在处理环节&quot;]
+</code></pre>
+
+
+
+
+
 <p>如果等待时间变长，但执行时间正常，说明 Worker 处理能力可能不足，或者任务提交速度突然升高。如果执行时间变长，说明业务逻辑或下游资源变慢，Worker 被慢任务占住，后续等待时间也会跟着升高。</p>
 <p>队列指标可以定期采集：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">queueSize</span> <span class="hljs-operator">=</span> taskQueue.size();<br><span class="hljs-type">int</span> <span class="hljs-variable">remainingCapacity</span> <span class="hljs-operator">=</span> taskQueue.remainingCapacity();<br><span class="hljs-type">int</span> <span class="hljs-variable">capacity</span> <span class="hljs-operator">=</span> queueSize + remainingCapacity;<br><span class="hljs-type">double</span> <span class="hljs-variable">usage</span> <span class="hljs-operator">=</span> queueSize * <span class="hljs-number">1.0</span> / capacity;<br></code></pre></td></tr></table></figure>
 
 <p>除了运行时监控，还要考虑服务关闭。关闭时 Worker 可能正在等待任务，也可能正在执行任务，队列里也可能还有任务。如果直接停进程，内存队列里的任务会丢失，正在执行的任务也可能只执行一半。</p>
 <p>单机内存任务系统的优雅关闭，至少要做到三步：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000188.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;停止接收新任务&quot;] --&gt; B[&quot;让工作线程处理完现有队列&quot;] --&gt; C[&quot;等待运行中任务（带超时）&quot;]
+</code></pre>
+
+
+
+
+
 <p>可以给 WorkerPool 增加运行状态：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TaskWorkerPool</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">running</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isRunning</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> running;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">shutdown</span><span class="hljs-params">()</span> &#123;<br>        running = <span class="hljs-literal">false</span>;<br><br>        <span class="hljs-keyword">for</span> (Thread worker : workers) &#123;<br>            worker.interrupt();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
@@ -598,7 +635,14 @@
 
 <p>它的含义是：只要系统还在运行，就继续取任务；即使系统已经开始关闭，只要队列里还有任务，也尽量继续处理；只有系统已经关闭，并且队列也空了，Worker 才退出。</p>
 <p>关闭后还需要等待 Worker 结束，但不能无限等。通常会用 <code>join(timeout)</code> 或线程池的 <code>awaitTermination</code> 给 Worker 一个有限的完成窗口。这样关闭流程就有了边界：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000189.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;关闭&quot;] --&gt; B[&quot;拒绝新任务&quot;] --&gt; C[&quot;中断空闲工作线程&quot;] --&gt; D[&quot;处理完现有队列&quot;] --&gt; E[&quot;带超时等待&quot;]
+</code></pre>
+
+
+
+
+
 <p>不过要注意，内存队列只能做到“尽量处理”。如果机器宕机、进程被强杀，内存里的任务仍然会丢失。正在执行的任务是否能恢复，也没有可靠记录。</p>
 <p>这正是单机内存任务系统的边界：它可以解决并发执行和短暂缓冲，但不能保证任务在重启、宕机、多实例部署下仍然可靠。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>并发任务处理系统的起点，是请求线程不适合直接承担所有耗时工作。为了让请求处理和后台执行解耦，系统需要把业务动作抽象成 <code>Task</code>，再通过有界队列把任务提交速度和任务执行速度隔开。</p>
@@ -642,9 +686,9 @@
       
         <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="print-no-link">#线程池</a>
       
-        <a href="/tags/BlockingQueue/" class="print-no-link">#BlockingQueue</a>
-      
         <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" class="print-no-link">#并发编程</a>
+      
+        <a href="/tags/BlockingQueue/" class="print-no-link">#BlockingQueue</a>
       
     </div>
   

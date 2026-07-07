@@ -1,4 +1,3 @@
-graph LR
-    subgraph Hashtable
-        lock["全局锁<br>get / put / remove"]
-    end
+flowchart LR
+    A["读取 table[i]"] --> B["table[i] == null?"]
+    B -->|是| C["CAS null -> newNode"]

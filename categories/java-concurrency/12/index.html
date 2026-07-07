@@ -26,13 +26,8 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="CountDownLatch 适合等待一批任务全部完成，但它不限制这些任务能够同时执行多少个。假设程序需要访问一个外部服务，而这个服务最多只能同时处理三个请求，如果十个线程一起访问，就可能造成连接耗尽、响应变慢甚至服务崩溃。 这时可以使用 Semaphore： 1Semaphore semaphore &#x3D; new Semaphore(3);  这里的 3 表示初始有三个许可证。线程只有成功取得许可">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000055.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000056.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000057.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000058.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000059.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:51:07.914Z">
+<meta property="article:modified_time" content="2026-07-07T13:59:12.306Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="CAS">
@@ -40,7 +35,6 @@
 <meta property="article:tag" content="Semaphore">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000055.png">
   
   
   
@@ -236,7 +230,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.6k 字
+          6.5k 字
         
       </span>
     
@@ -247,7 +241,7 @@
         
         
         
-          48 分钟
+          55 分钟
         
       </span>
     
@@ -303,9 +297,26 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Semaphore</span> <span class="hljs-variable">semaphore</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Semaphore</span>(<span class="hljs-number">3</span>);<br></code></pre></td></tr></table></figure>
 
 <p>可以把它理解为当前有三张通行证。前三个线程调用 <code>acquire()</code> 时，可以分别拿走一张许可证；第四个线程再调用 <code>acquire()</code> 时，发现许可证已经用完，就需要等待。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000055.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Init[&quot;初始: 3 张许可证&quot;] --&gt; A[&quot;线程 A acquire: 3 → 2&quot;]
+    A --&gt; B[&quot;线程 B acquire: 2 → 1&quot;]
+    B --&gt; C[&quot;线程 C acquire: 1 → 0&quot;]
+    C --&gt; D[&quot;线程 D acquire: 等待&quot;]
+</code></pre>
+
+
+
+
+
 <p>当某个线程执行完受限任务并调用 <code>release()</code> 后，许可证数量增加，等待线程才有机会重新尝试获取许可证。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000056.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;线程 A release: 0 → 1&quot;] --&gt; D[&quot;线程 D acquire: 1 → 0&quot;]
+</code></pre>
+
+
+
+
+
 <p>这里需要注意，<code>release()</code> 并不是把许可证直接指定给某个等待线程。它只是增加可用许可证，并通知等待线程重新参与竞争。最终哪个线程成功，还要看它是否重新执行获取逻辑并成功减少许可证数量。</p>
 <h2 id="二、acquire-、release-与-state-的关系"><a href="#二、acquire-、release-与-state-的关系" class="headerlink" title="二、acquire()、release() 与 state 的关系"></a>二、acquire()、release() 与 state 的关系</h2><p><code>Semaphore</code> 基于 AQS 实现，并使用 AQS 的 <code>state</code> 保存当前剩余许可证数量：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">state = 3: three permits available<br>state = 2: two permits available<br>state = 1: one permit available<br>state = 0: no permit available<br></code></pre></td></tr></table></figure>
@@ -338,14 +349,37 @@
 <h2 id="三、为什么-acquire-和-release-都需要-CAS"><a href="#三、为什么-acquire-和-release-都需要-CAS" class="headerlink" title="三、为什么 acquire() 和 release() 都需要 CAS"></a>三、为什么 acquire() 和 release() 都需要 CAS</h2><p>多个线程可能同时申请许可证。如果 <code>acquire()</code> 内部只是普通地执行 <code>state--</code>，就可能让多个线程取得同一个许可证。</p>
 <p>假设当前只剩一个许可证，也就是 <code>state == 1</code>。两个线程同时申请时，都可能先读到 <code>1</code>，然后都把结果写回 <code>0</code>。从状态结果看只少了一个许可证，但两个线程都可能认为自己已经通过了限制。</p>
 <p>这个交错过程可以表示为：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000057.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph A[&quot;线程 A&quot;]
+        direction LR
+        A1[&quot;读取 state = 1&quot;] --&gt; A2[&quot;计算 1 - 1&quot;]
+        A2 --&gt; A3[&quot;写入 state = 0 / 获取成功&quot;]
+    end
+    subgraph B[&quot;线程 B&quot;]
+        direction LR
+        B1[&quot;读取 state = 1&quot;] --&gt; B2[&quot;计算 1 - 1&quot;]
+        B2 --&gt; B3[&quot;写入 state = 0 / 获取成功&quot;]
+    end
+</code></pre>
+
+
+
+
+
 <p>这会破坏并发数量限制。<code>Semaphore</code> 因此使用 CAS 循环修改 <code>state</code>。可以简化理解为：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (;;) &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">available</span> <span class="hljs-operator">=</span> getState();<br>    <span class="hljs-type">int</span> <span class="hljs-variable">remaining</span> <span class="hljs-operator">=</span> available - <span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">if</span> (remaining &lt; <span class="hljs-number">0</span>) &#123;<br>        获取失败;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (compareAndSetState(available, remaining)) &#123;<br>        获取成功;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>如果两个线程都读到 <code>state == 1</code>，只有一个线程能成功执行 <code>CAS(1, 0)</code>；另一个线程 CAS 失败后必须重新读取最新状态，发现已经没有许可证，就进入等待。</p>
 <p><code>release()</code> 也需要 CAS，原因和 <code>acquire()</code> 对称。多个线程可能同时归还许可证，如果只是普通地执行 <code>state++</code>，也可能发生更新丢失。例如两个线程都读到 <code>state == 0</code>，都写回 <code>1</code>，实际归还了两个许可证，结果却只增加了一个。因此归还许可证同样要通过 CAS 循环完成。</p>
 <h2 id="四、许可证不足时线程去了哪里"><a href="#四、许可证不足时线程去了哪里" class="headerlink" title="四、许可证不足时线程去了哪里"></a>四、许可证不足时线程去了哪里</h2><p>当线程调用 <code>acquire()</code> 时，如果发现 <code>state == 0</code>，它不会一直空转重试。AQS 会把它加入等待队列，并暂停线程执行。等其他线程调用 <code>release()</code> 增加许可证后，等待线程会被唤醒，再重新尝试获取许可证。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000058.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Head[&quot;head&quot;] --&gt; D[&quot;线程 D&quot;] --&gt; E[&quot;线程 E&quot;] --&gt; F[&quot;线程 F&quot;]
+</code></pre>
+
+
+
+
+
 <p>被唤醒不等于已经取得许可证。线程醒来后仍然要重新读取 <code>state</code>，并通过 CAS 尝试减少许可证数量。只有成功减少 <code>state</code>，才算真正通过 <code>acquire()</code>。</p>
 <p>这一点和前文的 <code>Condition</code> 类似：通知只是让等待线程重新获得机会，不是直接承诺业务条件一定满足；在 <code>Semaphore</code> 中，唤醒也只是重新竞争许可证的开始。</p>
 <h2 id="五、为什么-Semaphore-属于共享模式"><a href="#五、为什么-Semaphore-属于共享模式" class="headerlink" title="五、为什么 Semaphore 属于共享模式"></a>五、为什么 Semaphore 属于共享模式</h2><p><code>ReentrantLock</code> 使用 AQS 独占模式。一把锁同一时刻只能由一个线程持有，其他线程必须等待。</p>
@@ -372,7 +406,20 @@
 </tbody></table>
 <p>所以 <code>CountDownLatch</code> 更像一次性闸门，计数归零后所有等待线程放行；<code>Semaphore</code> 更像可循环使用的通行证池，线程通过时拿走许可证，结束后再归还许可证。</p>
 <h2 id="六、为什么-Semaphore-可以重复使用"><a href="#六、为什么-Semaphore-可以重复使用" class="headerlink" title="六、为什么 Semaphore 可以重复使用"></a>六、为什么 Semaphore 可以重复使用</h2><p><code>CountDownLatch</code> 的计数只能减少，到达 <code>0</code> 后不会恢复，因此只能使用一轮。<code>Semaphore</code> 的 <code>state</code> 既会因为 <code>acquire()</code> 减少，也会因为 <code>release()</code> 增加，所以它可以在长期运行的程序中反复控制并发数量。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000059.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Init[&quot;初始 state = 3&quot;] --&gt; A[&quot;A 获取: 3 → 2&quot;]
+    A --&gt; B[&quot;B 获取: 2 → 1&quot;]
+    B --&gt; C[&quot;C 获取: 1 → 0&quot;]
+    C --&gt; AR[&quot;A 释放: 0 → 1&quot;]
+    AR --&gt; D[&quot;D 获取: 1 → 0&quot;]
+    D --&gt; BR[&quot;B 释放: 0 → 1&quot;]
+    BR --&gt; E[&quot;E 获取: 1 → 0&quot;]
+</code></pre>
+
+
+
+
+
 <p>这也是它适合做限流、资源池并发控制的原因：许可证不会因为用完一次就永久失效，而是在获取和归还之间循环流动。</p>
 <h2 id="七、Semaphore-不记录许可证属于哪个线程"><a href="#七、Semaphore-不记录许可证属于哪个线程" class="headerlink" title="七、Semaphore 不记录许可证属于哪个线程"></a>七、Semaphore 不记录许可证属于哪个线程</h2><p><code>ReentrantLock</code> 会记录当前持锁线程，只有 owner 才能合法执行 <code>unlock()</code>。<code>Semaphore</code> 不记录某个许可证具体属于哪个线程，也没有类似 owner 的字段。</p>
 <p>这意味着从 <code>Semaphore</code> 自身的角度看，一个线程调用 <code>acquire()</code>，另一个线程调用 <code>release()</code> 是允许的：</p>
@@ -487,9 +534,9 @@
       
         <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
       
-        <a href="/tags/CAS/" class="print-no-link">#CAS</a>
-      
         <a href="/tags/AQS/" class="print-no-link">#AQS</a>
+      
+        <a href="/tags/CAS/" class="print-no-link">#CAS</a>
       
         <a href="/tags/Semaphore/" class="print-no-link">#Semaphore</a>
       

@@ -1,5 +1,9 @@
 flowchart LR
-    subgraph items["items 数组（容量 5）"]
+    subgraph put["put()"]
         direction LR
-        i0["[0] 空"] ~~~ i1["[1] B"] ~~~ i2["[2] C"] ~~~ i3["[3] 空"] ~~~ i4["[4] 空"]
+        p1["获取锁"] --> p2["写入尾部"] --> p3["更新 count"] --> p4["释放锁"]
     end
+    subgraph take["take()"]
+        direction LR
+        t1["获取锁"] --> t2["读取头部"] --> t3["更新 count"] --> t4["释放锁"]
+    end    p1 --> t1

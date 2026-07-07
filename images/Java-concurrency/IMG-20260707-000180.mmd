@@ -1,6 +1,8 @@
 flowchart LR
-    A["top -Hp 找到高 CPU 线程"] --> B["线程 ID 转十六进制"]
-    B --> C["在 jstack 中搜索 nid"]
-    C --> D["找到 Java 线程名"]
-    D --> E["读取栈顶"]
-    E --> F["定位业务代码"]
+    A["Worker 卡在哪里?"] --> B["慢 SQL"]
+    B --> C["远程接口"]
+    C --> D["文件 IO"]
+    D --> E["锁等待"]
+    E --> F["Future.get()"]
+    F --> G["CountDownLatch.await()"]
+    G --> H["BlockingQueue.take()"]

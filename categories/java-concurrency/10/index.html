@@ -26,9 +26,8 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="上一章讨论了 ReentrantLock 如何实现互斥：同一时刻只有一个线程能够进入临界区。但互斥只解决“谁能进去”的问题，并不保证线程进去以后，业务条件一定已经满足。 以消费者从队列中取数据为例： 12345678910lock.lock();try &#123;    if (queue.isEmpty()) &#123;        &#x2F;&#x2F; 当前没有数据，无法继续消费    &#125;">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000052.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:51:07.914Z">
+<meta property="article:modified_time" content="2026-07-07T13:59:12.306Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="Condition">
@@ -36,7 +35,6 @@
 <meta property="article:tag" content="ReentrantLock">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000052.png">
   
   
   
@@ -232,7 +230,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.9k 字
+          7k 字
         
       </span>
     
@@ -243,7 +241,7 @@
         
         
         
-          58 分钟
+          59 分钟
         
       </span>
     
@@ -392,7 +390,16 @@
 </tbody></table>
 <p>消费者调用 <code>await()</code> 后，会从持锁执行状态进入 <code>Condition</code> 条件队列，并释放 <code>lock</code>。生产者调用 <code>signal()</code> 后，被通知的消费者不会直接执行临界区代码，而是从条件队列转移到锁等待队列，重新竞争同一把 <code>ReentrantLock</code>。</p>
 <p>这一步是理解 <code>Condition</code> 的关键：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000052.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    CondQueue[&quot;条件队列&quot;] --&gt;|signal| SyncQueue[&quot;同步队列&quot;]
+    CondQueue --&gt;|await 阻塞| Parked[&quot;线程挂起&quot;]
+    SyncQueue --&gt;|重新获取锁| Return[&quot;await 返回&quot;]
+</code></pre>
+
+
+
+
+
 <p>图中的 <code>Sync Queue</code> 就是 AQS 中用于竞争锁的等待队列。线程从 <code>await()</code> 返回时，已经重新持有了 <code>lock</code>，所以外层 <code>finally</code> 中可以安全执行 <code>unlock()</code>。</p>
 <h2 id="八、为什么一把锁可以创建多个-Condition"><a href="#八、为什么一把锁可以创建多个-Condition" class="headerlink" title="八、为什么一把锁可以创建多个 Condition"></a>八、为什么一把锁可以创建多个 Condition</h2><p>一个有界队列同时存在两个不同的业务条件：</p>
 <table>
@@ -482,11 +489,11 @@
       
         <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
       
-        <a href="/tags/Condition/" class="print-no-link">#Condition</a>
-      
         <a href="/tags/ReentrantLock/" class="print-no-link">#ReentrantLock</a>
       
         <a href="/tags/AQS/" class="print-no-link">#AQS</a>
+      
+        <a href="/tags/Condition/" class="print-no-link">#Condition</a>
       
     </div>
   

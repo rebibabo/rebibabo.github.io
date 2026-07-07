@@ -1,4 +1,3 @@
 flowchart LR
-    Request["请求线程"] --> TaskTable["数据库任务表"] --> MemoryQueue["内存队列"]
-    TaskTable --> TaskStatus["任务状态"]
-    MemoryQueue --> Worker["工作线程"]
+    InstanceA["实例 A"] --> TaskTable["数据库任务表"]
+    InstanceB["实例 B"] --> TaskTable

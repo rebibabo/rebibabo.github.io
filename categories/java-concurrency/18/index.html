@@ -26,27 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="ThreadLocal 要解决的不是“如何让共享对象变得线程安全”，而是换一条思路：既然多个线程共享同一份可变状态会产生竞争，那就让每个线程各自持有一份数据。这样一来，线程之间没有共享，也就不需要通过锁或 CAS 去协调访问顺序。 但这个模型有一个隐含前提：线程的生命周期最好和任务的生命周期一致。在线程池里，线程会被反复复用，一个任务结束并不代表线程结束，挂在线程身上的 ThreadLocal 数">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000078.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000079.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000080.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000081.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000082.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000083.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000084.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000085.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000086.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000087.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000088.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000089.png">
 <meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:51:07.915Z">
+<meta property="article:modified_time" content="2026-07-07T13:59:12.307Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="ThreadLocal">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000078.png">
   
   
   
@@ -242,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          8k 字
+          9.7k 字
         
       </span>
     
@@ -253,7 +240,7 @@
         
         
         
-          67 分钟
+          82 分钟
         
       </span>
     
@@ -313,10 +300,24 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;User&gt; tl = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br><br>tl.set(userA);<br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> tl.get();<br></code></pre></td></tr></table></figure>
 
 <p>如果只看 API，很容易以为 <code>tl</code> 这个对象内部维护了一张映射表：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000078.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;ThreadLocal&quot;] --&gt; B[&quot;Thread -&gt; User&quot;]
+</code></pre>
+
+
+
+
+
 <p>也就是说，好像是 ThreadLocal 负责记录“哪个线程对应哪个 User”。但真实结构正好相反：<strong>数据不是存在 ThreadLocal 里，而是存在当前线程自己身上</strong>。</p>
 <h3 id="2-2-真实结构是-Map-挂在-Thread-上"><a href="#2-2-真实结构是-Map-挂在-Thread-上" class="headerlink" title="2.2 真实结构是 Map 挂在 Thread 上"></a>2.2 真实结构是 Map 挂在 Thread 上</h3><p>每个 <code>Thread</code> 对象内部都有一个 <code>ThreadLocalMap</code>。这张 Map 的 key 是 <code>ThreadLocal</code> 实例，value 是业务代码存进去的数据。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000079.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread-A&quot;] --&gt; B[&quot;ThreadLocalMap&quot;] --&gt; C[&quot;Entry&lt;br&gt;key = ThreadLocal object&lt;br&gt;value = UserA&quot;]
+</code></pre>
+
+
+
+
+
 <p>因此，下面这行代码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">tl.set(userA);<br></code></pre></td></tr></table></figure>
 
@@ -330,7 +331,15 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread.currentThread().threadLocalMap.get(tl);<br></code></pre></td></tr></table></figure>
 
 <p>所以 ThreadLocal 能实现线程隔离，不是因为 <code>ThreadLocal</code> 对象内部做了复杂同步，而是因为每个线程查的是自己的 Map。同一个 <code>tl</code> 变量，在不同线程中会进入不同的 <code>ThreadLocalMap</code>，自然不会互相干扰。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000080.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread-A&quot;] --&gt; B[&quot;ThreadLocalMap&quot;] --&gt; C[&quot;tl -&gt; UserA&quot;]
+    D[&quot;Thread-B&quot;] --&gt; E[&quot;ThreadLocalMap&quot;] --&gt; F[&quot;tl -&gt; UserB&quot;]
+</code></pre>
+
+
+
+
+
 <p>这也解释了为什么 ThreadLocal 变量经常声明成 <code>static</code>：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ThreadLocal&lt;User&gt; USER_CONTEXT = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br></code></pre></td></tr></table></figure>
 
@@ -340,14 +349,35 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;User&gt; tl = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br><br>tl.set(userA);<br>tl.set(userB);<br><br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> tl.get(); <span class="hljs-comment">// userB</span><br></code></pre></td></tr></table></figure>
 
 <p>这个过程可以理解为：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000081.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;第一次 set: tl -&gt; userA&quot;] --&gt; B[&quot;第二次 set: tl -&gt; userB&quot;]
+</code></pre>
+
+
+
+
+
 <p>原来的 <code>userA</code> 被替换掉了。如果没有其他引用继续指向 <code>userA</code>，它后续就可以被 GC 回收。</p>
 <p>这个细节在线程池场景下很重要：如果某个任务开始时没有重新 <code>set()</code>，而是直接 <code>get()</code>，它拿到的可能不是 <code>null</code>，而是这个线程上一次执行任务后留下的旧值。</p>
 <h2 id="3-为什么线程池会改变-ThreadLocal-的风险"><a href="#3-为什么线程池会改变-ThreadLocal-的风险" class="headerlink" title="3. 为什么线程池会改变 ThreadLocal 的风险"></a>3. 为什么线程池会改变 ThreadLocal 的风险</h2><p>如果是普通线程，线程执行完任务后就结束，挂在 <code>Thread</code> 对象上的 <code>ThreadLocalMap</code> 也会随着线程一起消失。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000082.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread-A 执行 Task-A&quot;] --&gt; B[&quot;Task-A 结束&quot;] --&gt; C[&quot;Thread-A 结束&quot;] --&gt; D[&quot;ThreadLocalMap 随 Thread-A 一起回收&quot;]
+</code></pre>
+
+
+
+
+
 <p>在这种模型下，ThreadLocal 数据的生命周期大致等于线程生命周期，也等于任务生命周期，问题不大。</p>
 <p>但线程池不是这样。线程池的核心特点是：<strong>线程不会随着单个任务结束而销毁，而是会被反复复用</strong>。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000083.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread-1&quot;] --&gt; B[&quot;Task-A&quot;] --&gt; C[&quot;Task-B&quot;] --&gt; D[&quot;Task-C&quot;]
+</code></pre>
+
+
+
+
+
 <p>问题就出在这里：Task-A 结束了，但 Thread-1 没有结束；Thread-1 没有结束，它内部的 <code>ThreadLocalMap</code> 也不会销毁。如果 Task-A 执行时调用了：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">tl.set(<span class="hljs-string">&quot;A&quot;</span>);<br></code></pre></td></tr></table></figure>
 
@@ -392,7 +422,16 @@
 <p>所以线程池中的 ThreadLocal 问题，本质上不是 API 用法复杂，而是生命周期模型变了：<strong>任务结束了，但线程还活着；线程还活着，线程上的 ThreadLocalMap 就还活着</strong>。</p>
 <h2 id="4-为什么-key-是弱引用，value-是强引用"><a href="#4-为什么-key-是弱引用，value-是强引用" class="headerlink" title="4. 为什么 key 是弱引用，value 是强引用"></a>4. 为什么 key 是弱引用，value 是强引用</h2><p>要理解 ThreadLocal 的内存泄漏，需要先看 <code>ThreadLocalMap.Entry</code> 的引用设计。</p>
 <p>一个 Entry 里包含两部分：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000084.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    E[&quot;Entry&quot;]
+    E --&gt; K[&quot;key: ThreadLocal 实例&quot;]
+    E --&gt; V[&quot;value: 业务对象&quot;]
+</code></pre>
+
+
+
+
+
 <p>但 key 和 value 的引用强度不同：</p>
 <table>
 <thead>
@@ -428,14 +467,29 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;User&gt; tl = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br>tl.set(<span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>());<br></code></pre></td></tr></table></figure>
 
 <p>此时，<code>ThreadLocal</code> 实例可能同时被两条引用链指向：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000085.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;外部变量 tl&quot;] -- strong --&gt; B[&quot;ThreadLocal 实例&quot;]
+    C[&quot;Entry.key&quot;] -- weak --&gt; B
+</code></pre>
+
+
+
+
+
 <p>第一条是业务代码里的 <code>tl</code> 变量，它通常是局部变量、成员变量或 <code>static</code> 字段。这条是强引用。</p>
 <p>第二条是 <code>ThreadLocalMap.Entry.key</code>，它也指向同一个 <code>ThreadLocal</code> 实例，但它是弱引用。</p>
 <p>关键点在于：<strong>GC 判断 ThreadLocal 实例是否可回收时，只看强引用链，不会因为 Entry.key 这个弱引用还存在，就阻止回收</strong>。</p>
 <p>所以，一旦外部的 <code>tl</code> 强引用断开，例如方法执行结束、对象被回收，或者变量被置为 <code>null</code>，<code>ThreadLocal</code> 实例就只剩下 Entry.key 这条弱引用。下一次 GC 时，这个 <code>ThreadLocal</code> 实例会被回收，Entry.key 会变成 <code>null</code>。</p>
 <h3 id="4-3-key-为什么不能是强引用"><a href="#4-3-key-为什么不能是强引用" class="headerlink" title="4.3 key 为什么不能是强引用"></a>4.3 key 为什么不能是强引用</h3><p>如果 Entry.key 是强引用，就会出现另一个问题。</p>
 <p>假设外部业务代码已经不再持有 <code>tl</code>，但 Entry.key 还强引用着这个 ThreadLocal 实例：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000086.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread&quot;] --&gt; B[&quot;ThreadLocalMap&quot;] --&gt; C[&quot;Entry.key&quot;] -- strong --&gt; D[&quot;ThreadLocal 实例&quot;]
+</code></pre>
+
+
+
+
+
 <p>这样一来，即使业务代码已经不用这个 ThreadLocal 了，它也仍然会被线程内部的 Map 强行保留下来，无法被 GC 回收。</p>
 <p>更麻烦的是，业务代码已经拿不到原来的 <code>tl</code> 变量，也就没有入口调用 <code>remove()</code> 去清理对应的 Entry。这个 ThreadLocal 实例会被长期挂在线程上，形成更严重的泄漏。</p>
 <p>所以，key 设计成弱引用，是为了避免 ThreadLocal 实例本身被 ThreadLocalMap 强行延长生命周期。</p>
@@ -474,11 +528,34 @@
 
 <p>当 <code>handle()</code> 方法执行结束后，局部变量 <code>tl</code> 随着栈帧出栈而消失。此时外部强引用断开，只剩下 Entry.key 这条弱引用指向 ThreadLocal 实例。</p>
 <p>下一次 GC 发生时，ThreadLocal 实例会被回收，Entry.key 变成 <code>null</code>。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000087.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph &quot;GC 之前&quot;
+        A1[&quot;Thread&quot;] --&gt; A2[&quot;ThreadLocalMap&quot;] --&gt; A3[&quot;Entry&quot;]
+        A3 --&gt; A4[&quot;key: ThreadLocal 实例&quot;]
+        A3 --&gt; A5[&quot;value: User 实例&quot;]
+    end
+    subgraph &quot;GC 之后&quot;
+        B1[&quot;Thread&quot;] --&gt; B2[&quot;ThreadLocalMap&quot;] --&gt; B3[&quot;Entry&quot;]
+        B3 --&gt; B4[&quot;key: null&quot;]
+        B3 --&gt; B5[&quot;value: User 实例&quot;]
+    end
+</code></pre>
+
+
+
+
+
 <p>这类 key 已经为 <code>null</code>，但 value 还在的 Entry，通常称为 stale entry，也就是陈旧条目。</p>
 <p>关键问题是：<strong>GC 只回收了 ThreadLocal 实例，并不会自动删除 Entry，也不会自动断开 Entry.value 对 User 对象的强引用</strong>。</p>
 <p>从业务角度看，这个 value 已经没用了。因为 key 已经没了，业务代码再也无法通过原来的 ThreadLocal 找到它。但从 GC 角度看，value 仍然被强引用链指向：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000088.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;Thread&quot;] --&gt; B[&quot;ThreadLocalMap&quot;] --&gt; C[&quot;Entry&quot;] --&gt; D[&quot;value&quot;]
+</code></pre>
+
+
+
+
+
 <p>只要线程还活着，这条强引用链就还在，value 就不会被回收。</p>
 <p>这就是 ThreadLocal 内存泄漏的准确含义：</p>
 <blockquote>
@@ -488,7 +565,14 @@
 <h2 id="6-为什么不能依赖-ThreadLocalMap-自己清理"><a href="#6-为什么不能依赖-ThreadLocalMap-自己清理" class="headerlink" title="6. 为什么不能依赖 ThreadLocalMap 自己清理"></a>6. 为什么不能依赖 ThreadLocalMap 自己清理</h2><p>ThreadLocalMap 并不是完全不清理 stale entry。它在后续执行某些操作时，会顺带检查并清理 key 为 <code>null</code> 的 Entry，例如 <code>get()</code>、<code>set()</code>、<code>remove()</code> 或扩容整理过程中。</p>
 <p>但这个清理是懒删除，不是即时清理。</p>
 <p>所谓懒删除，就是 Entry 变成 stale entry 后，不会立刻被删除，而是等下一次 ThreadLocalMap 被操作时，顺路清理一部分。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000089.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;ThreadLocal key 被 GC 回收&quot;] --&gt; B[&quot;Entry.key 变成 null&quot;] --&gt; C[&quot;Entry.value 仍然存在&quot;] --&gt; D[&quot;等待后续 get/set/remove/rehash 时顺带清理&quot;]
+</code></pre>
+
+
+
+
+
 <p>问题在于，这个“后续操作”是不确定的。在线程池里，某个线程可能长期存活，但后续任务再也不访问同一个 ThreadLocalMap 中相关位置。这样 stale entry 就可能一直挂着，value 也会一直被引用。</p>
 <p>所以，依赖 ThreadLocalMap 的懒删除是不可靠的。它只能作为内部补救机制，不能作为业务代码的清理策略。</p>
 <p>真正可靠的做法只有一个：<strong>业务逻辑使用完 ThreadLocal 后，主动调用 <code>remove()</code></strong>。</p>

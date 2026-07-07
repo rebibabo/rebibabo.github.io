@@ -1,2 +1,4 @@
 graph LR
-    Nested["CompletableFuture<br>嵌套版本"] --> Flat["CompletableFuture<br>扁平版本"]
+    UF["userFuture → User"] --> CP["计算价格"]
+    CF["couponFuture → Coupon"] --> CP
+    CP --> Price["价格"]

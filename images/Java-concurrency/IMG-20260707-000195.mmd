@@ -1,3 +1,5 @@
 flowchart LR
-    A["状态为 CREATED"] --> B["改为 RUNNING"]
-    B --> C["只有一个 Worker 成功"]
+    A["发送消息"] --> B["Broker 保存消息"]
+    B --> C["消费者接收消息"]
+    C --> D["执行业务"]
+    D --> E["确认消息 ack"]
