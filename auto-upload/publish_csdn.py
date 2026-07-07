@@ -297,7 +297,7 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # 主流程
 # ============================================================
 def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=True)
     context = browser.new_context(
         storage_state=AUTH_FILE,
         viewport={"width": 1280, "height": 900},
