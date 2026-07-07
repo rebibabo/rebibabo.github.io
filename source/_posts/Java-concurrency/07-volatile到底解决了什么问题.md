@@ -153,18 +153,7 @@ if (ready) {
 
 可以用下面的模型表示：
 
-```mermaid
-graph LR
-    subgraph Write["Write Thread"]
-        direction LR
-        D["data = 42"] --> VR["volatile write: ready = true"]
-    end
-    subgraph Read["Read Thread"]
-        direction LR
-        VD["volatile read: ready == true"] --> RD["read data"]
-    end
-    VR -->|synchronizes-with| VD    D --> VD
-```
+![](/images/Java-concurrency/IMG-20260707-000041.png)
 
 
 
