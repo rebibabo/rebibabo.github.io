@@ -87,14 +87,27 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             print(f"  🔗 {rel_path}")
             return f"![{alt}]({raw_url})"
 
-        # 外链不可用，本地有 → git sync，直接用外链
+        # 外链不可用，本地有 → git sync + 刷新 jsDelivr 缓存
         print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
         print(f"     正在 git add → commit → push...")
         _git_sync()
-        print(f"     ✅ 已推送，直接使用外链")
+        _purge_jsdelivr(rel_path)
+        print(f"     ✅ 已推送并刷新 CDN 缓存")
         return f"![{alt}]({raw_url})"
 
     return image_pattern.sub(replace_image, body)
+
+
+def _purge_jsdelivr(rel_path: str):
+    """刷新 jsDelivr 缓存，让新推送的图片立即可用"""
+    encoded_path = "/".join(quote(part, safe="") for part in rel_path.split("/"))
+    purge_url = f"https://purge.jsdelivr.net/gh/rebibabo/rebibabo.github.io@source/source/{encoded_path}"
+    try:
+        ctx = ssl._create_unverified_context()
+        req = urllib.request.Request(purge_url, method="GET")
+        urllib.request.urlopen(req, timeout=10, context=ctx)
+    except Exception:
+        pass  # purge 失败不影响主流程
 
 
 def _check_url(url: str) -> bool:
