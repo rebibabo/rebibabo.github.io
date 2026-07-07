@@ -1,55 +1,224 @@
+"""
+CSDN 自动发布文章脚本
+=====================
+用法：
+    python3 auto-upload/publish_csdn.py <markdown文件路径> [标签1] [标签2] ...
+
+示例：
+    python3 auto-upload/publish_csdn.py source/_posts/xxx.md Java 高并发
+"""
+
 import re
-from playwright.sync_api import Playwright, sync_playwright, expect
+import sys
+import os
+from pathlib import Path
+from playwright.sync_api import Playwright, sync_playwright
+
+# ============================================================
+# 配置
+# ============================================================
+AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
+COLUMN_NAME = "Java高并发"          # 专栏名
+DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签
 
 
-def run(playwright: Playwright) -> None:
+# ============================================================
+# Markdown 解析
+# ============================================================
+def parse_markdown(filepath: str) -> dict:
+    """解析 hexo markdown，提取 title、正文、tags"""
+    with open(filepath, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    front_matter = {}
+    body = content
+    m = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+    if m:
+        body = content[m.end():]
+        for line in m.group(1).strip().split("\n"):
+            line = line.strip()
+            if ":" in line:
+                key, _, val = line.partition(":")
+                front_matter[key.strip()] = val.strip().strip('"').strip("'")
+
+    title = front_matter.get("title", Path(filepath).stem)
+
+    # 移除 hexo 特有标签
+    body = re.sub(r'\{%\s*note[^%]*%\}|'r'\{%\s*endnote[^%]*%\}', '', body)
+    body = re.sub(r'\{%[^%]*%\}', '', body)
+
+    # 提取 tags
+    raw_tags = front_matter.get("tags", "")
+    tags = [t.strip().strip("'\"") for t in re.split(r'[,\n\[\]]+', raw_tags) if t.strip().strip("'\"")]
+
+    return {"title": title, "body": body.strip(), "tags": tags}
+
+
+# ============================================================
+# 工具函数
+# ============================================================
+def safe_click(page, selector: str, timeout: int = 2000):
+    """如果元素存在则点击，不存在则跳过"""
+    try:
+        el = page.locator(selector)
+        el.wait_for(timeout=timeout)
+        el.click()
+        print(f"  ✅ 点击了: {selector}")
+    except Exception:
+        print(f"  ⏭️  未找到，跳过: {selector}")
+
+
+# ============================================================
+# 主流程
+# ============================================================
+def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     browser = playwright.chromium.launch(headless=False)
-    context = browser.new_context(storage_state="auth.json")
+    context = browser.new_context(
+        storage_state=AUTH_FILE,
+        viewport={"width": 1280, "height": 900},
+        locale="zh-CN",
+    )
     page = context.new_page()
+
+    # ---- 第一步：打开 CSDN 后台，关闭广告 ----
+    print("1. 打开 CSDN 创作后台...")
     page.goto("https://mp.csdn.net/")
-    page.locator(".close-btn").click()
+    page.wait_for_timeout(2000)
+
+    # 关闭广告弹窗（如果有的话）
+    safe_click(page, ".close-btn")
+
+    # ---- 第二步：点击「创作」→ 新标签页 ----
+    print("2. 点击「创作」...")
     with page.expect_popup() as page1_info:
         page.get_by_role("link", name="创作").first.click()
     page1 = page1_info.value
+    page1.wait_for_timeout(2000)
+
+    # ---- 第三步：点击「使用 MD 编辑器」→ 再开一个标签页 ----
+    print("3. 打开 MD 编辑器...")
     with page1.expect_popup() as page2_info:
         page1.get_by_role("button", name="使用 MD 编辑器").click()
     page2 = page2_info.value
-    page2.get_by_text("1. **全新的界面设计** ，将会带来全新的写作体验；").click()
-    page2.get_by_text("@[TOC](这里写自定义目录标题) # 欢迎使用").press("ControlOrMeta+a")
-    page2.goto("https://editor.csdn.net/md?not_checkout=1&spm=1015.2103.3001.8066&articleId=162665186")
-    page2.locator("div").filter(has_text=re.compile(r"^【无标题】$")).click()
-    page2.get_by_role("textbox", name="请输入文章标题（5~100个字）").press("ControlOrMeta+a")
-    page2.get_by_role("textbox", name="请输入文章标题（5~100个字）").fill("Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择")
-    page2.get_by_role("button", name="发布文章").click()
-    page2.get_by_text("Java高并发", exact=True).click()
-    page2.locator("i").nth(2).click()
-    page2.locator("i").nth(2).click()
-    page2.locator("i").nth(2).click()
-    page2.get_by_role("button", name="添加文章标签").click()
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").click()
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("java")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("CapsLock")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("java")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("CapsLock")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("高并发")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("标签2")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("标签3")
-    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
-    page2.get_by_role("button", name="关闭").nth(1).click()
-    page2.get_by_role("textbox", name="本内容会在各展现列表中展示，帮助读者快速了解内容。若不填，则默认提取正文前256个字。").click()
-    page2.get_by_role("textbox", name="本内容会在各展现列表中展示，帮助读者快速了解内容。若不填，则默认提取正文前256个字。").fill("\n上一章讨论的是单机内存版任务处理系统：请求线程把 `Task` 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。\n\n一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执行到一半的任务，也没有稳定位置记录它到底完成了没有。\n\n本章继续沿用文件解析任务这个例子，讨论任务不能丢")
-    page2.get_by_role("textbox", name="无声明").click()
-    page2.get_by_text("部分内容由AI辅助生成").click()
-    page2.locator(".el-checkbox__inner").click()
-    page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
+    page2.wait_for_load_state("domcontentloaded")
+    page2.wait_for_timeout(2000)
 
-    # ---------------------
+    # ---- 第四步：定位编辑器，清空模板内容，填入正文 ----
+    print("4. 填入文章内容...")
+    # 点一下编辑器区域获取焦点，然后全选清空
+    page2.locator(".editor-pane, .CodeMirror, .markdown-editor, .editor").first.click()
+    page2.wait_for_timeout(500)
+    page2.keyboard.press("ControlOrMeta+a")
+    page2.keyboard.press("Backspace")
+    page2.wait_for_timeout(300)
+    # 填入正文
+    page2.keyboard.insert_text(body)
+    print(f"  ✅ 已填入正文（{len(body)} 字）")
+
+    # ---- 第五步：设置标题 ----
+    print(f"5. 设置标题: {title}")
+    # 点一下标题区域
+    page2.locator("div").filter(has_text=re.compile(r"^【无标题】$")).click()
+    page2.wait_for_timeout(300)
+    page2.keyboard.press("ControlOrMeta+a")
+    page2.keyboard.insert_text(title)
+    page2.wait_for_timeout(300)
+
+    # ---- 第六步：点击发布，弹出发布设置弹窗 ----
+    print("6. 打开发布设置...")
+    page2.get_by_role("button", name="发布文章").click()
+    page2.wait_for_timeout(2000)
+
+    # ---- 第七步：选择专栏 ----
+    print(f"7. 选择专栏: {COLUMN_NAME}")
+    page2.get_by_text(COLUMN_NAME, exact=True).click()
+    page2.wait_for_timeout(500)
+
+    # ---- 第八步：删除已有标签 ----
+    print("8. 清理已有标签...")
+    # 找到所有删除标签的按钮（通常是标签右侧的 × 图标）
+    delete_btns = page2.locator(".el-tag .el-icon-close, .tag-item .close, i.el-icon-close")
+    count = delete_btns.count()
+    print(f"  当前有 {count} 个标签需要删除")
+    for i in range(count):
+        try:
+            delete_btns.nth(0).click()  # 每次点第一个，因为删掉后索引会变
+            page2.wait_for_timeout(200)
+        except Exception:
+            break
+    print("  ✅ 标签清理完成")
+
+    # ---- 第九步：添加新标签 ----
+    print(f"9. 添加标签: {tags}")
+    page2.get_by_role("button", name="添加文章标签").click()
+    page2.wait_for_timeout(500)
+
+    for tag in tags:
+        if not tag:
+            continue
+        try:
+            # 输入框填入标签名然后回车
+            tag_input = page2.locator('[placeholder*="搜索"], [placeholder*="标签"]').last
+            tag_input.click()
+            tag_input.fill(tag)
+            page2.wait_for_timeout(300)
+            tag_input.press("Enter")
+            page2.wait_for_timeout(500)
+            print(f"  ✅ 添加标签: {tag}")
+        except Exception as e:
+            print(f"  ⚠️  添加标签 {tag} 失败: {e}")
+
+    # 关闭标签选择弹窗
+    safe_click(page2, 'button:has-text("关闭")')
+
+    # ---- 第十步：填摘要 ----
+    print("10. 填写摘要...")
+    summary = body[:200].replace("\n", " ").strip()
+    try:
+        summary_input = page2.locator('[placeholder*="展现列表"], [placeholder*="若不填"]').first
+        summary_input.wait_for(timeout=3000)
+        summary_input.click()
+        summary_input.fill(summary)
+        print(f"  ✅ 已填入摘要")
+    except Exception as e:
+        print(f"  ⚠️  填写摘要失败: {e}")
+
+    # ---- 第十一步：勾选 AI 声明 ----
+    print("11. 勾选 AI 辅助生成声明...")
+    page2.get_by_text("部分内容由AI辅助生成").click()
+    page2.wait_for_timeout(300)
+
+    # 勾选确认复选框
+    safe_click(page2, ".el-checkbox__inner")
+
+    # ---- 第十二步：最终发布 ----
+    print("12. 最终确认发布...")
+    page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
+    page2.wait_for_timeout(5000)
+
+    print("\n🎉 发布流程完成！")
     context.close()
     browser.close()
 
 
-with sync_playwright() as playwright:
-    run(playwright)
+# ============================================================
+# 入口
+# ============================================================
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("用法: python3 auto-upload/publish_csdn.py <markdown文件路径> [标签1] [标签2] ...")
+        sys.exit(1)
+
+    filepath = sys.argv[1]
+    if not os.path.exists(filepath):
+        print(f"文件不存在: {filepath}")
+        sys.exit(1)
+
+    article = parse_markdown(filepath)
+    tags = sys.argv[2:] if len(sys.argv) > 2 else (article["tags"] or DEFAULT_TAGS)
+
+    print(f"文章标题: {article['title']}")
+    print(f"标签: {tags}\n")
+
+    with sync_playwright() as playwright:
+        run(playwright, article["title"], article["body"], tags)
