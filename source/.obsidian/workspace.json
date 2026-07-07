@@ -193,6 +193,7 @@
   },
   "active": "9ea592f34f44e7dc",
   "lastOpenFiles": [
+    "附件/Pasted image 20260707154546.png",
     "附件/Pasted image 20260707154202.png",
     "附件",
     "附件/Pasted image 20260707153954.png",
@@ -237,7 +238,6 @@
     "_posts/LLM Inference/03-kvcache.md",
     "_posts/LLM Inference/02-quantization.md",
     "_posts/LLM Inference/01-baseline-deployment.md",
-    "images/Java-basic/arraydeque-methods.png",
-    "images/Java-basic/IMG-20260706212847507.png"
+    "images/Java-basic/arraydeque-methods.png"
   ]
 }
