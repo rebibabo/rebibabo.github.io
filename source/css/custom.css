@@ -258,7 +258,7 @@ body > header .header-inner {
 .markdown-body pre[style*="display:none"] + p > img {
   display: block;
   width: auto !important;
-  max-width: min(480px, 100%) !important;
+  max-width: min(760px, 100%) !important;
   max-height: 720px;
   height: auto !important;
   margin: 1.5rem auto;
