@@ -1,0 +1,6 @@
+%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
+flowchart LR
+    Service["投放服务"] -->|BillingClient.charge&#40;...&#41;| LB["负载均衡器（轮询）"]
+    LB --> I1["实例1"]
+    LB --> I2["实例2"]
+    LB --> I3["实例3"]

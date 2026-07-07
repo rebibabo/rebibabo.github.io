@@ -1,0 +1,6 @@
+%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
+flowchart TB
+    Enter["请求进入"] --> Pocket["线程 T1 的口袋里放入<br/>{traceId=abc123, spanId=A}"]
+    Pocket --> Log["Controller 想打日志<br/>→ 从口袋掏出 traceId=abc123"]
+    Log --> Span["Service 要建子 Span<br/>→ 掏出 spanId=A 作为 parent"]
+    Span --> Clean["请求结束<br/>→ 清空 T1 的口袋<br/>{否则会串味影响下一个请求}"]
