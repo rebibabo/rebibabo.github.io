@@ -44,23 +44,16 @@ Semaphore semaphore = new Semaphore(3);
 
 可以把它理解为当前有三张通行证。前三个线程调用 `acquire()` 时，可以分别拿走一张许可证；第四个线程再调用 `acquire()` 时，发现许可证已经用完，就需要等待。
 
-```mermaid
-graph LR
-    Init["初始: 3 张许可证"] --> A["线程 A acquire: 3 → 2"]
-    A --> B["线程 B acquire: 2 → 1"]
-    B --> C["线程 C acquire: 1 → 0"]
-    C --> D["线程 D acquire: 等待"]
-```
+![](/images/Java-concurrency/IMG-20260707-000055.png)
+
 
 
 
 
 当某个线程执行完受限任务并调用 `release()` 后，许可证数量增加，等待线程才有机会重新尝试获取许可证。
 
-```mermaid
-graph LR
-    A["线程 A release: 0 → 1"] --> D["线程 D acquire: 1 → 0"]
-```
+![](/images/Java-concurrency/IMG-20260707-000056.png)
+
 
 
 
@@ -103,19 +96,8 @@ release(): state increases
 
 这个交错过程可以表示为：
 
-```mermaid
-graph LR
-    subgraph A["线程 A"]
-        direction LR
-        A1["读取 state = 1"] --> A2["计算 1 - 1"]
-        A2 --> A3["写入 state = 0 / 获取成功"]
-    end
-    subgraph B["线程 B"]
-        direction LR
-        B1["读取 state = 1"] --> B2["计算 1 - 1"]
-        B2 --> B3["写入 state = 0 / 获取成功"]
-    end
-```
+![](/images/Java-concurrency/IMG-20260707-000057.png)
+
 
 
 
@@ -146,10 +128,8 @@ for (;;) {
 
 当线程调用 `acquire()` 时，如果发现 `state == 0`，它不会一直空转重试。AQS 会把它加入等待队列，并暂停线程执行。等其他线程调用 `release()` 增加许可证后，等待线程会被唤醒，再重新尝试获取许可证。
 
-```mermaid
-graph LR
-    Head["head"] --> D["线程 D"] --> E["线程 E"] --> F["线程 F"]
-```
+![](/images/Java-concurrency/IMG-20260707-000058.png)
+
 
 
 
@@ -187,16 +167,8 @@ Thread C acquire: 1 -> 0
 
 `CountDownLatch` 的计数只能减少，到达 `0` 后不会恢复，因此只能使用一轮。`Semaphore` 的 `state` 既会因为 `acquire()` 减少，也会因为 `release()` 增加，所以它可以在长期运行的程序中反复控制并发数量。
 
-```mermaid
-graph LR
-    Init["初始 state = 3"] --> A["A 获取: 3 → 2"]
-    A --> B["B 获取: 2 → 1"]
-    B --> C["C 获取: 1 → 0"]
-    C --> AR["A 释放: 0 → 1"]
-    AR --> D["D 获取: 1 → 0"]
-    D --> BR["B 释放: 0 → 1"]
-    BR --> E["E 获取: 1 → 0"]
-```
+![](/images/Java-concurrency/IMG-20260707-000059.png)
+
 
 
 

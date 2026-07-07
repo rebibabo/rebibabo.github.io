@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T13:50:11.583Z",
+  "updatedAt": "2026-07-07T13:51:38.039Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
-    "vaultPath": "_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%A6%82%E4%BD%95%E5%A4%8D%E7%94%A8%E5%92%8C%E8%B0%83%E5%BA%A6%E7%BA%BF%E7%A8%8B.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
+    "vaultPath": "_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/06-%E5%A4%9A%E6%A0%B8CPU%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
-      "vaultPath": "_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/14-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%A6%82%E4%BD%95%E5%A4%8D%E7%94%A8%E5%92%8C%E8%B0%83%E5%BA%A6%E7%BA%BF%E7%A8%8B.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
+      "vaultPath": "_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/06-%E5%A4%9A%E6%A0%B8CPU%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 336,
-      "ch": 3,
-      "offset": 9018
+      "line": 12,
+      "ch": 0,
+      "offset": 157
     },
     "to": {
-      "line": 336,
-      "ch": 3,
-      "offset": 9018
+      "line": 12,
+      "ch": 0,
+      "offset": 157
     }
   }
 }

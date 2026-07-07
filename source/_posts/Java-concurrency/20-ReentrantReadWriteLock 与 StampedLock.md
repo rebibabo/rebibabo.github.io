@@ -93,12 +93,8 @@ class Point {
 
 读线程申请读锁时，需要知道当前有没有写线程正在写；写线程申请写锁时，需要知道当前有没有读线程正在读，以及有没有其他写线程正在写。因此，读锁和写锁背后必须共享同一份同步状态。
 
-```mermaid
-graph LR
-    RRWL["ReentrantReadWriteLock"] --> ReadLock["ReadLock"]
-    RRWL --> WriteLock["WriteLock"]
-    WriteLock --> Sync["Sync(AQS)"]
-```
+![](/images/Java-concurrency/IMG-20260707-000095.png)
+
 
 
 
@@ -210,11 +206,8 @@ try {
 
 `state` 的高 16 bit 只记录读锁总数，但它不知道这些读锁分别属于哪个线程。例如：
 
-```mermaid
-graph LR
-    A["线程 A: 读计数 = 2"] --> Sum["state 读计数 = 3"]
-    B["线程 B: 读计数 = 1"] --> Sum
-```
+![](/images/Java-concurrency/IMG-20260707-000096.png)
+
 
 
 
@@ -243,10 +236,8 @@ graph LR
 
 队列结构可以这样理解：
 
-```mermaid
-graph LR
-    Head["head"] --> RA["读 A<br>shared"] --> RB["读 B<br>shared"] --> WC["写 C<br>exclusive"] --> RD["读 D<br>shared"]
-```
+![](/images/Java-concurrency/IMG-20260707-000097.png)
+
 
 
 
