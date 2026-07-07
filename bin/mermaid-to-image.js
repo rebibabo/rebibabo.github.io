@@ -122,6 +122,29 @@ async function renderBlock(mmdContent, outputPath) {
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
 
+  // 限制图片最大尺寸（单边缩放，不模糊）
+  try {
+    const { stdout: info } = await execAsync(
+      `sips --getProperty pixelWidth --getProperty pixelHeight "${outputPath}"`,
+      { timeout: 5000 }
+    );
+    let w = parseInt(info.match(/pixelWidth: (\d+)/)[1], 10);
+    let h = parseInt(info.match(/pixelHeight: (\d+)/)[1], 10);
+
+    // 先缩宽度
+    if (w > 760) {
+      await execAsync(`sips --resampleWidth 760 "${outputPath}"`, { timeout: 10000 });
+      const { stdout: info2 } = await execAsync(
+        `sips --getProperty pixelHeight "${outputPath}"`, { timeout: 5000 }
+      );
+      h = parseInt(info2.match(/pixelHeight: (\d+)/)[1], 10);
+    }
+    // 再缩高度
+    if (h > 700) {
+      await execAsync(`sips --resampleHeight 700 "${outputPath}"`, { timeout: 10000 });
+    }
+  } catch { /* sips 不可用则跳过 */ }
+
   // 删除临时 .mmd 文件
   try { fs.unlinkSync(mmdPath); } catch {}
 }
