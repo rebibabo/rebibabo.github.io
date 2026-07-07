@@ -1,37 +1,12 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T05:54:12.217Z",
+  "updatedAt": "2026-07-07T07:27:30.876Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
-  "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-concurrency.md",
-    "vaultPath": "wiki/maps/java-concurrency.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-concurrency.md",
-    "hasFocus": false
-  },
-  "openFiles": [
-    {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-concurrency.md",
-      "vaultPath": "wiki/maps/java-concurrency.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-concurrency.md",
-      "isActive": true
-    }
-  ],
-  "selection": {
-    "text": "",
-    "isEmpty": true,
-    "from": {
-      "line": 23,
-      "ch": 0,
-      "offset": 302
-    },
-    "to": {
-      "line": 23,
-      "ch": 0,
-      "offset": 302
-    }
-  }
+  "activeFile": null,
+  "openFiles": [],
+  "selection": null
 }
