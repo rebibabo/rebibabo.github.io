@@ -1,6 +1,6 @@
 {
   "alwaysUpdateLinks": true,
-  "attachmentFolderPath": "source/images",
+  "attachmentFolderPath": "附件",
   "readableLineLength": true,
   "rightToLeft": false,
   "useMarkdownLinks": true

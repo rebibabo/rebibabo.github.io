@@ -1,6 +1,6 @@
 {
   "attachPath": {
-    "attachmentRoot": "source/images",
+    "attachmentRoot": "images",
     "saveAttE": "inFolderBelow",
     "attachmentPath": "${parent}",
     "attachFormat": "IMG-${date}",
