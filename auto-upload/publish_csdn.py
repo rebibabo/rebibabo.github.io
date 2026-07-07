@@ -172,33 +172,35 @@ def _check_logged_in(context) -> bool:
     return logged_in
 
 
-def _do_login():
+def _do_login(playwright=None):
     """有头模式打开登录页，等用户手动登录后保存 auth"""
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context(
-            viewport={"width": 1280, "height": 900},
-            locale="zh-CN",
-        )
-        page = context.new_page()
-        page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
-        print("\n" + "=" * 50)
-        print("请在浏览器窗口中完成登录（扫码/密码均可）")
-        print("登录成功后，回到这里按 Enter 继续...")
-        print("=" * 50 + "\n")
-        input()
-        # 跳过引导页
-        page.wait_for_timeout(2000)
-        try:
-            page.locator(".btn-skip").click(timeout=5000)
-            page.wait_for_timeout(500)
-            print("  ✅ 已跳过引导")
-        except Exception:
-            pass
-        context.storage_state(path=AUTH_FILE)
-        print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
-        context.close()
-        browser.close()
+    if playwright is None:
+        with sync_playwright() as p:
+            return _do_login(p)
+    browser = playwright.chromium.launch(headless=False)
+    context = browser.new_context(
+        viewport={"width": 1280, "height": 900},
+        locale="zh-CN",
+    )
+    page = context.new_page()
+    page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
+    print("\n" + "=" * 50)
+    print("请在浏览器窗口中完成登录（扫码/密码均可）")
+    print("登录成功后，回到这里按 Enter 继续...")
+    print("=" * 50 + "\n")
+    input()
+    # 跳过引导页
+    page.wait_for_timeout(2000)
+    try:
+        page.locator(".btn-skip").click(timeout=5000)
+        page.wait_for_timeout(500)
+        print("  ✅ 已跳过引导")
+    except Exception:
+        pass
+    context.storage_state(path=AUTH_FILE)
+    print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
+    context.close()
+    browser.close()
 
 
 # ============================================================
@@ -491,24 +493,21 @@ if __name__ == "__main__":
     print(f"最终标签: {tags}")
     print()
 
-    # 第 -2 步：检查登录态（用独立 headed browser）
-    if not os.path.exists(AUTH_FILE):
-        print("-2. auth.json 不存在，需要先登录...")
-        _do_login()
-    else:
-        print("-2. 检查登录状态...")
-        with sync_playwright() as p:
-            b = p.chromium.launch(headless=True)
+    # 第 -2 步：检查登录态 + 主流程，共用一个 playwright 实例
+    with sync_playwright() as playwright:
+        if not os.path.exists(AUTH_FILE):
+            print("-2. auth.json 不存在，需要先登录...")
+            _do_login(playwright)
+        else:
+            print("-2. 检查登录状态...")
+            b = playwright.chromium.launch(headless=True)
             c = b.new_context(storage_state=AUTH_FILE)
             if _check_logged_in(c):
                 print("  ✅ 登录有效")
-                c.close()
-                b.close()
             else:
                 print("  ⚠️  登录已过期，重新登录...")
-                c.close()
-                b.close()
-                _do_login()
+                _do_login(playwright)
+            c.close()
+            b.close()
 
-    with sync_playwright() as playwright:
         run(playwright, article["title"], article["body"], tags, summary)
