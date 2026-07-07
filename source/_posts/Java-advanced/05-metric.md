@@ -56,23 +56,16 @@ categories:
 
 先建立全局认知，避免一上来陷进细节。整条链路有三个角色：
 
-```
-┌──────────────────────────────────────────────────────┐
-│  你的应用（订单服务）                                   │
-│  ┌────────────┐                                       │
-│  │ Micrometer │  在代码里"埋点"，把指标存在内存里         │
-│  │            │  （下单 +1、记录耗时...）                │
-│  └─────┬──────┘                                       │
-│        │ 暴露成 HTTP 端点                               │
-│  /actuator/prometheus  ← 一个网页，吐出当前所有指标的文本 │
-└────────┼─────────────────────────────────────────────┘
-         │ 定时来"抓"（pull）
-         ▼
-┌──────────────────┐         ┌──────────────────┐
-│   Prometheus     │ ──查询──▶│     Grafana      │
-│  定时抓取 + 存储   │         │   画成可视化大盘   │
-│  （时序数据库）    │         │   （可选）        │
-└──────────────────┘         └──────────────────┘
+```mermaid
+graph TB
+    subgraph "你的应用（订单服务）"
+        direction TB
+        MC["Micrometer<br/>在代码里埋点，把指标存在内存里<br/>（下单 +1、记录耗时...）"]
+        Endpoint["/actuator/prometheus<br/>← 暴露成 HTTP 端点，吐出指标文本"]
+        MC --- Endpoint
+    end
+    Endpoint -->|Prometheus 定时来抓（pull）| Prom["Prometheus<br/>定时抓取 + 存储<br/>（时序数据库）"]
+    Prom -->|查询| Grafana["Grafana<br/>画成可视化大盘"]
 ```
 
 | 角色 | 职责 | 类比 |
@@ -94,15 +87,12 @@ categories:
 
 你应该还记得日志体系里的 SLF4J——它本身不打日志，只是一个统一的接口，背后可以接 Logback、Log4j 等不同实现。**Micrometer 之于监控，就像 SLF4J 之于日志**：
 
-```
-你的代码 → 调用 Micrometer 的统一 API（埋点）
-                    ↓
-         Micrometer（门面，统一接口）
-                    ↓
-   ┌────────────┬────────────┬────────────┐
-   ▼            ▼            ▼
-Prometheus   其他监控系统    又一个监控系统
-（你选这个）   （Datadog等）  （CloudWatch等）
+```mermaid
+graph TB
+    Code["你的代码"] -->|调用统一 API 埋点| Facade["Micrometer（门面，统一接口）"]
+    Facade --> Prom["Prometheus<br/>（你选这个）"]
+    Facade --> Other["其他监控系统<br/>（Datadog 等）"]
+    Facade --> Another["又一个监控系统<br/>（CloudWatch 等）"]
 ```
 
 好处：你的埋点代码只调 Micrometer 的 API，将来要从 Prometheus 换成别的监控系统，**业务代码一行不用改**，只换底层依赖。
@@ -113,13 +103,13 @@ Prometheus   其他监控系统    又一个监控系统
 
 **Meter（仪表）** 是 Micrometer 里"一个指标"的统称（Counter、Gauge、Timer 都是 Meter）。**Registry（注册表）** 就是管理所有这些指标的容器。
 
-```
-MeterRegistry（一个大容器，管理所有指标）
-  ├── Counter:  下单请求总数
-  ├── Counter:  下单失败次数
-  ├── Timer:    下单耗时
-  ├── Gauge:    当前队列长度
-  └── ...
+```mermaid
+graph TB
+    Registry["MeterRegistry（一个大容器，管理所有指标）"] --> C1["Counter: 下单请求总数"]
+    Registry --> C2["Counter: 下单失败次数"]
+    Registry --> T["Timer: 下单耗时"]
+    Registry --> G["Gauge: 当前队列长度"]
+    Registry --> More["..."]
 ```
 
 | 概念 | 是什么 | 类比 |

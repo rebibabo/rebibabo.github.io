@@ -102,10 +102,10 @@ JWT（JSON Web Token）反过来——**把用户信息直接编码进 token 本
 
 一个 JWT 就是一个用两个点分隔的字符串：
 
-```
-eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMDAxIiwicm9sZSI6ImFkbWluIn0.dQw4w9WgXcQ
- └──── Header ────┘         └──────── Payload ────────┘    └─ Signature ─┘
-       头部                             载荷                     签名
+```mermaid
+graph LR
+    Header["Header（头部）<br/>{alg: HS256, typ: JWT}"] --> Payload["Payload（载荷）<br/>{sub: 1001, role: admin}"]
+    Payload --> Signature["Signature（签名）<br/>防篡改校验值"]
 ```
 
 | 部分 | 内容 | 说明 |
@@ -120,21 +120,23 @@ eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMDAxIiwicm9sZSI6ImFkbWluIn0.dQw4w9WgXcQ
 
 签名是 JWT 安全的核心：
 
-```
-签名 = HMAC-SHA256( Base64(Header) + "." + Base64(Payload), 服务端密钥 )
-
-验证时：
-  服务端用同样的密钥，对收到的 Header + Payload 重新算一遍签名
-  → 算出来的签名 == token 里带的签名？ → 没被篡改，可信
-  → 不相等？ → 被人改过，拒绝
+```mermaid
+graph LR
+    Key["服务端密钥"] --> Compute["重新计算签名<br/>HMAC-SHA256(Header.Payload, 密钥)"]
+    Token["收到 JWT"] --> Compare{"算出的签名<br/>=<br/>Token 中的签名?"}
+    Compute --> Compare
+    Compare -->|相等 ✅| Trust["没被篡改，可信"]
+    Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
 ```
 
 关键点：**密钥只有服务端知道**。攻击者即使改了 Payload（比如把 `role` 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。
 
-```
-攻击者篡改 Payload：role: user → role: admin
-  但他不知道密钥，无法生成匹配的新签名
-  服务端用密钥重新计算签名 → 和 token 里的签名不一致 → 拒绝 ✅
+```mermaid
+graph LR
+    Attack["攻击者篡改 Payload<br/>role: user → role: admin"] --> NoKey{"不知道密钥<br/>无法生成新签名"}
+    NoKey --> ServerCheck["服务端用密钥重新计算签名"]
+    ServerCheck --> Mismatch{"和 token 里的签名一致?"}
+    Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 ```
 
 ---
@@ -145,17 +147,10 @@ Spring Security 的工作方式是在请求到达 Controller **之前**，先经
 
 ### 4.1 过滤器链（Filter Chain）
 
-```
-HTTP 请求
-   │
-   ▼
-┌───────────────────────────────────┐
-│      Spring Security 过滤器链      │
-│  过滤器1 → 过滤器2 → ... → JWT过滤器 │  ← 在这里做认证授权检查
-└───────────────────────────────────┘
-   │ 检查通过
-   ▼
-Controller（你的业务代码）
+```mermaid
+graph TB
+    Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
+    FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
 ```
 
 我们做 JWT 认证，就是往这条链里加一个**自定义过滤器**，专门负责解析和验证请求里的 JWT。
@@ -178,33 +173,23 @@ Controller（你的业务代码）
 
 ### 5.1 阶段一：登录拿 token
 
-```
-1. 用户 POST /login，带上 用户名 + 密码
-        ↓
-2. 服务端查数据库，用 PasswordEncoder 校验密码
-        ↓
-3. 密码正确 → 生成 JWT（把用户 id、角色打包签名）
-        ↓
-4. 把 JWT 返回给客户端
-        ↓
-5. 客户端保存 JWT（比如存在 localStorage）
+```mermaid
+graph TB
+    S1["1. 用户 POST /login<br/>带上用户名 + 密码"] --> S2["2. 服务端查数据库<br/>用 PasswordEncoder 校验密码"]
+    S2 --> S3["3. 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]
+    S3 --> S4["4. 把 JWT 返回给客户端"]
+    S4 --> S5["5. 客户端保存 JWT<br/>比如存在 localStorage"]
 ```
 
 ### 5.2 阶段二：带 token 访问接口
 
-```
-1. 客户端请求受保护接口，在请求头带上 token：
-   Authorization: Bearer eyJhbGci...
-        ↓
-2. JWT 过滤器拦截请求，取出 token
-        ↓
-3. 用密钥验证签名 → 验证是否过期
-        ↓
-4. 验证通过 → 从 token 解析出用户信息，存进 SecurityContext
-        ↓
-5. 放行到 Controller，业务代码可以拿到当前用户
-        ↓
-   （验证失败 → 直接返回 401，不进 Controller）
+```mermaid
+graph TB
+    S1["1. 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["2. JWT 过滤器拦截请求，取出 token"]
+    S2 --> S3{"3. 用密钥验证签名<br/>验证是否过期"}
+    S3 -->|通过 ✅| S4["4. 解析用户信息<br/>存入 SecurityContext"]
+    S4 --> S5["5. 放行到 Controller<br/>业务代码拿到当前用户"]
+    S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 ```
 
 注意阶段二**全程不查数据库**——验签 + 解析 token 即可，这就是 JWT "无状态"的体现。
