@@ -7,19 +7,28 @@ let sourceToUrl = {};
 
 // Build source→url mapping from all posts at generate time
 hexo.extend.filter.register('before_generate', function() {
+  // Build post URL mappings
   const posts = hexo.locals.get('posts');
-  if (!posts) return;
+  if (posts) {
+    posts.forEach(function(post) {
+      if (post.source && post.path) {
+        const url = '/' + post.path.replace(/index\.html$/, '');
+        sourceToUrl[post.source] = url;
+        sourceToUrl[post.source.replace(/\.md$/, '')] = url;
+      }
+    });
+  }
 
-  posts.forEach(function(post) {
-    if (post.source && post.path) {
-      // post.source: "_posts/concurrency/05-CAS.md"
-      // post.path: "categories/java-concurrency/05/index.html"
-      const url = '/' + post.path.replace(/index\.html$/, '');
-      sourceToUrl[post.source] = url;
-      // Also map without extension
-      sourceToUrl[post.source.replace(/\.md$/, '')] = url;
-    }
-  });
+  // Add hidden markdown-body trigger to wiki pages
+  // so Fluid theme loads mermaid natively
+  const pages = hexo.locals.get('pages');
+  if (pages) {
+    pages.forEach(function(page) {
+      if (page.source && page.source.indexOf('wiki/') === 0 && page.content) {
+        page.content += '<div class="markdown-body" style="display:none" aria-hidden="true"></div>';
+      }
+    });
+  }
 }, 0);
 
 // Convert [[wiki/...]] Obsidian links to Hexo links during markdown rendering
@@ -113,16 +122,7 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
 
   // Add back-to-wiki button before </body>
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
-
-  // Add mermaid JS for wiki pages that have mermaid diagrams
-  const hasMermaid = html.indexOf('class=" mermaid"') !== -1 || html.indexOf('class="mermaid"') !== -1;
-  const mermaidScript = hasMermaid ? `
-<script src="https://lib.baomitu.com/mermaid/10.9.0/mermaid.min.js"></script>
-<script>
-  mermaid.initialize({ startOnLoad: true, theme: document.documentElement.getAttribute('data-user-color-scheme') === 'dark' ? 'dark' : 'default' });
-</script>` : '';
-
-  html = html.replace('</body>', mermaidScript + '\n' + btn + '\n</body>');
+  html = html.replace('</body>', btn + '\n</body>');
 
   // Add CSS for the button
   const style = `<style>
