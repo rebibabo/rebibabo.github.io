@@ -26,6 +26,74 @@ DEFAULT_TAGS = ["学习笔记"]   # 默认标签（AI 失败时的兜底）
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = "deepseek-chat"    # flash 模型
 
+# GitHub 图片外链配置
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com/rebibabo/rebibabo.github.io/source/source"
+BLOG_SOURCE_DIR = os.path.join(os.path.dirname(__file__), "..", "source")  # source/images/...
+
+
+# ============================================================
+# 图片外链替换
+# ============================================================
+def resolve_images_in_body(body: str) -> str:
+    """将 markdown 中的本地图片路径替换为 GitHub raw 外链"""
+    # 匹配 ![alt](path) 中的 path
+    image_pattern = re.compile(r'!\[([^\]]*)\]\(([^)]+)\)')
+
+    def replace_image(match: re.Match) -> str:
+        alt = match.group(1)
+        img_path = match.group(2)
+
+        # 已经是外链就跳过
+        if img_path.startswith("http://") or img_path.startswith("https://"):
+            return match.group(0)
+
+        # 去掉路径开头的 /
+        clean_path = img_path.lstrip("/")
+        local_file = os.path.join(BLOG_SOURCE_DIR, clean_path)
+
+        # 构建 GitHub raw URL
+        raw_url = f"{GITHUB_RAW_BASE}/{clean_path}"
+
+        # 检查外链是否可访问
+        if _check_url(raw_url):
+            print(f"  🔗 图片外链可用: {clean_path}")
+            return f"![{alt}]({raw_url})"
+
+        # 外链不可用，检查本地文件
+        if os.path.exists(local_file):
+            print(f"  ⚠️  图片未推送到 GitHub: {clean_path}")
+            print(f"     正在 git push...")
+            _git_push()
+            # 再试一次
+            if _check_url(raw_url):
+                print(f"     ✅ push 后外链可用")
+                return f"![{alt}]({raw_url})"
+            else:
+                print(f"     ❌ push 后仍不可用，保留本地路径")
+        else:
+            print(f"  ⚠️  本地图片不存在: {local_file}")
+
+        return match.group(0)  # 保留原样
+
+    return image_pattern.sub(replace_image, body)
+
+
+def _check_url(url: str) -> bool:
+    """HEAD 请求检查 URL 是否可访问"""
+    try:
+        ctx = ssl._create_unverified_context()
+        req = urllib.request.Request(url, method="HEAD")
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
+def _git_push():
+    """在博客根目录执行 git push"""
+    blog_root = os.path.join(os.path.dirname(__file__), "..")
+    os.system(f"cd {blog_root} && git push origin source 2>&1")
+
 
 # ============================================================
 # Markdown 解析
@@ -325,6 +393,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     article = parse_markdown(filepath)
+
+    # 替换本地图片为 GitHub raw 外链
+    print("-1. 替换图片为外链...", flush=True)
+    article["body"] = resolve_images_in_body(article["body"])
+
     cli_tags = sys.argv[2:] if len(sys.argv) > 2 else []
 
     # 先调 AI 提取摘要和标签
