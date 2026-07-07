@@ -62,8 +62,8 @@ def resolve_images_in_body(body: str) -> str:
         # 外链不可用，检查本地文件
         if os.path.exists(local_file):
             print(f"  ⚠️  图片未推送到 GitHub: {clean_path}")
-            print(f"     正在 git push...")
-            _git_push()
+            print(f"     正在 git add → commit → push...")
+            _git_sync()
             # 再试一次
             if _check_url(raw_url):
                 print(f"     ✅ push 后外链可用")
@@ -89,10 +89,16 @@ def _check_url(url: str) -> bool:
         return False
 
 
-def _git_push():
-    """在博客根目录执行 git push"""
+def _git_sync():
+    """在博客根目录执行 git add → commit → push"""
     blog_root = os.path.join(os.path.dirname(__file__), "..")
-    os.system(f"cd {blog_root} && git push origin source 2>&1")
+    cmds = [
+        f"cd {blog_root}",
+        "git add source/images/",
+        'git commit -m "auto: sync images for CSDN upload"',
+        "git push origin source",
+    ]
+    os.system(" && ".join(cmds))
 
 
 # ============================================================
