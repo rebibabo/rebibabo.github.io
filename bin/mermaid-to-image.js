@@ -52,13 +52,23 @@ function extractMermaidBlocks(content) {
   let match;
   while ((match = regex.exec(content)) !== null) {
     blocks.push({
-      code: match[1].trim(),
+      code: normalizeMermaid(match[1].trim()),
       fullMatch: match[0],
       startIndex: match.index,
       endIndex: match.index + match[0].length,
     });
   }
   return blocks;
+}
+
+/** 统一规范化：TB→LR、菱形{...}→方框[...] */
+function normalizeMermaid(code) {
+  // graph TB → graph LR
+  code = code.replace(/^graph\s+TB\b/m, 'graph LR');
+  // 菱形节点 {"..."} → 方框 ["..."]
+  // 匹配形如 id{"text"} 的菱形节点，保留 id 和内容，改为方框
+  code = code.replace(/\b(\w+)\{("[^"]*")\}/g, '$1[$2]');
+  return code;
 }
 
 function getCategory(filePath) {

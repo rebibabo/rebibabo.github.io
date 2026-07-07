@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     subgraph "容器 (Container)"
         direction TB
         C_Apps["应用 A (依赖) | 应用 B (依赖) | 应用 C (依赖)<br/>← 只打包应用和依赖，共享宿主机内核"]

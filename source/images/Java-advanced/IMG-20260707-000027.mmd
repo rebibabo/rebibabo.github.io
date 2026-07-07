@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     User["用户"] --> Gateway["API 网关"]
     Gateway --> Order["订单服务"]
     Order --> Stock["库存服务"]

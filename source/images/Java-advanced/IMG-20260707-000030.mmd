@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart LR
+graph LR
     Header["traceparent:"] --> Version["00<br/>版本"]
     Version --> TraceId["abc123def456...<br/>traceId"]
     TraceId --> ParentId["00f067aa0ba902b7<br/>parentSpanId"]

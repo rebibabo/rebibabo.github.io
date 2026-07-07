@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart LR
+graph LR
     Closed["关闭 (Closed)"] -->|失败率超过阈值| Open["打开 (Open)"]
     Open -->|等待一段时间| Half["半开 (Half-Open)"]
     Half -->|试探请求成功| Closed

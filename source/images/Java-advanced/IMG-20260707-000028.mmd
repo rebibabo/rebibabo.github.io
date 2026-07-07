@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     Trace["Trace: traceId = abc123"] --> A["Span A 网关处理请求（0ms ~ 850ms）"]
     A --> B["Span B 订单服务下单（20ms ~ 840ms）"]
     B --> C["Span C 调用库存服务（50ms ~ 180ms）"]
