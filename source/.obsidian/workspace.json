@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
+                "file": "_posts/Java-concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "26-ForkJoinPool 如何通过工作窃取执行任务"
+              "title": "29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择"
             }
           }
         ],
@@ -194,6 +194,9 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "_posts/Java-concurrency/28-并发任务处理系统如何设计：从任务模型到 Worker 执行.md",
+    "_posts/Java-concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
+    "_posts/Java-concurrency/26-ForkJoinPool 如何通过工作窃取执行任务.md",
     "_posts/Java-concurrency/25-LockSupport 如何挂起和唤醒线程.md",
     "_posts/Java-concurrency/24-线程中断如何让任务安全停止.md",
     "_posts/Java-concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
@@ -217,8 +220,6 @@
     "_posts/Java-advanced/05-metric.md",
     "_posts/Java-advanced/04-jwt.md",
     "_posts/Java-advanced/03-k8s.md",
-    "_posts/Java-advanced/02-docker.md",
-    "_posts/Java-advanced/01-microservices-intro.md",
     "images/Java-advanced/IMG-20260707-000024.png",
     "images/Java-advanced/IMG-20260707-000032.png",
     "images/Java-advanced/IMG-20260707-000033.png",
@@ -238,7 +239,6 @@
     "images/Java-advanced/IMG-20260707-000027.mmd",
     "images/Java-advanced/IMG-20260707-000026.mmd",
     "images/Java-advanced/IMG-20260707-000025.mmd",
-    "images/Java-advanced/IMG-20260707-000024.mmd",
-    "_posts/Java-concurrency/10-Condition 如何实现线程等待与通知.md"
+    "images/Java-advanced/IMG-20260707-000024.mmd"
   ]
 }
