@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T13:30:27.988Z",
+  "updatedAt": "2026-07-07T13:31:52.997Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
-    "vaultPath": "_posts/Java-advanced/02-docker.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
+    "vaultPath": "_posts/Java-advanced/07-tracing.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
     "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
-      "vaultPath": "_posts/Java-advanced/02-docker.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/02-docker.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
+      "vaultPath": "_posts/Java-advanced/07-tracing.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
       "isActive": true
     }
   ],
   "selection": {
-    "text": "",
-    "isEmpty": true,
+    "text": "![](/images/Java-advanced/IMG-20260707-000032.png)",
+    "isEmpty": false,
     "from": {
-      "line": 11,
+      "line": 240,
       "ch": 0,
-      "offset": 141
+      "offset": 6188
     },
     "to": {
-      "line": 11,
-      "ch": 0,
-      "offset": 141
+      "line": 240,
+      "ch": 50,
+      "offset": 6238
     }
   }
 }

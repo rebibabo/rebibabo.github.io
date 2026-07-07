@@ -49,10 +49,14 @@ Docker 部署：
 
 很多人会把容器和虚拟机搞混，它们都能"隔离环境"，但原理完全不同：
 
+**虚拟机（VM）：**
+
 ![](/images/Java-advanced/IMG-20260707-000006.png)
 
 
 
+
+**容器（Container）：**
 
 ![](/images/Java-advanced/IMG-20260707-000007.png)
 
