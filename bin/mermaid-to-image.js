@@ -74,12 +74,12 @@ function generateFilename(index) {
 
 /** 并发执行器：同时最多跑 concurrency 个任务 */
 async function runConcurrent(tasks, concurrency) {
-  const results = [];
+  const results = new Array(tasks.length);
   const queue = [...tasks];
   let running = 0;
   let idx = 0;
-
   let done = 0;
+
   return new Promise((resolve) => {
     function next() {
       if (done === tasks.length) {
@@ -100,16 +100,24 @@ async function runConcurrent(tasks, concurrency) {
   });
 }
 
-/** 渲染单个 mermaid 块 */
+const MERMAID_INIT = `%%{init: {"flowchart":{"nodeSpacing":8,"rankSpacing":12,"curve":"linear","diagramPadding":4},"themeVariables":{"fontSize":"13px"}}}%%`;
+
+/** 渲染单个 mermaid 块，自动注入紧凑化配置 */
 async function renderBlock(mmdContent, outputPath) {
   const mmdPath = outputPath.replace(/\.png$/, '.mmd');
-  fs.writeFileSync(mmdPath, mmdContent, 'utf-8');
 
-  // --scale 2 保证清晰度，显示尺寸由 CSS max-height/max-width 控制
+  // 如果内容以 graph/flowchart 开头，注入 init 配置 + 替换 graph 为 flowchart
+  let code = mmdContent.trim();
+  if (/^(graph|flowchart)\s/.test(code)) {
+    code = code.replace(/^(graph|flowchart)\s/, 'flowchart ');
+    code = MERMAID_INIT + '\n' + code;
+  }
+
+  fs.writeFileSync(mmdPath, code, 'utf-8');
+
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
 
-  // 删除临时 .mmd 文件
   try { fs.unlinkSync(mmdPath); } catch {}
 }
 

@@ -102,7 +102,7 @@ JWT（JSON Web Token）反过来——**把用户信息直接编码进 token 本
 
 一个 JWT 就是一个用两个点分隔的字符串：
 
-<pre style="display:none">
+```mermaid
 graph LR
     Header["Header（头部）<br/>{alg: HS256, typ: JWT}"] --> Payload["Payload（载荷）<br/>{sub: 1001, role: admin}"]
     Payload --> Signature["Signature（签名）<br/>防篡改校验值"]
@@ -207,8 +207,7 @@ graph TB
     S2 --> S3["③ 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名"]
     S3 --> S4["④ 把 JWT 返回给客户端"]
     S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000017.png)
+```
 
 
 
@@ -218,15 +217,14 @@ graph TB
 
 ### 5.2 阶段二：带 token 访问接口
 
-<pre style="display:none">
+```mermaid
 graph TB
     S1["① 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["② JWT 过滤器拦截请求，取出 token"]
     S2 --> S3{"③ 用密钥验证签名<br/>验证是否过期"}
     S3 -->|通过 ✅| S4["④ 解析用户信息<br/>存入 SecurityContext"]
     S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
-</pre>
-![](/images/Java-advanced/IMG-20260707-000018.png)
+```
 
 
 
