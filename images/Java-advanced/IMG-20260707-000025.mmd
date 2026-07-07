@@ -1,0 +1,9 @@
+graph TB
+    Dashboard["Dashboard（一整块大盘）"] --> P1["Panel 1：下单 QPS<br/>Query: rate(order_create_total[1m])"]
+    Dashboard --> P2["Panel 2：下单成功率<br/>另一行 PromQL"]
+    Dashboard --> P3["Panel 3：各渠道下单占比<br/>又一行 PromQL"]
+    Dashboard --> P4["Panel 4：P99 耗时"]
+    DS["Data Source: Prometheus"] -.- P1
+    DS -.- P2
+    DS -.- P3
+    DS -.- P4
