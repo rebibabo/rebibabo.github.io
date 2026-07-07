@@ -26,13 +26,19 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言写完 Mini-SSP 后会遇到一个现实问题：项目依赖 MySQL、Redis、还有好几个服务，在自己电脑上配好了，换台机器又要重新装一遍环境。Docker 就是为了解决”在我电脑上能跑，在你电脑上跑不起来”这个经典问题。这篇文章用最直白的方式讲">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000006.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000007.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000008.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000009.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000010.png">
 <meta property="article:published_time" content="2026-05-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T12:37:59.666Z">
+<meta property="article:modified_time" content="2026-07-07T12:40:05.029Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Docker">
 <meta property="article:tag" content="容器">
 <meta property="article:tag" content="部署">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000006.png">
   
   
   
@@ -228,7 +234,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6k 字
+          5.5k 字
         
       </span>
     
@@ -239,7 +245,7 @@
         
         
         
-          51 分钟
+          46 分钟
         
       </span>
     
@@ -307,14 +313,8 @@ graph TB
         VM_Apps --- VM_Hyper --- VM_Host
     end
 
-![](/images/Java-advanced/IMG-20260707-000006.png)
-
-
-
-
-
-
-
+</pre>
+<p><img src="/images/Java-advanced/IMG-20260707-000006.png" srcset="/img/loading.gif" lazyload></p>
 <pre style="display:none">
 graph TB
     subgraph "容器 (Container)"
@@ -325,215 +325,225 @@ graph TB
         C_Apps --- C_Engine --- C_Host
     end
 
-![](/images/Java-advanced/IMG-20260707-000007.png)
-
-
-
-
-
-
-
-| 维度 | 虚拟机 | 容器 |
-|------|--------|------|
-| 隔离级别 | 完整操作系统 | 进程级隔离 |
-| 体积 | 几个 GB | 几十到几百 MB |
-| 启动速度 | 分钟级 | 秒级 |
-| 资源占用 | 高（每个都跑一套 OS） | 低（共享内核） |
-| 隔离强度 | 强 | 相对弱（共享内核） |
-
-简单说：**虚拟机是"模拟一台完整的电脑"，容器是"在同一台电脑上隔离出独立的运行空间"**。容器更轻、更快，所以现代后端部署几乎都用容器。
-
----
-
-## 2. 三个核心概念
-
-理解 Docker 只需要先搞懂三个词的关系：
-
+</pre>
+<p><img src="/images/Java-advanced/IMG-20260707-000007.png" srcset="/img/loading.gif" lazyload></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>虚拟机</th>
+<th>容器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>隔离级别</td>
+<td>完整操作系统</td>
+<td>进程级隔离</td>
+</tr>
+<tr>
+<td>体积</td>
+<td>几个 GB</td>
+<td>几十到几百 MB</td>
+</tr>
+<tr>
+<td>启动速度</td>
+<td>分钟级</td>
+<td>秒级</td>
+</tr>
+<tr>
+<td>资源占用</td>
+<td>高（每个都跑一套 OS）</td>
+<td>低（共享内核）</td>
+</tr>
+<tr>
+<td>隔离强度</td>
+<td>强</td>
+<td>相对弱（共享内核）</td>
+</tr>
+</tbody></table>
+<p>简单说：<strong>虚拟机是”模拟一台完整的电脑”，容器是”在同一台电脑上隔离出独立的运行空间”</strong>。容器更轻、更快，所以现代后端部署几乎都用容器。</p>
+<hr>
+<h2 id="2-三个核心概念"><a href="#2-三个核心概念" class="headerlink" title="2. 三个核心概念"></a>2. 三个核心概念</h2><p>理解 Docker 只需要先搞懂三个词的关系：</p>
 <pre style="display:none">
 graph LR
     DF["Dockerfile<br/>（打包脚本）"] -->|build| Image["镜像（Image）<br/>（打包好的模板）"]
     Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]
 
-![](/images/Java-advanced/IMG-20260707-000008.png)
+</pre>
+<p><img src="/images/Java-advanced/IMG-20260707-000008.png" srcset="/img/loading.gif" lazyload></p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>是什么</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dockerfile</td>
+<td>一个文本文件，写明”怎么打包”</td>
+<td>菜谱</td>
+</tr>
+<tr>
+<td>镜像（Image）</td>
+<td>按 Dockerfile 打包出来的只读模板</td>
+<td>按菜谱做好的半成品（冷冻装）</td>
+</tr>
+<tr>
+<td>容器（Container）</td>
+<td>镜像运行起来的实例</td>
+<td>把半成品加热后端上桌的那盘菜</td>
+</tr>
+</tbody></table>
+<p>关键关系：</p>
+<ul>
+<li><strong>一个镜像可以运行出多个容器</strong>（同一份冷冻半成品，可以加热成多盘菜）</li>
+<li><strong>镜像是只读的，容器是可读写的</strong>（菜谱和半成品不变，但每盘菜可以单独加调料）</li>
+<li><strong>镜像可以分享</strong>（推到 Docker Hub，别人 <code>docker pull</code> 就能用，就像把菜谱和半成品寄给别人）</li>
+</ul>
+<hr>
+<h2 id="3-常用命令"><a href="#3-常用命令" class="headerlink" title="3. 常用命令"></a>3. 常用命令</h2><h3 id="3-1-镜像相关"><a href="#3-1-镜像相关" class="headerlink" title="3.1 镜像相关"></a>3.1 镜像相关</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 从 Docker Hub 拉取镜像</span><br>docker pull mysql:8.0           <span class="hljs-comment"># 拉取 MySQL 8.0 镜像</span><br>docker pull redis:7-alpine      <span class="hljs-comment"># alpine 是精简版 Linux，镜像更小</span><br><br><span class="hljs-comment"># 查看本地有哪些镜像</span><br>docker images<br><br><span class="hljs-comment"># 删除镜像</span><br>docker rmi mysql:8.0<br><br><span class="hljs-comment"># 根据 Dockerfile 构建镜像（. 表示当前目录）</span><br>docker build -t my-app:1.0 .    <span class="hljs-comment"># -t 给镜像起名:标签</span><br></code></pre></td></tr></table></figure>
 
+<h3 id="3-2-容器相关"><a href="#3-2-容器相关" class="headerlink" title="3.2 容器相关"></a>3.2 容器相关</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 运行容器（最常用）</span><br>docker run -d -p 8080:8080 --name my-ssp my-app:1.0<br><span class="hljs-comment"># -d        后台运行（detached）</span><br><span class="hljs-comment"># -p 8080:8080  端口映射，宿主机8080 → 容器8080</span><br><span class="hljs-comment"># --name    给容器起个名字，方便后续操作</span><br><br><span class="hljs-comment"># 查看正在运行的容器</span><br>docker ps<br><br><span class="hljs-comment"># 查看所有容器（包括已停止的）</span><br>docker ps -a<br><br><span class="hljs-comment"># 停止 / 启动 / 重启容器</span><br>docker stop my-ssp<br>docker start my-ssp<br>docker restart my-ssp<br><br><span class="hljs-comment"># 删除容器（要先停止）</span><br>docker <span class="hljs-built_in">rm</span> my-ssp<br><br><span class="hljs-comment"># 查看容器日志</span><br>docker logs my-ssp<br>docker logs -f my-ssp           <span class="hljs-comment"># -f 持续跟踪输出（类似 tail -f）</span><br><br><span class="hljs-comment"># 进入正在运行的容器内部（排查问题用）</span><br>docker <span class="hljs-built_in">exec</span> -it my-ssp bash<br><span class="hljs-comment"># -it 表示交互式终端，进去后就像在容器内的 Linux 里操作</span><br></code></pre></td></tr></table></figure>
 
-
-
-
-
-
-| 概念 | 是什么 | 类比 |
-|------|--------|------|
-| Dockerfile | 一个文本文件，写明"怎么打包" | 菜谱 |
-| 镜像（Image） | 按 Dockerfile 打包出来的只读模板 | 按菜谱做好的半成品（冷冻装） |
-| 容器（Container） | 镜像运行起来的实例 | 把半成品加热后端上桌的那盘菜 |
-
-关键关系：
-
-- **一个镜像可以运行出多个容器**（同一份冷冻半成品，可以加热成多盘菜）
-- **镜像是只读的，容器是可读写的**（菜谱和半成品不变，但每盘菜可以单独加调料）
-- **镜像可以分享**（推到 Docker Hub，别人 `docker pull` 就能用，就像把菜谱和半成品寄给别人）
-
----
-
-## 3. 常用命令
-
-### 3.1 镜像相关
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 从 Docker Hub 拉取镜像</span><br>docker pull mysql:8.0           <span class="hljs-comment"># 拉取 MySQL 8.0 镜像</span><br>docker pull redis:7-alpine      <span class="hljs-comment"># alpine 是精简版 Linux，镜像更小</span><br><br><span class="hljs-comment"># 查看本地有哪些镜像</span><br>docker images<br><br><span class="hljs-comment"># 删除镜像</span><br>docker rmi mysql:8.0<br><br><span class="hljs-comment"># 根据 Dockerfile 构建镜像（. 表示当前目录）</span><br>docker build -t my-app:1.0 .    <span class="hljs-comment"># -t 给镜像起名:标签</span><br></code></pre></td></tr></table></figure>
-
-### 3.2 容器相关
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 运行容器（最常用）</span><br>docker run -d -p 8080:8080 --name my-ssp my-app:1.0<br><span class="hljs-comment"># -d        后台运行（detached）</span><br><span class="hljs-comment"># -p 8080:8080  端口映射，宿主机8080 → 容器8080</span><br><span class="hljs-comment"># --name    给容器起个名字，方便后续操作</span><br><br><span class="hljs-comment"># 查看正在运行的容器</span><br>docker ps<br><br><span class="hljs-comment"># 查看所有容器（包括已停止的）</span><br>docker ps -a<br><br><span class="hljs-comment"># 停止 / 启动 / 重启容器</span><br>docker stop my-ssp<br>docker start my-ssp<br>docker restart my-ssp<br><br><span class="hljs-comment"># 删除容器（要先停止）</span><br>docker <span class="hljs-built_in">rm</span> my-ssp<br><br><span class="hljs-comment"># 查看容器日志</span><br>docker logs my-ssp<br>docker logs -f my-ssp           <span class="hljs-comment"># -f 持续跟踪输出（类似 tail -f）</span><br><br><span class="hljs-comment"># 进入正在运行的容器内部（排查问题用）</span><br>docker <span class="hljs-built_in">exec</span> -it my-ssp bash<br><span class="hljs-comment"># -it 表示交互式终端，进去后就像在容器内的 Linux 里操作</span><br></code></pre></td></tr></table></figure>
-
-### 3.3 端口映射详解
-
-`-p 8080:8080` 这个参数最容易迷糊，记住格式是 **宿主机端口:容器端口**：
-
+<h3 id="3-3-端口映射详解"><a href="#3-3-端口映射详解" class="headerlink" title="3.3 端口映射详解"></a>3.3 端口映射详解</h3><p><code>-p 8080:8080</code> 这个参数最容易迷糊，记住格式是 <strong>宿主机端口:容器端口</strong>：</p>
 <pre style="display:none">
 graph LR
     Browser["浏览器 localhost:9090"] -->|外部访问| Host["宿主机 9090 端口"]
     Host -->|Docker 转发| Container["容器内部 8080 端口<br/>Spring Boot 应用监听 8080"]
 
-![](/images/Java-advanced/IMG-20260707-000009.png)
-
-
-
-
-
-
-
-容器之间是隔离的，不做端口映射，外部就访问不到容器里的服务。
-
----
-
-## 4. 把 Spring Boot 应用打包成镜像
-
-### 4.1 编写 Dockerfile
-
-在项目根目录创建一个名为 `Dockerfile` 的文件（没有后缀）：
-
+</pre>
+<p><img src="/images/Java-advanced/IMG-20260707-000009.png" srcset="/img/loading.gif" lazyload></p>
+<p>容器之间是隔离的，不做端口映射，外部就访问不到容器里的服务。</p>
+<hr>
+<h2 id="4-把-Spring-Boot-应用打包成镜像"><a href="#4-把-Spring-Boot-应用打包成镜像" class="headerlink" title="4. 把 Spring Boot 应用打包成镜像"></a>4. 把 Spring Boot 应用打包成镜像</h2><h3 id="4-1-编写-Dockerfile"><a href="#4-1-编写-Dockerfile" class="headerlink" title="4.1 编写 Dockerfile"></a>4.1 编写 Dockerfile</h3><p>在项目根目录创建一个名为 <code>Dockerfile</code> 的文件（没有后缀）：</p>
 <figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs dockerfile"><span class="hljs-comment"># 第一阶段：用 Maven 镜像编译打包</span><br><span class="hljs-keyword">FROM</span> eclipse-temurin:<span class="hljs-number">17</span>-jdk-alpine AS build<br><span class="hljs-keyword">WORKDIR</span><span class="language-bash"> /app</span><br><span class="hljs-keyword">COPY</span><span class="language-bash"> . .</span><br><span class="hljs-keyword">RUN</span><span class="language-bash"> ./mvnw package -DskipTests</span><br><br><span class="hljs-comment"># 第二阶段：用更小的 JRE 镜像运行</span><br><span class="hljs-keyword">FROM</span> eclipse-temurin:<span class="hljs-number">17</span>-jre-alpine<br><span class="hljs-keyword">WORKDIR</span><span class="language-bash"> /app</span><br><span class="hljs-keyword">COPY</span><span class="language-bash"> --from=build /app/target/mini-ssp-*.jar app.jar</span><br><span class="hljs-keyword">EXPOSE</span> <span class="hljs-number">8080</span><br><span class="hljs-keyword">ENTRYPOINT</span><span class="language-bash"> [<span class="hljs-string">&quot;java&quot;</span>, <span class="hljs-string">&quot;-jar&quot;</span>, <span class="hljs-string">&quot;app.jar&quot;</span>]</span><br></code></pre></td></tr></table></figure>
 
-逐行解释：
-
-| 指令 | 作用 |
-|------|------|
-| `FROM` | 基于哪个基础镜像（站在巨人肩膀上，不用从零搭 Linux） |
-| `WORKDIR` | 设置容器内的工作目录（后续命令都在这个目录执行） |
-| `COPY` | 把宿主机的文件复制进镜像 |
-| `RUN` | 构建镜像时执行的命令（这里是编译打包） |
-| `EXPOSE` | 声明容器监听的端口（仅作说明，实际映射靠 `-p`） |
-| `ENTRYPOINT` | 容器启动时执行的命令（这里是启动 jar） |
-
-### 4.2 为什么要分两个阶段？
-
-上面的 Dockerfile 用了"多阶段构建"，目的是**减小最终镜像体积**：
-
+<p>逐行解释：</p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FROM</code></td>
+<td>基于哪个基础镜像（站在巨人肩膀上，不用从零搭 Linux）</td>
+</tr>
+<tr>
+<td><code>WORKDIR</code></td>
+<td>设置容器内的工作目录（后续命令都在这个目录执行）</td>
+</tr>
+<tr>
+<td><code>COPY</code></td>
+<td>把宿主机的文件复制进镜像</td>
+</tr>
+<tr>
+<td><code>RUN</code></td>
+<td>构建镜像时执行的命令（这里是编译打包）</td>
+</tr>
+<tr>
+<td><code>EXPOSE</code></td>
+<td>声明容器监听的端口（仅作说明，实际映射靠 <code>-p</code>）</td>
+</tr>
+<tr>
+<td><code>ENTRYPOINT</code></td>
+<td>容器启动时执行的命令（这里是启动 jar）</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-为什么要分两个阶段？"><a href="#4-2-为什么要分两个阶段？" class="headerlink" title="4.2 为什么要分两个阶段？"></a>4.2 为什么要分两个阶段？</h3><p>上面的 Dockerfile 用了”多阶段构建”，目的是<strong>减小最终镜像体积</strong>：</p>
 <figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">第一阶段（<span class="hljs-keyword">build）：需要完整 </span><span class="hljs-keyword">JDK </span>+ Maven 来编译，镜像很大（几百 MB）<br>                   产物只有一个 <span class="hljs-keyword">jar </span>包<br><br>第二阶段（运行）：只需要 <span class="hljs-keyword">JRE </span>来跑 <span class="hljs-keyword">jar，不需要 </span><span class="hljs-keyword">JDK </span>和 Maven<br>                 从第一阶段只复制 <span class="hljs-keyword">jar </span>包过来（COPY --from=<span class="hljs-keyword">build）</span><br><span class="hljs-keyword"></span><br>最终镜像 = 第二阶段的内容（只有 <span class="hljs-keyword">JRE </span>+ <span class="hljs-keyword">jar），编译工具全部丢弃</span><br></code></pre></td></tr></table></figure>
 
-这样最终镜像可能从 600MB 降到 200MB，部署更快、占用更少。
+<p>这样最终镜像可能从 600MB 降到 200MB，部署更快、占用更少。</p>
+<h3 id="4-3-构建和运行"><a href="#4-3-构建和运行" class="headerlink" title="4.3 构建和运行"></a>4.3 构建和运行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 构建镜像</span><br>docker build -t mini-ssp:1.0 .<br><br><span class="hljs-comment"># 运行</span><br>docker run -d -p 8080:8080 --name ssp mini-ssp:1.0<br><br><span class="hljs-comment"># 查看日志确认启动成功</span><br>docker logs -f ssp<br></code></pre></td></tr></table></figure>
 
-### 4.3 构建和运行
+<hr>
+<h2 id="5-Docker-Compose：一键启动多个服务"><a href="#5-Docker-Compose：一键启动多个服务" class="headerlink" title="5. Docker Compose：一键启动多个服务"></a>5. Docker Compose：一键启动多个服务</h2><h3 id="5-1-解决的问题"><a href="#5-1-解决的问题" class="headerlink" title="5.1 解决的问题"></a>5.1 解决的问题</h3><p>Mini-SSP 需要 MySQL、Redis、还有 SSP 应用本身，如果用 <code>docker run</code> 一个个启动，要敲好几条命令，还要处理它们之间的网络连接和启动顺序。Docker Compose 用一个 YAML 文件描述所有服务，一条命令全部启动。</p>
+<h3 id="5-2-docker-compose-yml"><a href="#5-2-docker-compose-yml" class="headerlink" title="5.2 docker-compose.yml"></a>5.2 docker-compose.yml</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;3.8&#x27;</span><br><span class="hljs-attr">services:</span><br><br>  <span class="hljs-attr">mysql:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">mysql:8.0</span><br>    <span class="hljs-attr">environment:</span><br>      <span class="hljs-attr">MYSQL_ROOT_PASSWORD:</span> <span class="hljs-string">root</span><br>      <span class="hljs-attr">MYSQL_DATABASE:</span> <span class="hljs-string">mini_ssp</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;3306:3306&quot;</span><br><br>  <span class="hljs-attr">redis:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">redis:7-alpine</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;6379:6379&quot;</span><br><br>  <span class="hljs-attr">ssp:</span><br>    <span class="hljs-attr">build:</span> <span class="hljs-string">.</span>                    <span class="hljs-comment"># 用当前目录的 Dockerfile 构建</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;8080:8080&quot;</span><br>    <span class="hljs-attr">depends_on:</span>                 <span class="hljs-comment"># 等 mysql 和 redis 启动后再启动</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">mysql</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">redis</span><br>    <span class="hljs-attr">environment:</span><br>      <span class="hljs-comment"># 注意：容器之间用服务名互相访问，不是 localhost</span><br>      <span class="hljs-attr">SPRING_DATASOURCE_URL:</span> <span class="hljs-string">jdbc:mysql://mysql:3306/mini_ssp</span><br>      <span class="hljs-attr">SPRING_DATA_REDIS_HOST:</span> <span class="hljs-string">redis</span><br></code></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 构建镜像</span><br>docker build -t mini-ssp:1.0 .<br><br><span class="hljs-comment"># 运行</span><br>docker run -d -p 8080:8080 --name ssp mini-ssp:1.0<br><br><span class="hljs-comment"># 查看日志确认启动成功</span><br>docker logs -f ssp<br></code></pre></td></tr></table></figure>
-
----
-
-## 5. Docker Compose：一键启动多个服务
-
-### 5.1 解决的问题
-
-Mini-SSP 需要 MySQL、Redis、还有 SSP 应用本身，如果用 `docker run` 一个个启动，要敲好几条命令，还要处理它们之间的网络连接和启动顺序。Docker Compose 用一个 YAML 文件描述所有服务，一条命令全部启动。
-
-### 5.2 docker-compose.yml
-
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;3.8&#x27;</span><br><span class="hljs-attr">services:</span><br><br>  <span class="hljs-attr">mysql:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">mysql:8.0</span><br>    <span class="hljs-attr">environment:</span><br>      <span class="hljs-attr">MYSQL_ROOT_PASSWORD:</span> <span class="hljs-string">root</span><br>      <span class="hljs-attr">MYSQL_DATABASE:</span> <span class="hljs-string">mini_ssp</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;3306:3306&quot;</span><br><br>  <span class="hljs-attr">redis:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">redis:7-alpine</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;6379:6379&quot;</span><br><br>  <span class="hljs-attr">ssp:</span><br>    <span class="hljs-attr">build:</span> <span class="hljs-string">.</span>                    <span class="hljs-comment"># 用当前目录的 Dockerfile 构建</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;8080:8080&quot;</span><br>    <span class="hljs-attr">depends_on:</span>                 <span class="hljs-comment"># 等 mysql 和 redis 启动后再启动</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">mysql</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">redis</span><br>    <span class="hljs-attr">environment:</span><br>      <span class="hljs-comment"># 注意：容器之间用服务名互相访问，不是 localhost</span><br>      <span class="hljs-attr">SPRING_DATASOURCE_URL:</span> <span class="hljs-string">jdbc:mysql://mysql:3306/mini_ssp</span><br>      <span class="hljs-attr">SPRING_DATA_REDIS_HOST:</span> <span class="hljs-string">redis</span><br></code></pre></td></tr></table></figure>
-
-### 5.3 关键点：容器间用服务名通信
-
-这是新手最容易踩的坑：
-
+<h3 id="5-3-关键点：容器间用服务名通信"><a href="#5-3-关键点：容器间用服务名通信" class="headerlink" title="5.3 关键点：容器间用服务名通信"></a>5.3 关键点：容器间用服务名通信</h3><p>这是新手最容易踩的坑：</p>
 <figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs vim">在宿主机上：MySQL 是 localhos<span class="hljs-variable">t:3306</span><br>在 ssp 容器里：MySQL 不是 localhost，而是服务名 mysq<span class="hljs-variable">l:3306</span><br><br>原因：每个容器有自己独立的网络空间，容器里的 localhost 指的是<br>容器自己，不是宿主机。Docker Compose 会自动让同一个 compose<br>文件里的服务可以用<span class="hljs-string">&quot;服务名&quot;</span>互相访问。<br></code></pre></td></tr></table></figure>
 
-所以 SSP 连接 MySQL 的地址要写 `jdbc:mysql://mysql:3306/...`，这里的 `mysql` 就是上面定义的服务名。
+<p>所以 SSP 连接 MySQL 的地址要写 <code>jdbc:mysql://mysql:3306/...</code>，这里的 <code>mysql</code> 就是上面定义的服务名。</p>
+<h3 id="5-4-常用命令"><a href="#5-4-常用命令" class="headerlink" title="5.4 常用命令"></a>5.4 常用命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 启动所有服务（-d 后台运行）</span><br>docker-compose up -d<br><br><span class="hljs-comment"># 构建并启动（代码改了需要重新构建时）</span><br>docker-compose up -d --build<br><br><span class="hljs-comment"># 查看所有服务状态</span><br>docker-compose ps<br><br><span class="hljs-comment"># 查看日志</span><br>docker-compose logs -f ssp<br><br><span class="hljs-comment"># 停止并删除所有容器</span><br>docker-compose down<br><br><span class="hljs-comment"># 停止但不删除</span><br>docker-compose stop<br></code></pre></td></tr></table></figure>
 
-### 5.4 常用命令
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 启动所有服务（-d 后台运行）</span><br>docker-compose up -d<br><br><span class="hljs-comment"># 构建并启动（代码改了需要重新构建时）</span><br>docker-compose up -d --build<br><br><span class="hljs-comment"># 查看所有服务状态</span><br>docker-compose ps<br><br><span class="hljs-comment"># 查看日志</span><br>docker-compose logs -f ssp<br><br><span class="hljs-comment"># 停止并删除所有容器</span><br>docker-compose down<br><br><span class="hljs-comment"># 停止但不删除</span><br>docker-compose stop<br></code></pre></td></tr></table></figure>
-
----
-
-## 6. 容器的原理（简单理解）
-
-容器能做到"隔离"和"轻量"，靠的是 Linux 内核的三个机制：
-
-### 6.1 Namespace（命名空间）—— 负责隔离
-
-让每个容器以为自己独占整个系统：
-
+<hr>
+<h2 id="6-容器的原理（简单理解）"><a href="#6-容器的原理（简单理解）" class="headerlink" title="6. 容器的原理（简单理解）"></a>6. 容器的原理（简单理解）</h2><p>容器能做到”隔离”和”轻量”，靠的是 Linux 内核的三个机制：</p>
+<h3 id="6-1-Namespace（命名空间）——-负责隔离"><a href="#6-1-Namespace（命名空间）——-负责隔离" class="headerlink" title="6.1 Namespace（命名空间）—— 负责隔离"></a>6.1 Namespace（命名空间）—— 负责隔离</h3><p>让每个容器以为自己独占整个系统：</p>
 <figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs armasm">进程隔离：容器里 ps 只能看到自己的进程，看不到宿主机和其他容器的进程<br>网络隔离：每个容器有自己的 <span class="hljs-built_in">IP</span>、端口、网卡<br>文件隔离：容器里看到的文件系统是独立的<br></code></pre></td></tr></table></figure>
 
-就像每个容器都戴着"眼罩"，只能看到属于自己的那部分。
-
-### 6.2 Cgroups（控制组）—— 负责限制资源
-
-控制每个容器能用多少 CPU、内存：
-
+<p>就像每个容器都戴着”眼罩”，只能看到属于自己的那部分。</p>
+<h3 id="6-2-Cgroups（控制组）——-负责限制资源"><a href="#6-2-Cgroups（控制组）——-负责限制资源" class="headerlink" title="6.2 Cgroups（控制组）—— 负责限制资源"></a>6.2 Cgroups（控制组）—— 负责限制资源</h3><p>控制每个容器能用多少 CPU、内存：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 限制容器最多用 512MB 内存、1 个 CPU</span><br>docker run -m 512m --cpus 1 my-app<br></code></pre></td></tr></table></figure>
 
-防止某个容器吃光宿主机所有资源，影响其他容器。
-
-### 6.3 联合文件系统（UnionFS）—— 负责分层
-
-镜像是**一层一层叠起来**的，每层只记录和上一层的差异：
-
+<p>防止某个容器吃光宿主机所有资源，影响其他容器。</p>
+<h3 id="6-3-联合文件系统（UnionFS）——-负责分层"><a href="#6-3-联合文件系统（UnionFS）——-负责分层" class="headerlink" title="6.3 联合文件系统（UnionFS）—— 负责分层"></a>6.3 联合文件系统（UnionFS）—— 负责分层</h3><p>镜像是<strong>一层一层叠起来</strong>的，每层只记录和上一层的差异：</p>
 <pre style="display:none">
 graph TB
     L1["Layer 1: 基础 Linux 系统"] --> L2["Layer 2: 装上 JRE"]
     L2 --> L3["Layer 3: 复制进 jar 包"]
     L3 --> View["合并视图：完整的运行环境"]
 
-![](/images/Java-advanced/IMG-20260707-000010.png)
-
-
-
-
-
-
-
-分层的好处：
-
-- **复用**：多个镜像都基于同一个 JRE 层，这一层只存一份
-- **缓存**：构建镜像时，没改动的层直接复用缓存，只重新构建变化的层，速度快
-
-这也解释了为什么 Dockerfile 里"把不常变的放前面、常变的放后面"——前面的层能命中缓存，加快构建。
-
----
-
-## 7. 小结
-
-| 主题 | 关键要点 |
-|------|---------|
-| 容器是什么 | 把应用和依赖打包成标准"集装箱"，到处一致运行 |
-| 容器 vs 虚拟机 | 容器共享宿主机内核，更轻更快；虚拟机模拟完整 OS |
-| 三个概念 | Dockerfile（菜谱）→ 镜像（半成品）→ 容器（端上桌的菜） |
-| 常用命令 | `build` 构建、`run` 运行、`ps` 查看、`logs` 看日志、`exec` 进入 |
-| 端口映射 | `-p 宿主机端口:容器端口` |
-| Dockerfile | 多阶段构建减小镜像体积（编译用 JDK，运行用 JRE） |
-| Docker Compose | 一个 YAML 启动多服务，容器间用服务名通信 |
-| 底层原理 | Namespace 隔离、Cgroups 限资源、UnionFS 分层 |
-
-对 Mini-SSP 来说，Docker 化之后只需要 `docker-compose up` 一条命令，就能在任何装了 Docker 的机器上拉起整套环境（MySQL + Redis + SSP + Mock DSP），不用再手动装一堆东西。
-
----
-
-> **下一篇预告**：Docker 进阶——数据卷、网络配置与镜像优化
-
+</pre>
+<p><img src="/images/Java-advanced/IMG-20260707-000010.png" srcset="/img/loading.gif" lazyload></p>
+<p>分层的好处：</p>
+<ul>
+<li><strong>复用</strong>：多个镜像都基于同一个 JRE 层，这一层只存一份</li>
+<li><strong>缓存</strong>：构建镜像时，没改动的层直接复用缓存，只重新构建变化的层，速度快</li>
+</ul>
+<p>这也解释了为什么 Dockerfile 里”把不常变的放前面、常变的放后面”——前面的层能命中缓存，加快构建。</p>
+<hr>
+<h2 id="7-小结"><a href="#7-小结" class="headerlink" title="7. 小结"></a>7. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>容器是什么</td>
+<td>把应用和依赖打包成标准”集装箱”，到处一致运行</td>
+</tr>
+<tr>
+<td>容器 vs 虚拟机</td>
+<td>容器共享宿主机内核，更轻更快；虚拟机模拟完整 OS</td>
+</tr>
+<tr>
+<td>三个概念</td>
+<td>Dockerfile（菜谱）→ 镜像（半成品）→ 容器（端上桌的菜）</td>
+</tr>
+<tr>
+<td>常用命令</td>
+<td><code>build</code> 构建、<code>run</code> 运行、<code>ps</code> 查看、<code>logs</code> 看日志、<code>exec</code> 进入</td>
+</tr>
+<tr>
+<td>端口映射</td>
+<td><code>-p 宿主机端口:容器端口</code></td>
+</tr>
+<tr>
+<td>Dockerfile</td>
+<td>多阶段构建减小镜像体积（编译用 JDK，运行用 JRE）</td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>一个 YAML 启动多服务，容器间用服务名通信</td>
+</tr>
+<tr>
+<td>底层原理</td>
+<td>Namespace 隔离、Cgroups 限资源、UnionFS 分层</td>
+</tr>
+</tbody></table>
+<p>对 Mini-SSP 来说，Docker 化之后只需要 <code>docker-compose up</code> 一条命令，就能在任何装了 Docker 的机器上拉起整套环境（MySQL + Redis + SSP + Mock DSP），不用再手动装一堆东西。</p>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：Docker 进阶——数据卷、网络配置与镜像优化</p>
+</blockquote>
 <!-- follow-me -->
----
-
-> 🎯 如果这篇文章对你有帮助，别忘了**点赞、收藏、关注**三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
 
                 
               </div>
