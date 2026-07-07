@@ -1,4 +1,4 @@
-flowchart TD
+flowchart LR
     A["top -Hp 找到高 CPU 线程"] --> B["线程 ID 转十六进制"]
     B --> C["在 jstack 中搜索 nid"]
     C --> D["找到 Java 线程名"]

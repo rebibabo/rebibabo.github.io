@@ -26,8 +26,26 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="前面讲锁时，核心问题一直是：多个线程同时访问共享状态时，如何保证结果正确。synchronized、ReentrantLock、读写锁、StampedLock 都是在这个问题上给出的不同答案。 但是，锁不是唯一方案。如果线程获取不到锁，通常要进入阻塞、唤醒、重新竞争的过程；无锁设计则换了一个方向：不让线程因为竞争失败而进入阻塞队列，而是通过 CAS、快照替换、版本校验、分散竞争等方式，在用户态完成">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000098.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000099.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000100.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000101.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000102.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000103.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000104.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000105.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000106.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000107.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000108.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000109.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000110.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000111.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000112.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000113.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000114.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000115.png">
 <meta property="article:published_time" content="2026-07-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:40:36.136Z">
+<meta property="article:modified_time" content="2026-07-07T13:41:44.568Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="ABA">
 <meta property="article:tag" content="CAS">
@@ -35,6 +53,7 @@
 <meta property="article:tag" content="LongAdder">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000098.png">
   
   
   
@@ -230,7 +249,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          10k 字
+          8.5k 字
         
       </span>
     
@@ -241,7 +260,7 @@
         
         
         
-          88 分钟
+          71 分钟
         
       </span>
     
@@ -288,27 +307,14 @@
                 <p>前面讲锁时，核心问题一直是：多个线程同时访问共享状态时，如何保证结果正确。<code>synchronized</code>、<code>ReentrantLock</code>、读写锁、<code>StampedLock</code> 都是在这个问题上给出的不同答案。</p>
 <p>但是，锁不是唯一方案。如果线程获取不到锁，通常要进入阻塞、唤醒、重新竞争的过程；无锁设计则换了一个方向：不让线程因为竞争失败而进入阻塞队列，而是通过 CAS、快照替换、版本校验、分散竞争等方式，在用户态完成冲突处理。</p>
 <p>因此，无锁并不是没有并发控制，而是竞争失败后的处理方式不同。</p>
-<pre><code class=" mermaid">graph TD
-    subgraph 加锁方式
-        A1[获取锁] --&gt; A2[进入临界区] --&gt; A3[释放锁]
-    end
-    subgraph 无锁方式
-        B1[读取旧值] --&gt; B2[计算新值] --&gt; B3[CAS 发布]
-    end
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000098.png" srcset="/img/loading.gif" lazyload></p>
 <p>加锁的失败结果通常是等待；无锁的失败结果通常是重试、校验或换一个位置继续尝试。这也是本章后面所有内容的共同主线。</p>
 <h2 id="1-CAS：失败重试型无锁"><a href="#1-CAS：失败重试型无锁" class="headerlink" title="1. CAS：失败重试型无锁"></a>1. CAS：失败重试型无锁</h2><p>CAS 是 Compare-And-Set 的缩写，意思是“比较并设置”。它的语义可以简化成一句话：</p>
 <blockquote>
 <p>修改共享变量前，先确认它还是不是我之前看到的旧值；如果是，就替换成新值；如果不是，就说明期间已经有人改过，本次更新失败。</p>
 </blockquote>
 <p>普通的 <code>count++</code> 不是一个原子动作，它至少包含读取、计算、写回三个步骤：</p>
-<pre><code class=" mermaid">graph TD
-    A[&quot;读取 count&quot;] --&gt; B[&quot;计算 count + 1&quot;] --&gt; C[&quot;写入 count&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000099.png" srcset="/img/loading.gif" lazyload></p>
 <p>如果两个线程都读到 <code>count = 0</code>，再分别写回 <code>1</code>，就会丢失一次更新。CAS 的关键区别在于，“比较旧值”和“替换新值”在底层是一个不可分割的原子操作。两个线程同时执行 <code>compareAndSet(0, 1)</code> 时，只可能有一个线程成功，另一个线程会发现当前值已经不是 <code>0</code>，从而失败。</p>
 <p>因此，真正的无锁更新通常不是单独执行一次 CAS，而是配合循环：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">oldValue</span> <span class="hljs-operator">=</span> atomic.get();<br>    <span class="hljs-type">int</span> <span class="hljs-variable">newValue</span> <span class="hljs-operator">=</span> oldValue + <span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">if</span> (atomic.compareAndSet(oldValue, newValue)) &#123;<br>        <span class="hljs-keyword">break</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -317,14 +323,7 @@
 <p>CAS 适合的是可以重试的短操作，例如计数器累加、状态位切换、引用替换、链表节点指针更新。它提供的是无锁设计中最基础的原子能力：不用阻塞线程，也能安全完成一次条件更新。</p>
 <h2 id="2-CAS-的代价：不阻塞不等于没有成本"><a href="#2-CAS-的代价：不阻塞不等于没有成本" class="headerlink" title="2. CAS 的代价：不阻塞不等于没有成本"></a>2. CAS 的代价：不阻塞不等于没有成本</h2><p>CAS 竞争失败后，线程不会进入阻塞队列，但这不代表它没有成本。失败线程仍然在运行，会继续读取、计算、尝试 CAS。如果竞争很激烈，CPU 时间会被大量消耗在失败重试上。</p>
 <p>更重要的是，多个核心同时修改同一个变量时，这个变量所在的 cache line 会在不同核心之间反复失效和转移。比如多个线程同时更新一个 <code>AtomicLong</code>：</p>
-<pre><code class=" mermaid">graph TD
-    A[核心 1] --&gt; E[同一条缓存行]
-    B[核心 2] --&gt; E
-    C[核心 3] --&gt; E
-    D[核心 4] --&gt; E
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000100.png" srcset="/img/loading.gif" lazyload></p>
 <p>某个核心 CAS 成功后，其他核心缓存中的同一条 cache line 可能失效；其他核心下次再尝试更新时，又要重新获取最新值。高竞争下，CAS 的问题不是不安全，而是所有线程都集中争抢同一个热点。</p>
 <p>所以 CAS 是无锁设计的基础，但不是所有场景下的最优解。它解决的是“如何安全完成一次条件更新”，并不自动解决“所有线程都抢同一个位置”的问题。后面的 Copy-On-Write、ABA 版本号和 LongAdder，都是在 CAS 这个基础能力之上继续处理更具体的问题。</p>
 <h2 id="3-Copy-On-Write：替换引用型无锁"><a href="#3-Copy-On-Write：替换引用型无锁" class="headerlink" title="3. Copy-On-Write：替换引用型无锁"></a>3. Copy-On-Write：替换引用型无锁</h2><p>CAS 更适合更新一个简单变量或一个引用。如果共享对象本身比较复杂，例如 Map、List、配置表、路由表，直接原地修改就会带来另一个问题：读线程可能读到一个正在被修改的中间状态。</p>
@@ -351,12 +350,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">localSettings = immutableSettings;<br>localFeatureRules = immutableFeatureRules;<br></code></pre></td></tr></table></figure>
 
 <p>这两行在源码中虽然连续，但对其他线程来说不是一个原子整体。读线程可能短暂看到：</p>
-<pre><code class=" mermaid">graph LR
-    A[&quot;localSettings&quot;] --&gt; B[&quot;新版本&quot;]
-    C[&quot;localFeatureRules&quot;] --&gt; D[&quot;旧版本&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000101.png" srcset="/img/loading.gif" lazyload></p>
 <p>如果这两个字段必须来自同一次刷新，就应该把它们封装成一个快照对象：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConfigSnapshot</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, String&gt; settings;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, List&lt;String&gt;&gt; featureRules;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">ConfigSnapshot</span><span class="hljs-params">(</span><br><span class="hljs-params">            Map&lt;String, String&gt; settings,</span><br><span class="hljs-params">            Map&lt;String, List&lt;String&gt;&gt; featureRules)</span> &#123;<br>        <span class="hljs-built_in">this</span>.settings = settings;<br>        <span class="hljs-built_in">this</span>.featureRules = featureRules;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Map&lt;String, String&gt; <span class="hljs-title function_">getSettings</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> settings;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Map&lt;String, List&lt;String&gt;&gt; <span class="hljs-title function_">getFeatureRules</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> featureRules;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
@@ -434,11 +428,7 @@
 <p>前者更关注快照发布，后者更关注旧版本是否已经过期。</p>
 <h2 id="6-版本号与乐观校验"><a href="#6-版本号与乐观校验" class="headerlink" title="6. 版本号与乐观校验"></a>6. 版本号与乐观校验</h2><p>CAS 在写入前检查旧值是否仍然有效；版本号则常用于读取后检查数据是否在读取期间发生变化。</p>
 <p>乐观读就是这种思路。线程先假设读取期间没有写入，不加锁读取数据；读完之后，再检查版本是否变化：</p>
-<pre><code class=" mermaid">graph TD
-    A[&quot;读取版本号 = 10&quot;] --&gt; B[读取数据] --&gt; C[校验版本号]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000102.png" srcset="/img/loading.gif" lazyload></p>
 <p>如果版本号仍然是 <code>10</code>，说明这次读取可以接受；如果版本号变化，说明读取期间可能发生过写入，需要重新读取或退化成加锁读。</p>
 <p>这和前文的 CAS 是同一类乐观思想，只是检查时机不同：</p>
 <table>
@@ -463,18 +453,10 @@
 <p>这里不再展开 <code>StampedLock</code> 的具体 API。它在本章中的作用，是为 ABA 做铺垫：只比较值本身有时不够，还需要额外的版本信息。</p>
 <h2 id="7-ABA：值相同不代表中间没有变化"><a href="#7-ABA：值相同不代表中间没有变化" class="headerlink" title="7. ABA：值相同不代表中间没有变化"></a>7. ABA：值相同不代表中间没有变化</h2><p>CAS 的判断逻辑是：我之前看到的是 A，现在仍然是 A，所以可以更新。问题是，“现在还是 A”不代表“中间没有变过”。</p>
 <p>可能发生过：</p>
-<pre><code class=" mermaid">graph LR
-    A1[A] --&gt; B[B] --&gt; A2[A]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000103.png" srcset="/img/loading.gif" lazyload></p>
 <p>这就是 ABA 问题。它不是 CAS 更新失败，而是 CAS 成功了，但成功建立在一个不完整的判断之上：CAS 只确认当前值和旧值相同，却不知道中间是否经历过变化。</p>
 <p>经典场景出现在无锁栈中。初始结构如下：</p>
-<pre><code class=" mermaid">graph TD
-    H[&quot;head&quot;] --&gt; A[A] --&gt; B[B] --&gt; C[C]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000104.png" srcset="/img/loading.gif" lazyload></p>
 <p>线程 1 想弹出 A，于是先读到：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">oldHead = A<br>next    = B<br></code></pre></td></tr></table></figure>
 
@@ -482,23 +464,11 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">CAS(head, A, B)<br></code></pre></td></tr></table></figure>
 
 <p>但在线程 1 执行 CAS 之前，线程 2 插入执行：</p>
-<pre><code class=" mermaid">graph TD
-    A[&quot;弹出 A&quot;] --&gt; B[&quot;弹出 B&quot;] --&gt; C[&quot;压入 A&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000105.png" srcset="/img/loading.gif" lazyload></p>
 <p>此时结构变成：</p>
-<pre><code class=" mermaid">graph TD
-    H[&quot;head&quot;] --&gt; A[A] --&gt; C[C]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000106.png" srcset="/img/loading.gif" lazyload></p>
 <p><code>head</code> 又回到了 A，但 A 后面的节点已经不是 B。线程 1 继续执行之前准备好的 <code>CAS(head, A, B)</code>，CAS 会成功，因为当前 <code>head</code> 确实还是 A。成功之后结构变成：</p>
-<pre><code class=" mermaid">graph TD
-    H[&quot;head&quot;] --&gt; B[B] --&gt; C[C]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000107.png" srcset="/img/loading.gif" lazyload></p>
 <p>问题是，B 已经被线程 2 弹出，却被线程 1 根据旧的 <code>next = B</code> 重新接回了栈中。这里危险的不是 A 回来了本身，而是线程 1 基于旧结构做了决策，而 CAS 只检查了 head 是否还是 A，没有检查 A 后面的结构是否仍然有效。</p>
 <p>解决 ABA 的常见思路是增加版本号，把比较对象从：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">A<br></code></pre></td></tr></table></figure>
@@ -507,11 +477,7 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">(A, version)<br></code></pre></td></tr></table></figure>
 
 <p>例如：</p>
-<pre><code class=" mermaid">graph LR
-    A[&quot;(A, 1)&quot;] --&gt; B[&quot;(B, 2)&quot;] --&gt; C[&quot;(A, 3)&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000108.png" srcset="/img/loading.gif" lazyload></p>
 <p>虽然值又回到了 A，但版本号已经变化。线程基于 <code>(A, 1)</code> 发起 CAS 时，会发现当前状态是 <code>(A, 3)</code>，从而失败。</p>
 <p>Java 中对应的工具是 <code>AtomicStampedReference&lt;T&gt;</code>：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java">AtomicStampedReference&lt;Node&gt; head =<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicStampedReference</span>&lt;&gt;(nodeA, <span class="hljs-number">1</span>);<br><br>head.compareAndSet(<br>        oldNode,<br>        newNode,<br>        oldStamp,<br>        oldStamp + <span class="hljs-number">1</span><br>);<br></code></pre></td></tr></table></figure>
@@ -519,60 +485,17 @@
 <p>它比较的不只是引用，还包括 stamp。这样就能识别“值虽然相同，但中间已经变化过”的情况。</p>
 <h2 id="8-LongAdder：把单点竞争拆成多点竞争"><a href="#8-LongAdder：把单点竞争拆成多点竞争" class="headerlink" title="8. LongAdder：把单点竞争拆成多点竞争"></a>8. LongAdder：把单点竞争拆成多点竞争</h2><p>前面的 CAS 解决了单次条件更新的安全问题，但高并发计数时，所有线程都 CAS 同一个变量，会形成单点热点。</p>
 <p><code>AtomicLong</code> 的模型是：</p>
-<pre><code class=" mermaid">graph TD
-    A[线程 A] --&gt; V[&quot;value&quot;]
-    B[线程 B] --&gt; V
-    C[线程 C] --&gt; V
-    D[线程 D] --&gt; V
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000109.png" srcset="/img/loading.gif" lazyload></p>
 <p><code>LongAdder</code> 的思路是把一个热点拆成多个槽：</p>
-<pre><code class=" mermaid">graph TD
-    A[线程 A] --&gt; C0[&quot;cell[0]&quot;]
-    B[线程 B] --&gt; C1[&quot;cell[1]&quot;]
-    C[线程 C] --&gt; C2[&quot;cell[2]&quot;]
-    D[线程 D] --&gt; C3[&quot;cell[3]&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000110.png" srcset="/img/loading.gif" lazyload></p>
 <p>最后求总数时，再把 <code>base</code> 和所有 <code>Cell</code> 加起来：</p>
-<pre><code class=" mermaid">graph TD
-    B[&quot;base&quot;] --&gt; S[&quot;sum&quot;]
-    C0[&quot;cell[0]&quot;] --&gt; S
-    C1[&quot;cell[1]&quot;] --&gt; S
-    C2[&quot;cell[2]&quot;] --&gt; S
-    C3[&quot;...&quot;] --&gt; S
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000111.png" srcset="/img/loading.gif" lazyload></p>
 <p>因此，<code>LongAdder</code> 不是让 CAS 消失，而是让 CAS 不再集中发生在同一个变量上。它的核心结构可以简化为：</p>
-<pre><code class=" mermaid">graph TD
-    LA[&quot;LongAdder&quot;]
-    LA --&gt; B[&quot;base&quot;]
-    LA --&gt; C[&quot;cells[]&quot;]
-    C --&gt; C0[&quot;cell[0].value&quot;]
-    C --&gt; C1[&quot;cell[1].value&quot;]
-    C --&gt; C2[&quot;cell[2].value&quot;]
-    C --&gt; C3[&quot;cell[3].value&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000112.png" srcset="/img/loading.gif" lazyload></p>
 <p>低竞争时，线程优先 CAS 更新 <code>base</code>。如果 <code>base</code> 更新失败，说明竞争开始变强，<code>LongAdder</code> 会初始化 <code>cells[]</code>，让线程根据自己的 probe 选择某个 Cell 更新。不同线程大概率落到不同 Cell 上，CAS 失败概率就会下降。</p>
 <p>当多个线程仍然撞到同一个 Cell 时，<code>LongAdder</code> 会尝试调整 probe，让线程换一个位置；如果竞争持续存在，还可能扩容 <code>cells[]</code>。初始化和扩容属于结构性操作，不能让多个线程同时修改数组结构，因此内部会用 <code>cellsBusy</code> 这样的 CAS 标记位协调。</p>
 <p>可以把一次 <code>add(1)</code> 简化为：</p>
-<pre><code class=" mermaid">graph TD
-    A[&quot;add(1)&quot;] --&gt; B[&quot;尝试 CAS base&quot;]
-    B --&gt; C[&quot;成功?&quot;]
-    C --&gt;|&quot;是&quot;| D[&quot;返回&quot;]
-    C --&gt;|&quot;否&quot;| E[&quot;根据 probe 选择 Cell&quot;]
-    E --&gt; F[&quot;尝试 CAS Cell.value&quot;]
-    F --&gt; G[&quot;冲突?&quot;]
-    G --&gt;|&quot;是&quot;| H[&quot;rehash 或扩容 cells&quot;]
-    G --&gt;|&quot;否&quot;| D
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000113.png" srcset="/img/loading.gif" lazyload></p>
 <p>它的设计重点是分层处理竞争：</p>
 <table>
 <thead>
@@ -605,27 +528,13 @@
 </tbody></table>
 <p>高频更新被分散到多个 Cell，低频结构调整才使用全局协调点。这就是 <code>LongAdder</code> 在高并发计数场景下优于 <code>AtomicLong</code> 的主要原因。</p>
 <h2 id="9-LongAdder-的读取不是强一致快照"><a href="#9-LongAdder-的读取不是强一致快照" class="headerlink" title="9. LongAdder 的读取不是强一致快照"></a>9. LongAdder 的读取不是强一致快照</h2><p><code>LongAdder.sum()</code> 不是一个原子快照。它不会在某一个瞬间冻结 <code>base</code> 和所有 Cell，而是逐个读取后相加：</p>
-<pre><code class=" mermaid">graph TD
-    A[&quot;读取 base&quot;] --&gt; B[&quot;读取 cell[0]&quot;] --&gt; C[&quot;读取 cell[1]&quot;] --&gt; D[&quot;读取 cell[2]&quot;] --&gt; E[&quot;返回 total&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000114.png" srcset="/img/loading.gif" lazyload></p>
 <p>如果求和过程中仍然有线程在执行 <code>add()</code>，这次求和可能看到某些更新，也可能看不到某些更新。例如，<code>sum()</code> 已经读完 <code>cell[0]</code> 后，另一个线程又更新了 <code>cell[0]</code>，这次更新就可能不会包含在本次返回值中。</p>
 <p>因此，<code>LongAdder.sum()</code> 返回的是遍历过程中读到的一组值拼出来的结果，而不是严格对应某一个全局时刻的精确值。它适合请求次数、QPS、监控指标、日志埋点、吞吐量统计等场景，因为这些场景更关心高并发写入性能，可以接受短暂不精确。</p>
 <p>但它不适合账户余额、库存扣减、订单号生成、严格限流这类强一致场景。这些场景需要每一次读取和更新都对应明确的全局顺序，不能用弱一致统计值做决策。</p>
 <p>所以，<code>LongAdder</code> 的本质不是比 <code>AtomicLong</code> 更原子，而是在更新路径上更会分散竞争。它用读取时的弱一致，换取高并发写入时的低冲突。</p>
 <h2 id="10-Cell-也要避免伪共享"><a href="#10-Cell-也要避免伪共享" class="headerlink" title="10. Cell 也要避免伪共享"></a>10. Cell 也要避免伪共享</h2><p><code>LongAdder</code> 把一个 value 拆成多个 Cell 后，还要考虑缓存行问题。如果多个 <code>Cell.value</code> 在内存里挨得太近，可能落在同一条 cache line 上。表面上线程更新的是不同变量，但缓存层面仍然在争抢同一条 cache line。</p>
-<pre><code class=" mermaid">graph LR
-    subgraph 同一条缓存行
-        direction LR
-        C0[&quot;cell[0]&quot;]
-        C1[&quot;cell[1]&quot;]
-        C2[&quot;cell[2]&quot;]
-        C3[&quot;cell[3]&quot;]
-    end
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000115.png" srcset="/img/loading.gif" lazyload></p>
 <p>这种情况叫伪共享：多个线程修改的是不同变量，但这些变量位于同一条 cache line 上，导致它们互相造成缓存失效。</p>
 <p>因此，<code>LongAdder</code> 的优化有两层：</p>
 <table>

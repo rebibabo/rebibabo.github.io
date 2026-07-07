@@ -1,4 +1,4 @@
-graph TD
+graph LR
     RRWL["ReentrantReadWriteLock"] --> ReadLock["ReadLock"]
     RRWL --> WriteLock["WriteLock"]
     WriteLock --> Sync["Sync(AQS)"]

@@ -26,8 +26,12 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="上一章介绍了线程池如何复用工作线程。线程池中的 Worker 会不断取得任务，并调用任务的 run()： 123while ((task &#x3D; getTask()) !&#x3D; null) &#123;    task.run();&#125;  这解决了线程反复创建和销毁的问题，但也带来一个新问题：Runnable.run() 没有返回值。如果一个计算任务在线程池的工作线程中执行，提交任务的线程怎样取得">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000067.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000068.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000069.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000070.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:40:36.136Z">
+<meta property="article:modified_time" content="2026-07-07T13:41:44.567Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Callable">
 <meta property="article:tag" content="Future">
@@ -35,6 +39,7 @@
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000067.png">
   
   
   
@@ -230,7 +235,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          11k 字
+          10k 字
         
       </span>
     
@@ -241,7 +246,7 @@
         
         
         
-          92 分钟
+          84 分钟
         
       </span>
     
@@ -448,21 +453,7 @@
 
 <p>这里发生了三件事：原始 <code>Callable</code> 被包装成 <code>FutureTask</code>；<code>FutureTask</code> 作为 <code>Runnable</code> 提交给线程池；同一个 <code>FutureTask</code> 又作为 <code>Future</code> 返回给提交线程。</p>
 <p>也就是说，工作线程执行的对象和提交线程拿到的 <code>Future</code>，通常是同一个堆对象。</p>
-<pre><code class=" mermaid">graph TD
-    subgraph Sub[&quot;提交线程&quot;]
-        future[&quot;future = 0x1000&quot;]
-    end
-    subgraph Worker[&quot;工作线程&quot;]
-        task[&quot;task = 0x1000&quot;]
-    end
-    subgraph Heap[&quot;堆&quot;]
-        ft[&quot;FutureTask @ 0x1000&lt;br&gt;callable = 原始任务&lt;br&gt;state = 任务状态&lt;br&gt;outcome = 结果或异常&quot;]
-    end
-    future --&gt; ft
-    task --&gt; ft
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000067.png" srcset="/img/loading.gif" lazyload></p>
 <p>提交线程和工作线程各自有独立的线程栈，但它们都持有同一个 <code>FutureTask</code> 引用。工作线程通过这个对象执行任务并写入结果，提交线程通过这个对象等待并读取结果。</p>
 <h2 id="七、FutureTask-run-如何执行原始任务"><a href="#七、FutureTask-run-如何执行原始任务" class="headerlink" title="七、FutureTask.run() 如何执行原始任务"></a>七、FutureTask.run() 如何执行原始任务</h2><p>原始的 <code>Callable</code> 在创建 <code>FutureTask</code> 时已经保存在对象内部：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">Callable&lt;Integer&gt; callable = () -&gt; <span class="hljs-number">10</span> + <span class="hljs-number">20</span>;<br><br>FutureTask&lt;Integer&gt; futureTask =<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">FutureTask</span>&lt;&gt;(callable);<br></code></pre></td></tr></table></figure>
@@ -675,34 +666,11 @@
 
 <p>这样多个工作线程可以并发执行任务。不过，依次调用 <code>get()</code> 时，如果第一个 <code>Future</code> 对应的任务很慢，即使后面的任务已经完成，当前线程仍然会先等待第一个任务。因此，<code>Future</code> 适合表示单个异步任务的结果，但不擅长处理复杂的任务组合、完成顺序和异步回调。</p>
 <h2 id="十六、FutureTask-的完整执行过程"><a href="#十六、FutureTask-的完整执行过程" class="headerlink" title="十六、FutureTask 的完整执行过程"></a>十六、FutureTask 的完整执行过程</h2><p>把前面的内容合在一起，一次 <code>submit()</code> 调用可以概括为：</p>
-<pre><code class=" mermaid">graph TD
-    Submit[&quot;提交 Callable&quot;] --&gt; Create[&quot;创建 FutureTask&quot;]
-    Create --&gt; Exec[&quot;作为 Runnable 执行&quot;]
-    Exec --&gt; Return[&quot;返回 FutureTask&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000068.png" srcset="/img/loading.gif" lazyload></p>
 <p>工作线程一侧：</p>
-<pre><code class=" mermaid">graph TD
-    W[&quot;工作线程拿到 FutureTask&quot;] --&gt; Call[&quot;调用 callable.call&quot;]
-    Call --&gt; Save[&quot;保存结果或异常&quot;]
-    Save --&gt; Publish[&quot;发布最终状态&quot;]
-    Publish --&gt; Wake[&quot;唤醒等待 get 的线程&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000069.png" srcset="/img/loading.gif" lazyload></p>
 <p>提交线程一侧：</p>
-<pre><code class=" mermaid">graph TD
-    Get[&quot;get 检查状态&quot;] --&gt; Check[&quot;已完成?&quot;]
-    Check --&gt;|否| Wait[&quot;阻塞等待&quot;]
-    Wait --&gt; Check
-    Check --&gt;|是| Result[&quot;结果类型?&quot;]
-    Result --&gt;|正常| Return[&quot;返回结果&quot;]
-    Result --&gt;|异常| Ex[&quot;抛出 ExecutionException&quot;]
-    Result --&gt;|取消| Cancel[&quot;抛出 CancellationException&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000070.png" srcset="/img/loading.gif" lazyload></p>
 <p><code>FutureTask</code> 的核心价值就在于它连接了两个线程：工作线程负责执行任务并写入结果，提交线程负责等待并读取结果。任务的返回值和异常不能直接跨线程返回，但可以通过同一个堆上的 <code>FutureTask</code> 对象完成传递。</p>
 <h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p><code>FutureTask</code> 的因果链条可以从 <code>Runnable.run()</code> 的限制开始理解：线程池中的工作线程只会调用 <code>run()</code>，而 <code>run()</code> 没有返回值，也不能把工作线程栈上的局部变量直接交给提交线程。于是 Java 引入 <code>Callable</code> 表达有返回值的任务，再引入 <code>Future</code> 作为提交线程获取异步结果的凭证。</p>
 <p>但工作线程需要的是 <code>Runnable</code>，提交线程需要的是 <code>Future</code>，所以线程池在 <code>submit()</code> 时会创建 <code>FutureTask</code>。同一个 <code>FutureTask</code> 一边作为 <code>Runnable</code> 进入线程池，被工作线程调用 <code>run()</code>；一边作为 <code>Future</code> 返回给提交线程，被提交线程调用 <code>get()</code>、<code>cancel()</code>、<code>isDone()</code> 等方法。</p>

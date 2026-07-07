@@ -26,8 +26,13 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="1. AQS 先解决什么问题AQS，全名是 AbstractQueuedSynchronizer。它本身不是一把具体的锁，而是一套用于构建同步器的基础框架。ReentrantLock、Semaphore、CountDownLatch 等工具可以基于 AQS 实现不同语义，但它们都会遇到同一个底层问题：当多个线程同时竞争同一份资源时，成功的线程继续执行，失败的线程不能一直空转抢资源，而要进入等待队列">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000090.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000091.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000092.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000093.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000094.png">
 <meta property="article:published_time" content="2026-07-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:40:36.136Z">
+<meta property="article:modified_time" content="2026-07-07T13:41:44.567Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="CountDownLatch">
@@ -36,6 +41,7 @@
 <meta property="article:tag" content="Semaphore">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000090.png">
   
   
   
@@ -231,7 +237,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          13k 字
+          12k 字
         
       </span>
     
@@ -242,7 +248,7 @@
         
         
         
-          106 分钟
+          99 分钟
         
       </span>
     
@@ -329,11 +335,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span> &#123;<br>    <span class="hljs-keyword">volatile</span> <span class="hljs-type">int</span> waitStatus;<br>    <span class="hljs-keyword">volatile</span> Node prev;<br>    <span class="hljs-keyword">volatile</span> Node next;<br>    <span class="hljs-keyword">volatile</span> Thread thread;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>AQS 的等待队列是一个双向链表。获取失败的线程会被包装成 <code>Node</code>，然后通过 CAS 插入队尾。队列第一次初始化时，会先创建一个不代表具体等待线程的 dummy head，真正等待的节点接在它后面。</p>
-<pre><code class=" mermaid">graph LR
-    Head[&quot;head(哨兵)&quot;] &lt;--&gt; B[&quot;Node B&lt;br&gt;线程 B&quot;] &lt;--&gt; C[&quot;Node C&lt;br&gt;线程 C&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000090.png" srcset="/img/loading.gif" lazyload></p>
 <p><code>head</code> 不是普通等待节点，而是队列已经推进到的位置。一个节点只有在自己的前驱是 <code>head</code> 时，才说明它排在最前面，才有资格尝试获取资源。这个规则使 AQS 不需要让所有等待线程一起抢锁，而是尽量按照队列顺序推进。</p>
 <h2 id="5-addWaiter-和-enq：安全地插入队尾"><a href="#5-addWaiter-和-enq：安全地插入队尾" class="headerlink" title="5. addWaiter 和 enq：安全地插入队尾"></a>5. addWaiter 和 enq：安全地插入队尾</h2><p><code>addWaiter(Node.EXCLUSIVE)</code> 负责把当前线程包装成独占模式节点，并尝试插入队尾。队列已经初始化时，它会先走快速路径：读取当前 <code>tail</code>，把新节点的 <code>prev</code> 指向旧 <code>tail</code>，再通过 CAS 把 <code>tail</code> 改成新节点。CAS 成功后，当前节点才真正抢到队尾位置，随后再补上旧尾节点的 <code>next</code> 指针。</p>
 <p>如果队列还没有初始化，或者多个线程同时入队导致 CAS 失败，就会进入 <code>enq(node)</code>。<code>enq()</code> 是兜底入队逻辑：如果发现 <code>tail == null</code>，先创建 dummy head；如果队列已经存在，就在循环中反复尝试 CAS 更新 <code>tail</code>，直到当前节点成功入队。</p>
@@ -369,11 +371,7 @@
 </tr>
 </tbody></table>
 <p><code>SIGNAL</code> 是标在前驱节点上的，不是标在当前节点自己身上的。假设 <code>Node C</code> 准备阻塞，它会先尝试把前驱 <code>Node B</code> 的状态改成 <code>SIGNAL</code>，意思是：<code>B</code> 后面有节点要睡了，等 <code>B</code> 释放资源或队列推进时，要负责唤醒后继。</p>
-<pre><code class=" mermaid">graph LR
-    Head[&quot;head&quot;] &lt;--&gt; B[&quot;Node B&lt;br&gt;waitStatus = SIGNAL&quot;] &lt;--&gt; C[&quot;Node C&lt;br&gt;park 阻塞中&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000091.png" srcset="/img/loading.gif" lazyload></p>
 <p>因此，<code>shouldParkAfterFailedAcquire(p, node)</code> 的关键逻辑可以压缩成三种情况：如果前驱已经是 <code>SIGNAL</code>，说明唤醒关系已经建立，当前线程可以安全地 <code>park</code>；如果前驱状态是 <code>0</code>，先用 CAS 把前驱改成 <code>SIGNAL</code>，本轮不睡，回到循环重新判断；如果前驱状态大于 <code>0</code>，说明前驱已经取消等待，当前节点要跳过它，重新接到有效前驱后面。</p>
 <table>
 <thead>
@@ -469,12 +467,7 @@
 <p>这里要抓住一个差异：独占模式只需要唤醒一个后继去竞争；共享模式可能需要沿着队列继续唤醒多个后继，让“共享可通过”的状态向后传播。</p>
 <h2 id="15-doAcquireShared：共享节点成功后还要传播"><a href="#15-doAcquireShared：共享节点成功后还要传播" class="headerlink" title="15. doAcquireShared：共享节点成功后还要传播"></a>15. doAcquireShared：共享节点成功后还要传播</h2><p>共享模式获取失败后，也会包装成共享节点入队，然后在队列中循环等待。这个过程和独占模式相似：当前节点仍然要等到自己的前驱是 <code>head</code>，才有资格调用 <code>tryAcquireShared()</code>。不同点出现在获取成功之后。</p>
 <p>独占模式获取成功后，当前节点只需要 <code>setHead(node)</code>，表示队列推进到当前位置。共享模式获取成功后，还会调用类似 <code>setHeadAndPropagate(node, result)</code> 的逻辑：当前节点成为新的 <code>head</code>，同时根据 <code>tryAcquireShared()</code> 的返回值和队列状态，决定是否继续唤醒后面的共享节点。</p>
-<pre><code class=" mermaid">graph LR
-    Head[&quot;head&quot;] &lt;--&gt; B[&quot;共享 Node B&quot;] &lt;--&gt; C[&quot;共享 Node C&quot;]
-    B --&gt; BAcq[&quot;B 获取共享&quot;] --&gt; Set[&quot;设为 head&lt;br&gt;传播唤醒&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000092.png" srcset="/img/loading.gif" lazyload></p>
 <p>这就是共享模式和独占模式最核心的区别：独占模式强调“一个线程成功后，其他线程继续等待”；共享模式强调“一个共享节点成功后，可能要继续把唤醒机会传给后面的共享节点”。</p>
 <h2 id="16-releaseShared：共享释放为什么需要继续传播"><a href="#16-releaseShared：共享释放为什么需要继续传播" class="headerlink" title="16. releaseShared：共享释放为什么需要继续传播"></a>16. releaseShared：共享释放为什么需要继续传播</h2><p>共享模式的释放入口可以简化成：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">releaseShared</span><span class="hljs-params">(<span class="hljs-type">int</span> arg)</span> &#123;<br>    <span class="hljs-keyword">if</span> (tryReleaseShared(arg)) &#123;<br>        doReleaseShared();<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -588,28 +581,10 @@
 </tr>
 </tbody></table>
 <p>当消费者调用 <code>await()</code> 后，它会进入 Condition 条件队列，并释放当前持有的锁。此时可以理解成：</p>
-<pre><code class=" mermaid">graph LR
-    subgraph CondQueue[&quot;条件队列&quot;]
-        C1[&quot;Node C1&quot;] --&gt; C2[&quot;Node C2&quot;]
-    end
-    subgraph SyncQueue[&quot;AQS 同步队列&quot;]
-        Head[&quot;head&quot;] &lt;--&gt; B[&quot;Node B&quot;] &lt;--&gt; Tail[&quot;tail&quot;]
-    end
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000093.png" srcset="/img/loading.gif" lazyload></p>
 <p>此时，<code>Node(C1)</code> 和 <code>Node(C2)</code> 等的是业务条件被 <code>signal()</code>，而 <code>Node(B)</code> 等的是重新获取锁。两条队列虽然都保存等待线程，但等待原因不同。</p>
 <p>当其他线程修改条件后调用 <code>signal()</code>，并不是让 <code>C1</code> 立刻继续执行，而是把 <code>C1</code> 从 Condition 条件队列转移到 AQS 同步队列：</p>
-<pre><code class=" mermaid">graph LR
-    subgraph CondQueue[&quot;条件队列&quot;]
-        C2[&quot;Node C2&quot;]
-    end
-    subgraph SyncQueue[&quot;AQS 同步队列&quot;]
-        Head[&quot;head&quot;] &lt;--&gt; B[&quot;Node B&quot;] &lt;--&gt; C1[&quot;Node C1&quot;] &lt;--&gt; Tail[&quot;tail&quot;]
-    end
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000094.png" srcset="/img/loading.gif" lazyload></p>
 <p>所以 <code>signal()</code> 的准确含义是：条件可能已经变化，先把一个条件等待节点转回同步队列。至于这个线程什么时候从 <code>await()</code> 返回，还要等当前持锁线程 <code>unlock()</code>，然后它在 AQS 同步队列中重新竞争锁。</p>
 <p>因为调用 <code>signal()</code> 的线程此时通常还持有锁，被转移的线程不能马上从 <code>await()</code> 返回，只能先进入同步队列，等当前线程 <code>unlock()</code> 后再重新竞争锁。只有重新获取锁成功，<code>await()</code> 才真正返回。</p>
 <p>因此，Condition 的完整链路可以压缩成一句话：</p>
@@ -718,9 +693,9 @@
       
         <a href="/tags/AQS/" class="print-no-link">#AQS</a>
       
-        <a href="/tags/CountDownLatch/" class="print-no-link">#CountDownLatch</a>
-      
         <a href="/tags/Semaphore/" class="print-no-link">#Semaphore</a>
+      
+        <a href="/tags/CountDownLatch/" class="print-no-link">#CountDownLatch</a>
       
     </div>
   

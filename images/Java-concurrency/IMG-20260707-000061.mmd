@@ -1,4 +1,4 @@
-graph TD
+graph LR
     subgraph A["线程 A"]
         A1["检查 ready = false"] --> A2["进入 wait"]
         A2 --> A3["错过通知"]

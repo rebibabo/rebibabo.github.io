@@ -1,4 +1,4 @@
-flowchart TD
+flowchart LR
     A["execute(task)"] --> B["workerCount < corePoolSize?"]
     B -->|"是"| C["创建核心工作线程"]
     B -->|"否"| D["workQueue.offer(task)?"]

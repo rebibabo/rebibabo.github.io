@@ -1,4 +1,4 @@
-graph TD
+graph LR
     A["Core 想要写入"] --> B["请求独占权限"]
     B --> C["将其他 Core 副本失效"]
     C --> D["修改自己的 Cache Line"]

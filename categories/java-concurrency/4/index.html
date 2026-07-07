@@ -26,14 +26,18 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="synchronized 通过互斥保护临界区，能够阻止多个线程同时修改同一份共享状态。它解决了正确性问题，但互斥也意味着线程不能再自由并发执行：一个线程持有锁时，其他竞争同一把锁的线程必须等待。等待本身不会修改业务结果，却会消耗时间和系统资源。 锁并不一定慢。没有竞争时，线程通常可以很快进入同步区域；真正影响性能的是竞争，以及竞争引发的等待、阻塞、唤醒和上下文切换。本章从线程调度的角度分析这些成本">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000014.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000015.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000017.png">
 <meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:40:36.133Z">
+<meta property="article:modified_time" content="2026-07-07T13:41:44.565Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="synchronized">
 <meta property="article:tag" content="线程调度">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000014.png">
   
   
   
@@ -229,7 +233,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          7.8k 字
+          7k 字
         
       </span>
     
@@ -240,7 +244,7 @@
         
         
         
-          66 分钟
+          59 分钟
         
       </span>
     
@@ -291,21 +295,7 @@
 
 <p>只要所有线程都通过这两个同步方法访问 <code>count</code>，计数结果就能得到保证。但“结果正确”并不等于“执行速度最快”。多个线程同时调用 <code>increment()</code> 时，同一时刻只能有一个线程进入方法，其余线程即使已经准备好执行，也不能继续修改 <code>count</code>。</p>
 <p>假设有四个线程不断调用 <code>increment()</code>，执行关系可能是：</p>
-<pre><code class=" mermaid">sequenceDiagram
-    participant A as Thread A
-    participant Lock
-    participant B as Thread B
-    participant CD as Thread C/D
-
-    A-&gt;&gt;Lock: Acquire → Execute → Release
-    B--&gt;&gt;Lock: Wait
-    CD--&gt;&gt;Lock: Wait
-    A-&gt;&gt;Lock: Release
-    B-&gt;&gt;Lock: Acquire → Execute
-    Note over CD: Still waiting
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000014.png" srcset="/img/loading.gif" lazyload></p>
 <p>程序虽然创建了多个线程，但临界区仍然只能串行执行。并发线程越多，并不意味着临界区的处理能力越高；当锁成为唯一入口时，系统吞吐量最终受单线程执行速度限制。</p>
 <h2 id="2-无竞争和有竞争"><a href="#2-无竞争和有竞争" class="headerlink" title="2. 无竞争和有竞争"></a>2. 无竞争和有竞争</h2><p>分析锁性能时，需要先区分两种情况。</p>
 <p>第一种是<strong>无竞争（Uncontended）</strong>。线程进入同步区域时，锁处于空闲状态，它可以直接获得锁，执行完临界区后释放。这个过程虽然仍然存在加锁和解锁操作，但没有其他线程等待，额外成本通常较小。</p>
@@ -327,23 +317,8 @@
 <p>任何一个因素增加，都可能加剧竞争。</p>
 <h2 id="3-竞争锁时线程发生了什么"><a href="#3-竞争锁时线程发生了什么" class="headerlink" title="3. 竞争锁时线程发生了什么"></a>3. 竞争锁时线程发生了什么</h2><p>线程执行到同步区域时，首先尝试获得锁。如果锁空闲，线程进入临界区；如果锁已经被其他线程持有，当前线程就不能继续执行这段代码。</p>
 <p>从简化模型看，竞争过程可以表示为：</p>
-<pre><code class=" mermaid">graph TD
-    Runnable --&gt; TryAcquire[&quot;Try Acquire&quot;]
-    TryAcquire --&gt; Check[&quot;Lock Acquired?&quot;]
-    Check --&gt;|Yes| Running
-    Check --&gt;|No| Blocked
-    Blocked --&gt; Released[&quot;Lock Released&quot;]
-    Released --&gt; Compete[&quot;Compete Again&quot;]
-    Compete --&gt; TryAcquire
-</code></pre>
-
-<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><br><span class="hljs-keyword">Java </span>线程状态中的 `<span class="hljs-keyword">BLOCKED`，专门表示线程正在等待进入某个 </span>`<span class="hljs-keyword">synchronized` </span>保护的区域。线程处于 `<span class="hljs-keyword">BLOCKED` </span>状态时，并没有执行临界区中的业务代码，也不会因为等待时间变长而自动获得锁。锁释放以后，它只是重新获得了参与竞争的机会。<br><br>需要注意，实际 <span class="hljs-keyword">JVM </span>不一定在第一次竞争失败时立即执行重量级阻塞。现代 <span class="hljs-keyword">JVM </span>会根据竞争情况采用不同策略，有时会短暂等待，有时才会进入阻塞状态。本章关注的是稳定结果：竞争失败的线程无法进入临界区，而等待和重新调度都会产生额外成本。<br><br><span class="hljs-comment">## 4. 阻塞和唤醒为什么有成本</span><br><br>当线程长时间无法获得锁时，让它持续占用 CPU 并没有意义。操作系统可以暂停这个线程，把 CPU Core 让给其他能够继续工作的线程。这个过程通常称为**阻塞（<span class="hljs-keyword">Block）**或**挂起（Park）**。</span><br><span class="hljs-keyword"></span><br>线程被阻塞后，锁释放并不会让它立刻开始执行。系统还需要完成一系列步骤：<br><br><span class="hljs-number">1</span>. 持锁线程退出临界区并释放锁；<br><span class="hljs-number">2</span>. <span class="hljs-keyword">JVM </span>或操作系统发现存在等待线程；<br><span class="hljs-number">3</span>. 某个等待线程被唤醒；<br><span class="hljs-number">4</span>. 被唤醒的线程重新进入可运行状态；<br><span class="hljs-number">5</span>. 操作系统调度器为它分配 CPU 时间；<br><span class="hljs-number">6</span>. 线程再次尝试获得锁。<br><br>当线程暂时拿不到锁时，如果仍然不断尝试，就会一直占用 CPU，却无法执行真正的业务代码。为了避免这种浪费，<span class="hljs-keyword">JVM </span>可以让线程进入阻塞状态。阻塞后的线程不会继续占用 CPU，操作系统可以把 CPU Core 分配给其他能够正常执行的线程。<br><br>不过，线程从运行到阻塞，再从阻塞恢复到运行，也需要付出一定成本。操作系统需要记录线程当前执行到哪里、保存寄存器和栈指针等执行现场；锁释放后，还要把等待线程唤醒，放回可运行队列，并等待 CPU 再次调度。线程重新获得 CPU 后，还需要恢复之前保存的执行现场，CPU <span class="hljs-keyword">Cache </span>中的数据也可能需要重新加载。<br><br>因此，阻塞适合等待时间较长的情况。如果临界区非常短，持锁线程马上就会释放锁，那么让等待线程短暂尝试几次，可能比立即阻塞再唤醒更快。<span class="hljs-keyword">JVM </span>会根据锁的竞争情况选择不同的处理方式，而不是每次竞争失败都立刻阻塞线程。<br><br><br>前者浪费计算资源，后者增加调度开销。<span class="hljs-keyword">JVM </span>需要根据竞争程度在两者之间选择合适策略，但无论采用哪种方式，竞争都不会凭空消失。<br><br><span class="hljs-comment">## 5. 什么是上下文切换</span><br><br>一个 CPU Core 在同一时刻只能执行一个线程。操作系统把 Core 从 Thread A 切换给 Thread <span class="hljs-keyword">B </span>时，需要保存 Thread A 的执行现场，再恢复 Thread <span class="hljs-keyword">B </span>的执行现场，这个过程称为**上下文切换（<span class="hljs-built_in">Context</span> <span class="hljs-keyword">Switch）**。</span><br><span class="hljs-keyword"></span><br>线程的执行现场包括程序执行位置、寄存器内容、栈指针等信息。只有保存这些内容，Thread A 下次获得 CPU 时才能从原来的位置继续执行。<br><br>```mermaid<br>graph TD<br>    A[<span class="hljs-string">&quot;Thread A&lt;br&gt;Register Snapshot&lt;br&gt;Program Position&lt;br&gt;Stack Pointer&quot;</span>] --&gt;<span class="hljs-title">|Save|</span> CPU[<span class="hljs-string">&quot;CPU Core&quot;</span>]<br>    CPU --&gt;<span class="hljs-title">|Restore|</span> <span class="hljs-keyword">B[&quot;Thread </span><span class="hljs-keyword">B&lt;br&gt;Register </span>Snapshot&lt;<span class="hljs-keyword">br&gt;Program </span>Position&lt;<span class="hljs-keyword">br&gt;Stack </span>Pointer<span class="hljs-string">&quot;]</span><br></code></pre></td></tr></table></figure>
-
-
-<p>保存和恢复上下文需要时间，但这不是上下文切换的全部成本。线程切换后，CPU Cache 和分支预测中原本适合 Thread A 的内容，未必适合 Thread B。Thread B 可能需要重新加载数据和指令，导致更多 Cache Miss。切换次数过多时，CPU 花在恢复执行环境上的时间会增加，真正用于业务计算的时间则会减少。</p>
-<p>锁竞争可能增加上下文切换，因为竞争失败的线程会阻塞，持锁线程释放锁后又会唤醒等待线程。线程数量远大于 Core 数量时，即使没有锁，调度器也会频繁切换线程；如果再叠加激烈锁竞争，调度成本会进一步上升。</p>
-<h2 id="6-临界区越大，竞争越严重"><a href="#6-临界区越大，竞争越严重" class="headerlink" title="6. 临界区越大，竞争越严重"></a>6. 临界区越大，竞争越严重</h2><p>锁的持有时间主要由临界区中的代码决定。下面的写法把整个方法都放入同步区域：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">process</span><span class="hljs-params">(Order order)</span> &#123;<br>    validate(order);<br>    loadRemoteData(order);<br>    updateState(order);<br>    saveLog(order);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><img src="/images/Java-concurrency/IMG-20260707-000015.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs css"><br>Java 线程状态中的 `BLOCKED`，专门表示线程正在等待进入某个 `synchronized` 保护的区域。线程处于 `BLOCKED` 状态时，并没有执行临界区中的业务代码，也不会因为等待时间变长而自动获得锁。锁释放以后，它只是重新获得了参与竞争的机会。<br><br>需要注意，实际 JVM 不一定在第一次竞争失败时立即执行重量级阻塞。现代 JVM 会根据竞争情况采用不同策略，有时会短暂等待，有时才会进入阻塞状态。本章关注的是稳定结果：竞争失败的线程无法进入临界区，而等待和重新调度都会产生额外成本。<br><br>## <span class="hljs-number">4</span>. 阻塞和唤醒为什么有成本<br><br>当线程长时间无法获得锁时，让它持续占用 CPU 并没有意义。操作系统可以暂停这个线程，把 CPU Core 让给其他能够继续工作的线程。这个过程通常称为**阻塞（Block）**或**挂起（Park）**。<br><br>线程被阻塞后，锁释放并不会让它立刻开始执行。系统还需要完成一系列步骤：<br><br><span class="hljs-number">1</span>. 持锁线程退出临界区并释放锁；<br><span class="hljs-number">2</span>. JVM 或操作系统发现存在等待线程；<br><span class="hljs-number">3</span>. 某个等待线程被唤醒；<br><span class="hljs-number">4</span>. 被唤醒的线程重新进入可运行状态；<br><span class="hljs-number">5</span>. 操作系统调度器为它分配 CPU 时间；<br><span class="hljs-number">6</span>. 线程再次尝试获得锁。<br><br>当线程暂时拿不到锁时，如果仍然不断尝试，就会一直占用 CPU，却无法执行真正的业务代码。为了避免这种浪费，JVM 可以让线程进入阻塞状态。阻塞后的线程不会继续占用 CPU，操作系统可以把 CPU Core 分配给其他能够正常执行的线程。<br><br>不过，线程从运行到阻塞，再从阻塞恢复到运行，也需要付出一定成本。操作系统需要记录线程当前执行到哪里、保存寄存器和栈指针等执行现场；锁释放后，还要把等待线程唤醒，放回可运行队列，并等待 CPU 再次调度。线程重新获得 CPU 后，还需要恢复之前保存的执行现场，CPU Cache 中的数据也可能需要重新加载。<br><br>因此，阻塞适合等待时间较长的情况。如果临界区非常短，持锁线程马上就会释放锁，那么让等待线程短暂尝试几次，可能比立即阻塞再唤醒更快。JVM 会根据锁的竞争情况选择不同的处理方式，而不是每次竞争失败都立刻阻塞线程。<br><br><br>前者浪费计算资源，后者增加调度开销。JVM 需要根据竞争程度在两者之间选择合适策略，但无论采用哪种方式，竞争都不会凭空消失。<br><br>## <span class="hljs-number">5</span>. 什么是上下文切换<br><br>一个 CPU Core 在同一时刻只能执行一个线程。操作系统把 Core 从 Thread <span class="hljs-selector-tag">A</span> 切换给 Thread <span class="hljs-selector-tag">B</span> 时，需要保存 Thread <span class="hljs-selector-tag">A</span> 的执行现场，再恢复 Thread <span class="hljs-selector-tag">B</span> 的执行现场，这个过程称为**上下文切换（Context <span class="hljs-selector-tag">Switch</span>）**。<br><br>线程的执行现场包括程序执行位置、寄存器内容、栈指针等信息。只有保存这些内容，Thread <span class="hljs-selector-tag">A</span> 下次获得 CPU 时才能从原来的位置继续执行。<br><br>!<span class="hljs-selector-attr">[]</span>(/images/Java-concurrency/<span class="hljs-selector-tag">IMG</span>-<span class="hljs-number">20260707</span>-<span class="hljs-number">000016</span><span class="hljs-selector-class">.png</span>)<br><br><br><br>保存和恢复上下文需要时间，但这不是上下文切换的全部成本。线程切换后，CPU Cache 和分支预测中原本适合 Thread <span class="hljs-selector-tag">A</span> 的内容，未必适合 Thread <span class="hljs-selector-tag">B</span>。Thread <span class="hljs-selector-tag">B</span> 可能需要重新加载数据和指令，导致更多 Cache Miss。切换次数过多时，CPU 花在恢复执行环境上的时间会增加，真正用于业务计算的时间则会减少。<br><br>锁竞争可能增加上下文切换，因为竞争失败的线程会阻塞，持锁线程释放锁后又会唤醒等待线程。线程数量远大于 Core 数量时，即使没有锁，调度器也会频繁切换线程；如果再叠加激烈锁竞争，调度成本会进一步上升。<br><br>## <span class="hljs-number">6</span>. 临界区越大，竞争越严重<br><br>锁的持有时间主要由临界区中的代码决定。下面的写法把整个方法都放入同步区域：<br><br>```java<br>public synchronized void process(<span class="hljs-attribute">Order</span> <span class="hljs-attribute">order</span>) &#123;<br>    validate(<span class="hljs-attribute">order</span>);<br>    loadRemoteData(<span class="hljs-attribute">order</span>);<br>    updateState(<span class="hljs-attribute">order</span>);<br>    saveLog(<span class="hljs-attribute">order</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>如果 <code>loadRemoteData()</code> 涉及网络请求，<code>saveLog()</code> 涉及磁盘 IO，那么线程可能长时间持有锁。即使真正需要保护的只有 <code>updateState()</code>，其他线程也必须等待整个方法执行完成。</p>
 <p>可以缩小临界区：</p>
@@ -373,12 +348,7 @@
 
 <p>假设一个线程每秒可以执行一百万次 <code>increment()</code>。把线程数量增加到十个，并不会自然得到每秒一千万次，因为十个线程仍然必须串行进入同一个临界区。额外线程反而会增加竞争、等待和调度成本。</p>
 <p>可以把任务大致分成两部分：</p>
-<pre><code class=" mermaid">graph TD
-    Work[&quot;Total Work&quot;] --&gt; Parallel[&quot;Parallel Part&quot;]
-    Work --&gt; Serial[&quot;Serialized Part&quot;]
-</code></pre>
-
-
+<p><img src="/images/Java-concurrency/IMG-20260707-000017.png" srcset="/img/loading.gif" lazyload></p>
 <p>并行部分可以分配给多个 Core 同时执行，串行部分则受锁保护，只能由一个线程执行。当串行部分占比很高时，继续增加线程数量带来的收益会迅速降低，甚至出现性能下降。</p>
 <p>这也是并发编程中一个重要原则：线程是利用并行能力的工具，不是性能倍增器。只有任务本身能够被有效拆分，并且线程之间不会频繁争夺同一资源，多线程才有可能带来明显加速。</p>
 <h2 id="9-IO-放在锁里为什么危险"><a href="#9-IO-放在锁里为什么危险" class="headerlink" title="9. IO 放在锁里为什么危险"></a>9. IO 放在锁里为什么危险</h2><p>临界区中包含网络、磁盘、数据库或其他耗时 IO 时，锁持有时间往往不可预测。一次正常请求可能只需要几毫秒，但网络抖动、数据库慢查询或磁盘拥塞可能让线程持锁数秒。所有竞争同一把锁的线程都会被连带阻塞。</p>

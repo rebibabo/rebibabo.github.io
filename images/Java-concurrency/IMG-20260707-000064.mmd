@@ -1,4 +1,4 @@
-graph TD
+graph LR
     First["执行首个任务"] --> Loop["从队列获取任务"]
     Loop -->|有任务| Run["执行下一个任务"]
     Run --> Loop
