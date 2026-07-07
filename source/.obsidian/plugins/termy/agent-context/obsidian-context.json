@@ -1,12 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T14:58:16.058Z",
+  "updatedAt": "2026-07-07T14:59:48.967Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
-  "activeFile": null,
-  "openFiles": [],
-  "selection": null
+  "activeFile": {
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/concepts/concurrency/并发总图.md",
+    "vaultPath": "wiki/concepts/concurrency/并发总图.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/concepts/concurrency/%E5%B9%B6%E5%8F%91%E6%80%BB%E5%9B%BE.md",
+    "hasFocus": true
+  },
+  "openFiles": [
+    {
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/concepts/concurrency/并发总图.md",
+      "vaultPath": "wiki/concepts/concurrency/并发总图.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/concepts/concurrency/%E5%B9%B6%E5%8F%91%E6%80%BB%E5%9B%BE.md",
+      "isActive": true
+    }
+  ],
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 11,
+      "ch": 0,
+      "offset": 137
+    },
+    "to": {
+      "line": 11,
+      "ch": 0,
+      "offset": 137
+    }
+  }
 }

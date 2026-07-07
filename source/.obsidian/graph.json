@@ -3,7 +3,7 @@
   "search": "path:wiki/concepts/concurrency  ",
   "showTags": false,
   "showAttachments": false,
-  "hideUnresolved": false,
+  "hideUnresolved": true,
   "showOrphans": false,
   "collapse-color-groups": true,
   "colorGroups": [],
@@ -17,6 +17,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 85,
-  "scale": 1.628204499776698,
+  "scale": 2.1120336915905353,
   "close": false
 }
