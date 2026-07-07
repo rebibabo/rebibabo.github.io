@@ -1,4 +1,4 @@
-graph TB
+graph LR
     Metrics["① Metrics 指标大盘告警<br/>下单接口 P99 从 200ms 涨到 2s 了！<br/>知道有问题，但不知道为什么"] --> Tracing["② Tracing<br/>翻出慢的 trace<br/>原来卡在调用支付服务那一段<br/>知道卡在哪步，但不知道内部发生了什么"]
     Tracing --> Logging["③ Logging<br/>拿 traceId 搜日志<br/>支付服务: 数据库连接池耗尽"]
     Logging --> RootCause["根因找到 ✅"]
