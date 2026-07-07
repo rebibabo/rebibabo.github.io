@@ -67,6 +67,14 @@ index_generator:
   per_page: 10
   order_by: source
 
+archive_generator:
+  enabled: true
+  per_page: 20
+  yearly: true
+  monthly: true
+  daily: false
+  order_by: source
+
 # Category & Tag
 default_category: uncategorized
 category_map:
