@@ -117,8 +117,7 @@ async function renderBlock(mmdContent, outputPath) {
 
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
-
-  try { fs.unlinkSync(mmdPath); } catch {}
+  // .mmd 源码与 PNG 并列保存，方便后续修改
 }
 
 // --- 主流程 ---
@@ -228,15 +227,9 @@ async function main() {
     let content = fs.readFileSync(mdFile, 'utf-8');
 
     for (const edit of edits) {
-      const prefix =
-        '<pre style="display:none">\n' +
-        edit.sourceCode +
-        '\n</pre>\n';
-      const imgLine = edit.imgRef;
       content =
         content.slice(0, edit.block.startIndex) +
-        prefix +
-        imgLine +
+        edit.imgRef +
         '\n' +
         content.slice(edit.block.endIndex);
     }
