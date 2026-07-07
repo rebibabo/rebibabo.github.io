@@ -100,7 +100,7 @@ async function runConcurrent(tasks, concurrency) {
   });
 }
 
-const MERMAID_INIT = `%%{init: {"flowchart":{"nodeSpacing":8,"rankSpacing":12,"curve":"linear","diagramPadding":4},"themeVariables":{"fontSize":"13px"}}}%%`;
+const MERMAID_INIT = `%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%`;
 
 /** 渲染单个 mermaid 块，自动注入紧凑化配置 */
 async function renderBlock(mmdContent, outputPath) {
