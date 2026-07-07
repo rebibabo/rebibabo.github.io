@@ -225,38 +225,14 @@ html[data-theme="dark"] .list-group-item.list-group-item-action:hover {
   color: #667eea;
 }
 
-/* 卡片图标：浅色背景让白色 SVG 可见 */
+/* 隐藏卡片图标 */
 .card-icon {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12));
-  border-radius: 12px;
-  width: 54px !important;
-  height: 54px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: none !important;
 }
 
-.card-icon svg {
-  width: 36px !important;
-  height: 36px !important;
-  opacity: 0.85;
-}
-
-/* 暗色模式：恢复卡片图标默认样式 */
-html[data-theme="dark"] .card-icon {
-  background: transparent;
-  width: 48px !important;
-  height: 48px !important;
-}
-
-html[data-theme="dark"] .card-icon svg {
-  width: 100% !important;
-  height: 100% !important;
-  opacity: 1;
-}
-
+/* 暗色模式 */
 html[data-theme="dark"] .series-card h2 {
-  color: inherit;
+  color: #e1e5eb;
 }
 
 html[data-theme="dark"] .series-card p {
