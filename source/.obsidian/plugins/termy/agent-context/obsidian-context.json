@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T10:37:39.730Z",
+  "updatedAt": "2026-07-07T10:40:11.731Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "vaultPath": "_posts/Java-advanced/04-jwt.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
+    "vaultPath": "_posts/Java-advanced/01-microservices-intro.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-      "vaultPath": "_posts/Java-advanced/04-jwt.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
+      "vaultPath": "_posts/Java-advanced/01-microservices-intro.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 131,
-      "ch": 77,
-      "offset": 2681
+      "line": 11,
+      "ch": 0,
+      "offset": 157
     },
     "to": {
-      "line": 131,
-      "ch": 77,
-      "offset": 2681
+      "line": 11,
+      "ch": 0,
+      "offset": 157
     }
   }
 }
