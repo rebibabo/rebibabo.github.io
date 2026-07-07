@@ -7,4 +7,4 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$SCRIPT_DIR/schedule.log"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] caffeinate 启动" >> "$LOG"
-exec caffeinate -i python3 "$SCRIPT_DIR/schedule_publish.py"
+exec caffeinate -s python3 "$SCRIPT_DIR/schedule_publish.py"
