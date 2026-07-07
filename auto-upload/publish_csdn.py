@@ -165,8 +165,17 @@ def _check_logged_in(context) -> bool:
     page = context.new_page()
     page.goto("https://mp.csdn.net/", wait_until="domcontentloaded")
     page.wait_for_timeout(2000)
+    url = page.url
+    # 如果被重定向到登录页，说明过期
+    if "passport.csdn.net" in url:
+        page.close()
+        return False
+    # 多策略检测登录态
     logged_in = page.evaluate("""() => {
-        return !!document.querySelector('img[class*="avatar"], .user-info, .user-name');
+        if (document.querySelector('img[class*="avatar"]')) return true;
+        if (document.querySelector('.user-info, .user-name, .csdn-avatar')) return true;
+        if (document.querySelector('a[href*="editor"], a:has-text("创作")')) return true;
+        return false;
     }""")
     page.close()
     return logged_in
@@ -177,7 +186,7 @@ def _do_login(playwright=None):
     if playwright is None:
         with sync_playwright() as p:
             return _do_login(p)
-    browser = playwright.chromium.launch(headless=True)
+    browser = playwright.chromium.launch(headless=False)
     context = browser.new_context(
         viewport={"width": 1280, "height": 900},
         locale="zh-CN",
