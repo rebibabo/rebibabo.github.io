@@ -43,23 +43,7 @@ Prometheus 其实自带一个查询界面（第 5 篇用过），那为什么还
 
 把第 5 篇那张架构图补全，Grafana 在最右边：
 
-```mermaid
-graph LR
-    subgraph "① 订单服务"
-        direction LR
-        App["埋点产生指标<br/>/actuator/prometheus"]
-    end
-    subgraph "② Prometheus"
-        direction LR
-        Prom["定时来抓 + 存储<br/>（时序数据库）"]
-    end
-    subgraph "③ Grafana"
-        direction LR
-        Graf["定时去查 + 画图<br/>（可视化大盘）"]
-    end
-    App -->|被抓取| Prom
-    Prom -->|被查询| Graf
-```
+![](/images/Java-advanced/IMG-20260707-000024.png)
 
 
 

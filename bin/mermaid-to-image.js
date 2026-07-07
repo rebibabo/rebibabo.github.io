@@ -115,6 +115,7 @@ function normalizeMermaid(code) {
       }
       const nodes = lastNodes.filter(Boolean);
       if (nodes.length >= 2) {
+        if (!code.endsWith('\n')) code += '\n';
         code += `    ${nodes[0]} ~~~ ${nodes[1]}\n`;
       }
     }
