@@ -120,18 +120,14 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
   let bodyEnd = btn + '\n';
 
-  // Add mermaid (same CDN & init as Fluid theme, wait for script load)
+  // Add mermaid (matching Fluid theme's loading logic exactly)
   if (/class="[^"]*mermaid[^"]*"/.test(html)) {
     bodyEnd += `<script>
-(function(){
-  var s = document.createElement('script');
-  s.src = 'https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js';
-  s.onload = function() {
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    if (typeof mermaid === 'undefined') return;
     mermaid.initialize({"theme":"default"});
-    mermaid.init(undefined, '.mermaid');
-  };
-  document.body.appendChild(s);
-})();
+    mermaid.init();
+  });
 </script>\n`;
   }
 
