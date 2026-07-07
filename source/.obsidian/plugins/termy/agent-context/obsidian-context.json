@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T09:02:18.192Z",
+  "updatedAt": "2026-07-07T09:03:38.965Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
-    "vaultPath": "_posts/llm-inference/03-kvcache.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
-    "hasFocus": false
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/01-introduction.md",
+    "vaultPath": "_posts/programmatic-ads/01-introduction.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/01-introduction.md",
+    "hasFocus": true
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
-      "vaultPath": "_posts/llm-inference/03-kvcache.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/01-introduction.md",
+      "vaultPath": "_posts/programmatic-ads/01-introduction.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/01-introduction.md",
       "isActive": true
     }
   ],
   "selection": {
-    "text": "![PagedAttention 示意图](images/llm-inference/IMG-20260604165608946.png)",
-    "isEmpty": false,
+    "text": "",
+    "isEmpty": true,
     "from": {
-      "line": 124,
-      "ch": 0,
-      "offset": 3662
+      "line": 102,
+      "ch": 35,
+      "offset": 1620
     },
     "to": {
-      "line": 124,
-      "ch": 69,
-      "offset": 3731
+      "line": 102,
+      "ch": 35,
+      "offset": 1620
     }
   }
 }
