@@ -16,7 +16,7 @@ description:
 
 OpenRTB（Open Real-Time Bidding）是由 IAB Tech Lab 制定的**实时竞价通信协议**，定义了 SSP/ADX 与 DSP 之间竞价请求（Bid Request）和竞价响应（Bid Response）的标准 JSON 格式。
 
-它解决的核心问题：不同公司的 SSP 和 DSP 能互相对接，不用每家定义一套私有格式——就像 HTTP 之于 Web，OpenRTB 是programmatic-ads的"通用语言"。
+它解决的核心问题：不同公司的 SSP 和 DSP 能互相对接，不用每家定义一套私有格式——就像 HTTP 之于 Web，OpenRTB 是程序化广告的"通用语言"。
 
 ### 版本演进
 

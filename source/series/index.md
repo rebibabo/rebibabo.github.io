@@ -66,7 +66,7 @@ layout: page
     <div class="card-icon">
       <svg viewBox="0 0 48 48" fill="none"><polygon points="24,4 44,16 40,34 24,44 8,34 4,16" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/><circle cx="24" cy="22" r="6" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/></svg>
     </div>
-    <h2>programmatic-ads</h2>
+    <h2>程序化广告</h2>
     <p>DSP · SSP · RTB · 交易模式 · OpenRTB</p>
     <span class="card-count">9 篇</span>
     <div class="card-arrow">→</div>
