@@ -1,7 +1,0 @@
-graph TB
-    Trace["Trace: traceId = abc123"] --> A["Span A 网关处理请求（0ms ~ 850ms）"]
-    A --> B["Span B 订单服务下单（20ms ~ 840ms）"]
-    B --> C["Span C 调用库存服务（50ms ~ 180ms）"]
-    B --> D["Span D 调用优惠券服务（60ms ~ 120ms）"]
-    B --> E["Span E 调用支付服务 ← 慢！（200ms ~ 800ms）"]
-    E --> F["Span F 支付服务查数据库 ← 根因在这（250ms ~ 780ms）"]
