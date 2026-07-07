@@ -185,10 +185,23 @@ def _do_login(playwright=None):
     page = context.new_page()
     page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
     print("\n" + "=" * 50)
-    print("请在浏览器窗口中完成登录（扫码/密码均可）")
-    print("登录成功后，回到这里按 Enter 继续...")
+    print("请在浏览器窗口中完成登录（扫码/密码均可），将自动检测...")
     print("=" * 50 + "\n")
-    input()
+
+    # 轮询检测登录完成（最多等 5 分钟）
+    import time
+    for _ in range(150):
+        time.sleep(2)
+        url = page.url
+        # 登录成功后通常会跳转到 mp.csdn.net 或其他非登录页
+        if "passport.csdn.net" not in url or page.evaluate(
+            "() => !!document.querySelector('img[class*=\"avatar\"]')"
+        ):
+            print("  ✅ 检测到登录成功")
+            break
+    else:
+        print("  ⚠️  超时未检测到登录，继续执行...")
+
     # 跳过引导页
     page.wait_for_timeout(2000)
     try:
