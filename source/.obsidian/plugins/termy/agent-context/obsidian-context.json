@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T07:54:52.044Z",
+  "updatedAt": "2026-07-07T07:56:04.275Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "![传统广告购买模式](/images/programmatic-ads/traditional-mode.png)",
+    "text": "![程序化广告生态链](/images/programmatic-ads/ecosystem.png)",
     "isEmpty": false,
     "from": {
-      "line": 67,
+      "line": 102,
       "ch": 0,
-      "offset": 868
+      "offset": 1579
     },
     "to": {
-      "line": 67,
-      "ch": 58,
-      "offset": 926
+      "line": 102,
+      "ch": 51,
+      "offset": 1630
     }
   }
 }
