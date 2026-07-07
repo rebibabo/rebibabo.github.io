@@ -264,3 +264,8 @@ body > header .header-inner {
   margin: 1.5rem auto;
   object-fit: contain;
 }
+
+/* ===== 修复 Typed.js 不工作导致标题不可见 ===== */
+#subtitle[data-typed-text]:empty::after {
+  content: attr(data-typed-text);
+}
