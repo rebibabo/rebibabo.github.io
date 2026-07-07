@@ -60,6 +60,13 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
     return '<a href="' + url + '" class="wiki-link">' + display + '</a>';
   });
 
+  // Transform mermaid code blocks: <pre><code class="hljs mermaid"> → <pre class="mermaid">
+  // mermaid 10.x expects <pre class="mermaid">, not <code class="...mermaid">
+  body = body.replace(
+    /<pre><code class="hljs mermaid">([\s\S]*?)<\/code><\/pre>/g,
+    '<pre class="mermaid">$1</pre>'
+  );
+
   // Convert mermaid click directives: .md → .html, make URLs absolute
   body = body.replace(/(click\s+\w+\s+(?:&quot;|"))(wiki\/[^"&]+)\.md((?:&quot;|"))/g, function(m, prefix, path, suffix) {
     return prefix + '/' + path + '.html' + suffix;
