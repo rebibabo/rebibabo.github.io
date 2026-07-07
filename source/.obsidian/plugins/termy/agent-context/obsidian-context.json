@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T10:40:11.731Z",
+  "updatedAt": "2026-07-07T10:40:46.940Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
     "vaultPath": "_posts/Java-advanced/01-microservices-intro.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
-    "hasFocus": true
+    "hasFocus": false
   },
   "openFiles": [
     {
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "",
-    "isEmpty": true,
+    "text": "graph TB\n    B1[\"计费服务实例1\"] -->|① 注册 + 心跳| Registry[\"注册中心<br/>(Nacos / Eureka)\"]\n    B2[\"计费服务实例2\"] -->|① 注册 + 心跳| Registry\n    B3[\"计费服务实例3\"] -->|① 注册 + 心跳| Registry\n    Registry -->|② 查询计费服务地址列表| Consumer[\"投放服务\"]",
+    "isEmpty": false,
     "from": {
-      "line": 11,
+      "line": 122,
       "ch": 0,
-      "offset": 157
+      "offset": 3224
     },
     "to": {
-      "line": 11,
-      "ch": 0,
-      "offset": 157
+      "line": 126,
+      "ch": 47,
+      "offset": 3435
     }
   }
 }

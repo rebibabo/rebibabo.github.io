@@ -121,14 +121,9 @@ billing-service:
 
 ```mermaid
 graph TB
-    subgraph "计费服务集群"
-        B1["计费服务实例1"]
-        B2["计费服务实例2"]
-        B3["计费服务实例3"]
-    end
-    B1 -->|① 注册 + 心跳| Registry["注册中心<br/>(Nacos / Eureka)"]
-    B2 -->|① 注册 + 心跳| Registry
-    B3 -->|① 注册 + 心跳| Registry
+    B1["计费服务实例1"] -->|① 注册 + 心跳| Registry["注册中心<br/>(Nacos / Eureka)"]
+    B2["计费服务实例2"] -->|① 注册 + 心跳| Registry
+    B3["计费服务实例3"] -->|① 注册 + 心跳| Registry
     Registry -->|② 查询计费服务地址列表| Consumer["投放服务"]
 ```
 
