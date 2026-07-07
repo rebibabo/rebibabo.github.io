@@ -345,6 +345,449 @@ mjx-container[display="true"] + br {
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/categories/java-concurrency/25/" target="_self">
+          Java高并发底层原理（二十五）—— LockSupport 如何挂起和唤醒线程
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/25/" target="_self">
+        <div>
+          前面分析 AQS、ReentrantLock、线程等待队列时，经常会看到一个底层工具：LockSupport。它不是一把锁，也不维护等待队列，而是提供两个更底层的能力：让当前线程暂停，以及唤醒指定线程。 理解 LockSupport 时，先不要把它和完整的锁混在一起。完整的锁至少还需要状态判断、等待队列和唤醒策略；LockSupport 只负责其中最底层的一步：线程如何停下，以及如何被指定线程唤
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/LockSupport/">#LockSupport</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E9%98%BB%E5%A1%9E/">#线程阻塞</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/26/" target="_self">
+          Java高并发底层原理（二十六）—— ForkJoinPool 如何通过工作窃取执行任务
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/26/" target="_self">
+        <div>
+          普通线程池更适合处理一个个相对独立的任务：任务提交到队列，工作线程从队列中取任务执行。ForkJoinPool 面向的是另一类任务：一个大任务可以拆成多个子任务，子任务继续拆分，最后把结果合并起来。 这类任务如果仍然只依赖一个共享队列，会遇到一个问题：某个线程在执行任务时继续拆出了很多子任务，而其他线程可能已经空闲。如果这些子任务只停留在当前线程的执行路径里，其他线程就没法帮忙；如果所有子任务都放
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/ForkJoinPool/">#ForkJoinPool</a>
+            
+              <a href="/tags/%E5%B7%A5%E4%BD%9C%E7%AA%83%E5%8F%96/">#工作窃取</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/27/" target="_self">
+          Java高并发底层原理（二十七）—— 死锁、活锁与线程饥饿是如何发生的
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/27/" target="_self">
+        <div>
+          前面几章已经讲过锁、线程池、AQS、Condition、BlockingQueue 等并发组件。它们本质上都在解决同一个问题：多个线程如何安全、有序地共享资源。但只要线程之间存在资源竞争，就不只会出现数据错误，还可能出现另一类问题：程序看起来“卡住了”。 “卡住”并不是一种问题。线程可能真的互相等待，可能一直在运行但没有推进，也可能只是长期轮不到执行。本文从死锁、活锁与线程饥饿三个问题出发，解释它
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8/">#线程安全</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%8E%92%E6%9F%A5/">#线程排查</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/28/" target="_self">
+          Java高并发底层原理（二十八）—— 并发任务处理系统如何设计：从任务模型到 Worker 执行
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/28/" target="_self">
+        <div>
+          在后端系统中，并不是所有任务都适合放在请求线程里同步执行。文件解析、图片处理、用户通知、报表生成、缓存刷新这类任务，通常耗时较长，并且不一定要阻塞当前请求。如果它们全部压在请求线程里，接口响应会变慢，请求线程也会被长时间占用。 并发任务处理系统要解决的核心问题，不只是“开几个线程异步执行任务”，而是：当任务不断产生，而系统资源有限时，如何让任务有边界地排队、被工作线程处理，并在队列堆积、执行失败、
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">#线程池</a>
+            
+              <a href="/tags/BlockingQueue/">#BlockingQueue</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">#并发编程</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/java-concurrency/29/" target="_self">
+          Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/29/" target="_self">
+        <div>
+          上一章讨论的是单机内存版任务处理系统：请求线程把 Task 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。 一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-05 00:00" pubdate>
+              2026-07-05
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E4%BB%BB%E5%8A%A1/">#并发任务</a>
+            
+              <a href="/tags/MQ/">#MQ</a>
+            
+              <a href="/tags/%E4%BB%BB%E5%8A%A1%E8%A1%A5%E5%81%BF/">#任务补偿</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/llm-inference/1/" target="_self">
+          LLM推理优化实战(一)：RTX3090部署Qwen2.5-7B全记录：TPOT-19.7ms，已逼近显存带宽极限
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/1/" target="_self">
+        <div>
+          一、前言在做任何优化之前，你需要一份可信的基线数据——否则你永远不知道优化到底有没有效果。 本文记录在一台 RTX 3090 上从零部署 Qwen2.5-7B-Instruct BF16，并建立完整精度与性能基线的全过程，包括环境搭建、踩坑实录、参数扫描实验和结果分析。这份基线将作为后续量化、投机采样等优化实验的对照组，每次优化都要打败它。 先看结论：    指标 数值    单请求 TPOT 1
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-01 00:00" pubdate>
+              2026-04-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/categories/llm-inference/2/" target="_self">
+          LLM推理优化实战(二)：AWQ INT4 量化实战：TPOT 降 65%、有效吞吐提升 5.5 倍
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/2/" target="_self">
+        <div>
+          一、前言上一篇文章我们在 RTX 3090 上建立了 Qwen2.5-7B-Instruct BF16 的完整基线，得出了一个关键结论：单请求 TPOT 已逼近显存带宽的物理极限（19.7ms vs 理论下限 15ms），纯软件调参已经到顶。 想进一步压缩延迟，必须减少每次 decode 需要搬运的权重字节数——这正是量化要做的事。 本文使用 AWQ INT4 量化，把模型权重从 BF16（每参数
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-02 00:00" pubdate>
+              2026-04-02
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/categories/llm-inference/3/" target="_self">
           LLM推理优化实战(三)：KV Cache 与 PagedAttention 详解:理论推导 + RTX 3090 实测数据
         </a>
@@ -496,456 +939,6 @@ mjx-container[display="true"] + br {
 
           </div>
         
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/llm-inference/6/" target="_self">
-          LLM推理优化实战(六)：系列总结——RTX 3090+7B最优部署配置与避坑指南
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/6/" target="_self">
-        <div>
-          一、前言这个系列从一台 RTX 3090 和一个 Qwen2.5-7B 模型开始，用五篇文章逐一实验了主流的 LLM 推理优化技术。有成功的、有失败的，每一篇都在回答同一个问题：这项优化在当前硬件条件下值不值得用？ 本文是系列收官，不做新实验，而是把五篇文章的数据、结论和方法论串在一起，给出三个交付物：  RTX 3090 + 7B 的最优部署配置 每项优化技术的适用条件速查表 做 AI Infr
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-06 00:00" pubdate>
-              2026-04-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/programmatic-ads/1/" target="_self">
-          程序化广告 (0)：先看清楚整个江湖
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/programmatic-ads/1/" target="_self">
-        <div>
-          从一次普通的广告展示出发，看清整个程序化广告生态的全景图。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-06 00:00" pubdate>
-              2026-06-06
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
-            
-              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
-            
-              <a href="/tags/%E4%B8%9A%E5%8A%A1%E7%90%86%E8%A7%A3/">#业务理解</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/programmatic-ads/2/" target="_self">
-          程序化广告 (1)：DSP——广告主的&#34;代理人&#34;
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/programmatic-ads/2/" target="_self">
-        <div>
-          详解 DSP 的目标、构成、商业模式，以及它和 Trading Desk、DMP 之间的协作关系。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-07 00:00" pubdate>
-              2026-06-07
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
-            
-              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
-            
-              <a href="/tags/DSP/">#DSP</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/programmatic-ads/3/" target="_self">
-          程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/programmatic-ads/3/" target="_self">
-        <div>
-          详解 CMP、广告验证、DMP、监测分析四大广告服务平台，它们如何让 DSP 从"能用"变成"好用"。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-08 00:00" pubdate>
-              2026-06-08
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
-            
-              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A%E6%9C%8D%E5%8A%A1%E5%B9%B3%E5%8F%B0/">#广告服务平台</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/programmatic-ads/4/" target="_self">
-          程序化广告 (3)：SSP 和 ADX——媒体方的&#34;商业化中枢&#34;与&#34;交易所&#34;
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/programmatic-ads/4/" target="_self">
-        <div>
-          切换到供给方视角，详解 SSP 如何帮媒体把广告位卖出最高价，ADX 如何撮合 DSP 和 SSP 的实时交易。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-09 00:00" pubdate>
-              2026-06-09
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
-            
-              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
-            
-              <a href="/tags/SSP/">#SSP</a>
-            
-              <a href="/tags/ADX/">#ADX</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/programmatic-ads/5/" target="_self">
-          程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/programmatic-ads/5/" target="_self">
-        <div>
-          详解程序化广告生态里两个容易被忽略但极其重要的角色——Ad Network 和 Ad Server，理解它们才能看清完整的广告链路。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-10 00:00" pubdate>
-              2026-06-10
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
-            
-              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
-            
-              <a href="/tags/Ad-Network/">#Ad Network</a>
-            
-              <a href="/tags/Ad-Server/">#Ad Server</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/programmatic-ads/6/" target="_self">
-          程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/programmatic-ads/6/" target="_self">
-        <div>
-          程序化广告里 RTB、PMP、PD、PDB 这些模式到底是什么关系？用"问题驱动"的演化叙事，讲清楚单 SSP 内部交易模式的完整演化逻辑。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-11 00:00" pubdate>
-              2026-06-11
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%B9%BF%E5%91%8A/">#广告</a>
-            
-              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">#学习笔记</a>
-            
-              <a href="/tags/%E4%BA%A4%E6%98%93%E6%A8%A1%E5%BC%8F/">#交易模式</a>
-            
-              <a href="/tags/RTB/">#RTB</a>
-            
-          </div>
         
       </div>
     </article>
