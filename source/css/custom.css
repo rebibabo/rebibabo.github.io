@@ -264,20 +264,10 @@ body > header .header-inner {
 /* ===== Mermaid 生成的图片 ===== */
 img.mermaid-img {
   display: block;
+  width: auto !important;
+  max-width: min(760px, 100%) !important;
+  max-height: 720px;
   height: auto !important;
   margin: 1.5rem auto;
   object-fit: contain;
-}
-
-img.mermaid-img-normal {
-  max-width: min(680px, 92%) !important;
-}
-
-img.mermaid-img-tall {
-  max-width: min(460px, 88%) !important;
-  max-height: 680px;
-}
-
-img.mermaid-img-wide {
-  max-width: min(920px, 100%) !important;
 }

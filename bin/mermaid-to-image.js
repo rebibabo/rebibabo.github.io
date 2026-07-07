@@ -16,7 +16,6 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
-const { imageSize } = require('/Users/zs.yuan/.nvm/versions/node/v24.11.1/lib/node_modules/image-size');
 
 const execAsync = promisify(exec);
 
@@ -171,13 +170,14 @@ async function main() {
       const basename = generateFilename(globalIndex++);
       const outputPath = path.join(catImagesDir, `${basename}.png`);
       const imgSrc = path.posix.join('/images', category, `${basename}.png`);
+      const imgRef = `<img class="mermaid-img" src="${imgSrc}" alt="mermaid diagram">`;
 
       tasks.push({
         category,
         basename,
         block,
         outputPath,
-        imgSrc,
+        imgRef,
         mdFile,
         contentRef: { current: content },
         sourceCode: block.code,
@@ -199,24 +199,6 @@ async function main() {
 
   const renderedTasks = await runConcurrent(renderTasks, concurrency);
   process.stdout.write('\n\n');
-
-  // 根据图片宽高比分类
-  for (const t of renderedTasks) {
-    if (t.error) continue;
-    try {
-      const { width, height } = imageSize(t.outputPath);
-      const ratio = width / height;
-      let sizeClass = 'mermaid-img-normal';
-      if (ratio < 0.75) {
-        sizeClass = 'mermaid-img-tall';
-      } else if (ratio > 1.8) {
-        sizeClass = 'mermaid-img-wide';
-      }
-      t.imgRef = `<img class="mermaid-img ${sizeClass}" src="${t.imgSrc}" alt="mermaid diagram">`;
-    } catch {
-      t.imgRef = `<img class="mermaid-img mermaid-img-normal" src="${t.imgSrc}" alt="mermaid diagram">`;
-    }
-  }
 
   // 第四阶段：按文件分组替换
   const fileEdits = new Map();
