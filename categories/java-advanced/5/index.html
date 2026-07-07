@@ -1,0 +1,1244 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言你的服务现在能查日志看每一条请求流水，但回答不了这类问题：过去 5 分钟下单 QPS 是多少？支付接口的超时率有没有突然飙高？整体下单成功率是多少？这些”聚合的、实时的、能盯着看的”数字，就是 metrics（指标）要解决的。这篇用一个常见的订单">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java全貌(5) | 监控指标入门：Micrometer + Prometheus">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-advanced/5/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言你的服务现在能查日志看每一条请求流水，但回答不了这类问题：过去 5 分钟下单 QPS 是多少？支付接口的超时率有没有突然飙高？整体下单成功率是多少？这些”聚合的、实时的、能盯着看的”数字，就是 metrics（指标）要解决的。这篇用一个常见的订单">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.158Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Micrometer">
+<meta property="article:tag" content="Prometheus">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="可观测性">
+<meta property="article:tag" content="监控">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java全貌(5) | 监控指标入门：Micrometer + Prometheus - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java全貌(5) | 监控指标入门：Micrometer + Prometheus"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-05 00:00" pubdate>
+          2026年5月5日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          16k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          132 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java全貌(5) | 监控指标入门：Micrometer + Prometheus</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>你的服务现在能查日志看每一条请求流水，但回答不了这类问题：过去 5 分钟下单 QPS 是多少？支付接口的超时率有没有突然飙高？整体下单成功率是多少？这些”聚合的、实时的、能盯着看的”数字，就是 metrics（指标）要解决的。这篇用一个常见的订单服务场景，把 Micrometer + Prometheus 从原理到埋点讲清楚。</p>
+<span id="more"></span>
+
+<h2 id="1-先想清楚：metrics-到底是什么"><a href="#1-先想清楚：metrics-到底是什么" class="headerlink" title="1. 先想清楚：metrics 到底是什么"></a>1. 先想清楚：metrics 到底是什么</h2><h3 id="1-1-日志-vs-指标，解决不同的问题"><a href="#1-1-日志-vs-指标，解决不同的问题" class="headerlink" title="1.1 日志 vs 指标，解决不同的问题"></a>1.1 日志 vs 指标，解决不同的问题</h3><p>你已经有 AOP 日志了，为什么还要 metrics？因为它俩回答的是不同维度的问题：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>日志（Logging）</th>
+<th>指标（Metrics）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>记录什么</td>
+<td>一件一件具体的事</td>
+<td>聚合后的数字</td>
+</tr>
+<tr>
+<td>例子</td>
+<td>“13:05:01 req-123 下单成功，订单号 20260605…”</td>
+<td>“过去 1 分钟下单 480 次，成功 460 次”</td>
+</tr>
+<tr>
+<td>回答的问题</td>
+<td>某一次请求发生了什么</td>
+<td>整体趋势怎么样、有没有异常</td>
+</tr>
+<tr>
+<td>数据量</td>
+<td>大（每件事一条）</td>
+<td>小（只存聚合值）</td>
+</tr>
+<tr>
+<td>适合</td>
+<td>事后排查具体问题</td>
+<td>实时监控、告警、看趋势</td>
+</tr>
+</tbody></table>
+<p>一个类比：日志是”监控摄像头录下的每一帧画面”，指标是”商场门口那块写着’今日客流 3201 人’的电子屏”。出了事要回看录像（日志），但平时盯着看的是电子屏（指标）。</p>
+<h3 id="1-2-可观测性（Observability）三件套"><a href="#1-2-可观测性（Observability）三件套" class="headerlink" title="1.2 可观测性（Observability）三件套"></a>1.2 可观测性（Observability）三件套</h3><p>监控领域有个标准说法，叫可观测性的三大支柱：</p>
+<table>
+<thead>
+<tr>
+<th>支柱</th>
+<th>是什么</th>
+<th>你的项目现状</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Logging（日志）</td>
+<td>离散的事件记录</td>
+<td>✅ 已有 AOP 日志</td>
+</tr>
+<tr>
+<td>Metrics（指标）</td>
+<td>聚合的数值</td>
+<td>⬅ 这篇要做</td>
+</tr>
+<tr>
+<td>Tracing（链路追踪）</td>
+<td>一个请求跨多个服务的完整路径</td>
+<td>有 requestId，还没串成 trace</td>
+</tr>
+</tbody></table>
+<p>做完 metrics，你的可观测性就补上一大块了。</p>
+<hr>
+<h2 id="2-整体架构：谁负责什么"><a href="#2-整体架构：谁负责什么" class="headerlink" title="2. 整体架构：谁负责什么"></a>2. 整体架构：谁负责什么</h2><p>先建立全局认知，避免一上来陷进细节。整条链路有三个角色：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">┌──────────────────────────────────────────────────────┐<br>│  你的应用（订单服务）                                   │<br>│  ┌────────────┐                                       │<br>│  │ Micrometer │  在代码里<span class="hljs-string">&quot;埋点&quot;</span>，把指标存在内存里         │<br>│  │            │  （下单 +1、记录耗时<span class="hljs-string">...</span>）                │<br>│  └─────┬──────┘                                       │<br>│        │ 暴露成 HTTP 端点                               │<br>│  <span class="hljs-string">/actuator/prometheus</span>  ← 一个网页，吐出当前所有指标的文本 │<br>└────────┼─────────────────────────────────────────────┘<br>         │ 定时来<span class="hljs-string">&quot;抓&quot;</span>（pull）<br>         ▼<br>┌──────────────────┐         ┌──────────────────┐<br>│   Prometheus     │ ──查询──▶│     Grafana      │<br>│  定时抓取 + 存储   │         │   画成可视化大盘   │<br>│  （时序数据库）    │         │   （可选）        │<br>└──────────────────┘         └──────────────────┘<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>职责</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Micrometer</strong></td>
+<td>在 Java 代码里埋点、在内存里维护指标</td>
+<td>商场里的计数器</td>
+</tr>
+<tr>
+<td><strong><code>/actuator/prometheus</code></strong></td>
+<td>把当前指标值暴露成一个网页</td>
+<td>把计数器的数字写在门口的牌子上</td>
+</tr>
+<tr>
+<td><strong>Prometheus</strong></td>
+<td>定时来抓这个网页、存成时序数据</td>
+<td>每隔 15 秒来抄一次牌子的人</td>
+</tr>
+<tr>
+<td><strong>Grafana</strong></td>
+<td>把存的数据画成图表（可选）</td>
+<td>把历史数字画成趋势图的大屏</td>
+</tr>
+</tbody></table>
+<p><strong>一个关键点：Prometheus 是”主动来抓”（pull 模式），不是你”推给它”。</strong> 你的应用只负责把指标摆在 <code>/actuator/prometheus</code> 这个网页上，Prometheus 配好后每隔几秒自己来抓一次。这点和很多人想的”应用主动上报”相反。</p>
+<p>为什么用 pull？因为 Prometheus 可以自己控制抓取频率、知道哪些目标活着（抓不到就是挂了），运维上更可控。</p>
+<hr>
+<h2 id="3-Micrometer-是什么"><a href="#3-Micrometer-是什么" class="headerlink" title="3. Micrometer 是什么"></a>3. Micrometer 是什么</h2><h3 id="3-1-它是个”门面”"><a href="#3-1-它是个”门面”" class="headerlink" title="3.1 它是个”门面”"></a>3.1 它是个”门面”</h3><p>你应该还记得日志体系里的 SLF4J——它本身不打日志，只是一个统一的接口，背后可以接 Logback、Log4j 等不同实现。<strong>Micrometer 之于监控，就像 SLF4J 之于日志</strong>：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs">你的代码 → 调用 Micrometer 的统一 API（埋点）<br>                    ↓<br>         Micrometer（门面，统一接口）<br>                    ↓<br>   ┌────────────┬────────────┬────────────┐<br>   ▼            ▼            ▼<br>Prometheus   其他监控系统    又一个监控系统<br>（你选这个）   （Datadog等）  （CloudWatch等）<br></code></pre></td></tr></table></figure>
+
+<p>好处：你的埋点代码只调 Micrometer 的 API，将来要从 Prometheus 换成别的监控系统，<strong>业务代码一行不用改</strong>，只换底层依赖。</p>
+<h3 id="3-2-MeterRegistry：指标的”注册中心”"><a href="#3-2-MeterRegistry：指标的”注册中心”" class="headerlink" title="3.2 MeterRegistry：指标的”注册中心”"></a>3.2 MeterRegistry：指标的”注册中心”</h3><p>理解 Micrometer，核心就是理解一个对象——<code>MeterRegistry</code>。</p>
+<p><strong>Meter（仪表）</strong> 是 Micrometer 里”一个指标”的统称（Counter、Gauge、Timer 都是 Meter）。<strong>Registry（注册表）</strong> 就是管理所有这些指标的容器。</p>
+<figure class="highlight nestedtext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs nestedtext"><span class="hljs-attribute">MeterRegistry（一个大容器，管理所有指标）</span><br><span class="hljs-attribute">  ├── Counter</span><span class="hljs-punctuation">:</span> <span class="hljs-string"> 下单请求总数</span><br>  <span class="hljs-attribute">├── Counter</span><span class="hljs-punctuation">:</span> <span class="hljs-string"> 下单失败次数</span><br>  <span class="hljs-attribute">├── Timer</span><span class="hljs-punctuation">:</span> <span class="hljs-string">   下单耗时</span><br>  <span class="hljs-attribute">├── Gauge</span><span class="hljs-punctuation">:</span> <span class="hljs-string">   当前队列长度</span><br>  └── ...<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>是什么</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Meter</code></td>
+<td>单个指标的统称</td>
+<td>一个仪表盘上的一个表</td>
+</tr>
+<tr>
+<td><code>MeterRegistry</code></td>
+<td>管理所有 Meter 的容器</td>
+<td>整个仪表盘</td>
+</tr>
+</tbody></table>
+<p><strong>为什么所有指标都要”注册”到 MeterRegistry？</strong> 因为 Prometheus 来抓取时，是问 MeterRegistry：”把你管的所有指标的当前值给我。” 没注册进去的指标，Prometheus 就看不到。所以埋点的本质是：<strong>创建一个指标 + 把它注册到 MeterRegistry</strong>。</p>
+<p>在 Spring Boot 里，<code>MeterRegistry</code> 是自动配置好的一个 Bean，你直接注入就能用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderService</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> MeterRegistry meterRegistry;  <span class="hljs-comment">// 直接注入，Spring 已经准备好了</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-四种核心指标类型"><a href="#4-四种核心指标类型" class="headerlink" title="4. 四种核心指标类型"></a>4. 四种核心指标类型</h2><p>这是 Micrometer 的核心，也是最需要理解的部分。选错类型，指标就没意义。判断用哪种，就看你要记录的数字<strong>有什么特性</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>特性</th>
+<th>一句话</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Counter</strong></td>
+<td>只增不减</td>
+<td>累计发生了多少次</td>
+<td>下单总次数、下单失败次数</td>
+</tr>
+<tr>
+<td><strong>Gauge</strong></td>
+<td>可增可减</td>
+<td>此刻是多少</td>
+<td>当前队列长度、活跃连接数</td>
+</tr>
+<tr>
+<td><strong>Timer</strong></td>
+<td>计时 + 计次</td>
+<td>耗时多久、发生多频繁</td>
+<td>下单耗时、支付接口响应时间</td>
+</tr>
+<tr>
+<td><strong>DistributionSummary</strong></td>
+<td>分布统计</td>
+<td>数值的分布情况</td>
+<td>订单金额分布、请求体大小</td>
+</tr>
+</tbody></table>
+<h3 id="4-1-Counter：只增不减的计数器"><a href="#4-1-Counter：只增不减的计数器" class="headerlink" title="4.1 Counter：只增不减的计数器"></a>4.1 Counter：只增不减的计数器</h3><p>最简单的指标，适合”累计次数”类的数据——只会往上加，永远不减。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 创建一个 Counter 并注册</span><br><span class="hljs-type">Counter</span> <span class="hljs-variable">orderCounter</span> <span class="hljs-operator">=</span> Counter.builder(<span class="hljs-string">&quot;order.create.total&quot;</span>)  <span class="hljs-comment">// 指标名</span><br>        .description(<span class="hljs-string">&quot;下单请求总数&quot;</span>)<br>        .register(meterRegistry);                              <span class="hljs-comment">// 注册到 registry</span><br><br><span class="hljs-comment">// 埋点：每次下单 +1</span><br>orderCounter.increment();<br></code></pre></td></tr></table></figure>
+
+<p>适合：下单总次数、下单失败次数、限流触发次数、各种”发生了多少次”。</p>
+<p><strong>为什么 Counter 只增不减？</strong> 因为 Prometheus 真正关心的不是”累计值”本身，而是<strong>变化率</strong>。比如累计下单数从 1000 涨到 1480，Prometheus 算出”每秒涨多少”就是 QPS。只增不减的特性让”算速率”这件事变得简单可靠（重启会归零，Prometheus 也能识别处理）。</p>
+<h3 id="4-2-Gauge：可上可下的”瞬时值”"><a href="#4-2-Gauge：可上可下的”瞬时值”" class="headerlink" title="4.2 Gauge：可上可下的”瞬时值”"></a>4.2 Gauge：可上可下的”瞬时值”</h3><p>适合”此刻是多少”类的数据，会上下波动。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 监控一个队列的当前长度</span><br>Gauge.builder(<span class="hljs-string">&quot;order.log.queue.size&quot;</span>, orderLogQueue, Queue::size)<br>        .description(<span class="hljs-string">&quot;待写入的 order_log 队列长度&quot;</span>)<br>        .register(meterRegistry);<br></code></pre></td></tr></table></figure>
+
+<p>注意 Gauge 的用法和 Counter 不一样——<strong>你不手动设值，而是给它一个”取值的方法”</strong>（上面的 <code>Queue::size</code>）。Prometheus 每次来抓取时，Gauge 就调用这个方法拿到此刻的值。</p>
+<p>适合：当前队列长度、线程池活跃线程数、当前在线连接数、缓存里的条目数。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Counter</th>
+<th>Gauge</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方向</td>
+<td>只增</td>
+<td>可增可减</td>
+</tr>
+<tr>
+<td>怎么更新</td>
+<td>你主动 <code>increment()</code></td>
+<td>给个取值函数，抓取时自动调</td>
+</tr>
+<tr>
+<td>问的问题</td>
+<td>一共发生了多少次</td>
+<td>现在是多少</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-Timer：又计时又计次"><a href="#4-3-Timer：又计时又计次" class="headerlink" title="4.3 Timer：又计时又计次"></a>4.3 Timer：又计时又计次</h3><p>服务端最重要的指标类型之一——同时记录”耗时多久”和”发生多少次”。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Timer</span> <span class="hljs-variable">orderTimer</span> <span class="hljs-operator">=</span> Timer.builder(<span class="hljs-string">&quot;order.create.duration&quot;</span>)<br>        .description(<span class="hljs-string">&quot;下单处理耗时&quot;</span>)<br>        .register(meterRegistry);<br><br><span class="hljs-comment">// 用法一：包住一段代码计时</span><br><span class="hljs-type">OrderResult</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> orderTimer.record(() -&gt; &#123;<br>    <span class="hljs-keyword">return</span> doCreateOrder(request);   <span class="hljs-comment">// 这段代码的耗时被记录</span><br>&#125;);<br><br><span class="hljs-comment">// 用法二：手动记录一个已知耗时</span><br>orderTimer.record(Duration.ofMillis(cost));<br></code></pre></td></tr></table></figure>
+
+<p>Timer 一个指标同时产出三类数据：</p>
+<table>
+<thead>
+<tr>
+<th>产出</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>count</code></td>
+<td>一共记录了多少次（相当于内置了一个 Counter）</td>
+</tr>
+<tr>
+<td><code>sum</code></td>
+<td>总耗时</td>
+</tr>
+<tr>
+<td><code>max</code></td>
+<td>最大耗时</td>
+</tr>
+</tbody></table>
+<p>有了 count 和 sum，Prometheus 就能算出平均耗时；开启分位数后还能算 P50&#x2F;P95&#x2F;P99。</p>
+<p>适合：下单整体耗时、调用支付&#x2F;库存等下游接口的响应时间、任何”既要知道多快、又要知道多频繁”的场景。</p>
+<h3 id="4-4-DistributionSummary：分布统计"><a href="#4-4-DistributionSummary：分布统计" class="headerlink" title="4.4 DistributionSummary：分布统计"></a>4.4 DistributionSummary：分布统计</h3><p>和 Timer 很像，但记录的不是时间，而是<strong>任意数值的分布</strong>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">DistributionSummary</span> <span class="hljs-variable">amountSummary</span> <span class="hljs-operator">=</span> DistributionSummary.builder(<span class="hljs-string">&quot;order.amount&quot;</span>)<br>        .description(<span class="hljs-string">&quot;订单金额分布&quot;</span>)<br>        .register(meterRegistry);<br><br>amountSummary.record(<span class="hljs-number">99.00</span>);  <span class="hljs-comment">// 记录一笔订单金额</span><br></code></pre></td></tr></table></figure>
+
+<p>适合：订单金额分布、请求体大小、批量处理的条数。用得比前三个少，了解即可。</p>
+<hr>
+<h2 id="5-标签（Tag）：指标的”维度”"><a href="#5-标签（Tag）：指标的”维度”" class="headerlink" title="5. 标签（Tag）：指标的”维度”"></a>5. 标签（Tag）：指标的”维度”</h2><p>这是 Prometheus 体系的精髓，也是 metrics 比”几个全局计数器”强大的地方。</p>
+<h3 id="5-1-先看痛点：没有标签会怎样"><a href="#5-1-先看痛点：没有标签会怎样" class="headerlink" title="5.1 先看痛点：没有标签会怎样"></a>5.1 先看痛点：没有标签会怎样</h3><p>假设你想统计每个支付渠道的下单次数。<strong>没有标签的话</strong>，你只能为每个渠道单独建一个 Counter，每个还得用不同的指标名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 笨办法：每个渠道一个指标，连指标名都不一样</span><br><span class="hljs-type">Counter</span> <span class="hljs-variable">alipayCount</span>   <span class="hljs-operator">=</span> Counter.builder(<span class="hljs-string">&quot;order.create.alipay&quot;</span>).register(meterRegistry);<br><span class="hljs-type">Counter</span> <span class="hljs-variable">wechatCount</span>   <span class="hljs-operator">=</span> Counter.builder(<span class="hljs-string">&quot;order.create.wechat&quot;</span>).register(meterRegistry);<br><span class="hljs-type">Counter</span> <span class="hljs-variable">unionpayCount</span> <span class="hljs-operator">=</span> Counter.builder(<span class="hljs-string">&quot;order.create.unionpay&quot;</span>).register(meterRegistry);  <span class="hljs-comment">// 新增渠道还要改代码！</span><br></code></pre></td></tr></table></figure>
+
+<p>调用时还得自己 <code>if/else</code> 判断该加哪个：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (channel.equals(<span class="hljs-string">&quot;alipay&quot;</span>))   alipayCount.increment();<br><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (channel.equals(<span class="hljs-string">&quot;wechat&quot;</span>)) wechatCount.increment();<br><span class="hljs-comment">// ... 每加一个渠道，这里和上面都要改</span><br></code></pre></td></tr></table></figure>
+
+<p>问题很明显：指标名爆炸、每加一个渠道都要改代码、想”把所有渠道加起来”还得自己手动相加。标签就是来解决这个的。</p>
+<h3 id="5-2-标签是什么：给同一个指标加一个”分类维度”"><a href="#5-2-标签是什么：给同一个指标加一个”分类维度”" class="headerlink" title="5.2 标签是什么：给同一个指标加一个”分类维度”"></a>5.2 标签是什么：给同一个指标加一个”分类维度”</h3><p><strong>标签（Tag）&#x3D; 给一个指标补上一个”按什么分类”的维度。</strong> 用一张表来理解最直观：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">指标名 <span class="hljs-keyword">order</span>.<span class="hljs-keyword">create</span>.total   ← 相当于一张表的&quot;表名&quot;<br>┌──────────────┬──────┐<br>│channel（列名）│ 计数  │<br>├──────────────┼──────┤<br>│ alipay       │ <span class="hljs-number">1200</span> │   ← 每一行是一个独立的计数器<br>│ wechat       │  <span class="hljs-number">980</span> │<br>│ unionpay     │  <span class="hljs-number">450</span> │<br>└──────────────┴──────┘<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>指标名</strong>（<code>order.create.total</code>）：相当于表名，整张表共用一个。</li>
+<li><strong>标签的名字</strong>（<code>channel</code>）：相当于<strong>列名</strong>，是固定写死的字符串，表示”我按哪个维度分类”。</li>
+<li><strong>标签的值</strong>（<code>alipay</code>&#x2F;<code>wechat</code>&#x2F;…）：相当于<strong>单元格里的内容</strong>，运行时变化，表示”这一行是哪个渠道”。</li>
+</ul>
+<p>对应到代码里的 <code>.tag(&quot;channel&quot;, channel)</code>，<strong>两个参数就是”列名”和”这一行的值”</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">.tag(<span class="hljs-string">&quot;channel&quot;</span>, channel)<br><span class="hljs-comment">//    ↑第一个     ↑第二个</span><br><span class="hljs-comment">//    标签名      标签值</span><br><span class="hljs-comment">//    固定字符串   一个变量，运行时取 &quot;alipay&quot; / &quot;wechat&quot; / &quot;unionpay&quot;</span><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>第一个参数 <code>&quot;channel&quot;</code></strong>：标签的名字，是你写死的固定字符串，永远是 <code>&quot;channel&quot;</code>，表示”这个维度叫渠道”。</li>
+<li><strong>第二个参数 <code>channel</code></strong>：注意这是个<strong>变量</strong>（不是字符串字面量），它的值在运行时由当前这次下单走的是哪个渠道决定——这次是支付宝，它就是 <code>&quot;alipay&quot;</code>；下次是微信，它就是 <code>&quot;wechat&quot;</code>。</li>
+</ul>
+<blockquote>
+<p>一句话回答”为什么要有第一个参数 <code>channel</code>“：因为光有值 <code>&quot;alipay&quot;</code> 是没意义的——<strong><code>&quot;alipay&quot;</code> 是”什么”的值？</strong> 是渠道？是地区？是用户等级？必须有个名字（列名）说清楚它是哪个维度。而且一个指标常常要按多个维度分类（见 5.4，比如同时按 <code>channel</code> 和 <code>status</code>），没有名字就分不清哪个值属于哪个维度。所以标签必须是”<strong>名字 &#x3D; 值</strong>“成对出现。</p>
+</blockquote>
+<h3 id="5-3-那到底怎么记录？还是-increment-吗"><a href="#5-3-那到底怎么记录？还是-increment-吗" class="headerlink" title="5.3 那到底怎么记录？还是 increment 吗"></a>5.3 那到底怎么记录？还是 increment 吗</h3><p>是的，<strong>记录方式没变，还是 <code>increment()</code>，只是在 <code>increment</code> 之前先用标签把”这次是哪个渠道”标出来</strong>。完整写法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onOrderCreated</span><span class="hljs-params">(String channel)</span> &#123;   <span class="hljs-comment">// channel 运行时传进来，比如 &quot;alipay&quot;</span><br>    Counter.builder(<span class="hljs-string">&quot;order.create.total&quot;</span>)<br>            .tag(<span class="hljs-string">&quot;channel&quot;</span>, channel)            <span class="hljs-comment">// 标出这次的渠道</span><br>            .register(meterRegistry)            <span class="hljs-comment">// ← 关键见下方说明</span><br>            .increment();                       <span class="hljs-comment">// 给&quot;这个渠道对应的那个计数器&quot; +1</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里有个容易误解的点：<strong><code>register()</code> 不是”每次都新建一个计数器”。</strong> Micrometer 的逻辑是——“指标名 + 全部标签值”唯一确定一个计数器：</p>
+<ul>
+<li>第一次遇到 <code>order.create.total{channel=&quot;alipay&quot;}</code>，它创建一个新计数器；</li>
+<li>之后再遇到同样的 <code>order.create.total{channel=&quot;alipay&quot;}</code>，它<strong>找到上次那个</strong>，直接 <code>+1</code>，不会重建。</li>
+</ul>
+<p>所以你每次下单都照常调用上面这段，传入当次的 <code>channel</code>，Micrometer 会自动把它累加到对应渠道的那个计数器上。<strong>支付宝走支付宝的计数、微信走微信的计数，互不干扰。</strong> 新增一个 <code>&quot;unionpay&quot;</code> 渠道，第一次出现时自动建一条，代码一行都不用改——这就是标签相比 5.1 笨办法的核心好处。</p>
+<p>如果嫌 builder 写法长，Micrometer 还有等价的简写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">meterRegistry.counter(<span class="hljs-string">&quot;order.create.total&quot;</span>, <span class="hljs-string">&quot;channel&quot;</span>, channel).increment();<br><span class="hljs-comment">//                     指标名                 标签名      标签值</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="5-4-抓取出来-多个标签"><a href="#5-4-抓取出来-多个标签" class="headerlink" title="5.4 抓取出来 &amp; 多个标签"></a>5.4 抓取出来 &amp; 多个标签</h3><p>被 Prometheus 抓取出来，就是 5.2 那张表的文本形式——<strong>同一个指标名，靠 <code>{}</code> 里的标签区分成多条</strong>：</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs abnf">order_create_total&#123;channel<span class="hljs-operator">=</span><span class="hljs-string">&quot;alipay&quot;</span>&#125;    <span class="hljs-number">1200</span><br>order_create_total&#123;channel<span class="hljs-operator">=</span><span class="hljs-string">&quot;wechat&quot;</span>&#125;     <span class="hljs-number">980</span><br>order_create_total&#123;channel<span class="hljs-operator">=</span><span class="hljs-string">&quot;unionpay&quot;</span>&#125;   <span class="hljs-number">450</span><br></code></pre></td></tr></table></figure>
+
+<p>之后在 Prometheus 里可以按标签随意切分、聚合：看单个渠道（<code>{channel=&quot;alipay&quot;}</code>）、看所有渠道之和（<code>sum</code>）、按渠道分组排序——<strong>全靠查询，不用改代码</strong>。</p>
+<p>一个指标也可以打<strong>多个标签</strong>，每多一个维度就多一个”列”：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 同时按 渠道 + 结果 两个维度分类</span><br>meterRegistry.counter(<span class="hljs-string">&quot;order.create.total&quot;</span>,<br>        <span class="hljs-string">&quot;channel&quot;</span>, channel,            <span class="hljs-comment">// 维度1：哪个渠道</span><br>        <span class="hljs-string">&quot;result&quot;</span>, success ? <span class="hljs-string">&quot;success&quot;</span> : <span class="hljs-string">&quot;failed&quot;</span>)   <span class="hljs-comment">// 维度2：成功还是失败</span><br>        .increment();<br></code></pre></td></tr></table></figure>
+
+<p>抓取出来就变成”渠道 × 结果”的组合，每个组合一条独立时间序列：</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs applescript">order_create_total&#123;channel=<span class="hljs-string">&quot;alipay&quot;</span>,<span class="hljs-literal">result</span>=<span class="hljs-string">&quot;success&quot;</span>&#125;  <span class="hljs-number">1150</span><br>order_create_total&#123;channel=<span class="hljs-string">&quot;alipay&quot;</span>,<span class="hljs-literal">result</span>=<span class="hljs-string">&quot;failed&quot;</span>&#125;     <span class="hljs-number">50</span><br>order_create_total&#123;channel=<span class="hljs-string">&quot;wechat&quot;</span>,<span class="hljs-literal">result</span>=<span class="hljs-string">&quot;success&quot;</span>&#125;   <span class="hljs-number">960</span><br>...<br></code></pre></td></tr></table></figure>
+
+<p>这下你能体会到第一个参数（维度名）的必要性了——有了 <code>channel</code>、<code>result</code> 这两个名字，Prometheus 才能让你查”支付宝的失败率””所有渠道的总成功数”等等。</p>
+<p>Timer 打标签也是一样的套路，只是最后从 <code>increment()</code> 换成 <code>record()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 下游接口响应耗时按 接口名 + 状态打标签</span><br>Timer.builder(<span class="hljs-string">&quot;downstream.response.duration&quot;</span>)<br>        .tag(<span class="hljs-string">&quot;api&quot;</span>, apiName)      <span class="hljs-comment">// 维度1：payment / inventory / coupon</span><br>        .tag(<span class="hljs-string">&quot;status&quot;</span>, status)    <span class="hljs-comment">// 维度2：success / timeout / error</span><br>        .register(meterRegistry)<br>        .record(cost, TimeUnit.MILLISECONDS);<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-5-标签的坑：不要用高基数的值"><a href="#5-5-标签的坑：不要用高基数的值" class="headerlink" title="5.5 标签的坑：不要用高基数的值"></a>5.5 标签的坑：不要用高基数的值</h3><p>标签的值如果种类太多（高基数），会撑爆 Prometheus 的内存。每个不同的标签值组合都是一条独立的时间序列。</p>
+<table>
+<thead>
+<tr>
+<th>适合做标签（值有限）</th>
+<th>不要做标签（值无限）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>channel（就几个）</td>
+<td>requestId（每次都不同！）</td>
+</tr>
+<tr>
+<td>status（成功&#x2F;超时&#x2F;异常）</td>
+<td>userId（千万级）</td>
+</tr>
+<tr>
+<td>订单类型（几种）</td>
+<td>时间戳、IP</td>
+</tr>
+</tbody></table>
+<p><strong>铁律：标签值的种类要可控（几个到几十个），绝不能用 requestId、userId 这种近乎无限的值。</strong> 这是新手最容易踩的生产事故。</p>
+<hr>
+<h2 id="6-实战：给订单服务埋点"><a href="#6-实战：给订单服务埋点" class="headerlink" title="6. 实战：给订单服务埋点"></a>6. 实战：给订单服务埋点</h2><h3 id="6-1-加依赖"><a href="#6-1-加依赖" class="headerlink" title="6.1 加依赖"></a>6.1 加依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- Actuator：暴露监控端点 --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><br><span class="hljs-comment">&lt;!-- Prometheus 注册表：让指标以 Prometheus 格式暴露 --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>io.micrometer<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>micrometer-registry-prometheus<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>加了这两个依赖，Spring Boot 会<strong>自动</strong>做两件事：自动配置好 <code>MeterRegistry</code> Bean、自动暴露 <code>/actuator/prometheus</code> 端点。</p>
+<h3 id="6-2-配置暴露端点"><a href="#6-2-配置暴露端点" class="headerlink" title="6.2 配置暴露端点"></a>6.2 配置暴露端点</h3><p><code>application.yml</code> 里放行 Prometheus 端点（默认很多端点是关闭的）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">management:</span><br>  <span class="hljs-attr">endpoints:</span><br>    <span class="hljs-attr">web:</span><br>      <span class="hljs-attr">exposure:</span><br>        <span class="hljs-attr">include:</span> <span class="hljs-string">health,info,prometheus</span>   <span class="hljs-comment"># 放行这几个端点</span><br></code></pre></td></tr></table></figure>
+
+<p>启动后访问 <code>http://localhost:8080/actuator/prometheus</code>，能看到一大堆指标（JVM 内存、HTTP 请求、线程池……这些是自动就有的，不用你埋点）。</p>
+<h3 id="6-3-给下单埋点"><a href="#6-3-给下单埋点" class="headerlink" title="6.3 给下单埋点"></a>6.3 给下单埋点</h3><p>在 <code>OrderService</code> 里加业务指标。先在构造时创建好指标：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderService</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Counter orderTotalCounter;    <span class="hljs-comment">// 下单总数</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Counter orderFailedCounter;   <span class="hljs-comment">// 下单失败次数</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Timer orderTimer;             <span class="hljs-comment">// 下单耗时</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> MeterRegistry meterRegistry;  <span class="hljs-comment">// 留着给带标签的指标用</span><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">OrderService</span><span class="hljs-params">(MeterRegistry meterRegistry, ...)</span> &#123;<br>        <span class="hljs-built_in">this</span>.meterRegistry = meterRegistry;<br>        <span class="hljs-built_in">this</span>.orderTotalCounter = Counter.builder(<span class="hljs-string">&quot;order.create.total&quot;</span>)<br>                .description(<span class="hljs-string">&quot;下单请求总数&quot;</span>).register(meterRegistry);<br>        <span class="hljs-built_in">this</span>.orderFailedCounter = Counter.builder(<span class="hljs-string">&quot;order.create.failed&quot;</span>)<br>                .description(<span class="hljs-string">&quot;下单失败次数&quot;</span>).register(meterRegistry);<br>        <span class="hljs-built_in">this</span>.orderTimer = Timer.builder(<span class="hljs-string">&quot;order.create.duration&quot;</span>)<br>                .description(<span class="hljs-string">&quot;下单处理耗时&quot;</span>).register(meterRegistry);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后在下单逻辑里埋点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> OrderResult <span class="hljs-title function_">createOrder</span><span class="hljs-params">(OrderRequest request)</span> &#123;<br>    orderTotalCounter.increment();                 <span class="hljs-comment">// 下单 +1</span><br><br>    <span class="hljs-keyword">return</span> orderTimer.record(() -&gt; &#123;               <span class="hljs-comment">// 整个下单过程计时</span><br>        <span class="hljs-type">OrderResult</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> doCreateOrder(request);<br><br>        <span class="hljs-keyword">if</span> (!result.isSuccess()) &#123;<br>            orderFailedCounter.increment();        <span class="hljs-comment">// 下单失败 +1</span><br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>给每个下游接口的调用结果埋带标签的指标：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 在调用下游接口处，记录每个接口的响应耗时和状态</span><br>Timer.builder(<span class="hljs-string">&quot;downstream.response.duration&quot;</span>)<br>        .tag(<span class="hljs-string">&quot;api&quot;</span>, apiName)          <span class="hljs-comment">// payment / inventory / coupon</span><br>        .tag(<span class="hljs-string">&quot;status&quot;</span>, status)        <span class="hljs-comment">// success / timeout / error / rate_limited</span><br>        .register(meterRegistry)<br>        .record(costMs, TimeUnit.MILLISECONDS);<br></code></pre></td></tr></table></figure>
+
+<h3 id="6-4-验证"><a href="#6-4-验证" class="headerlink" title="6.4 验证"></a>6.4 验证</h3><p>启动应用，打几次下单请求，再访问 <code>/actuator/prometheus</code>，搜索你的指标名：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-comment"># HELP order_create_total 下单请求总数</span><br><span class="hljs-comment"># TYPE order_create_total counter</span><br><span class="hljs-attribute">order_create_total</span> <span class="hljs-number">42</span>.<span class="hljs-number">0</span><br><br><span class="hljs-comment"># HELP downstream_response_seconds 下游接口响应耗时</span><br><span class="hljs-comment"># TYPE downstream_response_seconds summary</span><br><span class="hljs-attribute">downstream_response_seconds_count</span>&#123;api=<span class="hljs-string">&quot;payment&quot;</span>,status=<span class="hljs-string">&quot;success&quot;</span>&#125; <span class="hljs-number">38</span>.<span class="hljs-number">0</span><br><span class="hljs-attribute">downstream_response_seconds_sum</span>&#123;api=<span class="hljs-string">&quot;payment&quot;</span>,status=<span class="hljs-string">&quot;success&quot;</span>&#125; <span class="hljs-number">2</span>.<span class="hljs-number">85</span><br><span class="hljs-attribute">downstream_response_seconds_count</span>&#123;api=<span class="hljs-string">&quot;payment&quot;</span>,status=<span class="hljs-string">&quot;timeout&quot;</span>&#125; <span class="hljs-number">9</span>.<span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+
+<p>能看到这些，说明埋点成功了。</p>
+<blockquote>
+<p>注意命名：你代码里写 <code>order.create.total</code>（点号），暴露出来变成 <code>order_create_total</code>（下划线）——Micrometer 自动按 Prometheus 的命名规范转换了，这是正常的。</p>
+</blockquote>
+<h3 id="6-5-接-Prometheus-抓取"><a href="#6-5-接-Prometheus-抓取" class="headerlink" title="6.5 接 Prometheus 抓取"></a>6.5 接 Prometheus 抓取</h3><p>Prometheus 用一个 <code>prometheus.yml</code> 配置去哪抓：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">scrape_configs:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">job_name:</span> <span class="hljs-string">&#x27;order-service&#x27;</span><br>    <span class="hljs-attr">metrics_path:</span> <span class="hljs-string">&#x27;/actuator/prometheus&#x27;</span>   <span class="hljs-comment"># 抓这个端点</span><br>    <span class="hljs-attr">scrape_interval:</span> <span class="hljs-string">15s</span>                    <span class="hljs-comment"># 每 15 秒抓一次</span><br>    <span class="hljs-attr">static_configs:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">targets:</span> [<span class="hljs-string">&#x27;localhost:8080&#x27;</span>]         <span class="hljs-comment"># 抓哪个地址</span><br></code></pre></td></tr></table></figure>
+
+<p>用 Docker 跑 Prometheus（接上你之前的 Docker 知识）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># docker-compose.yml 里加一段</span><br><span class="hljs-attr">prometheus:</span><br>  <span class="hljs-attr">image:</span> <span class="hljs-string">prom/prometheus</span><br>  <span class="hljs-attr">ports:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;9090:9090&quot;</span><br>  <span class="hljs-attr">volumes:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-string">./prometheus.yml:/etc/prometheus/prometheus.yml</span><br></code></pre></td></tr></table></figure>
+
+<p>访问 <code>http://localhost:9090</code> 进 Prometheus 自带的查询界面，输入指标名就能看到曲线。</p>
+<hr>
+<h2 id="7-PromQL：从原始指标算出有用的数字"><a href="#7-PromQL：从原始指标算出有用的数字" class="headerlink" title="7. PromQL：从原始指标算出有用的数字"></a>7. PromQL：从原始指标算出有用的数字</h2><p>埋点埋好、Prometheus 也抓到了，但你打开一看，存进去的都是 <code>order_create_total 12345</code> 这种<strong>原始累计值</strong>——它本身没什么用，你真正想看的”每秒多少单（QPS）””成功率””P99 耗时”，都得<strong>算</strong>出来。算这些，靠的就是 Prometheus 的查询语言 <strong>PromQL</strong>。</p>
+<p>这一节从零把 PromQL 的语法讲清楚，看完你能自己写查询，而不是只会抄。</p>
+<h3 id="7-1-先搞懂：Prometheus-里的数据长什么样"><a href="#7-1-先搞懂：Prometheus-里的数据长什么样" class="headerlink" title="7.1 先搞懂：Prometheus 里的数据长什么样"></a>7.1 先搞懂：Prometheus 里的数据长什么样</h3><p>PromQL 操作的不是一个数字，而是<strong>时间序列（time series）</strong>。回忆第 5、6 节：每个”指标名 + 一组标签”唯一确定一条序列，Prometheus 每隔 15 秒抓一次，就给这条序列<strong>追加一个 (时间, 值) 的点</strong>。所以一条序列实际是这样一串带时间戳的点：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">order_create_total</span>&#123;channel=<span class="hljs-string">&quot;alipay&quot;</span>&#125;<br>   <span class="hljs-attribute">13</span>:<span class="hljs-number">00</span>:<span class="hljs-number">00</span> → <span class="hljs-number">1000</span><br>   <span class="hljs-attribute">13</span>:<span class="hljs-number">00</span>:<span class="hljs-number">15</span> → <span class="hljs-number">1003</span><br>   <span class="hljs-attribute">13</span>:<span class="hljs-number">00</span>:<span class="hljs-number">30</span> → <span class="hljs-number">1009</span>     ← 每隔 <span class="hljs-number">15</span> 秒一个点，值在不断累加（Counter 只增）<br>   <span class="hljs-attribute">13</span>:<span class="hljs-number">00</span>:<span class="hljs-number">45</span> → <span class="hljs-number">1015</span><br></code></pre></td></tr></table></figure>
+
+<p>理解了”数据 &#x3D; 一条条随时间增长的点串”，下面的语法才好懂。</p>
+<h3 id="7-2-四种最基础的写法"><a href="#7-2-四种最基础的写法" class="headerlink" title="7.2 四种最基础的写法"></a>7.2 四种最基础的写法</h3><p><strong>① 直接写指标名 → 取每条序列”此刻最新的值”</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs promql">order_create_total<br></code></pre></td></tr></table></figure>
+
+<p>这会返回<strong>所有</strong> <code>order_create_total</code> 序列当前最新的值（每个 channel 一条）。这种”每条序列一个当前值”的结果，叫<strong>瞬时向量（instant vector）</strong>。</p>
+<p><strong>② 加 <code>{}</code> 按标签筛选 → 只要符合条件的序列</strong></p>
+<p><code>{}</code> 里写标签条件，就是第 6 节那些标签在这里发挥作用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs promql">order_create_total&#123;channel=&quot;alipay&quot;&#125;              # 只看支付宝这条<br>order_create_total&#123;channel=&quot;alipay&quot;, result=&quot;failed&quot;&#125;  # 多个条件是&quot;且&quot;<br>order_create_total&#123;channel!=&quot;alipay&quot;&#125;             # != 表示&quot;不等于&quot;<br>order_create_total&#123;channel=~&quot;alipay|wechat&quot;&#125;      # =~ 是正则匹配，看这两个<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>=</code></td>
+<td>标签值等于</td>
+</tr>
+<tr>
+<td><code>!=</code></td>
+<td>不等于</td>
+</tr>
+<tr>
+<td><code>=~</code></td>
+<td>正则匹配</td>
+</tr>
+<tr>
+<td><code>!~</code></td>
+<td>正则不匹配</td>
+</tr>
+</tbody></table>
+<p><strong>③ 加 <code>[时间]</code> → 取一段时间内的”一串点”</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs promql">order_create_total&#123;channel=&quot;alipay&quot;&#125;[1m]<br></code></pre></td></tr></table></figure>
+
+<p>末尾的 <code>[1m]</code> 叫<strong>范围选择器（range selector）</strong>，意思是”取过去 1 分钟内的所有点”（不是一个值，而是一串）。<code>1m</code>&#x3D;1分钟、<code>5m</code>&#x3D;5分钟、<code>1h</code>&#x3D;1小时。这种”每条序列带一串点”的结果叫<strong>范围向量（range vector）</strong>，它是 <code>rate()</code> 这类函数的输入。</p>
+<blockquote>
+<p>关键区别：不带 <code>[ ]</code> 是<strong>一个</strong>当前值（瞬时向量），带 <code>[5m]</code> 是<strong>一段时间的一串值</strong>（范围向量）。后面的 <code>rate()</code> 必须喂范围向量，因为”算变化率”得至少有两个点才能算。</p>
+</blockquote>
+<p><strong>④ 用函数和运算 → 把原始值变成有用的数字</strong></p>
+<p>这就是 PromQL 的重头戏，下面几小节专门讲。</p>
+<h3 id="7-3-rate-：把”累计值”变成”每秒速率”（最常用）"><a href="#7-3-rate-：把”累计值”变成”每秒速率”（最常用）" class="headerlink" title="7.3 rate()：把”累计值”变成”每秒速率”（最常用）"></a>7.3 <code>rate()</code>：把”累计值”变成”每秒速率”（最常用）</h3><p>Counter 存的是只增的累计值（13:00 是 1000，13:01 是 1060），这个数字本身没意义，你关心的是”<strong>这一分钟涨了多快</strong>“。<code>rate()</code> 就干这个：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs promql">rate(order_create_total[1m])<br></code></pre></td></tr></table></figure>
+
+<p>它做的事：取过去 1 分钟那一串点，用”(末值 − 始值) ÷ 时间”算出<strong>平均每秒增长了多少</strong>。1 分钟涨了 60，<code>rate</code> 就得出 <code>1（每秒1单）</code>，这就是 <strong>QPS</strong>。</p>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs tap">过去<span class="hljs-number"> 1 </span>分钟：1000 → 1060，涨了 60<br>rate =<span class="hljs-number"> 60 </span>/ 60秒 =<span class="hljs-number"> 1 </span>  →  即<span class="hljs-number"> 1 </span>QPS<br></code></pre></td></tr></table></figure>
+
+<p><strong>这就是为什么 Counter 一定要设计成只增不减</strong>：只有单调递增，<code>rate()</code> 才能可靠地算速率（它还能自动识别”应用重启导致归零”的情况并修正）。</p>
+<p><code>[1m]</code> 这个窗口怎么选？窗口越大曲线越平滑但越迟钝，越小越灵敏但越抖。一般取抓取间隔的 4 倍以上，15s 抓一次就用 <code>[1m]</code> 起步。</p>
+<h3 id="7-4-算”比率”：两个-rate-相除"><a href="#7-4-算”比率”：两个-rate-相除" class="headerlink" title="7.4 算”比率”：两个 rate 相除"></a>7.4 算”比率”：两个 rate 相除</h3><p>成功率、失败率、超时率，本质都是”<strong>某一类 ÷ 总数</strong>“。PromQL 里加减乘除直接写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs promql"># 下单失败率 = 每秒失败数 / 每秒总数<br>rate(order_create_failed[5m]) / rate(order_create_total[5m])<br></code></pre></td></tr></table></figure>
+
+<p>注意分子分母都要先 <code>rate()</code> 再相除——<strong>不能拿两个累计值直接除</strong>（那是”开天辟地以来的总失败率”，看不出当下波动）。先各自算成速率，再相除，得到的才是”最近这段时间的失败率”。</p>
+<h3 id="7-5-聚合：sum、by、without"><a href="#7-5-聚合：sum、by、without" class="headerlink" title="7.5 聚合：sum、by、without"></a>7.5 聚合：<code>sum</code>、<code>by</code>、<code>without</code></h3><p>一个指标按标签拆成了很多条序列（每个 channel 一条），你常常想”<strong>合起来看</strong>“或”<strong>按某个维度分组看</strong>“。这就用聚合函数，最常用 <code>sum</code>（求和），还有 <code>avg</code>、<code>max</code>、<code>count</code> 等。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs promql"># 不分组：把所有渠道的 QPS 加成一个总 QPS<br>sum(rate(order_create_total[1m]))<br><br># 按 channel 分组：每个渠道各算一条（by 保留哪个标签）<br>sum(rate(order_create_total[1m])) by (channel)<br></code></pre></td></tr></table></figure>
+
+<p><code>by (channel)</code> 的意思是”<strong>分组时只保留 channel 这个维度</strong>，其余标签合并掉”。结果就是每个渠道一条线。它的反义词是 <code>without</code>（指定要丢掉哪些标签，其余保留）。</p>
+<p>把聚合和筛选组合起来，就能写出”各下游接口的超时率”：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs promql"># 分子：每个接口&quot;超时的&quot;速率   分母：每个接口&quot;全部的&quot;速率   相除得各接口超时率<br>sum(rate(downstream_response_seconds_count&#123;status=&quot;timeout&quot;&#125;[5m])) by (api)<br>  / sum(rate(downstream_response_seconds_count[5m])) by (api)<br></code></pre></td></tr></table></figure>
+
+<p>读法：从里往外——先 <code>{status=&quot;timeout&quot;}</code> 筛出超时的、<code>rate</code> 算速率、<code>sum by (api)</code> 按接口汇总；分母同理但不筛 status（是全部）；两者相除，得到每个 <code>api</code> 各自的超时率。<strong>PromQL 都是这样一层套一层、从内到外读。</strong></p>
+<h3 id="7-6-分位数：histogram-quantile-算-P99"><a href="#7-6-分位数：histogram-quantile-算-P99" class="headerlink" title="7.6 分位数：histogram_quantile 算 P99"></a>7.6 分位数：<code>histogram_quantile</code> 算 P99</h3><p>第 4 节说过 Timer 会用”分桶直方图”统计耗时，桶数据的指标名后缀是 <code>_bucket</code>。要算 P99（99% 的请求都比这个值快），用专门的函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs promql">histogram_quantile(0.99, rate(order_create_duration_seconds_bucket[5m]))<br>#                  ↑要算的分位数        ↑对各个桶先算速率<br></code></pre></td></tr></table></figure>
+
+<p><code>0.99</code> 换成 <code>0.5</code> 就是 P50（中位数）、<code>0.95</code> 就是 P95。<strong>为什么 P99 比平均值更有用？</strong> 平均值会被大量快请求”拉平”，掩盖掉少数卡顿的用户；P99 直接告诉你”最慢的那 1% 有多慢”，更能反映真实体验。</p>
+<h3 id="7-7-小结这一节的套路"><a href="#7-7-小结这一节的套路" class="headerlink" title="7.7 小结这一节的套路"></a>7.7 小结这一节的套路</h3><p>写 PromQL 基本就是这套组合拳，按需叠加：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs stylus">指标名  &#123;标签筛选&#125;  <span class="hljs-selector-attr">[时间范围]</span>  → <span class="hljs-built_in">rate</span>() 算速率  → <span class="hljs-built_in">sum</span>() <span class="hljs-built_in">by</span>() 聚合  → 相除/比较<br>  └选哪个指标┘ └选哪些序列┘ └取一段┘    └变成QPS┘      └按维度汇总┘   └算比率┘<br></code></pre></td></tr></table></figure>
+
+<p>记住几个最高频的就够日常用了：<code>rate()</code> 算速率（QPS）、两个 rate 相除算比率（成功率）、<code>sum by()</code> 按维度汇总、<code>histogram_quantile</code> 算 P99。Grafana 大盘里每个面板背后，写的就是这样一行 PromQL（下一篇会讲）。</p>
+<hr>
+<h2 id="8-原理：Micrometer-怎么做到低开销"><a href="#8-原理：Micrometer-怎么做到低开销" class="headerlink" title="8. 原理：Micrometer 怎么做到低开销"></a>8. 原理：Micrometer 怎么做到低开销</h2><p>埋点是在每个请求的热路径上执行的，如果埋点本身很慢，反而拖累性能。Micrometer 的设计目标就是把开销压到最低：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存存储</td>
+<td>指标值存在内存里，用线程安全的原子结构（类似你学过的 <code>LongAdder</code>）</td>
+</tr>
+<tr>
+<td>不阻塞主线程</td>
+<td>Counter 的 <code>increment()</code> 本质是原子加，几乎无锁、不阻塞</td>
+</tr>
+<tr>
+<td>Timer 用桶（bucket）而非存每条记录</td>
+<td>不保存每次的原始耗时，而是用直方图分桶统计，省内存还能算分位数</td>
+</tr>
+<tr>
+<td>pull 模式</td>
+<td>应用只在被抓取时才把内存里的值序列化成文本，平时零网络开销</td>
+</tr>
+</tbody></table>
+<p>这里能看到你之前学过的东西在起作用：Counter 的高并发计数用的就是 <code>LongAdder</code> 这类原子结构（并发篇讲过），保证多线程同时 <code>increment()</code> 不出错又快。Timer 用分桶直方图而非存原始值，是典型的”用精度换内存”——和 KV Cache 那种”用空间换时间”是相反方向的取舍思维。</p>
+<hr>
+<h2 id="9-小结"><a href="#9-小结" class="headerlink" title="9. 小结"></a>9. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>日志 vs 指标</td>
+<td>日志记录每件事，指标是聚合数字；一个事后排查，一个实时监控</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>应用埋点 → 暴露端点 → Prometheus 主动来抓（pull）→ Grafana 画图</td>
+</tr>
+<tr>
+<td>Micrometer</td>
+<td>监控领域的”门面”，类比 SLF4J；核心是 MeterRegistry</td>
+</tr>
+<tr>
+<td>MeterRegistry</td>
+<td>管理所有指标的容器，指标必须注册进去才能被抓取</td>
+</tr>
+<tr>
+<td>四种类型</td>
+<td>Counter（只增）、Gauge（可增减）、Timer（计时+计次）、Summary（分布）</td>
+</tr>
+<tr>
+<td>标签 Tag</td>
+<td>一个指标名 + 多维标签，按维度切分；<strong>绝不用 requestId 等高基数值</strong></td>
+</tr>
+<tr>
+<td>实战</td>
+<td>加 actuator + prometheus 依赖 → 暴露端点 → 注入 MeterRegistry 埋点</td>
+</tr>
+<tr>
+<td>PromQL</td>
+<td><code>rate()</code> 把累计 Counter 算成速率（QPS），分位数算 P99</td>
+</tr>
+<tr>
+<td>低开销原理</td>
+<td>内存原子结构（LongAdder）、Timer 分桶、pull 模式</td>
+</tr>
+</tbody></table>
+<p>对订单服务来说，加上 metrics 后，下单 QPS、各支付渠道&#x2F;下游接口的成功率和超时率、整体下单成功率这些最关心的指标就能实时监控了——这也是真实服务端每天盯着的核心数据。</p>
+<p>下一步可以用 Grafana 把这些指标画成可视化大盘，配色和布局都是现成模板，效果直观，适合放进项目展示。</p>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：用 Grafana 搭建订单服务监控大盘</p>
+</blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-advanced/" class="category-chain-item">java-advanced</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Spring-Boot/" class="print-no-link">#Spring Boot</a>
+      
+        <a href="/tags/Prometheus/" class="print-no-link">#Prometheus</a>
+      
+        <a href="/tags/%E7%9B%91%E6%8E%A7/" class="print-no-link">#监控</a>
+      
+        <a href="/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/" class="print-no-link">#可观测性</a>
+      
+        <a href="/tags/Micrometer/" class="print-no-link">#Micrometer</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java全貌(5) | 监控指标入门：Micrometer + Prometheus</div>
+      <div>https://rebibabo.github.io/categories/java-advanced/5/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-advanced/4/" title="Java进阶(4) | Spring Security + JWT：认证授权入门">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java进阶(4) | Spring Security + JWT：认证授权入门</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-advanced/6/" title="Java进阶(6) | Grafana 搭建监控大盘：让指标&#34;看得见&#34;">
+                        <span class="hidden-mobile">Java进阶(6) | Grafana 搭建监控大盘：让指标&#34;看得见&#34;</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1025 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言03 集合框架 讲的是”怎么用”——ArrayList、HashMap 的 API。这篇讲”为什么这么设计”——也就是底层原理，重点是 HashMap，因为它几乎是 Java 面试出现频率最高的话题。 注意范围：这里说的”数据结构底层原理”，指的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-basics/32/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言03 集合框架 讲的是”怎么用”——ArrayList、HashMap 的 API。这篇讲”为什么这么设计”——也就是底层原理，重点是 HashMap，因为它几乎是 Java 面试出现频率最高的话题。 注意范围：这里说的”数据结构底层原理”，指的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.147Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="HashMap">
+<meta property="article:tag" content="数据结构">
+<meta property="article:tag" content="集合">
+<meta property="article:tag" content="面试">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-01 00:00" pubdate>
+          2026年6月1日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          56 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><a href="/2026/05/03/Java-basic/03-collections/">03 集合框架</a> 讲的是”怎么用”——<code>ArrayList</code>、<code>HashMap</code> 的 API。这篇讲”为什么这么设计”——也就是<strong>底层原理</strong>，重点是 <code>HashMap</code>，因为它几乎是 Java 面试出现频率最高的话题。</p>
+<p>注意范围：这里说的”数据结构底层原理”，指的是<strong>Java 集合类的内部实现</strong>（数组怎么扩容、HashMap 的哈希和扩容机制、为什么用红黑树），<strong>不是</strong>让你去手写红黑树、AVL树这类算法题——那是另一个范畴，工作中很少需要自己实现，但面试官很爱问”HashMap 底层用了什么数据结构、为什么”。</p>
+<span id="more"></span>
+
+<h2 id="1-ArrayList-底层：数组与扩容"><a href="#1-ArrayList-底层：数组与扩容" class="headerlink" title="1. ArrayList 底层：数组与扩容"></a>1. ArrayList 底层：数组与扩容</h2><p><code>ArrayList</code> 底层是一个 <code>Object[]</code> 数组。我们都知道数组创建后长度固定，那 <code>ArrayList</code> 是怎么做到”可以一直 <code>add</code>“的？</p>
+<h3 id="1-1-扩容机制"><a href="#1-1-扩容机制" class="headerlink" title="1.1 扩容机制"></a>1.1 扩容机制</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;String&gt; list = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(); <span class="hljs-comment">// 默认容量 10（第一次 add 时才真正分配数组）</span><br></code></pre></td></tr></table></figure>
+
+<p>当数组满了，再 <code>add</code> 时会触发扩容：</p>
+<ol>
+<li>创建一个<strong>新数组</strong>，容量是旧容量的 <strong>1.5 倍</strong>（<code>oldCapacity + oldCapacity &gt;&gt; 1</code>）</li>
+<li>把旧数组的所有元素 <code>System.arraycopy</code> 复制到新数组</li>
+<li>新元素放进新数组，原数组变成垃圾，等待 GC</li>
+</ol>
+<figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs inform7">扩容前: <span class="hljs-comment">[10个元素]</span> (容量10，已满)<br>add 第11个元素 →<br>扩容后: <span class="hljs-comment">[11个元素 + 4个空位]</span> (容量 10 + 10&gt;&gt;1 = 15)<br></code></pre></td></tr></table></figure>
+
+<p><strong>为什么是 1.5 倍，不是 2 倍或者每次只加1？</strong></p>
+<ul>
+<li>如果每次只扩容1个，每次 <code>add</code> 几乎都要触发”创建新数组+整体复制”，时间复杂度退化为 O(n)</li>
+<li>如果扩容倍数太大（比如2倍），容易造成内存浪费，尤其是大数组场景</li>
+<li>1.5 倍是时间和空间的折中——这也是为什么如果你<strong>提前知道大概要存多少元素</strong>，最好用 <code>new ArrayList&lt;&gt;(initialCapacity)</code> 指定初始容量，<strong>避免多次扩容复制</strong></li>
+</ul>
+<h3 id="1-2-为什么-add-的”均摊”时间复杂度是-O-1"><a href="#1-2-为什么-add-的”均摊”时间复杂度是-O-1" class="headerlink" title="1.2 为什么 add 的”均摊”时间复杂度是 O(1)"></a>1.2 为什么 <code>add</code> 的”均摊”时间复杂度是 O(1)</h3><p>虽然扩容这一次操作是 O(n)（要复制所有元素），但扩容不是每次都发生——大部分 <code>add</code> 是 O(1)（直接放到数组末尾）。把扩容的成本”摊”到多次普通的 <code>add</code> 上，平均下来每次 <code>add</code> 仍然是 O(1)，这就是**均摊时间复杂度（Amortized Time Complexity）**的概念。</p>
+<h3 id="1-3-remove-add-index-element-为什么慢"><a href="#1-3-remove-add-index-element-为什么慢" class="headerlink" title="1.3 remove&#x2F;add(index, element) 为什么慢"></a>1.3 <code>remove</code>&#x2F;<code>add(index, element)</code> 为什么慢</h3><p>往中间插入或删除元素，需要把后面所有元素整体往前&#x2F;往后移动一位（<code>System.arraycopy</code>），这是 O(n) 操作——这也是为什么频繁在中间增删时，<code>LinkedList</code> 理论上更合适（但实际场景要结合下面第7节再看）。</p>
+<h2 id="2-HashMap-底层：核心重点"><a href="#2-HashMap-底层：核心重点" class="headerlink" title="2. HashMap 底层：核心重点"></a>2. HashMap 底层：核心重点</h2><h3 id="2-1-整体结构"><a href="#2-1-整体结构" class="headerlink" title="2.1 整体结构"></a>2.1 整体结构</h3><p><code>HashMap</code> 的底层是一个<strong>数组</strong>，数组里的每个位置叫一个”桶（bucket）”，每个桶里存的是一个<strong>链表</strong>（JDK 8 之后，链表过长会转成<strong>红黑树</strong>）。</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs crmsh">数组下标:  <span class="hljs-number">0</span>     <span class="hljs-number">1</span>        <span class="hljs-number">2</span>          <span class="hljs-number">3</span><br>          │     │        │          │<br>桶内结构:  null  <span class="hljs-keyword">Node</span> <span class="hljs-title">──► Node</span>──►<span class="hljs-keyword">Node</span>  <span class="hljs-title">红黑树（节点数 &gt; 8</span>）<br>              (key1)   (key2) (key3)<br></code></pre></td></tr></table></figure>
+
+<p>为什么会有”桶内多个元素”——因为不同的 key，经过哈希计算后<strong>可能落到同一个数组下标</strong>，这种现象叫<strong>哈希冲突</strong>，链表&#x2F;红黑树就是用来解决冲突的。</p>
+<h3 id="2-2-put-的完整流程"><a href="#2-2-put-的完整流程" class="headerlink" title="2.2 put 的完整流程"></a>2.2 put 的完整流程</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">map.put(<span class="hljs-string">&quot;Alice&quot;</span>, <span class="hljs-number">90</span>);<br></code></pre></td></tr></table></figure>
+
+<ol>
+<li>计算 <code>&quot;Alice&quot;</code> 的 <code>hashCode()</code>，再经过 <code>hash()</code> 函数做一次”扰动”，得到最终的 hash 值</li>
+<li>用 <code>hash &amp; (capacity - 1)</code> 计算出数组下标（桶的位置）</li>
+<li>如果这个桶是空的，直接放进去</li>
+<li>如果桶里已经有元素了（哈希冲突）：<ul>
+<li>逐个比较 <code>key</code> 的 <code>hashCode</code> 和 <code>equals</code>，如果找到相同的 key，<strong>覆盖</strong>旧值</li>
+<li>没找到相同的，把新节点<strong>加到链表末尾</strong>（JDK 8 改为尾插，JDK 7 是头插）</li>
+</ul>
+</li>
+<li>如果链表长度超过 8，且数组容量 ≥ 64，链表转换成<strong>红黑树</strong></li>
+<li>插入后，检查元素总数是否超过 <code>容量 × 负载因子</code>（默认 0.75），超过就触发<strong>扩容</strong></li>
+</ol>
+<h3 id="2-3-hash-扰动函数：为什么不直接用-hashCode"><a href="#2-3-hash-扰动函数：为什么不直接用-hashCode" class="headerlink" title="2.3 hash() 扰动函数：为什么不直接用 hashCode"></a>2.3 hash() 扰动函数：为什么不直接用 hashCode</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-title function_">hash</span><span class="hljs-params">(Object key)</span> &#123;<br>    <span class="hljs-type">int</span> h;<br>    <span class="hljs-keyword">return</span> (key == <span class="hljs-literal">null</span>) ? <span class="hljs-number">0</span> : (h = key.hashCode()) ^ (h &gt;&gt;&gt; <span class="hljs-number">16</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这一行代码做的事：把 <code>hashCode()</code> 的<strong>高16位</strong>和<strong>低16位</strong>做异或，得到新的 hash 值。</p>
+<p><strong>为什么要这么做？</strong></p>
+<p>数组下标是用 <code>hash &amp; (capacity - 1)</code> 算出来的。如果 <code>capacity</code> 比较小（比如默认16，二进制 <code>10000</code>，减1是 <code>01111</code>），<code>hash &amp; 15</code> 实际上<strong>只用到了 hash 值的低4位</strong>——高位的信息完全被忽略了。</p>
+<p>如果很多 key 的 <code>hashCode()</code> 高位不同但低位相同（这种情况并不少见），它们会全部落入同一个桶，造成严重的哈希冲突。</p>
+<p>扰动函数把高16位”混入”低16位，让<strong>高位的差异也能影响最终的下标</strong>，让哈希分布更均匀。这是用很小的计算成本（一次异或），换取明显更好的分布效果。</p>
+<h3 id="2-4-为什么数组长度必须是-2-的幂"><a href="#2-4-为什么数组长度必须是-2-的幂" class="headerlink" title="2.4 为什么数组长度必须是 2 的幂"></a>2.4 为什么数组长度必须是 2 的幂</h3><p><code>hash &amp; (capacity - 1)</code> 这个位运算，<strong>只有当 <code>capacity</code> 是 2 的幂时，才等价于 <code>hash % capacity</code></strong>，但位运算比取模运算快得多。</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">capacity</span> = <span class="hljs-number">16</span> (二进制 <span class="hljs-number">10000</span>)<br><span class="hljs-attribute">capacity</span> - <span class="hljs-number">1</span> = <span class="hljs-number">15</span> (二进制 <span class="hljs-number">01111</span>)<br><span class="hljs-attribute">hash</span> &amp; <span class="hljs-number">15</span>  ←→  hash % <span class="hljs-number">16</span>   (结果完全一样，但位运算更快)<br></code></pre></td></tr></table></figure>
+
+<p>如果 capacity 不是2的幂，<code>hash &amp; (capacity-1)</code> 就不再等价于取模，会导致某些下标永远取不到，分布严重不均。这也是为什么即使你 <code>new HashMap&lt;&gt;(18)</code>，HashMap 内部也会自动调整为大于18的最小的2的幂——也就是32。</p>
+<h3 id="2-5-负载因子-0-75：为什么不是-1-或者-0-5"><a href="#2-5-负载因子-0-75：为什么不是-1-或者-0-5" class="headerlink" title="2.5 负载因子 0.75：为什么不是 1 或者 0.5"></a>2.5 负载因子 0.75：为什么不是 1 或者 0.5</h3><p>负载因子（Load Factor）决定了”数组用到多满就扩容”——<code>阈值 = 容量 × 负载因子</code>，默认 <code>16 × 0.75 = 12</code>，也就是放入第13个元素时触发扩容。</p>
+<table>
+<thead>
+<tr>
+<th>负载因子</th>
+<th>空间利用率</th>
+<th>哈希冲突概率</th>
+<th>综合评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>接近 1（比如 1.0）</td>
+<td>高（数组几乎装满才扩容）</td>
+<td>高（桶里链表会很长，查询变慢）</td>
+<td>省空间但费时间</td>
+</tr>
+<tr>
+<td>接近 0（比如 0.5）</td>
+<td>低（数组经常是半空的，浪费内存）</td>
+<td>低</td>
+<td>费空间但省时间</td>
+</tr>
+<tr>
+<td><strong>0.75</strong></td>
+<td>中等</td>
+<td>中等</td>
+<td><strong>时间和空间的折中</strong>，是大量统计实验后得出的经验值</td>
+</tr>
+</tbody></table>
+<h3 id="2-6-扩容（resize）：容量翻倍-重新计算位置"><a href="#2-6-扩容（resize）：容量翻倍-重新计算位置" class="headerlink" title="2.6 扩容（resize）：容量翻倍 + 重新计算位置"></a>2.6 扩容（resize）：容量翻倍 + 重新计算位置</h3><p>扩容时，数组容量变成<strong>原来的2倍</strong>（比如16→32）。容量变了，意味着 <code>hash &amp; (capacity-1)</code> 这个公式的结果也会变——所以<strong>所有元素都要重新计算一遍它在新数组里的位置</strong>，这个过程叫 <strong>rehash</strong>。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs routeros">扩容前: <span class="hljs-attribute">capacity</span>=16, hash &amp; 15<br>扩容后: <span class="hljs-attribute">capacity</span>=32, hash &amp; 31   ← 多用了一位，每个元素的新下标只有两种可能：原下标，或者<span class="hljs-string">&quot;原下标 + 16&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>这个特性（JDK 8 的优化）让 rehash 不需要重新计算 hash 值，只需要看 hash 值的”新增的那一位”是0还是1，就知道元素留在原位还是移到”原下标+oldCapacity”，效率比 JDK 7 的全量重新计算高很多。</p>
+<h3 id="2-7-链表转红黑树：为什么阈值是-8"><a href="#2-7-链表转红黑树：为什么阈值是-8" class="headerlink" title="2.7 链表转红黑树：为什么阈值是 8"></a>2.7 链表转红黑树：为什么阈值是 8</h3><table>
+<thead>
+<tr>
+<th>链表长度</th>
+<th>数据结构</th>
+<th>查询时间复杂度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>≤ 8</td>
+<td>链表</td>
+<td>O(n)，但 n 很小，链表的简单遍历反而比红黑树更快（红黑树有额外的旋转、平衡开销）</td>
+</tr>
+<tr>
+<td>&gt; 8（且数组容量 ≥ 64）</td>
+<td>红黑树</td>
+<td>O(log n)</td>
+</tr>
+</tbody></table>
+<p><strong>为什么是 8 这个数字？</strong> JDK 源码注释里提到，在 hash 值分布良好的情况下，一个桶里链表长度达到 8 的概率，按泊松分布计算大约是 <strong>百万分之六</strong>——也就是说，<strong>正常情况下几乎不会触发树化</strong>。如果某个桶里链表长度真的达到了8，大概率意味着 <code>hashCode()</code> 设计得不好（哈希冲突严重），这时候用红黑树兜底，把最坏情况的查询复杂度从 O(n) 降到 O(log n)。</p>
+<blockquote>
+<p>还有一个细节：树退化回链表的阈值是 <strong>6</strong>，不是 8——这是为了避免链表长度在 7、8 之间反复增减时，频繁地”树化→退化→树化”，造成性能抖动（这种为避免临界值反复抖动而设置”缓冲区间”的设计思路，在很多系统里都能看到）。</p>
+</blockquote>
+<h2 id="3-equals-与-hashCode-的契约"><a href="#3-equals-与-hashCode-的契约" class="headerlink" title="3. equals 与 hashCode 的契约"></a>3. equals 与 hashCode 的契约</h2><p><code>HashMap</code> 能正常工作的前提，是 key 类正确重写了 <code>equals()</code> 和 <code>hashCode()</code>，而且必须<strong>同时重写、保持一致</strong>。</p>
+<h3 id="3-1-契约内容"><a href="#3-1-契约内容" class="headerlink" title="3.1 契约内容"></a>3.1 契约内容</h3><table>
+<thead>
+<tr>
+<th>规则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>如果两个对象 <code>equals()</code> 返回 <code>true</code></td>
+<td>它们的 <code>hashCode()</code> <strong>必须相同</strong></td>
+</tr>
+<tr>
+<td>如果两个对象 <code>hashCode()</code> 相同</td>
+<td>它们的 <code>equals()</code> <strong>不一定</strong>要相同（哈希冲突是允许的，链表就是用来处理这种情况的）</td>
+</tr>
+<tr>
+<td>如果只重写 <code>equals()</code>，不重写 <code>hashCode()</code></td>
+<td><strong>违反契约</strong>——两个逻辑相等的对象，可能因为 <code>hashCode()</code> 不同被分到不同的桶，HashMap 会认为它们是”不同的key”</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-一个具体的坏例子"><a href="#3-2-一个具体的坏例子" class="headerlink" title="3.2 一个具体的坏例子"></a>3.2 一个具体的坏例子</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    String name;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">equals</span><span class="hljs-params">(Object o)</span> &#123;<br>        <span class="hljs-keyword">return</span> o <span class="hljs-keyword">instanceof</span> User &amp;&amp; ((User) o).name.equals(<span class="hljs-built_in">this</span>.name);<br>    &#125;<br>    <span class="hljs-comment">// 没有重写 hashCode()，用的是 Object 默认的（基于内存地址）</span><br>&#125;<br><br>Map&lt;User, String&gt; map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>map.put(<span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(<span class="hljs-string">&quot;Alice&quot;</span>), <span class="hljs-string">&quot;数据1&quot;</span>);<br>map.get(<span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(<span class="hljs-string">&quot;Alice&quot;</span>)); <span class="hljs-comment">// 返回 null！</span><br><br><span class="hljs-comment">// 原因：两个 new User(&quot;Alice&quot;) 的 equals() 为 true，但 hashCode() 不同（默认基于地址）</span><br><span class="hljs-comment">// 所以它们被分到了不同的桶，get 时根本找不到 put 时存的那个桶</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>记忆方式</strong>：<code>hashCode()</code> 决定”去哪个桶里找”，<code>equals()</code> 决定”桶里哪个才是你要的那个”。如果 <code>hashCode()</code> 不一致，第一步”去哪个桶”就错了，第二步根本不会执行。</p>
+<h2 id="4-HashMap-的线程安全问题"><a href="#4-HashMap-的线程安全问题" class="headerlink" title="4. HashMap 的线程安全问题"></a>4. HashMap 的线程安全问题</h2><p><code>HashMap</code> <strong>不是线程安全的</strong>，多线程并发 <code>put</code> 可能导致：</p>
+<table>
+<thead>
+<tr>
+<th>JDK 版本</th>
+<th>问题</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JDK 7</td>
+<td><strong>resize 时可能死循环</strong>，CPU 飙到100%</td>
+<td>JDK 7 扩容时链表是<strong>头插法</strong>，多线程同时扩容可能导致链表中出现环形引用</td>
+</tr>
+<tr>
+<td>JDK 8</td>
+<td>不会死循环，但仍可能<strong>数据覆盖&#x2F;丢失</strong></td>
+<td>多线程同时判断”这个桶是空的”，都执行了”放入新节点”，后写的会覆盖先写的</td>
+</tr>
+</tbody></table>
+<p><strong>结论</strong>：多线程场景下，不要用 <code>HashMap</code>，要用 <code>ConcurrentHashMap</code>。<code>HashMap</code> 本身的设计目标就是单线程下的高性能，线程安全交给专门的并发集合处理。</p>
+<h2 id="5-ConcurrentHashMap：线程安全的-HashMap"><a href="#5-ConcurrentHashMap：线程安全的-HashMap" class="headerlink" title="5. ConcurrentHashMap：线程安全的 HashMap"></a>5. ConcurrentHashMap：线程安全的 HashMap</h2><table>
+<thead>
+<tr>
+<th>JDK 版本</th>
+<th>并发方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JDK 7</td>
+<td><strong>分段锁（Segment）</strong>——把数据分成16个段，每段独立加锁，不同段的操作可以并行</td>
+</tr>
+<tr>
+<td>JDK 8</td>
+<td><strong>CAS + synchronized</strong>——put 时先用 CAS 尝试无锁插入空桶；如果桶不为空（有冲突），只对<strong>这个桶的头节点</strong>加 <code>synchronized</code> 锁，锁粒度精确到单个桶，而不是整个 Map 或整个段</td>
+</tr>
+</tbody></table>
+<p><strong>为什么 JDK 8 要改成这种方式？</strong> 分段锁的”段数”是固定的（默认16），并发度的上限就是16。JDK 8 把锁的粒度细化到”每个桶”，理论上并发度等于数组长度（默认16，但会随扩容增长），并发能力更高，且去掉了 Segment 这一层额外的内存开销。</p>
+<p>实际开发中，<code>ConcurrentHashMap</code> 的用法和 <code>HashMap</code> 完全一样（都实现了 <code>Map</code> 接口），唯一区别就是”多线程环境下用 <code>ConcurrentHashMap</code>“。</p>
+<h2 id="6-LinkedList-vs-ArrayDeque：为什么官方推荐后者做栈-队列"><a href="#6-LinkedList-vs-ArrayDeque：为什么官方推荐后者做栈-队列" class="headerlink" title="6. LinkedList vs ArrayDeque：为什么官方推荐后者做栈&#x2F;队列"></a>6. LinkedList vs ArrayDeque：为什么官方推荐后者做栈&#x2F;队列</h2><p><code>LinkedList</code> 是双向链表，<code>ArrayDeque</code> 是基于数组的双端队列。两者都实现了 <code>Deque</code> 接口，都能当栈&#x2F;队列用，但 JDK 文档明确建议：<strong>“作为栈或队列，<code>ArrayDeque</code> 比 <code>LinkedList</code> 更快”</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>LinkedList</th>
+<th>ArrayDeque</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>底层结构</td>
+<td>每个元素是一个独立对象（Node），包含 prev&#x2F;next 指针</td>
+<td>连续的数组</td>
+</tr>
+<tr>
+<td>内存开销</td>
+<td>每个元素额外有2个指针的开销（约16字节&#x2F;元素）</td>
+<td>几乎无额外开销</td>
+</tr>
+<tr>
+<td>缓存友好性</td>
+<td>差——链表节点在内存中分散，CPU缓存命中率低</td>
+<td>好——数组连续存储，符合CPU缓存的”局部性原理”</td>
+</tr>
+<tr>
+<td>null 元素</td>
+<td>允许</td>
+<td><strong>不允许</strong>（<code>null</code> 被用作”队列为空”的特殊返回值）</td>
+</tr>
+</tbody></table>
+<p><strong>为什么数组反而比链表快？</strong> 现代CPU访问内存时会按”缓存行”批量加载数据，连续存储的数组能更好地利用这一特性（访问 <code>arr[i]</code> 时，<code>arr[i+1]</code> 大概率已经被加载进缓存）；而链表的节点分散在堆内存各处，每访问一个节点都可能是一次”缓存未命中”，需要重新从内存读取。</p>
+<p><strong>所以</strong>：除非你确实需要”在链表中间频繁插入&#x2F;删除”这种场景，否则栈&#x2F;队列优先用 <code>ArrayDeque</code>；<code>LinkedList</code> 在现代 Java 项目中已经比较少见了。</p>
+<h2 id="7-TreeMap-TreeSet：红黑树"><a href="#7-TreeMap-TreeSet：红黑树" class="headerlink" title="7. TreeMap&#x2F;TreeSet：红黑树"></a>7. TreeMap&#x2F;TreeSet：红黑树</h2><p><code>TreeMap</code>&#x2F;<code>TreeSet</code> 底层是<strong>红黑树</strong>——一种自平衡的二叉搜索树，保证增删查的时间复杂度都是 O(log n)，且遍历时 key 始终有序。</p>
+<h3 id="7-1-为什么是红黑树，不是普通二叉搜索树或-AVL-树"><a href="#7-1-为什么是红黑树，不是普通二叉搜索树或-AVL-树" class="headerlink" title="7.1 为什么是红黑树，不是普通二叉搜索树或 AVL 树"></a>7.1 为什么是红黑树，不是普通二叉搜索树或 AVL 树</h3><table>
+<thead>
+<tr>
+<th>数据结构</th>
+<th>问题&#x2F;特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通二叉搜索树</td>
+<td>如果插入的数据正好是有序的（比如依次插入1,2,3,4,5），会退化成一条链表，查询变成 O(n)</td>
+</tr>
+<tr>
+<td>AVL 树</td>
+<td>严格平衡（左右子树高度差≤1），查询效率略高于红黑树，但<strong>插入&#x2F;删除时为了维持严格平衡，旋转操作更频繁</strong></td>
+</tr>
+<tr>
+<td><strong>红黑树</strong></td>
+<td>近似平衡（不要求严格的高度差），插入&#x2F;删除的<strong>旋转次数更少</strong>，整体的增删查综合性能更好</td>
+</tr>
+</tbody></table>
+<p><strong>一句话</strong>：AVL树”读多写少”场景更优；红黑树在”读写均衡”的场景更优。Java 集合（<code>TreeMap</code>&#x2F;<code>TreeSet</code>，以及 <code>HashMap</code> 的树化桶）选择了红黑树，是因为通用场景下增删操作的频率不可忽视。</p>
+<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>核心要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ArrayList扩容</td>
+<td>容量不足时创建1.5倍大小的新数组并整体复制；预知数据量时指定初始容量可避免多次扩容</td>
+</tr>
+<tr>
+<td>HashMap整体结构</td>
+<td>数组(桶) + 链表，链表长度&gt;8且数组容量≥64时转红黑树</td>
+</tr>
+<tr>
+<td>hash()扰动函数</td>
+<td>高16位异或低16位，让高位信息也能影响数组下标，使分布更均匀</td>
+</tr>
+<tr>
+<td>数组长度为2的幂</td>
+<td>使 <code>hash &amp; (capacity-1)</code> 等价于取模，且位运算比取模快</td>
+</tr>
+<tr>
+<td>负载因子0.75</td>
+<td>时间(冲突率)和空间(利用率)的折中</td>
+</tr>
+<tr>
+<td>扩容机制</td>
+<td>容量翻倍，rehash时元素新位置只有”原位置”或”原位置+oldCapacity”两种可能</td>
+</tr>
+<tr>
+<td>树化阈值8&#x2F;退化阈值6</td>
+<td>8是基于泊松分布得出的”几乎不会触发”的安全值；8和6之间留缓冲避免反复树化</td>
+</tr>
+<tr>
+<td>equals&#x2F;hashCode契约</td>
+<td>必须同时重写且保持一致，否则 <code>get</code> 找不到 <code>put</code> 进去的元素</td>
+</tr>
+<tr>
+<td>HashMap线程不安全</td>
+<td>JDK7扩容可能死循环，JDK8可能数据丢失，多线程用ConcurrentHashMap</td>
+</tr>
+<tr>
+<td>ConcurrentHashMap</td>
+<td>JDK7分段锁(16段)，JDK8 CAS+按桶加synchronized锁，并发度更高</td>
+</tr>
+<tr>
+<td>ArrayDeque vs LinkedList</td>
+<td>数组的内存连续性对CPU缓存更友好，栈&#x2F;队列场景官方推荐ArrayDeque</td>
+</tr>
+<tr>
+<td>TreeMap红黑树</td>
+<td>近似平衡，旋转次数比AVL树少，增删查综合性能更优</td>
+</tr>
+</tbody></table>
+<p>这些内容里，<strong>HashMap 的 hash 扰动、负载因子、扩容机制、树化阈值、equals&#x2F;hashCode 契约</strong>是面试被问到概率最高的几个点，建议重点掌握；<code>ConcurrentHashMap</code> 的两代实现和 <code>ArrayDeque</code> 的缓存友好性属于”加分项”，能说出来会显得基础更扎实。</p>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-basics/" class="category-chain-item">java-basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%9B%86%E5%90%88/" class="print-no-link">#集合</a>
+      
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="print-no-link">#数据结构</a>
+      
+        <a href="/tags/HashMap/" class="print-no-link">#HashMap</a>
+      
+        <a href="/tags/%E9%9D%A2%E8%AF%95/" class="print-no-link">#面试</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java基础(番外) | 集合的底层原理：HashMap、ArrayList 与红黑树</div>
+      <div>https://rebibabo.github.io/categories/java-basics/32/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-basics/31/" title="Java基础(番外) | Kafka 入门：分区、副本与消费者组原理">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(番外) | Kafka 入门：分区、副本与消费者组原理</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

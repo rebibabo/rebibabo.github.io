@@ -1,0 +1,1055 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java进阶(4) | Spring Security + JWT：认证授权入门">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-advanced/4/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.158Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="JWT">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="Spring Security">
+<meta property="article:tag" content="认证授权">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java进阶(4) | Spring Security + JWT：认证授权入门 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java进阶(4) | Spring Security + JWT：认证授权入门"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-04 00:00" pubdate>
+          2026年5月4日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          80 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java进阶(4) | Spring Security + JWT：认证授权入门</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>到目前为止 Mini-SSP 的接口是”裸奔”的——任何人知道 URL 就能调用管理后台增删广告位。真实项目里，接口必须先确认”你是谁”（认证）、再判断”你能不能做这件事”（授权）。Spring Security 是 Spring 生态里做这件事的标准方案，JWT 是目前最主流的认证凭证格式。这篇用尽量少的代码、尽量多的图表，讲清楚它们怎么配合工作。</p>
+<span id="more"></span>
+
+<h2 id="1-先分清两个词：认证-vs-授权"><a href="#1-先分清两个词：认证-vs-授权" class="headerlink" title="1. 先分清两个词：认证 vs 授权"></a>1. 先分清两个词：认证 vs 授权</h2><p>这两个词经常被混用，但完全是两件事：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>认证（Authentication）</th>
+<th>授权（Authorization）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>回答的问题</td>
+<td>你是谁？</td>
+<td>你能做什么？</td>
+</tr>
+<tr>
+<td>时机</td>
+<td>先发生</td>
+<td>后发生</td>
+</tr>
+<tr>
+<td>类比</td>
+<td>进公司刷工牌证明身份</td>
+<td>工牌权限决定能进哪些门</td>
+</tr>
+<tr>
+<td>例子</td>
+<td>用户名密码登录成功</td>
+<td>普通员工不能访问管理后台</td>
+</tr>
+</tbody></table>
+<p>流程永远是先认证、后授权——先确认身份，再根据身份判断权限。</p>
+<hr>
+<h2 id="2-为什么用-JWT？先看传统-Session-的问题"><a href="#2-为什么用-JWT？先看传统-Session-的问题" class="headerlink" title="2. 为什么用 JWT？先看传统 Session 的问题"></a>2. 为什么用 JWT？先看传统 Session 的问题</h2><h3 id="2-1-传统-Session-方案"><a href="#2-1-传统-Session-方案" class="headerlink" title="2.1 传统 Session 方案"></a>2.1 传统 Session 方案</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">用户登录成功后：<br>  服务端创建一个 <span class="hljs-keyword">Session</span>（存用户信息），生成一个 sessionId<br>  把 sessionId 通过 Cookie 返回给浏览器<br>  <br>之后每次请求：<br>  浏览器自动带上 sessionId<br>  服务端用 sessionId 在【自己的内存/Redis】里找到对应的 <span class="hljs-keyword">Session</span><br>  → 知道是哪个用户<br></code></pre></td></tr></table></figure>
+
+<p>核心特点：<strong>用户信息存在服务端</strong>，客户端只拿一个 sessionId。</p>
+<h3 id="2-2-Session-在分布式下的麻烦"><a href="#2-2-Session-在分布式下的麻烦" class="headerlink" title="2.2 Session 在分布式下的麻烦"></a>2.2 Session 在分布式下的麻烦</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs css">单机时：Session 存在这台服务器内存里，没问题<br><br>多机时：<br>  请求第一次打到 服务器<span class="hljs-selector-tag">A</span>，Session 存在 <span class="hljs-selector-tag">A</span> 的内存<br>  下次请求被负载均衡打到 服务器<span class="hljs-selector-tag">B</span><br>  → <span class="hljs-selector-tag">B</span> 的内存里没有这个 Session → 认为你没登录！<br></code></pre></td></tr></table></figure>
+
+<p>解决办法是把 Session 集中存到 Redis 让多台共享，但这又引入了额外依赖和网络开销。</p>
+<h3 id="2-3-JWT-方案：信息存在客户端"><a href="#2-3-JWT-方案：信息存在客户端" class="headerlink" title="2.3 JWT 方案：信息存在客户端"></a>2.3 JWT 方案：信息存在客户端</h3><p>JWT（JSON Web Token）反过来——<strong>把用户信息直接编码进 token 本身</strong>，服务端不存任何东西：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">用户登录成功后：<br>  服务端把用户信息（id、角色等）打包、签名，生成一个 <span class="hljs-keyword">JWT </span>字符串<br>  返回给客户端<br>  <br>之后每次请求：<br>  客户端带上这个 <span class="hljs-keyword">JWT</span><br><span class="hljs-keyword"></span>  服务端【验证签名】，直接从 <span class="hljs-keyword">JWT </span>里读出用户信息<br>  → 不需要查任何存储<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-4-两者对比"><a href="#2-4-两者对比" class="headerlink" title="2.4 两者对比"></a>2.4 两者对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Session</th>
+<th>JWT</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户信息存在哪</td>
+<td>服务端</td>
+<td>客户端（token 里）</td>
+</tr>
+<tr>
+<td>服务端是否有状态</td>
+<td>有状态（要存 Session）</td>
+<td>无状态（什么都不存）</td>
+</tr>
+<tr>
+<td>多机部署</td>
+<td>需要共享 Session（Redis）</td>
+<td>天然支持，无需共享</td>
+</tr>
+<tr>
+<td>每次请求是否查存储</td>
+<td>要查</td>
+<td>不查，验签即可</td>
+</tr>
+<tr>
+<td>注销&#x2F;失效</td>
+<td>简单，删 Session 即可</td>
+<td>麻烦，token 有效期内一直有效</td>
+</tr>
+<tr>
+<td>安全性</td>
+<td>sessionId 泄露风险</td>
+<td>token 泄露风险，且无法主动失效</td>
+</tr>
+</tbody></table>
+<p>无状态、天然支持多机，是 JWT 在微服务架构里流行的主要原因。</p>
+<hr>
+<h2 id="3-JWT-长什么样"><a href="#3-JWT-长什么样" class="headerlink" title="3. JWT 长什么样"></a>3. JWT 长什么样</h2><h3 id="3-1-三段式结构"><a href="#3-1-三段式结构" class="headerlink" title="3.1 三段式结构"></a>3.1 三段式结构</h3><p>一个 JWT 就是一个用两个点分隔的字符串：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">eyJhbGciOiJIUzI1NiJ9<span class="hljs-selector-class">.eyJzdWIiOiIxMDAxIiwicm9sZSI6ImFkbWluIn0</span><span class="hljs-selector-class">.dQw4w9WgXcQ</span><br> └──── Header ────┘         └──────── Payload ────────┘    └─ Signature ─┘<br>       头部                             载荷                     签名<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>内容</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Header（头部）</td>
+<td>签名算法、token 类型</td>
+<td>比如 <code>{&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}</code></td>
+</tr>
+<tr>
+<td>Payload（载荷）</td>
+<td>用户信息、过期时间等</td>
+<td>比如 <code>{&quot;sub&quot;:&quot;1001&quot;,&quot;role&quot;:&quot;admin&quot;,&quot;exp&quot;:...}</code></td>
+</tr>
+<tr>
+<td>Signature（签名）</td>
+<td>防篡改的校验值</td>
+<td>用密钥对前两部分签名得到</td>
+</tr>
+</tbody></table>
+<p>前两部分只是 Base64 编码（<strong>不是加密</strong>，任何人都能解开看到内容），所以<strong>不能往 Payload 里放密码等敏感信息</strong>。</p>
+<h3 id="3-2-签名怎么防篡改"><a href="#3-2-签名怎么防篡改" class="headerlink" title="3.2 签名怎么防篡改"></a>3.2 签名怎么防篡改</h3><p>签名是 JWT 安全的核心：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">签名 = HMAC-<span class="hljs-keyword">SHA256( </span><span class="hljs-keyword">Base64(Header) </span>+ <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">Base64(Payload), </span>服务端密钥 )<br><br>验证时：<br>  服务端用同样的密钥，对收到的 Header + Payload 重新算一遍签名<br>  → 算出来的签名 == token 里带的签名？ → 没被篡改，可信<br>  → 不相等？ → 被人改过，拒绝<br></code></pre></td></tr></table></figure>
+
+<p>关键点：<strong>密钥只有服务端知道</strong>。攻击者即使改了 Payload（比如把 <code>role</code> 从 user 改成 admin），也没有密钥算出正确的签名，服务端一验就发现对不上。</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">攻击者篡改 Payload：<span class="hljs-keyword">role</span>: <span class="hljs-keyword">user</span> → <span class="hljs-keyword">role</span>: <span class="hljs-keyword">admin</span><br>  但他不知道密钥，无法生成匹配的新签名<br>  服务端用密钥重新计算签名 → 和 token 里的签名不一致 → 拒绝 ✅<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-Spring-Security-核心概念"><a href="#4-Spring-Security-核心概念" class="headerlink" title="4. Spring Security 核心概念"></a>4. Spring Security 核心概念</h2><p>Spring Security 的工作方式是在请求到达 Controller <strong>之前</strong>，先经过一条”过滤器链”层层检查。</p>
+<h3 id="4-1-过滤器链（Filter-Chain）"><a href="#4-1-过滤器链（Filter-Chain）" class="headerlink" title="4.1 过滤器链（Filter Chain）"></a>4.1 过滤器链（Filter Chain）</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">HTTP 请求<br>   │<br>   ▼<br>┌───────────────────────────────────┐<br>│      Spring Security 过滤器链      │<br>│  过滤器1 → 过滤器2 → <span class="hljs-string">...</span> → JWT过滤器 │  ← 在这里做认证授权检查<br>└───────────────────────────────────┘<br>   │ 检查通过<br>   ▼<br>Controller（你的业务代码）<br></code></pre></td></tr></table></figure>
+
+<p>我们做 JWT 认证，就是往这条链里加一个<strong>自定义过滤器</strong>，专门负责解析和验证请求里的 JWT。</p>
+<h3 id="4-2-几个核心组件"><a href="#4-2-几个核心组件" class="headerlink" title="4.2 几个核心组件"></a>4.2 几个核心组件</h3><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SecurityFilterChain</code></td>
+<td>配置整条过滤器链的规则（哪些接口要登录、哪些放行）</td>
+</tr>
+<tr>
+<td><code>Authentication</code></td>
+<td>代表”当前认证信息”（是谁、有什么权限）</td>
+</tr>
+<tr>
+<td><code>SecurityContext</code></td>
+<td>存放当前请求的 <code>Authentication</code>，全局可取</td>
+</tr>
+<tr>
+<td><code>UserDetailsService</code></td>
+<td>根据用户名加载用户信息（查数据库）</td>
+</tr>
+<tr>
+<td><code>PasswordEncoder</code></td>
+<td>密码加密&#x2F;校验（密码绝不能明文存）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="5-完整流程：从登录到访问受保护接口"><a href="#5-完整流程：从登录到访问受保护接口" class="headerlink" title="5. 完整流程：从登录到访问受保护接口"></a>5. 完整流程：从登录到访问受保护接口</h2><p>把整个链路拆成两个阶段看：</p>
+<h3 id="5-1-阶段一：登录拿-token"><a href="#5-1-阶段一：登录拿-token" class="headerlink" title="5.1 阶段一：登录拿 token"></a>5.1 阶段一：登录拿 token</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash">1. 用户 POST /login，带上 用户名 + 密码<br>        ↓<br>2. 服务端查数据库，用 PasswordEncoder 校验密码<br>        ↓<br>3. 密码正确 → 生成 JWT（把用户 <span class="hljs-built_in">id</span>、角色打包签名）<br>        ↓<br>4. 把 JWT 返回给客户端<br>        ↓<br>5. 客户端保存 JWT（比如存在 localStorage）<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-2-阶段二：带-token-访问接口"><a href="#5-2-阶段二：带-token-访问接口" class="headerlink" title="5.2 阶段二：带 token 访问接口"></a>5.2 阶段二：带 token 访问接口</h3><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs gauss"><span class="hljs-number">1.</span> 客户端请求受保护接口，在请求头带上 <span class="hljs-built_in">token</span>：<br>   Authorization: Bearer eyJhbGci...<br>        ↓<br><span class="hljs-number">2.</span> JWT 过滤器拦截请求，取出 <span class="hljs-built_in">token</span><br>        ↓<br><span class="hljs-number">3.</span> 用密钥验证签名 → 验证是否过期<br>        ↓<br><span class="hljs-number">4.</span> 验证通过 → 从 <span class="hljs-built_in">token</span> 解析出用户信息，存进 SecurityContext<br>        ↓<br><span class="hljs-number">5.</span> 放行到 Controller，业务代码可以拿到当前用户<br>        ↓<br>   （验证失败 → 直接返回 <span class="hljs-number">401</span>，不进 Controller）<br></code></pre></td></tr></table></figure>
+
+<p>注意阶段二<strong>全程不查数据库</strong>——验签 + 解析 token 即可，这就是 JWT “无状态”的体现。</p>
+<hr>
+<h2 id="6-实战：给-Mini-SSP-加上-JWT-认证"><a href="#6-实战：给-Mini-SSP-加上-JWT-认证" class="headerlink" title="6. 实战：给 Mini-SSP 加上 JWT 认证"></a>6. 实战：给 Mini-SSP 加上 JWT 认证</h2><p>下面分步骤实现，每步只看关键部分。</p>
+<h3 id="6-1-引入依赖"><a href="#6-1-引入依赖" class="headerlink" title="6.1 引入依赖"></a>6.1 引入依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- Spring Security --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><br><span class="hljs-comment">&lt;!-- JWT 库（jjwt） --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>io.jsonwebtoken<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>jjwt-api<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.12.6<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>io.jsonwebtoken<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>jjwt-impl<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.12.6<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>runtime<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>io.jsonwebtoken<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>jjwt-jackson<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.12.6<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>runtime<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：只要引入了 <code>spring-boot-starter-security</code>，<strong>所有接口默认都需要登录</strong>——这是 Spring Security 的默认行为，后面要在配置里显式放行登录接口。</p>
+</blockquote>
+<h3 id="6-2-JWT-工具类：负责生成和解析-token"><a href="#6-2-JWT-工具类：负责生成和解析-token" class="headerlink" title="6.2 JWT 工具类：负责生成和解析 token"></a>6.2 JWT 工具类：负责生成和解析 token</h3><p>这个类做两件事：生成 token、从 token 解析信息。先看生成：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JwtUtil</span> &#123;<br><br>    <span class="hljs-comment">// 密钥：实际项目从配置读取，不要硬编码</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">SecretKey</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> Keys.hmacShaKeyFor(<br>        <span class="hljs-string">&quot;your-256-bit-secret-key-must-be-long-enough&quot;</span>.getBytes()<br>    );<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">EXPIRATION</span> <span class="hljs-operator">=</span> <span class="hljs-number">24</span> * <span class="hljs-number">60</span> * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>;  <span class="hljs-comment">// 24 小时</span><br><br>    <span class="hljs-comment">// 生成 token：把用户信息打包签名</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">generateToken</span><span class="hljs-params">(String userId, String role)</span> &#123;<br>        <span class="hljs-keyword">return</span> Jwts.builder()<br>                .subject(userId)                          <span class="hljs-comment">// 放入用户 id</span><br>                .claim(<span class="hljs-string">&quot;role&quot;</span>, role)                      <span class="hljs-comment">// 放入角色</span><br>                .issuedAt(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>())                     <span class="hljs-comment">// 签发时间</span><br>                .expiration(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(System.currentTimeMillis() + EXPIRATION))  <span class="hljs-comment">// 过期时间</span><br>                .signWith(key)                            <span class="hljs-comment">// 用密钥签名</span><br>                .compact();                               <span class="hljs-comment">// 生成最终字符串</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>再看解析和验证：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-comment">// 从 token 解析出用户 id（同时会验证签名和过期，失败抛异常）</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">parseUserId</span><span class="hljs-params">(String token)</span> &#123;<br>        <span class="hljs-keyword">return</span> Jwts.parser()<br>                .verifyWith(key)          <span class="hljs-comment">// 用密钥验证签名</span><br>                .build()<br>                .parseSignedClaims(token) <span class="hljs-comment">// 解析（签名错误或过期会抛异常）</span><br>                .getPayload()<br>                .getSubject();            <span class="hljs-comment">// 取出 subject（用户 id）</span><br>    &#125;<br><br>    <span class="hljs-comment">// 验证 token 是否有效</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">validate</span><span class="hljs-params">(String token)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;  <span class="hljs-comment">// 签名错误、过期、格式不对都会到这里</span><br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>generateToken</code></td>
+<td>登录成功后调用，生成 JWT</td>
+</tr>
+<tr>
+<td><code>parseUserId</code></td>
+<td>从 token 取出用户 id</td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td>判断 token 是否合法（验签 + 没过期）</td>
+</tr>
+</tbody></table>
+<h3 id="6-3-登录接口：校验密码，返回-token"><a href="#6-3-登录接口：校验密码，返回-token" class="headerlink" title="6.3 登录接口：校验密码，返回 token"></a>6.3 登录接口：校验密码，返回 token</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthController</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> JwtUtil jwtUtil;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> PasswordEncoder passwordEncoder;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> UserMapper userMapper;<br><br>    <span class="hljs-meta">@PostMapping(&quot;/login&quot;)</span><br>    <span class="hljs-keyword">public</span> ApiResponse&lt;String&gt; <span class="hljs-title function_">login</span><span class="hljs-params">(<span class="hljs-meta">@RequestBody</span> <span class="hljs-meta">@Valid</span> LoginRequest req)</span> &#123;<br>        <span class="hljs-comment">// 1. 查用户</span><br>        <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> userMapper.selectByUsername(req.getUsername());<br>        <span class="hljs-keyword">if</span> (user == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BizException</span>(<span class="hljs-string">&quot;用户不存在&quot;</span>);<br>        &#125;<br><br>        <span class="hljs-comment">// 2. 校验密码（数据库存的是加密后的密码）</span><br>        <span class="hljs-keyword">if</span> (!passwordEncoder.matches(req.getPassword(), user.getPassword())) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BizException</span>(<span class="hljs-string">&quot;密码错误&quot;</span>);<br>        &#125;<br><br>        <span class="hljs-comment">// 3. 生成 token 返回</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> jwtUtil.generateToken(user.getId().toString(), user.getRole());<br>        <span class="hljs-keyword">return</span> ApiResponse.success(token);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>重点是第 2 步——数据库里<strong>绝不能明文存密码</strong>，存的是 <code>PasswordEncoder</code> 加密后的哈希值，校验时用 <code>matches</code> 比对，而不是直接 <code>equals</code>。</p>
+<h3 id="6-4-JWT-过滤器：拦截每个请求验证-token"><a href="#6-4-JWT-过滤器：拦截每个请求验证-token" class="headerlink" title="6.4 JWT 过滤器：拦截每个请求验证 token"></a>6.4 JWT 过滤器：拦截每个请求验证 token</h3><p>这是核心——往过滤器链里加一个自己的过滤器，每个请求都先过它：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JwtFilter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">OncePerRequestFilter</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> JwtUtil jwtUtil;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doFilterInternal</span><span class="hljs-params">(HttpServletRequest request,</span><br><span class="hljs-params">                                    HttpServletResponse response,</span><br><span class="hljs-params">                                    FilterChain chain)</span> <span class="hljs-keyword">throws</span> ... &#123;<br>        <span class="hljs-comment">// 1. 从请求头取 token</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">header</span> <span class="hljs-operator">=</span> request.getHeader(<span class="hljs-string">&quot;Authorization&quot;</span>);<br><br>        <span class="hljs-comment">// 2. 没有 token 或格式不对，直接放行给后续过滤器（由它们决定拦不拦）</span><br>        <span class="hljs-keyword">if</span> (header == <span class="hljs-literal">null</span> || !header.startsWith(<span class="hljs-string">&quot;Bearer &quot;</span>)) &#123;<br>            chain.doFilter(request, response);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        <span class="hljs-comment">// 3. 取出 &quot;Bearer &quot; 后面的真正 token</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> header.substring(<span class="hljs-number">7</span>);<br><br>        <span class="hljs-comment">// 4. 验证 token，通过则把用户信息放进 SecurityContext</span><br>        <span class="hljs-keyword">if</span> (jwtUtil.validate(token)) &#123;<br>            <span class="hljs-type">String</span> <span class="hljs-variable">userId</span> <span class="hljs-operator">=</span> jwtUtil.parseUserId(token);<br>            <span class="hljs-comment">// 构造一个&quot;已认证&quot;的对象放进上下文</span><br>            <span class="hljs-type">UsernamePasswordAuthenticationToken</span> <span class="hljs-variable">auth</span> <span class="hljs-operator">=</span><br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">UsernamePasswordAuthenticationToken</span>(userId, <span class="hljs-literal">null</span>, List.of());<br>            SecurityContextHolder.getContext().setAuthentication(auth);<br>        &#125;<br><br>        <span class="hljs-comment">// 5. 继续后续流程</span><br>        chain.doFilter(request, response);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>请求头格式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Authorization: Bearer eyJhbGci...</code></td>
+<td>标准格式，<code>Bearer </code> 是固定前缀，后面跟 token</td>
+</tr>
+</tbody></table>
+<p>第 4 步是关键：验证通过后，把用户信息存进 <code>SecurityContextHolder</code>，这样后续 Controller 就能拿到”当前是谁”。</p>
+<h3 id="6-5-安全配置：定义哪些接口放行、哪些要登录"><a href="#6-5-安全配置：定义哪些接口放行、哪些要登录" class="headerlink" title="6.5 安全配置：定义哪些接口放行、哪些要登录"></a>6.5 安全配置：定义哪些接口放行、哪些要登录</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-meta">@EnableWebSecurity</span><br><span class="hljs-meta">@RequiredArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SecurityConfig</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> JwtFilter jwtFilter;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> SecurityFilterChain <span class="hljs-title function_">filterChain</span><span class="hljs-params">(HttpSecurity http)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        http<br>            <span class="hljs-comment">// JWT 是无状态的，关闭 CSRF 和 Session</span><br>            .csrf(csrf -&gt; csrf.disable())<br>            .sessionManagement(s -&gt; s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))<br>            <span class="hljs-comment">// 配置接口权限</span><br>            .authorizeHttpRequests(auth -&gt; auth<br>                .requestMatchers(<span class="hljs-string">&quot;/login&quot;</span>).permitAll()         <span class="hljs-comment">// 登录接口放行</span><br>                .requestMatchers(<span class="hljs-string">&quot;/api/v1/bid&quot;</span>).permitAll()    <span class="hljs-comment">// 竞价接口放行（对外）</span><br>                .requestMatchers(<span class="hljs-string">&quot;/api/v1/admin/**&quot;</span>).authenticated()  <span class="hljs-comment">// 管理接口要登录</span><br>                .anyRequest().authenticated()                  <span class="hljs-comment">// 其余都要登录</span><br>            )<br>            <span class="hljs-comment">// 把自定义 JWT 过滤器加到链里</span><br>            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);<br><br>        <span class="hljs-keyword">return</span> http.build();<br>    &#125;<br><br>    <span class="hljs-comment">// 密码加密器</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> PasswordEncoder <span class="hljs-title function_">passwordEncoder</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BCryptPasswordEncoder</span>();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>配置里几个关键决定：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>作用</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>csrf.disable()</code></td>
+<td>关闭 CSRF 防护</td>
+<td>JWT 不依赖 Cookie，不需要 CSRF 防护</td>
+</tr>
+<tr>
+<td><code>STATELESS</code></td>
+<td>不创建 Session</td>
+<td>JWT 无状态，用不到 Session</td>
+</tr>
+<tr>
+<td><code>permitAll()</code></td>
+<td>放行指定接口</td>
+<td>登录接口本身不能要求登录</td>
+</tr>
+<tr>
+<td><code>authenticated()</code></td>
+<td>要求登录</td>
+<td>管理接口必须先认证</td>
+</tr>
+<tr>
+<td><code>addFilterBefore</code></td>
+<td>插入 JWT 过滤器</td>
+<td>让它在 Spring 默认认证过滤器之前执行</td>
+</tr>
+</tbody></table>
+<h3 id="6-6-基于角色的授权"><a href="#6-6-基于角色的授权" class="headerlink" title="6.6 基于角色的授权"></a>6.6 基于角色的授权</h3><p>光认证（知道是谁）还不够，有时要按角色控制（授权）。在方法上加注解即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><br><span class="hljs-meta">@RequestMapping(&quot;/api/v1/admin&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SlotAdminController</span> &#123;<br><br>    <span class="hljs-comment">// 只有 admin 角色能删除</span><br>    <span class="hljs-meta">@PreAuthorize(&quot;hasRole(&#x27;ADMIN&#x27;)&quot;)</span><br>    <span class="hljs-meta">@DeleteMapping(&quot;/slots/&#123;id&#125;&quot;)</span><br>    <span class="hljs-keyword">public</span> ApiResponse&lt;Void&gt; <span class="hljs-title function_">delete</span><span class="hljs-params">(<span class="hljs-meta">@PathVariable</span> Long id)</span> &#123;<br>        <span class="hljs-comment">// ...</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>要让 <code>@PreAuthorize</code> 生效，需要在配置类上加 <code>@EnableMethodSecurity</code>。背后的机制和你前面学过的一样——<strong>动态代理</strong>：Spring 给 Controller 生成代理对象，在方法执行前检查当前用户角色是否满足。</p>
+<hr>
+<h2 id="7-整体串起来"><a href="#7-整体串起来" class="headerlink" title="7. 整体串起来"></a>7. 整体串起来</h2><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">【登录阶段】<br>POST /<span class="hljs-keyword">login</span> (username + <span class="hljs-keyword">password</span>)<br>    → AuthController 校验密码<br>    → JwtUtil 生成 token<br>    → 返回 token 给客户端<br><br>【访问阶段】<br><span class="hljs-keyword">GET</span> /api/v1/<span class="hljs-keyword">admin</span>/slots (<span class="hljs-keyword">Header</span>: <span class="hljs-keyword">Authorization</span>: Bearer xxx)<br>    → JwtFilter 拦截，取出 token<br>    → JwtUtil.<span class="hljs-keyword">validate</span>() 验签 + 验过期<br>    → 通过：用户信息存入 SecurityContext，放行<br>    → SecurityConfig 检查这个接口要不要登录/什么角色<br>    → @PreAuthorize 检查角色<br>    → 全通过 → 进入 Controller<br>    → 任一步失败 → 返回 <span class="hljs-number">401</span>/<span class="hljs-number">403</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>认证 vs 授权</td>
+<td>认证&#x3D;你是谁，授权&#x3D;你能做什么，先认证后授权</td>
+</tr>
+<tr>
+<td>Session vs JWT</td>
+<td>Session 信息在服务端（有状态），JWT 信息在 token 里（无状态）</td>
+</tr>
+<tr>
+<td>JWT 为什么流行</td>
+<td>无状态、天然支持多机部署，适合微服务</td>
+</tr>
+<tr>
+<td>JWT 结构</td>
+<td>Header.Payload.Signature，前两部分只是编码不是加密</td>
+</tr>
+<tr>
+<td>签名防篡改</td>
+<td>密钥只有服务端知道，改了内容算不出正确签名</td>
+</tr>
+<tr>
+<td>Spring Security 工作方式</td>
+<td>请求先过过滤器链，再到 Controller</td>
+</tr>
+<tr>
+<td>核心实现</td>
+<td>JwtUtil（生成&#x2F;解析）+ JwtFilter（拦截验证）+ SecurityConfig（规则）</td>
+</tr>
+<tr>
+<td>授权</td>
+<td><code>@PreAuthorize(&quot;hasRole(&#39;ADMIN&#39;)&quot;)</code>，底层是动态代理</td>
+</tr>
+<tr>
+<td>安全红线</td>
+<td>密码加密存储、敏感信息不放 Payload、密钥不硬编码</td>
+</tr>
+</tbody></table>
+<p>JWT 也有短板——token 签发后在有效期内无法主动失效（比如用户登出、被封号）。生产环境常配合 Redis 维护一个”黑名单”或用短期 token + refresh token 机制来弥补，这部分等基础熟练后再深入。</p>
+<p>对 Mini-SSP 来说，给管理后台接口加上 JWT 认证后，就不再是”裸奔”状态——这也是任何对外服务上线前的必备一环。</p>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：CI&#x2F;CD 入门——用 GitHub Actions 自动构建镜像并部署到 K8s</p>
+</blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-advanced/" class="category-chain-item">java-advanced</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Spring-Security/" class="print-no-link">#Spring Security</a>
+      
+        <a href="/tags/JWT/" class="print-no-link">#JWT</a>
+      
+        <a href="/tags/%E8%AE%A4%E8%AF%81%E6%8E%88%E6%9D%83/" class="print-no-link">#认证授权</a>
+      
+        <a href="/tags/Spring-Boot/" class="print-no-link">#Spring Boot</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java进阶(4) | Spring Security + JWT：认证授权入门</div>
+      <div>https://rebibabo.github.io/categories/java-advanced/4/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-advanced/3/" title="Java进阶(3) | Kubernetes 入门：为什么需要它，核心概念与实战">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java进阶(3) | Kubernetes 入门：为什么需要它，核心概念与实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-advanced/5/" title="Java全貌(5) | 监控指标入门：Micrometer + Prometheus">
+                        <span class="hidden-mobile">Java全貌(5) | 监控指标入门：Micrometer + Prometheus</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,2034 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta property="og:type" content="article">
+<meta property="og:title" content="程序化广告 (8)：OpenRTB 2.5 协议 &amp; Native Ads Spec 学习笔记">
+<meta property="og:url" content="https://rebibabo.github.io/categories/programmatic-ads/9/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.138Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="OpenRTB">
+<meta property="article:tag" content="协议">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="广告">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>程序化广告 (8)：OpenRTB 2.5 协议 &amp; Native Ads Spec 学习笔记 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="程序化广告 (8)：OpenRTB 2.5 协议 &amp; Native Ads Spec 学习笔记"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-14 00:00" pubdate>
+          2026年6月14日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          17k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          143 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">程序化广告 (8)：OpenRTB 2.5 协议 &amp; Native Ads Spec 学习笔记</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一、OpenRTB-是什么"><a href="#一、OpenRTB-是什么" class="headerlink" title="一、OpenRTB 是什么"></a>一、OpenRTB 是什么</h2><p>OpenRTB（Open Real-Time Bidding）是由 IAB Tech Lab 制定的<strong>实时竞价通信协议</strong>，定义了 SSP&#x2F;ADX 与 DSP 之间竞价请求（Bid Request）和竞价响应（Bid Response）的标准 JSON 格式。</p>
+<p>它解决的核心问题：不同公司的 SSP 和 DSP 能互相对接，不用每家定义一套私有格式——就像 HTTP 之于 Web，OpenRTB 是程序化广告的”通用语言”。</p>
+<h3 id="版本演进"><a href="#版本演进" class="headerlink" title="版本演进"></a>版本演进</h3><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>时间</th>
+<th>关键变化</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.0</td>
+<td>2011-02</td>
+<td>最初的移动端 RTB 规范</td>
+</tr>
+<tr>
+<td>2.0</td>
+<td>2011-06</td>
+<td>统一 Display + Video + Mobile</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td>2014</td>
+<td>新增 Native 广告支持</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>2016</td>
+<td>新增 Audio 广告支持</td>
+</tr>
+<tr>
+<td><strong>2.5</strong></td>
+<td><strong>2016</strong></td>
+<td><strong>当前最主流版本</strong>：Header Bidding、billing&#x2F;loss 通知、Flex Ads、impression metrics 等</td>
+</tr>
+<tr>
+<td>2.6</td>
+<td>2022+</td>
+<td>Ad Pods（CTV）、结构化 User-Agent、持续增量更新</td>
+</tr>
+</tbody></table>
+<p>本文重点讲 <strong>2.5</strong>，因为海外广告行业绝大多数交易所和 DSP 都基于这个版本对接。</p>
+<h3 id="传输协议"><a href="#传输协议" class="headerlink" title="传输协议"></a>传输协议</h3><ul>
+<li>基础协议：<strong>HTTP POST</strong>（请求体是 JSON）</li>
+<li>数据格式：<strong>JSON</strong>（也可选 Protobuf&#x2F;Avro 等二进制格式，部分大厂内部链路会用 Protobuf 提升性能）</li>
+<li>版本标识：HTTP Header <code>x-openrtb-version: 2.5</code></li>
+<li>推荐启用 HTTP Keep-Alive 和 gzip 压缩</li>
+</ul>
+<h3 id="HTTP-状态码约定"><a href="#HTTP-状态码约定" class="headerlink" title="HTTP 状态码约定"></a>HTTP 状态码约定</h3><table>
+<thead>
+<tr>
+<th>状态码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>200</td>
+<td>正常返回（有出价）</td>
+</tr>
+<tr>
+<td>204</td>
+<td>No Bid（不出价，无响应体）</td>
+</tr>
+<tr>
+<td>400</td>
+<td>请求格式错误</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、Bid-Request（竞价请求）"><a href="#二、Bid-Request（竞价请求）" class="headerlink" title="二、Bid Request（竞价请求）"></a>二、Bid Request（竞价请求）</h2><p>SSP&#x2F;ADX 向 DSP 发出的请求，描述”这里有一个广告展示机会，你要不要出价、出多少”。</p>
+<h3 id="对象层级结构"><a href="#对象层级结构" class="headerlink" title="对象层级结构"></a>对象层级结构</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs bash">BidRequest<br>├── <span class="hljs-built_in">id</span>                    <span class="hljs-comment"># 请求唯一 ID</span><br>├── imp[]                 <span class="hljs-comment"># 展示机会（可以有多个）</span><br>│   ├── <span class="hljs-built_in">id</span>                <span class="hljs-comment"># 展示位 ID</span><br>│   ├── bidfloor          <span class="hljs-comment"># 底价</span><br>│   ├── bidfloorcur       <span class="hljs-comment"># 底价币种（默认 USD）</span><br>│   ├── banner            <span class="hljs-comment"># Banner 广告参数</span><br>│   ├── video             <span class="hljs-comment"># 视频广告参数</span><br>│   ├── audio             <span class="hljs-comment"># 音频广告参数</span><br>│   ├── native            <span class="hljs-comment"># 原生广告参数（见 Native Spec）</span><br>│   ├── pmp               <span class="hljs-comment"># 私有交易市场</span><br>│   │   └── deals[]       <span class="hljs-comment"># Deal 列表</span><br>│   └── instl             <span class="hljs-comment"># 是否插屏（0=否，1=是）</span><br>├── site / app            <span class="hljs-comment"># 流量来源（网站 or App，二选一）</span><br>│   ├── <span class="hljs-built_in">id</span> / bundle       <span class="hljs-comment"># 站点 ID / App 包名</span><br>│   ├── name              <span class="hljs-comment"># 名称</span><br>│   ├── domain            <span class="hljs-comment"># 域名</span><br>│   ├── <span class="hljs-built_in">cat</span>[]             <span class="hljs-comment"># 内容类别（IAB 分类）</span><br>│   └── publisher         <span class="hljs-comment"># 发布者信息</span><br>├── device                <span class="hljs-comment"># 设备信息</span><br>│   ├── ua                <span class="hljs-comment"># User-Agent</span><br>│   ├── ip                <span class="hljs-comment"># IP 地址</span><br>│   ├── geo               <span class="hljs-comment"># 地理位置</span><br>│   ├── make / model      <span class="hljs-comment"># 设备制造商 / 型号</span><br>│   ├── os / osv          <span class="hljs-comment"># 操作系统 / 版本</span><br>│   ├── ifa               <span class="hljs-comment"># 广告标识符（IDFA/GAID）</span><br>│   ├── dnt               <span class="hljs-comment"># Do Not Track（0/1）</span><br>│   ├── connectiontype    <span class="hljs-comment"># 网络类型（WiFi/4G/5G...）</span><br>│   └── devicetype        <span class="hljs-comment"># 设备类型（手机/平板/CTV...）</span><br>├── user                  <span class="hljs-comment"># 用户信息</span><br>│   ├── <span class="hljs-built_in">id</span>                <span class="hljs-comment"># 用户 ID（交易所侧）</span><br>│   ├── buyeruid          <span class="hljs-comment"># 用户 ID（DSP 侧）</span><br>│   ├── gender            <span class="hljs-comment"># 性别</span><br>│   ├── yob               <span class="hljs-comment"># 出生年份</span><br>│   └── geo               <span class="hljs-comment"># 用户地理位置</span><br>├── regs                  <span class="hljs-comment"># 法规信号</span><br>│   ├── coppa             <span class="hljs-comment"># 是否受 COPPA（儿童隐私）约束</span><br>│   └── ext.gdpr          <span class="hljs-comment"># GDPR 标志</span><br>├── <span class="hljs-built_in">source</span>                <span class="hljs-comment"># 请求来源（Header Bidding 相关）</span><br>├── at                    <span class="hljs-comment"># 拍卖类型（1=一价，2=二价，默认2）</span><br>├── tmax                  <span class="hljs-comment"># 最大超时时间（ms）</span><br>├── wseat[]               <span class="hljs-comment"># 允许竞价的 Seat 白名单</span><br>├── bseat[]               <span class="hljs-comment"># 禁止竞价的 Seat 黑名单</span><br>├── cur[]                 <span class="hljs-comment"># 允许的出价币种</span><br>├── bcat[]                <span class="hljs-comment"># 屏蔽的广告类别</span><br>├── badv[]                <span class="hljs-comment"># 屏蔽的广告主域名</span><br>└── bapp[]                <span class="hljs-comment"># 屏蔽的 App 包名</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="核心对象详解"><a href="#核心对象详解" class="headerlink" title="核心对象详解"></a>核心对象详解</h3><h4 id="BidRequest（顶层）"><a href="#BidRequest（顶层）" class="headerlink" title="BidRequest（顶层）"></a>BidRequest（顶层）</h4><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>string</td>
+<td>是</td>
+<td>请求唯一标识，贯穿整个链路</td>
+</tr>
+<tr>
+<td>imp</td>
+<td>object[]</td>
+<td>是</td>
+<td>至少 1 个 Impression 对象</td>
+</tr>
+<tr>
+<td>site</td>
+<td>object</td>
+<td>推荐</td>
+<td>网站流量用 site（与 app 二选一）</td>
+</tr>
+<tr>
+<td>app</td>
+<td>object</td>
+<td>推荐</td>
+<td>App 流量用 app（移动场景主要用这个）</td>
+</tr>
+<tr>
+<td>device</td>
+<td>object</td>
+<td>推荐</td>
+<td>设备信息</td>
+</tr>
+<tr>
+<td>user</td>
+<td>object</td>
+<td>推荐</td>
+<td>用户信息</td>
+</tr>
+<tr>
+<td>at</td>
+<td>integer</td>
+<td>默认 2</td>
+<td>拍卖类型：1&#x3D;一价，2&#x3D;二价</td>
+</tr>
+<tr>
+<td>tmax</td>
+<td>integer</td>
+<td>推荐</td>
+<td>DSP 最大响应时间（ms），超时视为 no bid</td>
+</tr>
+<tr>
+<td>cur</td>
+<td>string[]</td>
+<td>-</td>
+<td>允许的出价币种，默认 [“USD”]</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong><code>id</code> 就是这次拍卖的 traceId</strong>：由 SSP&#x2F;ADX 每次请求临时生成、全局唯一（通常是 UUID &#x2F; 雪花 ID）。Bid Response 必须回填相同的 id（<code>BidResponse.id == BidRequest.id</code>），nurl&#x2F;burl&#x2F;lurl 也用 <code>${AUCTION_ID}</code> 宏带回它，整条链路（请求 → 出价 → 中标 → 计费 → 埋点）靠它串联追踪。注意和 <code>imp.id</code> 是包含关系：一次请求一个 <code>BidRequest.id</code>，内部可含多个 <code>imp.id</code>。</p>
+</blockquote>
+<h4 id="Imp（展示机会）"><a href="#Imp（展示机会）" class="headerlink" title="Imp（展示机会）"></a>Imp（展示机会）</h4><p>一个 BidRequest 可以包含多个 Imp，每个 Imp 代表页面&#x2F;App 上的一个广告位。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>string</td>
+<td>是</td>
+<td>展示位 ID，Response 里的 Bid 通过 impid 关联</td>
+</tr>
+<tr>
+<td>bidfloor</td>
+<td>float</td>
+<td>默认 0</td>
+<td>底价（CPM），出价低于此值会被拒</td>
+</tr>
+<tr>
+<td>bidfloorcur</td>
+<td>string</td>
+<td>默认 USD</td>
+<td>底价币种</td>
+</tr>
+<tr>
+<td>banner</td>
+<td>object</td>
+<td>-</td>
+<td>Banner 广告（尺寸 w&#x2F;h、支持的格式等）</td>
+</tr>
+<tr>
+<td>video</td>
+<td>object</td>
+<td>-</td>
+<td>视频广告（MIME、时长、协议等）</td>
+</tr>
+<tr>
+<td>native</td>
+<td>object</td>
+<td>-</td>
+<td>原生广告（详见 Native Spec 部分）</td>
+</tr>
+<tr>
+<td>instl</td>
+<td>integer</td>
+<td>默认 0</td>
+<td>是否插屏广告（0&#x3D;否，1&#x3D;是）</td>
+</tr>
+<tr>
+<td>tagid</td>
+<td>string</td>
+<td>-</td>
+<td>广告位标签 ID</td>
+</tr>
+<tr>
+<td>secure</td>
+<td>integer</td>
+<td>-</td>
+<td>是否要求 HTTPS 素材（0&#x3D;否，1&#x3D;是）</td>
+</tr>
+<tr>
+<td>pmp</td>
+<td>object</td>
+<td>-</td>
+<td>私有交易市场信息</td>
+</tr>
+</tbody></table>
+<p><strong>banner&#x2F;video&#x2F;native 至少出现一个</strong>，告诉 DSP 这个展示位接受什么类型的广告。</p>
+<p><strong><code>id</code> vs <code>tagid</code>：别搞混这两个广告位标识</strong></p>
+<p>两者都跟”广告位”有关，区别在于<strong>作用域</strong>和<strong>生命周期</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>imp.id</code></th>
+<th><code>imp.tagid</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>谁生成</td>
+<td>SSP 临时生成</td>
+<td>媒体&#x2F;SSP 预先配置</td>
+</tr>
+<tr>
+<td>范围</td>
+<td>单次请求内唯一</td>
+<td>跨请求长期稳定</td>
+</tr>
+<tr>
+<td>给谁用</td>
+<td>用于请求 ↔ 响应的技术关联</td>
+<td>给 DSP 做定向 &#x2F; 报表 &#x2F; 出价</td>
+</tr>
+<tr>
+<td>类比</td>
+<td>排队取的”号码牌”</td>
+<td>店铺的”门牌号”</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong><code>imp.id</code>（展示位 ID）</strong>：仅在<strong>当前这一次 BidRequest 内部</strong>有效，用来区分同一个请求里的多个 Imp（比如一个页面上顶部 banner + 信息流原生，编号 “1”、”2”）。它是一次性的，核心用途是<strong>关联响应</strong>——DSP 在 Bid Response 里用 <code>bid.impid</code> 指回是给哪个 Imp 出的价。</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-comment">// Request</span><br><span class="hljs-attr">&quot;imp&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>  <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;1&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;banner&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;native&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">]</span><br><span class="hljs-comment">// Response</span><br><span class="hljs-attr">&quot;bid&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>  <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;impid&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;1&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;price&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.5</span> <span class="hljs-punctuation">&#125;</span>  <span class="hljs-comment">// 这一口价是给 imp.id=1 的</span><br><span class="hljs-punctuation">]</span><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><code>imp.tagid</code>（广告位标签 ID）</strong>：<strong>跨请求稳定存在</strong>，是媒体侧某个具体广告位的”身份证”。比如”App 首页信息流第 3 屏的那个广告位”永远是同一个 tagid，无论被请求多少次。DSP 用它来做<strong>定向、出价决策、统计报表</strong>（如”对 tagid&#x3D;home_feed_01 出更高价”，或按 tagid 统计填充率 &#x2F; eCPM）。</li>
+</ul>
+<p>打个比方：<code>imp.id</code> 像去银行取的排队号（办完就作废），<code>imp.tagid</code> 像固定窗口的编号（永远是 3 号窗口）。</p>
+<blockquote>
+<p>补充：<code>imp.ext</code> 里有时也会带媒体自定义的 placement&#x2F;slot ID，概念上与 <code>tagid</code> 类似，但属于各家私有扩展约定，非标准字段。</p>
+</blockquote>
+<h4 id="Device（设备信息）"><a href="#Device（设备信息）" class="headerlink" title="Device（设备信息）"></a>Device（设备信息）</h4><p>DSP 用这些信息做用户定向和出价决策。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ua</td>
+<td>string</td>
+<td>User-Agent 字符串</td>
+</tr>
+<tr>
+<td>ip</td>
+<td>string</td>
+<td>IPv4 地址</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>object</td>
+<td>地理位置（经纬度、国家、城市）</td>
+</tr>
+<tr>
+<td>make</td>
+<td>string</td>
+<td>设备制造商（如 “Samsung”）</td>
+</tr>
+<tr>
+<td>model</td>
+<td>string</td>
+<td>设备型号（如 “Galaxy S24”）</td>
+</tr>
+<tr>
+<td>os</td>
+<td>string</td>
+<td>操作系统（如 “Android”）</td>
+</tr>
+<tr>
+<td>osv</td>
+<td>string</td>
+<td>系统版本（如 “15”）</td>
+</tr>
+<tr>
+<td>ifa</td>
+<td>string</td>
+<td>设备广告标识符（iOS&#x3D;IDFA，Android&#x3D;GAID），用户画像的核心标识</td>
+</tr>
+<tr>
+<td>dnt</td>
+<td>integer</td>
+<td>Do Not Track（1&#x3D;用户开启了隐私保护）</td>
+</tr>
+<tr>
+<td>lmt</td>
+<td>integer</td>
+<td>Limit Ad Tracking（1&#x3D;用户限制广告追踪）</td>
+</tr>
+<tr>
+<td>devicetype</td>
+<td>integer</td>
+<td>1&#x3D;手机，2&#x3D;PC，4&#x3D;手机，5&#x3D;平板，7&#x3D;CTV</td>
+</tr>
+<tr>
+<td>connectiontype</td>
+<td>integer</td>
+<td>0&#x3D;未知，2&#x3D;WiFi，4&#x3D;蜂窝-未知，6&#x3D;4G，7&#x3D;5G</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong><code>ifa</code> 是”设备身份证”，不是”广告位 ID”</strong>：它挂在 <code>device</code> 下（不是 <code>user</code> 下），标识的是<strong>整台设备</strong>——iOS 上是 IDFA、Android 上是 GAID。它<strong>跨 App、跨请求长期稳定</strong>，所以 DSP 才能用它做用户画像、跨应用频控、归因和重定向（retargeting）。这点和前面那些标识正好形成对比：</p>
+<table>
+<thead>
+<tr>
+<th>标识</th>
+<th>范围</th>
+<th>标识对象</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>BidRequest.id</code></td>
+<td>单次请求</td>
+<td>这次拍卖</td>
+</tr>
+<tr>
+<td><code>imp.tagid</code></td>
+<td>某个广告位</td>
+<td>这个版位</td>
+</tr>
+<tr>
+<td><code>device.ifa</code></td>
+<td>整台设备</td>
+<td>这个人 &#x2F; 这台设备</td>
+</tr>
+</tbody></table>
+<p><strong>隐私</strong>：用户可重置 ifa 或关闭个性化广告；当 <code>dnt</code>&#x2F;<code>lmt</code>&#x3D;1 时 ifa 可能为空或全 0。iOS 14.5 后的 ATT 框架要求 App 取得授权才能拿到 IDFA，这也是海外流量里大量 ifa 缺失的主因，因此现在常见 hashed ifa 或 Privacy Sandbox &#x2F; UID2 等替代方案。</p>
+</blockquote>
+<h4 id="App（应用信息）——-移动场景的主要对象"><a href="#App（应用信息）——-移动场景的主要对象" class="headerlink" title="App（应用信息）—— 移动场景的主要对象"></a>App（应用信息）—— 移动场景的主要对象</h4><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>string</td>
+<td>App 在交易所的 ID</td>
+</tr>
+<tr>
+<td>bundle</td>
+<td>string</td>
+<td>包名（如 com.example.store）</td>
+</tr>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>App 名称</td>
+</tr>
+<tr>
+<td>storeurl</td>
+<td>string</td>
+<td>应用商店链接</td>
+</tr>
+<tr>
+<td>cat</td>
+<td>string[]</td>
+<td>内容类别（IAB 分类）</td>
+</tr>
+<tr>
+<td>publisher</td>
+<td>object</td>
+<td>发布者信息（id, name, domain）</td>
+</tr>
+<tr>
+<td>ver</td>
+<td>string</td>
+<td>App 版本</td>
+</tr>
+</tbody></table>
+<h4 id="User（用户信息）"><a href="#User（用户信息）" class="headerlink" title="User（用户信息）"></a>User（用户信息）</h4><p>描述这次展示机会背后的”人”，DSP 用它做人群定向、画像匹配。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>string</td>
+<td>交易所侧的用户 ID</td>
+</tr>
+<tr>
+<td>buyeruid</td>
+<td>string</td>
+<td>DSP 侧的用户 ID</td>
+</tr>
+<tr>
+<td>gender</td>
+<td>string</td>
+<td>性别（M &#x2F; F &#x2F; O）</td>
+</tr>
+<tr>
+<td>yob</td>
+<td>integer</td>
+<td>出生年份（Year of Birth）</td>
+</tr>
+<tr>
+<td>keywords</td>
+<td>string</td>
+<td>兴趣关键词（逗号分隔）</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>object</td>
+<td>用户地理位置</td>
+</tr>
+<tr>
+<td>data</td>
+<td>object[]</td>
+<td>第三方数据段（DMP 人群标签等）</td>
+</tr>
+</tbody></table>
+<p><strong><code>user.id</code> vs <code>user.buyeruid</code>：两个用户 ID 的区别</strong></p>
+<p>它们都标识”同一个人”，但分属交易所和 DSP <strong>两套不同的账本</strong>，靠 Cookie Matching（ID 映射）打通：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>user.id</code></th>
+<th><code>user.buyeruid</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>归属</td>
+<td><strong>交易所&#x2F;SSP</strong> 侧的用户 ID</td>
+<td><strong>DSP</strong> 侧的用户 ID</td>
+</tr>
+<tr>
+<td>谁维护</td>
+<td>交易所自己的用户体系</td>
+<td>DSP 自己的用户体系</td>
+</tr>
+<tr>
+<td>怎么来的</td>
+<td>交易所识别用户后填入</td>
+<td>交易所通过 ID 映射表查到”这个人在该 DSP 那边叫什么”后填入</td>
+</tr>
+<tr>
+<td>给谁用</td>
+<td>交易所内部识别</td>
+<td>DSP 用它在自己库里查画像 &#x2F; 重定向名单</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>为什么需要两个</strong>：交易所和 DSP 各自有一套用户标识体系，同一个人在两边 ID 不同。交易所提前和 DSP 做 <strong>Cookie Matching</strong>（线下&#x2F;异步建立 <code>交易所ID ↔ DSP ID</code> 的映射表），竞价时交易所把对应的 DSP 侧 ID 填进 <code>buyeruid</code>，DSP 拿到后就能直接在自己库里查到这个人的画像和重定向名单。</li>
+<li><strong>和 <code>device.ifa</code> 的关系</strong>：在 App 环境里，跨 App 稳定的 <code>ifa</code> 往往比 cookie 更可靠，所以移动端常以 <code>ifa</code> 为主、<code>buyeruid</code> 为辅；Web 环境则更依赖 <code>user.id</code>&#x2F;<code>buyeruid</code> 这套 cookie 映射。</li>
+</ul>
+<h4 id="PMP-Deal（私有交易市场）"><a href="#PMP-Deal（私有交易市场）" class="headerlink" title="PMP &amp; Deal（私有交易市场）"></a>PMP &amp; Deal（私有交易市场）</h4><p>PMP 允许媒体和特定买家之间进行预先协商的交易。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pmp.private_auction</td>
+<td>integer</td>
+<td>1&#x3D;仅 deal 内的买家可竞价</td>
+</tr>
+<tr>
+<td>pmp.deals[]</td>
+<td>object[]</td>
+<td>Deal 列表</td>
+</tr>
+<tr>
+<td>deal.id</td>
+<td>string</td>
+<td>Deal ID（双方预先协商）</td>
+</tr>
+<tr>
+<td>deal.bidfloor</td>
+<td>float</td>
+<td>该 Deal 的底价</td>
+</tr>
+<tr>
+<td>deal.at</td>
+<td>integer</td>
+<td>拍卖类型（1&#x3D;一价固定价，2&#x3D;二价，3&#x3D;固定价）</td>
+</tr>
+<tr>
+<td>deal.wseat</td>
+<td>string[]</td>
+<td>允许参与该 Deal 的 Seat</td>
+</tr>
+</tbody></table>
+<h4 id="Seat（买方席位）"><a href="#Seat（买方席位）" class="headerlink" title="Seat（买方席位）"></a>Seat（买方席位）</h4><p>上面 <code>deal.wseat</code> 以及请求顶层的 <code>wseat</code>&#x2F;<code>bseat</code> 都用到了 <strong>Seat</strong>，这里统一说明。</p>
+<p><strong>Seat &#x3D; 买方席位</strong>，代表 DSP 平台里的<strong>一个具体买家身份</strong>——通常是一个广告主或代理商账户。一个 DSP 同时服务很多广告主，给每个买家分配一个 Seat ID，竞价时用它告诉交易所”<strong>这口价是我平台上哪个买家出的</strong>“。</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">DSP</span>（如 The Trade Desk）<br>├── seat <span class="hljs-string">&quot;1001&quot;</span>  → 广告主 A<br>├── seat <span class="hljs-string">&quot;1002&quot;</span>  → 广告主 <span class="hljs-keyword">B</span><br>└── seat <span class="hljs-string">&quot;1003&quot;</span>  → 代理商 C<br></code></pre></td></tr></table></figure>
+
+<p>正因如此，Bid Response 的结构是 <code>seatbid[]</code>（按席位分组）→ 每个 <code>seatbid</code> 含 <code>seat</code> + 该买家的 <code>bid[]</code>，同一次响应里 DSP 可以代表多个 Seat 同时出价。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位置</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>seatbid.seat</code></td>
+<td>Response</td>
+<td>标明这组出价属于哪个买家</td>
+</tr>
+<tr>
+<td><code>wseat[]</code></td>
+<td>Request 顶层</td>
+<td>白名单：只允许这些 Seat 竞价</td>
+</tr>
+<tr>
+<td><code>bseat[]</code></td>
+<td>Request 顶层</td>
+<td>黑名单：禁止这些 Seat 竞价</td>
+</tr>
+<tr>
+<td><code>deal.wseat[]</code></td>
+<td>Request（Deal 内）</td>
+<td>该 Deal 只允许这些 Seat 参与</td>
+</tr>
+</tbody></table>
+<p><strong>和 ifa&#x2F;user 的区别</strong>：<code>ifa</code>&#x2F;<code>user</code> 标识”<strong>谁看广告</strong>（受众，流量侧）”，<code>seat</code> 标识”<strong>谁买广告</strong>（买家，需求侧）”。</p>
+<hr>
+<h2 id="三、Bid-Response（竞价响应）"><a href="#三、Bid-Response（竞价响应）" class="headerlink" title="三、Bid Response（竞价响应）"></a>三、Bid Response（竞价响应）</h2><p>DSP 返回给 SSP&#x2F;ADX 的响应，表示”我愿意出这个价买这次展示”。</p>
+<h3 id="对象层级结构-1"><a href="#对象层级结构-1" class="headerlink" title="对象层级结构"></a>对象层级结构</h3><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs applescript">BidResponse<br>├── <span class="hljs-built_in">id</span>                    <span class="hljs-comment"># = BidRequest.id（必须一致）</span><br>├── bidid                 <span class="hljs-comment"># DSP 生成的响应 ID</span><br>├── cur                   <span class="hljs-comment"># 出价币种</span><br>├── seatbid[]             <span class="hljs-comment"># 按 Seat 分组的出价</span><br>│   ├── seat              <span class="hljs-comment"># Seat ID（广告主/代理商）</span><br>│   └── bid[]             <span class="hljs-comment"># 具体出价列表</span><br>│       ├── <span class="hljs-built_in">id</span>            <span class="hljs-comment"># 出价 ID</span><br>│       ├── impid         <span class="hljs-comment"># 对应 BidRequest 中的 Imp.id</span><br>│       ├── price         <span class="hljs-comment"># 出价（CPM）</span><br>│       ├── adid          <span class="hljs-comment"># 广告 ID</span><br>│       ├── adm           <span class="hljs-comment"># 广告素材（HTML/VAST/Native JSON）</span><br>│       ├── adomain[]     <span class="hljs-comment"># 广告主域名</span><br>│       ├── crid          <span class="hljs-comment"># 素材 ID</span><br>│       ├── w / h         <span class="hljs-comment"># 素材宽高</span><br>│       ├── dealid        <span class="hljs-comment"># 如果是 Deal 交易，对应 Deal.id</span><br>│       ├── nurl          <span class="hljs-comment"># Win Notice URL（中标通知）</span><br>│       ├── burl          <span class="hljs-comment"># Billing Notice URL（2.5 新增）</span><br>│       └── lurl          <span class="hljs-comment"># Loss Notice URL（2.5 新增）</span><br>└── nbr                   <span class="hljs-comment"># No Bid 原因码（不出价时）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="核心字段说明"><a href="#核心字段说明" class="headerlink" title="核心字段说明"></a>核心字段说明</h3><h4 id="BidResponse（顶层）"><a href="#BidResponse（顶层）" class="headerlink" title="BidResponse（顶层）"></a>BidResponse（顶层）</h4><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>string</td>
+<td>是</td>
+<td>必须等于 BidRequest.id</td>
+</tr>
+<tr>
+<td>seatbid</td>
+<td>object[]</td>
+<td>是（如果出价）</td>
+<td>至少包含 1 个 SeatBid</td>
+</tr>
+<tr>
+<td>cur</td>
+<td>string</td>
+<td>默认 USD</td>
+<td>出价币种</td>
+</tr>
+<tr>
+<td>nbr</td>
+<td>integer</td>
+<td>-</td>
+<td>No Bid 原因码（见下表）</td>
+</tr>
+</tbody></table>
+<h4 id="Bid（单个出价）"><a href="#Bid（单个出价）" class="headerlink" title="Bid（单个出价）"></a>Bid（单个出价）</h4><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>string</td>
+<td>是</td>
+<td>DSP 为这个出价生成的唯一 ID</td>
+</tr>
+<tr>
+<td>impid</td>
+<td>string</td>
+<td>是</td>
+<td>对应请求中的 Imp.id</td>
+</tr>
+<tr>
+<td>price</td>
+<td>float</td>
+<td>是</td>
+<td>出价（CPM，单位由 cur 决定）</td>
+</tr>
+<tr>
+<td>adm</td>
+<td>string</td>
+<td>-</td>
+<td>广告素材标记（HTML&#x2F;VAST XML&#x2F;Native JSON）</td>
+</tr>
+<tr>
+<td>nurl</td>
+<td>string</td>
+<td>-</td>
+<td>Win Notice URL，中标后 SSP 调用通知 DSP</td>
+</tr>
+<tr>
+<td>burl</td>
+<td>string</td>
+<td>-</td>
+<td>Billing URL（2.5 新增），实际计费时调用</td>
+</tr>
+<tr>
+<td>lurl</td>
+<td>string</td>
+<td>-</td>
+<td>Loss URL（2.5 新增），未中标时调用</td>
+</tr>
+<tr>
+<td>adomain</td>
+<td>string[]</td>
+<td>-</td>
+<td>广告主域名，用于品牌安全检查</td>
+</tr>
+<tr>
+<td>crid</td>
+<td>string</td>
+<td>-</td>
+<td>素材 Creative ID</td>
+</tr>
+<tr>
+<td>dealid</td>
+<td>string</td>
+<td>-</td>
+<td>如果响应某个 Deal，填对应 Deal.id</td>
+</tr>
+<tr>
+<td>w</td>
+<td>integer</td>
+<td>-</td>
+<td>素材宽度（像素）</td>
+</tr>
+<tr>
+<td>h</td>
+<td>integer</td>
+<td>-</td>
+<td>素材高度（像素）</td>
+</tr>
+</tbody></table>
+<h4 id="No-Bid-原因码（nbr）"><a href="#No-Bid-原因码（nbr）" class="headerlink" title="No Bid 原因码（nbr）"></a>No Bid 原因码（nbr）</h4><table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>未知错误</td>
+</tr>
+<tr>
+<td>1</td>
+<td>技术错误</td>
+</tr>
+<tr>
+<td>2</td>
+<td>无效请求</td>
+</tr>
+<tr>
+<td>3</td>
+<td>已知爬虫&#x2F;非人流量</td>
+</tr>
+<tr>
+<td>4</td>
+<td>可疑非人流量</td>
+</tr>
+<tr>
+<td>5</td>
+<td>云&#x2F;代理&#x2F;VPN IP</td>
+</tr>
+<tr>
+<td>6</td>
+<td>不支持的设备</td>
+</tr>
+<tr>
+<td>7</td>
+<td>屏蔽的发布者&#x2F;广告位</td>
+</tr>
+<tr>
+<td>8</td>
+<td>不匹配的用户</td>
+</tr>
+<tr>
+<td>10</td>
+<td>广告质量&#x2F;安全</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、Win-Billing-Loss-通知（2-5-重点新增）"><a href="#四、Win-Billing-Loss-通知（2-5-重点新增）" class="headerlink" title="四、Win &#x2F; Billing &#x2F; Loss 通知（2.5 重点新增）"></a>四、Win &#x2F; Billing &#x2F; Loss 通知（2.5 重点新增）</h2><p>2.5 版本把”中标”和”计费”拆成了两个独立事件：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">DSP 出价 → SSP 选出赢家<br>  │<br>  ├── nurl（Win <span class="hljs-keyword">Notice</span>）：告诉 DSP&quot;你赢了&quot;，DSP 更新竞价算法<br>  │<br>  ├── burl（Billing <span class="hljs-keyword">Notice</span>）：广告真正展示/被看到后，SSP 通知 DSP&quot;开始计费&quot;<br>  │     （<span class="hljs-number">2.5</span> 新增，解决&quot;赢了但没展示&quot;的差异）<br>  │<br>  └── lurl（Loss <span class="hljs-keyword">Notice</span>）：告诉 DSP&quot;你没赢&quot;，并附上原因<br>        （<span class="hljs-number">2.5</span> 新增，帮 DSP 优化出价策略）<br></code></pre></td></tr></table></figure>
+
+<h3 id="替换宏（Substitution-Macros）"><a href="#替换宏（Substitution-Macros）" class="headerlink" title="替换宏（Substitution Macros）"></a>替换宏（Substitution Macros）</h3><p>nurl&#x2F;burl&#x2F;lurl 中可以包含宏，SSP 在调用时替换为实际值：</p>
+<table>
+<thead>
+<tr>
+<th>宏</th>
+<th>替换为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>${AUCTION_ID}</td>
+<td>BidRequest.id</td>
+</tr>
+<tr>
+<td>${AUCTION_BID_ID}</td>
+<td>BidResponse.bidid</td>
+</tr>
+<tr>
+<td>${AUCTION_IMP_ID}</td>
+<td>Imp.id</td>
+</tr>
+<tr>
+<td>${AUCTION_SEAT_ID}</td>
+<td>Seat ID</td>
+</tr>
+<tr>
+<td>${AUCTION_AD_ID}</td>
+<td>Ad ID</td>
+</tr>
+<tr>
+<td>${AUCTION_PRICE}</td>
+<td>成交价（加密或明文）</td>
+</tr>
+<tr>
+<td>${AUCTION_CURRENCY}</td>
+<td>成交币种</td>
+</tr>
+<tr>
+<td>${AUCTION_LOSS}</td>
+<td>未中标原因码</td>
+</tr>
+<tr>
+<td>${AUCTION_MIN_TO_WIN}</td>
+<td>赢得拍卖所需的最低出价（2.5 新增）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、OpenRTB-Native-Ads-Spec（原生广告规范）"><a href="#五、OpenRTB-Native-Ads-Spec（原生广告规范）" class="headerlink" title="五、OpenRTB Native Ads Spec（原生广告规范）"></a>五、OpenRTB Native Ads Spec（原生广告规范）</h2><h3 id="什么是原生广告"><a href="#什么是原生广告" class="headerlink" title="什么是原生广告"></a>什么是原生广告</h3><p>原生广告（Native Ads）是一种<strong>外观和体验都”伪装”成内容、融入 App 内容流</strong>的广告形式——信息流里的卡片、推荐列表里的推荐项、应用商店里的”猜你喜欢”等，看起来和周围的真实内容长得一样，不像横幅那样一眼就是广告。</p>
+<p><strong>和其他广告形式的本质区别，在于”谁来决定长什么样”：</strong></p>
+<table>
+<thead>
+<tr>
+<th>广告形式</th>
+<th>素材传输方式</th>
+<th>渲染方</th>
+<th>外观</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Banner &#x2F; 插屏</strong></td>
+<td>一整块 HTML &#x2F; 图片</td>
+<td>广告方已排好版，媒体直接嵌入</td>
+<td>固定样式，与内容割裂，”一看就是广告”</td>
+</tr>
+<tr>
+<td><strong>Video</strong></td>
+<td>VAST&#x2F;VPAID 视频标签</td>
+<td>播放器统一渲染</td>
+<td>视频贴片</td>
+</tr>
+<tr>
+<td><strong>Native（原生）</strong></td>
+<td><strong>拆散成一个个”零件”</strong>（标题、图片、描述、评分、CTA 按钮…）传过去</td>
+<td><strong>媒体 App 端</strong>按自己的内容样式重新拼装渲染</td>
+<td>跟着内容流走，融入无缝</td>
+</tr>
+</tbody></table>
+<p>关键就在最后一行：原生广告<strong>不传一整块成品素材</strong>，而是把广告拆成结构化的”零件”（assets）。因为每个 App 的信息流卡片长得都不一样（圆角、字号、按钮颜色、图片比例……），只有让媒体端拿到原始零件、用自己的 UI 组件去渲染，才能做到”看起来就是这个 App 的原生内容”。这也是 Native Spec 存在的根本原因——它要约定好”有哪些零件、每个零件的规格”，买卖双方才能对上。</p>
+<p><strong>和动态创意优化（DCO）&#x2F; 千人千面的关系：</strong></p>
+<p>正因为原生广告是”零件化”的，它天然适合做 <strong>DCO（Dynamic Creative Optimization，动态创意优化）</strong>——也就是常说的”<strong>千人千面</strong>“：</p>
+<ul>
+<li>传统 Banner 是一张做好的图，所有人看到的都一样，想换内容只能重新出图。</li>
+<li>原生广告每个零件（标题文案、主图、价格、CTA 文字）都是独立字段，DSP 完全可以<strong>根据 Bid Request 里的用户画像（<code>device.ifa</code>&#x2F;<code>user</code> 等）实时组装不同的零件组合</strong>：给爱好运动的人配运动鞋主图 + “限时 5 折”，给数码用户配手机主图 + “以旧换新”，落地页也能因人而异。</li>
+<li>同一个广告位、同一条广告计划，<strong>不同用户看到的标题、图片、卖点各不相同</strong>——这就是千人千面。Native Spec 1.2 进一步加了 <code>assetsurl</code>&#x2F;<code>dcourl</code> 等字段，专门支持这种由 DSP 侧动态拉取、实时拼装创意的模式。</li>
+</ul>
+<p>一句话：<strong>原生广告把素材拆成零件 → 零件可以按人组装 → 于是有了千人千面的 DCO</strong>。三者是层层递进的因果关系。</p>
+<p>Native Spec 是 OpenRTB 的<strong>子协议</strong>，专门定义原生广告请求和响应的结构。当前主流版本是 <strong>1.2</strong>（2017 年发布），支持：动态创意优化（DCO）、第三方广告服务、事件追踪、隐私标志。</p>
+<h3 id="Native-在-OpenRTB-中的位置"><a href="#Native-在-OpenRTB-中的位置" class="headerlink" title="Native 在 OpenRTB 中的位置"></a>Native 在 OpenRTB 中的位置</h3><figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs autoit">BidRequest<br>└── imp[]<br>    └── native              <span class="hljs-meta"># Native Object</span><br>        ├── request         <span class="hljs-meta"># Native 请求的 JSON 字符串（或直接对象）</span><br>        ├── ver             <span class="hljs-meta"># Native Spec 版本（如 <span class="hljs-string">&quot;1.2&quot;</span>）</span><br>        └── api[]           <span class="hljs-meta"># 支持的 API 框架</span><br></code></pre></td></tr></table></figure>
+
+<p>Native 请求内容放在 <code>imp.native.request</code> 字段里，可以是 JSON 编码的字符串或直接对象（取决于交易所实现）。</p>
+<h3 id="Native-请求对象层级"><a href="#Native-请求对象层级" class="headerlink" title="Native 请求对象层级"></a>Native 请求对象层级</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs python">NativeRequest<br>├── ver                   <span class="hljs-comment"># 版本（&quot;1.2&quot;）</span><br>├── context              <span class="hljs-comment"># 内容上下文类型（新闻/社交/产品...）</span><br>├── contextsubtype       <span class="hljs-comment"># 上下文子类型</span><br>├── plcmttype            <span class="hljs-comment"># 展示位类型（信息流/推荐/...）</span><br>├── plcmtcnt             <span class="hljs-comment"># 同时展示的原生广告数量</span><br>├── seq                  <span class="hljs-comment"># 当前是第几个（用于竞价频控）</span><br>├── aurlsupport          <span class="hljs-comment"># 是否支持 assetsurl 响应（0/1）</span><br>├── durlsupport          <span class="hljs-comment"># 是否支持 dcourl 响应（0/1）</span><br>├── privacy              <span class="hljs-comment"># 是否支持隐私链接（0/1）</span><br>├── assets[]             <span class="hljs-comment"># 素材需求列表（核心）</span><br>│   ├── <span class="hljs-built_in">id</span>               <span class="hljs-comment"># 素材 ID</span><br>│   ├── required         <span class="hljs-comment"># 是否必填（0/1）</span><br>│   ├── title            <span class="hljs-comment"># 标题需求</span><br>│   │   └── <span class="hljs-built_in">len</span>          <span class="hljs-comment"># 最大长度</span><br>│   ├── img              <span class="hljs-comment"># 图片需求</span><br>│   │   ├── <span class="hljs-built_in">type</span>         <span class="hljs-comment"># 图片类型（1=Icon, 3=主图）</span><br>│   │   ├── w / wmin     <span class="hljs-comment"># 宽度 / 最小宽度</span><br>│   │   └── h / hmin     <span class="hljs-comment"># 高度 / 最小高度</span><br>│   ├── video            <span class="hljs-comment"># 视频需求（遵循 OpenRTB Video 对象）</span><br>│   │   └── mimes, minduration, maxduration, protocols...<br>│   └── data             <span class="hljs-comment"># 数据需求</span><br>│       ├── <span class="hljs-built_in">type</span>         <span class="hljs-comment"># 数据类型（见下表）</span><br>│       └── <span class="hljs-built_in">len</span>          <span class="hljs-comment"># 最大长度</span><br>└── eventtrackers[]      <span class="hljs-comment"># 事件追踪需求（1.2 新增）</span><br>    ├── event            <span class="hljs-comment"># 事件类型（1=impression, 2=MRC50...）</span><br>    └── methods[]        <span class="hljs-comment"># 追踪方式（1=img pixel, 2=JS）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="素材（Asset）是什么"><a href="#素材（Asset）是什么" class="headerlink" title="素材（Asset）是什么"></a>素材（Asset）是什么</h3><blockquote>
+<p>💡 直观理解：你刷 App 列表（信息流、推荐流）时，偶尔会冒出一条<strong>和其他内容长得几乎一样、只是角落标了广告 &#x2F; Sponsored</strong>的卡片——那就是原生广告。它之所以能和周围内容无缝融合，靠的就是”素材拆成零件”。</p>
+</blockquote>
+<p>广告行业里”素材”有两个层级的词，别混：</p>
+<ul>
+<li><strong>Creative（创意&#x2F;成品）</strong>：一整条完整的广告物料。Banner 里就是一张做好的图（对应 <code>bid.crid</code>&#x2F;<code>bid.adm</code>）。</li>
+<li><strong>Asset（素材零件）</strong>：Native 特有，指把一条 Creative<strong>拆开后的单个组成部分</strong>——一个标题、一张主图、一句描述、一个评分各是一个 asset。</li>
+</ul>
+<p>所以原生广告里：<strong>一条 Creative &#x3D; 一堆 Asset 拼起来</strong>。</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs nix">原生广告卡片（一条 Creative）<br>├── <span class="hljs-params">asset:</span> 标题   <span class="hljs-string">&quot;Acme 旗舰 Pro 限时优惠&quot;</span><br>├── <span class="hljs-params">asset:</span> 主图   [一张 <span class="hljs-number">1200</span>×<span class="hljs-number">627</span> 的图]<br>├── <span class="hljs-params">asset:</span> 描述   <span class="hljs-string">&quot;旗舰影像，全新芯片&quot;</span><br>├── <span class="hljs-params">asset:</span> 评分   ★ <span class="hljs-number">4.5</span><br>└── <span class="hljs-params">asset:</span> CTA    <span class="hljs-string">&quot;立即下载&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>要拆成零件，是因为媒体 App 端要用自己的 UI 重新拼装渲染（见上一节），必须拿到拆散的素材而不是成品。</p>
+<p><strong>为什么会有 rating、likes、price 这么多 data 类型？</strong> 因为原生广告要伪装成 App 里的真实内容，”真实内容”长什么样，广告就得能提供对应的零件：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>列表里真实内容长这样</th>
+<th>原生广告需要的 data 零件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用商店 &#x2F; 下载类</td>
+<td>图标、星级、下载量、”安装”</td>
+<td><code>rating</code>、<code>likes</code>、<code>downloads</code>、<code>ctatext</code></td>
+</tr>
+<tr>
+<td>电商 &#x2F; 购物</td>
+<td>商品图、原价、促销价、”购买”</td>
+<td><code>price</code>、<code>saleprice</code>、<code>ctatext</code></td>
+</tr>
+<tr>
+<td>本地生活 &#x2F; O2O</td>
+<td>店名、地址、电话、评分</td>
+<td><code>address</code>、<code>phone</code>、<code>rating</code></td>
+</tr>
+<tr>
+<td>内容资讯流</td>
+<td>标题、来源、摘要</td>
+<td><code>sponsored</code>、<code>desc</code></td>
+</tr>
+</tbody></table>
+<p>举例：下载广告若出现在应用商店推荐流里，旁边真实 App 都带着”★4.5、100万+下载”，广告也得填上 <code>rating</code>、<code>downloads</code>，<strong>否则一看就和周围不一样，”原生”就破功了</strong>。所以下面这张 <code>data.type</code> 表，本质是一份<strong>信息流卡片里可能出现的字段清单</strong>——把现实中各类列表会用到的元素标准化编号，买卖双方按编号对接。</p>
+<h3 id="Asset-中的-Data-类型（data-type）"><a href="#Asset-中的-Data-类型（data-type）" class="headerlink" title="Asset 中的 Data 类型（data.type）"></a>Asset 中的 Data 类型（data.type）</h3><table>
+<thead>
+<tr>
+<th>type 值</th>
+<th>名称</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>sponsored</td>
+<td>赞助商&#x2F;品牌名</td>
+<td>“Acme”</td>
+</tr>
+<tr>
+<td>2</td>
+<td>desc</td>
+<td>描述文字</td>
+<td>“全新旗舰系列…”</td>
+</tr>
+<tr>
+<td>3</td>
+<td>rating</td>
+<td>评分</td>
+<td>“4.5”</td>
+</tr>
+<tr>
+<td>4</td>
+<td>likes</td>
+<td>点赞数</td>
+<td>“1.2k”</td>
+</tr>
+<tr>
+<td>5</td>
+<td>downloads</td>
+<td>下载量</td>
+<td>“100万+”</td>
+</tr>
+<tr>
+<td>6</td>
+<td>price</td>
+<td>价格</td>
+<td>“¥3999”</td>
+</tr>
+<tr>
+<td>7</td>
+<td>saleprice</td>
+<td>促销价</td>
+<td>“¥2999”</td>
+</tr>
+<tr>
+<td>8</td>
+<td>phone</td>
+<td>电话</td>
+<td>“400-xxx”</td>
+</tr>
+<tr>
+<td>9</td>
+<td>address</td>
+<td>地址</td>
+<td>-</td>
+</tr>
+<tr>
+<td>10</td>
+<td>desc2</td>
+<td>补充描述</td>
+<td>-</td>
+</tr>
+<tr>
+<td>11</td>
+<td>displayurl</td>
+<td>显示 URL</td>
+<td>“example.com”</td>
+</tr>
+<tr>
+<td>12</td>
+<td>ctatext</td>
+<td>CTA 按钮文字</td>
+<td>“立即下载”</td>
+</tr>
+</tbody></table>
+<h3 id="Image-类型（img-type）"><a href="#Image-类型（img-type）" class="headerlink" title="Image 类型（img.type）"></a>Image 类型（img.type）</h3><table>
+<thead>
+<tr>
+<th>type 值</th>
+<th>名称</th>
+<th>说明</th>
+<th>推荐尺寸</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Icon</td>
+<td>应用图标</td>
+<td>最小 50x50</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Logo</td>
+<td>品牌 Logo（已弃用）</td>
+<td>-</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Main</td>
+<td>主图</td>
+<td>建议宽高比约 1.91:1（如 1200x627）</td>
+</tr>
+</tbody></table>
+<h3 id="Native-响应对象层级"><a href="#Native-响应对象层级" class="headerlink" title="Native 响应对象层级"></a>Native 响应对象层级</h3><p>DSP 返回的原生广告素材，放在 Bid.adm 字段里（JSON 格式）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs bash">NativeResponse<br>├── ver                   <span class="hljs-comment"># 版本</span><br>├── <span class="hljs-built_in">link</span>                  <span class="hljs-comment"># 点击行为（整体默认）</span><br>│   ├── url              <span class="hljs-comment"># 落地页 URL</span><br>│   ├── clicktrackers[]  <span class="hljs-comment"># 点击追踪 URL 列表</span><br>│   └── fallback         <span class="hljs-comment"># 备用 URL</span><br>├── imptrackers[]        <span class="hljs-comment"># 曝光追踪 URL（即将弃用，用 eventtrackers 代替）</span><br>├── jstracker            <span class="hljs-comment"># JS 追踪（即将弃用）</span><br>├── privacy              <span class="hljs-comment"># 隐私页面 URL</span><br>├── eventtrackers[]      <span class="hljs-comment"># 事件追踪（1.2 推荐方式）</span><br>│   ├── event            <span class="hljs-comment"># 事件类型</span><br>│   ├── method           <span class="hljs-comment"># 追踪方式（1=img, 2=JS）</span><br>│   └── url              <span class="hljs-comment"># 追踪 URL</span><br>├── assetsurl            <span class="hljs-comment"># 素材托管 URL（1.2 新增，替代内联）</span><br>├── dcourl               <span class="hljs-comment"># 动态创意 URL（1.2 新增）</span><br>└── assets[]             <span class="hljs-comment"># 素材内容（与请求的 asset.id 一一对应）</span><br>    ├── <span class="hljs-built_in">id</span>               <span class="hljs-comment"># 对应请求中的 asset.id</span><br>    ├── required         <span class="hljs-comment"># 是否必需</span><br>    ├── title            <span class="hljs-comment"># 标题</span><br>    │   └── text         <span class="hljs-comment"># &quot;Acme 旗舰 Pro&quot;</span><br>    ├── img              <span class="hljs-comment"># 图片</span><br>    │   ├── url          <span class="hljs-comment"># 图片 URL</span><br>    │   ├── w            <span class="hljs-comment"># 宽度</span><br>    │   └── h            <span class="hljs-comment"># 高度</span><br>    ├── video            <span class="hljs-comment"># 视频</span><br>    │   └── vasttag      <span class="hljs-comment"># VAST XML</span><br>    ├── data             <span class="hljs-comment"># 数据</span><br>    │   ├── label        <span class="hljs-comment"># 显示标签（可选）</span><br>    │   └── value        <span class="hljs-comment"># 值</span><br>    └── <span class="hljs-built_in">link</span>             <span class="hljs-comment"># 该素材独立的点击行为（覆盖顶层 link）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="追踪（Tracking）：从-clicktrackers-imptrackers-到-eventtrackers"><a href="#追踪（Tracking）：从-clicktrackers-imptrackers-到-eventtrackers" class="headerlink" title="追踪（Tracking）：从 clicktrackers&#x2F;imptrackers 到 eventtrackers"></a>追踪（Tracking）：从 clicktrackers&#x2F;imptrackers 到 eventtrackers</h3><p>原生广告展示后，DSP 需要知道”广告<strong>有没有被看到、有没有被点击</strong>“，用来计费、统计、优化。这就是<strong>埋点追踪</strong>。做法是：DSP 在响应里塞一些<strong>追踪 URL</strong>，媒体端在对应事件发生时去<strong>请求一下这些 URL</strong>，请求到达 DSP 服务器就等于上报了一次事件。</p>
+<p><strong>早期（1.0&#x2F;1.1）是按”事件种类”各开一个字段：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>追踪什么</th>
+<th>怎么触发</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>link.clicktrackers[]</code></td>
+<td><strong>点击</strong>事件</td>
+<td>用户点广告时，媒体逐个请求这些 URL（点击至今仍用它）</td>
+</tr>
+<tr>
+<td><code>imptrackers[]</code></td>
+<td><strong>曝光</strong>事件</td>
+<td>广告渲染出来时，媒体请求这些 URL（一串图片 URL）</td>
+</tr>
+<tr>
+<td><code>jstracker</code></td>
+<td>曝光&#x2F;可见性等</td>
+<td>一段 <strong>JavaScript 代码</strong>（不是 URL），媒体把它注入页面执行</td>
+</tr>
+</tbody></table>
+<p>所以最初确实是：<strong>曝光走 <code>imptrackers</code>、点击走 <code>clicktrackers</code>、需要跑脚本的走 <code>jstracker</code></strong>——三种东西、三个字段、形态还不统一（前两个是 URL 数组，后一个是 JS 字符串）。</p>
+<p><strong><code>jstracker</code> 是什么、为什么要它？</strong> 单纯请求一个图片 URL 只能上报”我被加载了”，但<strong>测不了”广告是否真的出现在屏幕可视区域、停留了多久”</strong>（即”可见性 Viewability”）。这种判断需要在客户端跑代码（监听滚动、计算曝光面积），所以早期单开一个 <code>jstracker</code> 字段塞一段 JS。</p>
+<p><strong>1.2 改成统一的 <code>eventtrackers[]</code>，用 <code>event</code> + <code>method</code> 两个维度来区分：</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-attr">&quot;eventtrackers&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>  <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;event&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;method&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://dsp/imp?id=abc&quot;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span>   <span class="hljs-comment">// 曝光，用 img</span><br>  <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;event&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;method&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://dsp/viewable.js&quot;</span> <span class="hljs-punctuation">&#125;</span>   <span class="hljs-comment">// MRC可见曝光，用 JS</span><br><span class="hljs-punctuation">]</span><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>event</code>：<strong>追踪什么事件</strong>（1&#x3D;impression 普通曝光、2&#x3D;MRC 可见曝光-50%、3&#x3D;MRC 可见曝光-100%、4&#x3D;视频播放… 点击仍走 <code>link.clicktrackers</code>）</li>
+<li><code>method</code>：<strong>用什么方式追踪</strong>（1&#x3D;img、2&#x3D;JS）</li>
+</ul>
+<p>这样一个数组就涵盖了过去 <code>imptrackers</code> + <code>jstracker</code> 的所有场景，新增事件类型只要加个 <code>event</code> 枚举值即可，不用再开新字段。所以 <code>imptrackers</code>&#x2F;<code>jstracker</code> 被标记为<strong>即将弃用</strong>，新实现统一用 <code>eventtrackers</code>。</p>
+<p><strong><code>method</code>：img 像素 vs JS 追踪有什么区别？</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>method=1</code>（img 像素）</th>
+<th><code>method=2</code>（JS 追踪）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>形态</td>
+<td>一个 URL，媒体用一个 1×1 透明图 <code>&lt;img&gt;</code> 去加载它</td>
+<td>一个 URL，媒体用 <code>&lt;script&gt;</code> 加载并执行</td>
+</tr>
+<tr>
+<td>能力</td>
+<td><strong>只能上报”事件发生了”</strong></td>
+<td>能在客户端<strong>跑逻辑</strong>：测可见性、停留时长、反作弊、采集环境信息</td>
+</tr>
+<tr>
+<td>开销&#x2F;风险</td>
+<td>极轻、几乎无安全风险</td>
+<td>重，且能执行任意脚本，有安全&#x2F;性能顾虑，App 内 WebView 才好用</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td>普通曝光、计费打点</td>
+<td>Viewability 可见性测量、第三方监测（如 MOAT、IAS）</td>
+</tr>
+</tbody></table>
+<p>一句话：<strong>img 像素是”打个卡说我发生了”，JS 是”派个探针上去实地测量”</strong>。简单计数用 img 就够，需要判断可见性&#x2F;反作弊才上 JS。</p>
+<h3 id="Native-请求-响应示例"><a href="#Native-请求-响应示例" class="headerlink" title="Native 请求&#x2F;响应示例"></a>Native 请求&#x2F;响应示例</h3><p><strong>请求</strong>（SSP 告诉 DSP：我需要一个标题 + 一张主图 + 一段描述 + 品牌名）</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>  <span class="hljs-attr">&quot;ver&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;1.2&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;context&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;plcmttype&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;assets&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;required&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;len&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">90</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;required&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;img&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;wmin&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">600</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;hmin&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">314</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;required&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;len&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">200</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;required&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><br>  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;eventtrackers&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;event&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;methods&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">]</span> <span class="hljs-punctuation">&#125;</span><br>  <span class="hljs-punctuation">]</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>响应</strong>（DSP 返回填好的素材）</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>  <span class="hljs-attr">&quot;ver&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;1.2&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;link&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://store.example.com/flagship&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;clicktrackers&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;https://dsp.example.com/click?id=abc&quot;</span><span class="hljs-punctuation">]</span><br>  <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;eventtrackers&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;event&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;method&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://dsp.example.com/imp?id=abc&quot;</span> <span class="hljs-punctuation">&#125;</span><br>  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;assets&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Acme 旗舰 Pro - 限时优惠&quot;</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;img&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://cdn.example.com/flagship.jpg&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;w&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1200</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;h&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">627</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;旗舰影像，全新芯片加持&quot;</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span> <span class="hljs-attr">&quot;value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Acme&quot;</span> <span class="hljs-punctuation">&#125;</span> <span class="hljs-punctuation">&#125;</span><br>  <span class="hljs-punctuation">]</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、拍卖引擎视角的重点字段"><a href="#六、拍卖引擎视角的重点字段" class="headerlink" title="六、拍卖引擎视角的重点字段"></a>六、拍卖引擎视角的重点字段</h2><p>从 SSP 侧拍卖引擎开发的角度，日常最关注的字段：</p>
+<h3 id="构造-Bid-Request-时"><a href="#构造-Bid-Request-时" class="headerlink" title="构造 Bid Request 时"></a>构造 Bid Request 时</h3><table>
+<thead>
+<tr>
+<th>关注点</th>
+<th>对应字段</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>请求标识</td>
+<td>id</td>
+<td>全链路追踪（traceId）</td>
+</tr>
+<tr>
+<td>广告位信息</td>
+<td>imp.id, imp.tagid, imp.bidfloor</td>
+<td>决定发给哪些 DSP、底价多少</td>
+</tr>
+<tr>
+<td>广告类型</td>
+<td>imp.banner &#x2F; video &#x2F; native</td>
+<td>告诉 DSP 接受什么格式</td>
+</tr>
+<tr>
+<td>超时控制</td>
+<td>tmax</td>
+<td>拍卖引擎的超时阈值</td>
+</tr>
+<tr>
+<td>设备 + 用户</td>
+<td>device, user</td>
+<td>传给 DSP 做定向</td>
+</tr>
+<tr>
+<td>拍卖类型</td>
+<td>at (1&#x3D;一价, 2&#x3D;二价)</td>
+<td>决定计价策略</td>
+</tr>
+<tr>
+<td>Deal 交易</td>
+<td>imp.pmp.deals</td>
+<td>PDB&#x2F;PD&#x2F;PMP 私有交易</td>
+</tr>
+</tbody></table>
+<h3 id="解析-Bid-Response-时"><a href="#解析-Bid-Response-时" class="headerlink" title="解析 Bid Response 时"></a>解析 Bid Response 时</h3><table>
+<thead>
+<tr>
+<th>关注点</th>
+<th>对应字段</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>出价金额</td>
+<td>bid.price</td>
+<td>选赢家、算 eCPM</td>
+</tr>
+<tr>
+<td>素材内容</td>
+<td>bid.adm</td>
+<td>返给客户端渲染</td>
+</tr>
+<tr>
+<td>广告主信息</td>
+<td>bid.adomain</td>
+<td>品牌安全检查</td>
+</tr>
+<tr>
+<td>Deal 关联</td>
+<td>bid.dealid</td>
+<td>判断是否走 Deal 价格</td>
+</tr>
+<tr>
+<td>中标通知</td>
+<td>bid.nurl</td>
+<td>赢家确定后回调</td>
+</tr>
+<tr>
+<td>计费通知</td>
+<td>bid.burl</td>
+<td>广告展示后回调</td>
+</tr>
+<tr>
+<td>落败通知</td>
+<td>bid.lurl</td>
+<td>通知未中标 DSP 原因</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="七、各类-ID-含义速查"><a href="#七、各类-ID-含义速查" class="headerlink" title="七、各类 ID 含义速查"></a>七、各类 ID 含义速查</h2><p>OpenRTB 链路里 ID 很多，容易混。按”标识对象”和”生命周期”汇总如下：</p>
+<table>
+<thead>
+<tr>
+<th>ID 字段</th>
+<th>所属对象</th>
+<th>标识对象</th>
+<th>生命周期</th>
+<th>谁生成</th>
+<th>核心用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>BidRequest.id</code></td>
+<td>请求顶层</td>
+<td>这一次拍卖</td>
+<td>单次请求，一次性</td>
+<td>SSP&#x2F;ADX</td>
+<td>全链路 traceId，Response&#x2F;通知回填关联</td>
+</tr>
+<tr>
+<td><code>BidResponse.id</code></td>
+<td>响应顶层</td>
+<td>同上</td>
+<td>必须 &#x3D;&#x3D; BidRequest.id</td>
+<td>DSP</td>
+<td>校验响应归属</td>
+</tr>
+<tr>
+<td><code>BidResponse.bidid</code></td>
+<td>响应顶层</td>
+<td>这次响应</td>
+<td>单次响应</td>
+<td>DSP</td>
+<td>DSP 侧日志追踪（<code>${AUCTION_BID_ID}</code>）</td>
+</tr>
+<tr>
+<td><code>imp.id</code></td>
+<td>Imp</td>
+<td>请求内某个广告位</td>
+<td>单次请求内唯一</td>
+<td>SSP</td>
+<td>与 <code>bid.impid</code> 关联出价</td>
+</tr>
+<tr>
+<td><code>imp.tagid</code></td>
+<td>Imp</td>
+<td>媒体某个固定版位</td>
+<td>跨请求长期稳定</td>
+<td>媒体&#x2F;SSP</td>
+<td>DSP 定向 &#x2F; 报表 &#x2F; 出价</td>
+</tr>
+<tr>
+<td><code>bid.impid</code></td>
+<td>Bid</td>
+<td>指回某个 imp</td>
+<td>单次响应</td>
+<td>DSP</td>
+<td>标明这口价给哪个 Imp</td>
+</tr>
+<tr>
+<td><code>bid.id</code></td>
+<td>Bid</td>
+<td>这条出价</td>
+<td>单次响应</td>
+<td>DSP</td>
+<td>DSP 内部唯一标识</td>
+</tr>
+<tr>
+<td><code>bid.adid</code> &#x2F; <code>bid.crid</code></td>
+<td>Bid</td>
+<td>广告 &#x2F; 素材</td>
+<td>长期</td>
+<td>DSP</td>
+<td>素材管理、品牌安全、报表</td>
+</tr>
+<tr>
+<td><code>deal.id</code></td>
+<td>PMP Deal</td>
+<td>一笔私有交易</td>
+<td>长期（双方预先协商）</td>
+<td>SSP&#x2F;DSP 协商</td>
+<td>走 Deal 价格与定向</td>
+</tr>
+<tr>
+<td><code>device.ifa</code></td>
+<td>Device</td>
+<td><strong>整台设备 &#x2F; 人</strong></td>
+<td>跨 App、跨请求长期稳定</td>
+<td>操作系统</td>
+<td>用户画像、跨应用频控、归因、重定向</td>
+</tr>
+<tr>
+<td><code>user.id</code></td>
+<td>User</td>
+<td>这个人（交易所侧）</td>
+<td>长期</td>
+<td>交易所&#x2F;SSP</td>
+<td>交易所内部识别用户</td>
+</tr>
+<tr>
+<td><code>user.buyeruid</code></td>
+<td>User</td>
+<td>这个人（DSP 侧）</td>
+<td>长期</td>
+<td>交易所（经 ID 映射填入）</td>
+<td>DSP 查自己库里的画像 &#x2F; 名单</td>
+</tr>
+<tr>
+<td><code>app.id</code> &#x2F; <code>site.id</code></td>
+<td>App&#x2F;Site</td>
+<td>媒体应用 &#x2F; 站点</td>
+<td>长期</td>
+<td>交易所</td>
+<td>流量来源识别</td>
+</tr>
+<tr>
+<td><code>publisher.id</code></td>
+<td>Publisher</td>
+<td>发布者</td>
+<td>长期</td>
+<td>交易所</td>
+<td>发布者维度统计与黑白名单</td>
+</tr>
+<tr>
+<td><code>seat</code></td>
+<td>SeatBid</td>
+<td>买方席位（广告主&#x2F;代理商）</td>
+<td>长期</td>
+<td>DSP</td>
+<td>标明这组出价来自哪个买家</td>
+</tr>
+</tbody></table>
+<p>一句话归纳三类：</p>
+<ul>
+<li><strong>一次性的（请求级）</strong>：<code>BidRequest.id</code> &#x2F; <code>BidResponse.id</code> &#x2F; <code>bidid</code> &#x2F; <code>imp.id</code> &#x2F; <code>bid.id</code>，请求结束即失效，用于本次链路的技术关联。</li>
+<li><strong>长期稳定的资源 ID（媒体侧）</strong>：<code>imp.tagid</code> &#x2F; <code>app.id</code> &#x2F; <code>site.id</code> &#x2F; <code>publisher.id</code> &#x2F; <code>deal.id</code>，标识”广告位 &#x2F; 媒体 &#x2F; 交易”这些固定资源。</li>
+<li><strong>长期稳定的身份 ID（用户&#x2F;设备侧）</strong>：<code>device.ifa</code> &#x2F; <code>user.id</code> &#x2F; <code>user.buyeruid</code>，标识”这个人&#x2F;这台设备”，是定向和归因的根基，也是隐私监管的重点。</li>
+</ul>
+<hr>
+<h2 id="八、参考资料"><a href="#八、参考资料" class="headerlink" title="八、参考资料"></a>八、参考资料</h2><table>
+<thead>
+<tr>
+<th>资源</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenRTB 2.5 官方 PDF</td>
+<td><a target="_blank" rel="noopener" href="https://www.iab.com/wp-content/uploads/2016/03/OpenRTB-API-Specification-Version-2-5-FINAL.pdf">https://www.iab.com/wp-content/uploads/2016/03/OpenRTB-API-Specification-Version-2-5-FINAL.pdf</a></td>
+</tr>
+<tr>
+<td>OpenRTB 2.6 GitHub（含 2.5 变更记录）</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/InteractiveAdvertisingBureau/openrtb2.x/blob/main/2.6.md">https://github.com/InteractiveAdvertisingBureau/openrtb2.x/blob/main/2.6.md</a></td>
+</tr>
+<tr>
+<td>Native Ads Spec 1.2 GitHub</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/InteractiveAdvertisingBureau/Native-Ads/blob/main/OpenRTB-Native-Ads-Specification-Final-1.2.md">https://github.com/InteractiveAdvertisingBureau/Native-Ads/blob/main/OpenRTB-Native-Ads-Specification-Final-1.2.md</a></td>
+</tr>
+<tr>
+<td>Native Ads Spec 1.2 官方 PDF</td>
+<td><a target="_blank" rel="noopener" href="https://www.iab.com/wp-content/uploads/2018/03/OpenRTB-Native-Ads-Specification-Final-1.2.pdf">https://www.iab.com/wp-content/uploads/2018/03/OpenRTB-Native-Ads-Specification-Final-1.2.pdf</a></td>
+</tr>
+<tr>
+<td>Google OpenRTB Protobuf 实现</td>
+<td><a target="_blank" rel="noopener" href="https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-proto">https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-proto</a></td>
+</tr>
+</tbody></table>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/programmatic-ads/" class="category-chain-item">programmatic-ads</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%B9%BF%E5%91%8A/" class="print-no-link">#广告</a>
+      
+        <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="print-no-link">#学习笔记</a>
+      
+        <a href="/tags/OpenRTB/" class="print-no-link">#OpenRTB</a>
+      
+        <a href="/tags/%E5%8D%8F%E8%AE%AE/" class="print-no-link">#协议</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>程序化广告 (8)：OpenRTB 2.5 协议 &amp; Native Ads Spec 学习笔记</div>
+      <div>https://rebibabo.github.io/categories/programmatic-ads/9/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/programmatic-ads/8/" title="程序化广告 (7)：考核指标——程序化广告的&#34;成绩单&#34;">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">程序化广告 (7)：考核指标——程序化广告的&#34;成绩单&#34;</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

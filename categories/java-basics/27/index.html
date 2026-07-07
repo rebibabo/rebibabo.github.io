@@ -1,0 +1,996 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言写代码只是软件开发中的一个环节。入职后你会发现，真正的工作流程是：需求评审 → 技术方案 → 分支开发 → Code Review → 测试 → 部署 → 监控。这篇文章把一个需求从”产品经理提出”到”上线被用户使用”的完整链路走一遍，帮你在入职">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java基础(番外) | 团队开发全流程：从需求到上线的完整链路">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-basics/27/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言写代码只是软件开发中的一个环节。入职后你会发现，真正的工作流程是：需求评审 → 技术方案 → 分支开发 → Code Review → 测试 → 部署 → 监控。这篇文章把一个需求从”产品经理提出”到”上线被用户使用”的完整链路走一遍，帮你在入职">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.149Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="团队协作">
+<meta property="article:tag" content="开发流程">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java基础(番外) | 团队开发全流程：从需求到上线的完整链路 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java基础(番外) | 团队开发全流程：从需求到上线的完整链路"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-27 00:00" pubdate>
+          2026年5月27日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          62 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java基础(番外) | 团队开发全流程：从需求到上线的完整链路</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>写代码只是软件开发中的一个环节。入职后你会发现，真正的工作流程是：需求评审 → 技术方案 → 分支开发 → Code Review → 测试 → 部署 → 监控。这篇文章把一个需求从”产品经理提出”到”上线被用户使用”的完整链路走一遍，帮你在入职前建立全局视角。</p>
+<span id="more"></span>
+
+<h2 id="1-全景概览"><a href="#1-全景概览" class="headerlink" title="1. 全景概览"></a>1. 全景概览</h2><p>一个需求的典型生命周期：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs armasm">产品调研 → 需求文档 → 需求评审 → 技术方案 → 排期<br>    → 分支开发 → 自测 → <span class="hljs-meta">Code</span> Review → 合并<br>    → 测试环境部署 → QA 测试 → Bug 修复<br>    → 预发布环境验证 → 上线审批 → 生产部署<br>    → 线上监控 → 复盘<br></code></pre></td></tr></table></figure>
+
+<p>不同公司流程细节有差异，但主干基本一致。下面逐步展开。</p>
+<h2 id="2-需求阶段"><a href="#2-需求阶段" class="headerlink" title="2. 需求阶段"></a>2. 需求阶段</h2><h3 id="2-1-产品调研"><a href="#2-1-产品调研" class="headerlink" title="2.1 产品调研"></a>2.1 产品调研</h3><p>产品经理（PM）负责：</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs excel">市场/用户调研<br>  → 确定要解决的问题<br>  → 竞品分析<br>  → 产出 PRD（<span class="hljs-built_in">Product</span> Requirements Document，产品需求文档）<br></code></pre></td></tr></table></figure>
+
+<p>PRD 通常包含：背景与目标、用户故事、功能清单、交互原型图（Figma&#x2F;Axure）、优先级、验收标准。</p>
+<h3 id="2-2-需求评审"><a href="#2-2-需求评审" class="headerlink" title="2.2 需求评审"></a>2.2 需求评审</h3><p>PM 召集所有相关人开会过 PRD：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs">参与者：PM、前端、后端、测试、设计师、项目经理<br>目标：对齐理解，发现遗漏，评估可行性<br><br>后端需要关注的：<br>├── 这个功能涉及哪些服务和接口？<br>├── 数据结构需要怎么设计？<br>├── 有没有性能、并发、安全方面的风险？<br>├── 和现有系统的哪些模块有交互？<br>└── 有没有不合理的需求要推回去？<br></code></pre></td></tr></table></figure>
+
+<p>评审后，PM 修改 PRD，产出最终版本。</p>
+<h3 id="2-3-技术方案"><a href="#2-3-技术方案" class="headerlink" title="2.3 技术方案"></a>2.3 技术方案</h3><p>后端开发者输出技术方案文档（Tech Design Doc），通常包含：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 需求概述（一两句话说清楚要做什么）<br><span class="hljs-bullet">2.</span> 整体架构（系统交互图、时序图）<br><span class="hljs-bullet">3.</span> 数据库设计（ER 图、建表 SQL、索引设计）<br><span class="hljs-bullet">4.</span> 接口设计（API 列表、请求/响应格式）<br><span class="hljs-bullet">5.</span> 核心逻辑（算法、状态机、并发处理方案）<br><span class="hljs-bullet">6.</span> 缓存策略（哪些数据缓存、TTL、失效方案）<br><span class="hljs-bullet">7.</span> 风险与降级方案（如果依赖的服务挂了怎么办）<br><span class="hljs-bullet">8.</span> 排期（按子任务拆分，估算工时）<br></code></pre></td></tr></table></figure>
+
+<p>技术方案需要组内评审（Tech Review），资深工程师或架构师把关。</p>
+<h3 id="2-4-排期"><a href="#2-4-排期" class="headerlink" title="2.4 排期"></a>2.4 排期</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs tap">常见的估算方式：<br>├── 乐观估计 × 1.5 = 实际排期（给自测和 buffer 留时间）<br>├── 按子任务拆分，每个任务 0.5-2 天<br>└── 包含自测时间（通常占开发时间的 30-50%）<br><br>一个典型的排期：<br>需求评审 + 技术方案： <span class="hljs-number"> 2 </span>天<br>开发：                <span class="hljs-number"> 5 </span>天<br>自测 + Code Review：  <span class="hljs-number"> 2 </span>天<br>联调（前后端对接）：   <span class="hljs-number"> 1 </span>天<br>QA 测试：             <span class="hljs-number"> 3 </span>天<br>Bug 修复：            <span class="hljs-number"> 1 </span>天<br>预发布验证 + 上线：    <span class="hljs-number"> 1 </span>天<br>总计：                 约<span class="hljs-number"> 15 </span>天（3 周）<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-开发阶段"><a href="#3-开发阶段" class="headerlink" title="3. 开发阶段"></a>3. 开发阶段</h2><h3 id="3-1-Git-分支管理"><a href="#3-1-Git-分支管理" class="headerlink" title="3.1 Git 分支管理"></a>3.1 Git 分支管理</h3><p>大多数团队使用 Git Flow 或其变体：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash">main (master)         ← 生产环境代码，始终可发布<br>  │<br>  ├── develop         ← 开发主线，集成所有已完成的功能<br>  │     │<br>  │     ├── feature/add-frequency-cap    ← 功能分支（从 develop 切出）<br>  │     ├── feature/budget-control       ← 另一个功能分支<br>  │     └── ...<br>  │<br>  ├── release/v1.2.0  ← 发布分支（从 develop 切出，只修 bug）<br>  │<br>  └── hotfix/fix-crash ← 紧急修复分支（从 main 切出）<br></code></pre></td></tr></table></figure>
+
+<p>日常开发流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 1. 从 develop 切出功能分支</span><br>git checkout develop<br>git pull origin develop<br>git checkout -b feature/add-frequency-cap<br><br><span class="hljs-comment"># 2. 在功能分支上开发，频繁提交</span><br>git add .<br>git commit -m <span class="hljs-string">&quot;feat: 实现广告频控基础逻辑&quot;</span><br>git commit -m <span class="hljs-string">&quot;feat: 添加 Redis 频控计数器&quot;</span><br>git commit -m <span class="hljs-string">&quot;test: 补充频控单元测试&quot;</span><br><br><span class="hljs-comment"># 3. 推送到远程</span><br>git push origin feature/add-frequency-cap<br><br><span class="hljs-comment"># 4. 在 GitHub/GitLab 上创建 Pull Request (PR) / Merge Request (MR)</span><br><span class="hljs-comment">#    → 关联需求单号</span><br><span class="hljs-comment">#    → 指定 Reviewer</span><br><br><span class="hljs-comment"># 5. Review 通过后合并到 develop</span><br><span class="hljs-comment"># 6. 删除功能分支</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-2-Commit-规范"><a href="#3-2-Commit-规范" class="headerlink" title="3.2 Commit 规范"></a>3.2 Commit 规范</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 格式：&lt;type&gt;: &lt;subject&gt;</span><br>feat: 新增广告频控功能<br>fix: 修复竞价超时未正确处理的问题<br>refactor: 重构出价策略为策略模式<br><span class="hljs-built_in">test</span>: 补充 BidService 单元测试<br>docs: 更新 API 文档<br>chore: 升级 Spring Boot 版本到 3.2.1<br>perf: 优化批量查询广告位的 SQL<br><br><span class="hljs-comment"># 常用 type：</span><br><span class="hljs-comment"># feat     新功能</span><br><span class="hljs-comment"># fix      修复 bug</span><br><span class="hljs-comment"># refactor 重构（不改变功能）</span><br><span class="hljs-comment"># test     测试</span><br><span class="hljs-comment"># docs     文档</span><br><span class="hljs-comment"># chore    构建/依赖/配置</span><br><span class="hljs-comment"># perf     性能优化</span><br><span class="hljs-comment"># style    代码格式（不影响功能）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-3-开发规范"><a href="#3-3-开发规范" class="headerlink" title="3.3 开发规范"></a>3.3 开发规范</h3><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs armasm">代码规范：<br>├── 遵循团队的 <span class="hljs-meta">Code</span> Style（通常有 checkstyle / spotless 插件自动检查）<br>├── 类名、方法名、变量名有意义（不要 a, b, temp）<br>├── 方法不超过 <span class="hljs-number">50</span> 行，类不超过 <span class="hljs-number">500</span> 行（超了就该拆分）<br>├── 注释写<span class="hljs-string">&quot;为什么&quot;</span>，不写<span class="hljs-string">&quot;是什么&quot;</span>（代码本身应该能说明<span class="hljs-string">&quot;是什么&quot;</span>）<br>└── 不要提交注释掉的代码、System.out.println、硬编码的密码<br><br>接口规范：<br>├── RESTful URL 设计（名词复数、HTTP 方法语义正确）<br>├── 统一的响应格式（<span class="hljs-meta">code</span> + message + <span class="hljs-meta">data</span>）<br>├── 统一的错误码体系<br>├── 接口文档（Swagger / OpenAPI）<br>└── 版本控制（/api/<span class="hljs-built_in">v1</span>/...）<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-4-自测"><a href="#3-4-自测" class="headerlink" title="3.4 自测"></a>3.4 自测</h3><p>代码写完不是直接提交 Review，而是先自测：</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs nix">自测 checklist：<br>├── 单元测试全部通过<br>├── 新功能有对应的单元测试（行覆盖率达到团队要求）<br>├── 本地启动服务，用 Postman <span class="hljs-symbol">/</span> curl 验证接口<br>├── 正常流程跑通<br>├── 异常流程验证（参数为空、不存在的 ID、超时、并发）<br>├── 边界情况（空列表、超长字符串、最大值最小值）<br>└── 日志输出正确，没有敏感信息泄露<br></code></pre></td></tr></table></figure>
+
+<h2 id="4-Code-Review"><a href="#4-Code-Review" class="headerlink" title="4. Code Review"></a>4. Code Review</h2><h3 id="4-1-为什么要-Code-Review？"><a href="#4-1-为什么要-Code-Review？" class="headerlink" title="4.1 为什么要 Code Review？"></a>4.1 为什么要 Code Review？</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">发现 <span class="hljs-keyword">bug </span>        ← 另一双眼睛能看到你看不到的问题<br>知识共享          ← 团队成员了解彼此的代码<br>代码质量          ← 保持一致的风格和设计水平<br>新人成长          ← 通过 Review 学习团队的最佳实践<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-2-提交-PR-的规范"><a href="#4-2-提交-PR-的规范" class="headerlink" title="4.2 提交 PR 的规范"></a>4.2 提交 PR 的规范</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-section">## PR 标题</span><br>feat: 实现广告频控功能<br><br><span class="hljs-section">## 描述</span><br><span class="hljs-bullet">-</span> 需求背景：每个用户每天看同一广告最多 N 次<br><span class="hljs-bullet">-</span> 实现方案：Redis INCR + 当天过期<br><span class="hljs-bullet">-</span> 关联需求：JIRA-1234<br><br><span class="hljs-section">## 改动范围</span><br><span class="hljs-bullet">-</span> 新增 FrequencyCapService<br><span class="hljs-bullet">-</span> 新增 FrequencyCapServiceTest<br><span class="hljs-bullet">-</span> 修改 BidService，在竞价前检查频控<br><br><span class="hljs-section">## 测试情况</span><br><span class="hljs-bullet">-</span> 单元测试：✅ 全部通过<br><span class="hljs-bullet">-</span> 本地联调：✅ 正常流程 + 超限拒绝<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-3-Review-的关注点"><a href="#4-3-Review-的关注点" class="headerlink" title="4.3 Review 的关注点"></a>4.3 Review 的关注点</h3><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs excel">Reviewer 通常会看：<br>├── 逻辑正确性：边界情况、并发安全、异常处理<br>├── 设计合理性：职责划分、是否过度设计或设计不足<br>├── 可读性：命名、注释、方法长度<br>├── 性能：有没有 <span class="hljs-built_in">N</span>+<span class="hljs-number">1</span> 查询、不必要的循环、大对象拷贝<br>├── 安全性：SQL 注入、XSS、敏感信息暴露<br>├── 测试覆盖：关键逻辑有没有测试<br>└── 规范遵守：命名规范、日志规范、接口规范<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-4-Review-的礼仪"><a href="#4-4-Review-的礼仪" class="headerlink" title="4.4 Review 的礼仪"></a>4.4 Review 的礼仪</h3><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs stata">作为 Reviewer：<br>├── 对事不对人，语气友善<br>├── 说明<span class="hljs-string">&quot;为什么&quot;</span>而不只是<span class="hljs-string">&quot;改成这样&quot;</span><br>├── 区分 must-fix 和 nice-to-have<br>└── 大段重构建议线下沟通，<span class="hljs-keyword">PR</span> 上说清结论即可<br><br>作为被 Review 者：<br>├── 不要把 Review 意见当批评<br>├── 有争议的点可以讨论，但不要情绪化<br>├── 复杂逻辑主动加注释或在 <span class="hljs-keyword">PR</span> 描述中解释<br>└── 及时回复和修改，不要让 <span class="hljs-keyword">PR</span> 挂太久<br></code></pre></td></tr></table></figure>
+
+<h2 id="5-测试阶段"><a href="#5-测试阶段" class="headerlink" title="5. 测试阶段"></a>5. 测试阶段</h2><h3 id="5-1-测试环境"><a href="#5-1-测试环境" class="headerlink" title="5.1 测试环境"></a>5.1 测试环境</h3><figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs scss">一般至少有 <span class="hljs-number">3</span> 套环境：<br><br>开发环境 (DEV)<br>  ├── 开发自测用<br>  ├── 数据随意<br>  └── 部署频率高（可能一天几十次）<br><br>测试环境 (QA / Staging)<br>  ├── QA 团队测试用<br>  ├── 有稳定的测试数据<br>  └── 功能分支合并到 develop 后自动部署<br><br>预发布环境 (Pre-production)<br>  ├── 配置和生产完全一致（连同一个数据库或其只读副本）<br>  ├── 上线前最后验证<br>  └── 只有即将上线的代码才部署到这里<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-2-测试类型"><a href="#5-2-测试类型" class="headerlink" title="5.2 测试类型"></a>5.2 测试类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>谁做</th>
+<th>工具</th>
+<th>关注点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单元测试</td>
+<td>开发</td>
+<td>JUnit + Mockito</td>
+<td>方法级别的逻辑正确性</td>
+</tr>
+<tr>
+<td>集成测试</td>
+<td>开发</td>
+<td>@SpringBootTest</td>
+<td>多模块协同、数据库交互</td>
+</tr>
+<tr>
+<td>接口测试</td>
+<td>QA</td>
+<td>Postman &#x2F; JMeter</td>
+<td>API 的输入输出、状态码</td>
+</tr>
+<tr>
+<td>功能测试</td>
+<td>QA</td>
+<td>手动 &#x2F; Selenium</td>
+<td>业务流程端到端验证</td>
+</tr>
+<tr>
+<td>回归测试</td>
+<td>QA</td>
+<td>自动化脚本</td>
+<td>新功能有没有破坏老功能</td>
+</tr>
+<tr>
+<td>性能测试</td>
+<td>开发&#x2F;QA</td>
+<td>JMeter &#x2F; wrk</td>
+<td>吞吐量、延迟、资源占用</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-Bug-管理"><a href="#5-3-Bug-管理" class="headerlink" title="5.3 Bug 管理"></a>5.3 Bug 管理</h3><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs nix">QA 在 JIRA <span class="hljs-symbol">/</span> Tapd <span class="hljs-symbol">/</span> Zentao 中提 Bug：<br>├── 标题：简洁描述问题（<span class="hljs-string">&quot;频控计数在跨天时未重置&quot;</span>）<br>├── 优先级：P0（阻塞）<span class="hljs-symbol">/</span> P1（严重）<span class="hljs-symbol">/</span> P2（一般）<span class="hljs-symbol">/</span> P3（优化）<br>├── 重现步骤：具体的操作路径<br>├── 期望结果 vs 实际结果<br>├── 环境信息：浏览器<span class="hljs-operator">/</span>设备<span class="hljs-operator">/</span>测试账号<br>└── 截图或日志<br><br>Bug 修复流程：<br>开发修复 → 自测 → 提交到 develop → 部署到测试环境 → QA 回验 → 关闭 Bug<br></code></pre></td></tr></table></figure>
+
+<h2 id="6-部署阶段"><a href="#6-部署阶段" class="headerlink" title="6. 部署阶段"></a>6. 部署阶段</h2><h3 id="6-1-CI-CD-流水线"><a href="#6-1-CI-CD-流水线" class="headerlink" title="6.1 CI&#x2F;CD 流水线"></a>6.1 CI&#x2F;CD 流水线</h3><p>持续集成（CI）和持续部署（CD）自动化了从提交代码到部署的全过程：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs gradle">开发者 <span class="hljs-keyword">push</span> 代码<br>     │<br>     ▼<br>CI 流水线自动触发（Jenkins <span class="hljs-regexp">/ GitLab CI /</span> GitHub Actions）<br>     │<br>     ├── <span class="hljs-number">1</span>. 代码检查（Lint / <span class="hljs-keyword">Checkstyle</span>）<br>     ├── <span class="hljs-number">2</span>. 编译<br>     ├── <span class="hljs-number">3</span>. 运行单元测试<br>     ├── <span class="hljs-number">4</span>. 运行集成测试<br>     ├── <span class="hljs-number">5</span>. 构建 Docker 镜像<br>     ├── <span class="hljs-number">6</span>. 推送镜像到镜像仓库<br>     └── <span class="hljs-number">7</span>. 部署到对应环境<br>          ├── develop 分支 → 自动部署到测试环境<br>          ├── release 分支 → 部署到预发布环境<br>          └── main 分支 → 部署到生产环境（通常需要人工审批）<br></code></pre></td></tr></table></figure>
+
+<h3 id="6-2-Docker-部署"><a href="#6-2-Docker-部署" class="headerlink" title="6.2 Docker 部署"></a>6.2 Docker 部署</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs dockerfile"><span class="hljs-comment"># Dockerfile</span><br><span class="hljs-keyword">FROM</span> eclipse-temurin:<span class="hljs-number">17</span>-jre<br><span class="hljs-keyword">WORKDIR</span><span class="language-bash"> /app</span><br><span class="hljs-keyword">COPY</span><span class="language-bash"> build/libs/ssp-service-1.0.0.jar app.jar</span><br><span class="hljs-keyword">EXPOSE</span> <span class="hljs-number">8080</span><br><span class="hljs-keyword">ENTRYPOINT</span><span class="language-bash"> [<span class="hljs-string">&quot;java&quot;</span>, <span class="hljs-string">&quot;-jar&quot;</span>, <span class="hljs-string">&quot;app.jar&quot;</span>, \</span><br><span class="language-bash">    <span class="hljs-string">&quot;-Xms512m&quot;</span>, <span class="hljs-string">&quot;-Xmx512m&quot;</span>, \</span><br><span class="language-bash">    <span class="hljs-string">&quot;--spring.profiles.active=prod&quot;</span>]</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># docker-compose.yml（简单场景）</span><br><span class="hljs-attr">services:</span><br>  <span class="hljs-attr">ssp-service:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">ssp-service:1.0.0</span><br>    <span class="hljs-attr">ports:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;8080:8080&quot;</span><br>    <span class="hljs-attr">environment:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">SPRING_PROFILES_ACTIVE=prod</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/ssp</span><br>    <span class="hljs-attr">depends_on:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">db</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">redis</span><br><br>  <span class="hljs-attr">db:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">mysql:8.0</span><br>    <span class="hljs-attr">environment:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">MYSQL_ROOT_PASSWORD=secret</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">MYSQL_DATABASE=ssp</span><br><br>  <span class="hljs-attr">redis:</span><br>    <span class="hljs-attr">image:</span> <span class="hljs-string">redis:7</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="6-3-发布策略"><a href="#6-3-发布策略" class="headerlink" title="6.3 发布策略"></a>6.3 发布策略</h3><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>做法</th>
+<th>优点</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全量发布</td>
+<td>所有实例同时更新</td>
+<td>简单</td>
+<td>出问题影响全部用户</td>
+</tr>
+<tr>
+<td><strong>灰度发布</strong>（推荐）</td>
+<td>先更新 10% 的实例，观察正常后再全量</td>
+<td>风险可控</td>
+<td>需要基础设施支持</td>
+</tr>
+<tr>
+<td>蓝绿部署</td>
+<td>两套环境，切流量到新版本</td>
+<td>秒级回滚</td>
+<td>需要双倍资源</td>
+</tr>
+<tr>
+<td>金丝雀发布</td>
+<td>新版本只给少量用户（按用户 ID 或地区）</td>
+<td>精细控制</td>
+<td>实现复杂</td>
+</tr>
+</tbody></table>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs markdown">灰度发布流程（大厂标准做法）：<br><span class="hljs-bullet">1.</span> 部署新版本到 10% 的实例<br><span class="hljs-bullet">2.</span> 观察 5-15 分钟：错误率、延迟、日志<br><span class="hljs-bullet">3.</span> 没问题 → 扩大到 50%<br><span class="hljs-bullet">4.</span> 再观察 → 全量<br><span class="hljs-bullet">5.</span> 有问题 → 立即回滚<br></code></pre></td></tr></table></figure>
+
+<h3 id="6-4-数据库变更"><a href="#6-4-数据库变更" class="headerlink" title="6.4 数据库变更"></a>6.4 数据库变更</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">代码可以秒级回滚，但数据库变更不能。所以数据库变更需要特别谨慎：<br><br>原则：<br>├── 向前兼容：新代码能用旧表结构，旧代码能用新表结构<br>├── 只加不删：先加新列 → 代码迁移 → 确认旧列无引用后再删<br>├── 大表加索引要在低峰期（会锁表）<br>├── 变更前先在测试环境验证<br>└── 使用数据库迁移工具（Flyway / Liquibase）管理变更版本<br><br>Flyway 示例：<br>src/main/resources/db/migration/<br>├── V1__create_users_table.<span class="hljs-keyword">sql</span><br>├── V2__add_email_column.<span class="hljs-keyword">sql</span><br>└── V3__create_orders_table.<span class="hljs-keyword">sql</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="7-上线后"><a href="#7-上线后" class="headerlink" title="7. 上线后"></a>7. 上线后</h2><h3 id="7-1-监控"><a href="#7-1-监控" class="headerlink" title="7.1 监控"></a>7.1 监控</h3><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs nix">上线不是终点，而是新的开始。需要持续监控：<br><br>基础设施监控（Prometheus <span class="hljs-operator">+</span> Grafana）：<br>├── CPU <span class="hljs-symbol">/</span> 内存 <span class="hljs-symbol">/</span> 磁盘 <span class="hljs-symbol">/</span> 网络<br>├── JVM 堆内存、GC 次数和耗时<br>└── 线程池活跃线程数<br><br>应用监控（Spring Boot Actuator <span class="hljs-operator">+</span> Micrometer）：<br>├── QPS <span class="hljs-symbol">/</span> 请求延迟（P50 <span class="hljs-symbol">/</span> P99）<br>├── 错误率（<span class="hljs-number">4</span>xx <span class="hljs-symbol">/</span> <span class="hljs-number">5</span>xx）<br>├── 接口响应时间<br>└── 自定义业务指标（竞价成功率、广告填充率）<br><br>日志监控（ELK：Elasticsearch <span class="hljs-operator">+</span> Logstash <span class="hljs-operator">+</span> Kibana）：<br>├── ERROR 日志告警<br>├── 异常堆栈分析<br>└── 请求链路追踪（TraceId）<br><br>告警：<br>├── 错误率 <span class="hljs-operator">&gt;</span> <span class="hljs-number">1</span>% → 通知到企业微信<span class="hljs-operator">/</span>钉钉群<br>├── P99 延迟 <span class="hljs-operator">&gt;</span> <span class="hljs-number">500</span>ms → 通知<br>├── 服务实例挂了 → 电话告警<br>└── 磁盘使用率 <span class="hljs-operator">&gt;</span> <span class="hljs-number">80</span>% → 通知<br></code></pre></td></tr></table></figure>
+
+<h3 id="7-2-线上问题排查"><a href="#7-2-线上问题排查" class="headerlink" title="7.2 线上问题排查"></a>7.2 线上问题排查</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs markdown">收到告警后的标准动作：<br><br><span class="hljs-bullet">1.</span> 先止血<br>   ├── 能回滚就回滚（新版本引入的问题）<br>   ├── 不能回滚就降级（关掉出问题的功能、切到兜底逻辑）<br>   └── 扩容（如果是流量暴增导致）<br><br><span class="hljs-bullet">2.</span> 再定位<br>   ├── 看监控：哪个指标异常？什么时候开始？<br>   ├── 看日志：grep 错误日志，找堆栈<br>   ├── 看变更：最近谁上线了什么？有没有配置变更？<br>   └── 看依赖：下游服务是不是挂了？数据库是不是慢了？<br><br><span class="hljs-bullet">3.</span> 最后修复<br>   ├── 修复代码 → 走正常发布流程<br>   └── 紧急情况 → hotfix 分支 → 快速 Review → 灰度上线<br></code></pre></td></tr></table></figure>
+
+<h3 id="7-3-复盘"><a href="#7-3-复盘" class="headerlink" title="7.3 复盘"></a>7.3 复盘</h3><p>重要功能上线后或出现线上事故后，团队会做复盘：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs">复盘内容：<br>├── 时间线：什么时候发现、什么时候处理、什么时候恢复<br>├── 根因分析：为什么出问题？（5 Whys 方法）<br>├── 影响范围：影响了多少用户？持续了多久？<br>├── 改进措施：怎么防止同类问题再次发生？<br>│   ├── 代码层面：补充测试、加入校验<br>│   ├── 流程层面：增加 Review 环节、完善 checklist<br>│   └── 基础设施：加监控、加告警<br>└── 跟进事项：指定责任人和完成时间<br></code></pre></td></tr></table></figure>
+
+<h2 id="8-常用工具全景"><a href="#8-常用工具全景" class="headerlink" title="8. 常用工具全景"></a>8. 常用工具全景</h2><table>
+<thead>
+<tr>
+<th>环节</th>
+<th>工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需求管理</td>
+<td>JIRA &#x2F; Tapd &#x2F; Zentao &#x2F; Linear</td>
+</tr>
+<tr>
+<td>文档协作</td>
+<td>Confluence &#x2F; 飞书文档 &#x2F; Notion</td>
+</tr>
+<tr>
+<td>设计稿</td>
+<td>Figma &#x2F; Axure</td>
+</tr>
+<tr>
+<td>代码托管</td>
+<td>GitHub &#x2F; GitLab</td>
+</tr>
+<tr>
+<td>CI&#x2F;CD</td>
+<td>Jenkins &#x2F; GitLab CI &#x2F; GitHub Actions</td>
+</tr>
+<tr>
+<td>容器化</td>
+<td>Docker &#x2F; Kubernetes</td>
+</tr>
+<tr>
+<td>接口文档</td>
+<td>Swagger (SpringDoc) &#x2F; Apifox</td>
+</tr>
+<tr>
+<td>接口测试</td>
+<td>Postman &#x2F; curl</td>
+</tr>
+<tr>
+<td>日志</td>
+<td>ELK &#x2F; Loki + Grafana</td>
+</tr>
+<tr>
+<td>监控</td>
+<td>Prometheus + Grafana</td>
+</tr>
+<tr>
+<td>链路追踪</td>
+<td>SkyWalking &#x2F; Jaeger &#x2F; Zipkin</td>
+</tr>
+<tr>
+<td>告警</td>
+<td>企业微信 &#x2F; 钉钉 &#x2F; PagerDuty</td>
+</tr>
+<tr>
+<td>沟通</td>
+<td>企业微信 &#x2F; 飞书 &#x2F; Slack</td>
+</tr>
+</tbody></table>
+<h2 id="9-新人入职第一周生存指南"><a href="#9-新人入职第一周生存指南" class="headerlink" title="9. 新人入职第一周生存指南"></a>9. 新人入职第一周生存指南</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">Day</span> <span class="hljs-number">1</span>：<br>├── 领电脑、开通各种权限（Git、JIRA、VPN、数据库）<br>├── 拉代码、搭建本地开发环境<br>└── 跑通项目（能本地启动、能调通接口）<br><br><span class="hljs-keyword">Day</span> <span class="hljs-number">2</span><span class="hljs-number">-3</span>：<br>├── 阅读项目 README 和技术文档<br>├── 阅读代码：从入口（Controller）开始，跟一个核心链路<br>├── 了解项目的模块划分和分层架构<br>└── 梳理数据库表结构<br><br><span class="hljs-keyword">Day</span> <span class="hljs-number">4</span><span class="hljs-number">-5</span>：<br>├── 领一个小需求或 Bug（通常 mentor 会安排）<br>├── 写代码 → 自测 → 提 PR → 接受 Review<br>├── 观察其他人的 PR 是怎么写的<br>└── 记录遇到的问题，不懂就问（有 mentor 就问 mentor）<br><br>心态：<br>├── 第一周看不懂代码是正常的，项目都是几十万行起<br>├── 不要怕问问题，但先自己搜 <span class="hljs-operator">/</span> 查文档 <span class="hljs-operator">/</span> 看代码 <span class="hljs-number">15</span> 分钟<br>├── <span class="hljs-keyword">commit</span> 要小而频繁，不要攒一大坨<br>└── 主动记录学到的东西，写成笔记<br></code></pre></td></tr></table></figure>
+
+<h2 id="10-小结"><a href="#10-小结" class="headerlink" title="10. 小结"></a>10. 小结</h2><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>关键动作</th>
+<th>核心产出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需求</td>
+<td>评审 PRD、确认技术可行性</td>
+<td>技术方案文档</td>
+</tr>
+<tr>
+<td>开发</td>
+<td>切分支、写代码、写测试、自测</td>
+<td>功能代码 + 单元测试</td>
+</tr>
+<tr>
+<td>Review</td>
+<td>提 PR、接受反馈、修改</td>
+<td>通过 Review 的代码</td>
+</tr>
+<tr>
+<td>测试</td>
+<td>QA 验证、修 Bug、回归</td>
+<td>测试报告</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>CI&#x2F;CD 构建、灰度发布</td>
+<td>线上运行的服务</td>
+</tr>
+<tr>
+<td>监控</td>
+<td>观察指标、处理告警</td>
+<td>稳定运行的系统</td>
+</tr>
+<tr>
+<td>复盘</td>
+<td>总结问题、制定改进措施</td>
+<td>复盘文档</td>
+</tr>
+</tbody></table>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-basics/" class="category-chain-item">java-basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B/" class="print-no-link">#开发流程</a>
+      
+        <a href="/tags/%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C/" class="print-no-link">#团队协作</a>
+      
+        <a href="/tags/DevOps/" class="print-no-link">#DevOps</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java基础(番外) | 团队开发全流程：从需求到上线的完整链路</div>
+      <div>https://rebibabo.github.io/categories/java-basics/27/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-basics/26/" title="Java基础(番外) | 开发规范全集：命名、代码、目录、文档、Git 一站式速查">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(番外) | 开发规范全集：命名、代码、目录、文档、Git 一站式速查</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-basics/28/" title="Java基础(番外) | Git 日常操作实战：从提交到协作全流程">
+                        <span class="hidden-mobile">Java基础(番外) | Git 日常操作实战：从提交到协作全流程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

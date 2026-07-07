@@ -1,0 +1,255 @@
+/* 隐藏归档页、分类页、标签页文章列表左侧日期 */
+.archive-post-date,
+.category-post-date,
+.tag-post-date,
+.list-group-item time {
+  display: none !important;
+}
+
+/* 隐藏文章页头部的日期、字数、阅读时间 */
+#banner > div > div > div > div.mt-3,
+#banner > div > div > div > div.mt-1 {
+  display: none !important;
+}
+
+/* 文章页头部高度缩小 */
+body > header .header-inner {
+  height: 30vh !important;
+  min-height: 200px !important;
+}
+
+/* 导航栏 */
+#navbar.navbar {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+#navbar .navbar-brand {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 1rem;
+}
+
+#navbar .nav-link {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  font-size: 0.92rem;
+}
+
+/* 去掉隐藏日期后可能留下的缩进 */
+.archive-post-title,
+.category-post-title,
+.tag-post-title {
+  margin-left: 0 !important;
+}
+
+/* 隐藏分类/归档列表里的年份标题，比如 2026 */
+#board > div > div > div > div > p.h5 {
+  display: none !important;
+}
+
+/* 文章页：返回分类列表按钮 */
+.back-to-category-btn {
+  position: fixed;
+  left: 24px;
+  bottom: 32px;
+  z-index: 9999;
+
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  background: rgba(52, 73, 94, 0.9);
+  color: #fff !important;
+  font-size: 14px;
+  text-decoration: none !important;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.back-to-category-btn:hover {
+  background: rgba(33, 150, 243, 0.95);
+  color: #fff !important;
+}
+
+/* 分类页：返回主页按钮 */
+.back-to-home-btn {
+  position: fixed;
+  left: 24px;
+  bottom: 32px;
+  z-index: 9999;
+
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  background: rgba(118, 75, 162, 0.9);
+  color: #fff !important;
+  font-size: 14px;
+  text-decoration: none !important;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.back-to-home-btn:hover {
+  background: rgba(102, 126, 234, 0.95);
+  color: #fff !important;
+}
+
+@media (max-width: 768px) {
+  .back-to-category-btn,
+  .back-to-home-btn {
+    left: 16px;
+    bottom: 20px;
+    font-size: 13px;
+    padding: 7px 12px;
+  }
+}
+
+/* ===== 分类/归档/标签页：卡片式文章列表 ===== */
+.list-group-item.list-group-item-action {
+  position: relative;
+  margin-bottom: 10px;
+  padding: 18px 22px 18px 56px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(128,128,128,0.12) !important;
+  background: rgba(255,255,255,0.02);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+}
+
+.list-group-item.list-group-item-action::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+  opacity: 0;
+  border-radius: 10px 0 0 10px;
+  transition: opacity 0.3s ease;
+}
+
+.list-group-item.list-group-item-action:hover::before {
+  opacity: 1;
+}
+
+.list-group-item.list-group-item-action:hover {
+  transform: translateX(6px);
+  border-color: rgba(102,126,234,0.2) !important;
+  background: rgba(102,126,234,0.04) !important;
+  box-shadow: 0 8px 25px rgba(102,126,234,0.08);
+}
+
+.list-group-item-title {
+  font-size: 0.98rem;
+  font-weight: 550;
+  line-height: 1.6;
+  color: inherit;
+}
+
+/* 为每篇加序号标记 */
+.list-group-item.list-group-item-action::after {
+  content: counter(category-post);
+  counter-increment: category-post;
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(128,128,128,0.35);
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+  text-align: right;
+}
+
+/* 重置计数器 */
+.list-group {
+  counter-reset: category-post;
+}
+
+/* 暗色模式 */
+[data-user-color-scheme="dark"] .list-group-item.list-group-item-action {
+  background: rgba(255,255,255,0.02);
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+[data-user-color-scheme="dark"] .list-group-item.list-group-item-action:hover {
+  background: rgba(102,126,234,0.08) !important;
+  border-color: rgba(102,126,234,0.25) !important;
+}
+
+/* 移动端 */
+@media (max-width: 768px) {
+  .list-group-item.list-group-item-action {
+    padding: 14px 14px 14px 44px !important;
+    margin-bottom: 8px;
+    border-radius: 8px !important;
+  }
+
+  .list-group-item.list-group-item-action::after {
+    left: 12px;
+    font-size: 0.7rem;
+  }
+
+  .list-group-item-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== 浅色模式：主页分类卡片 ===== */
+.series-card {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.series-card:hover {
+  background: rgba(102, 126, 234, 0.07) !important;
+  border-color: rgba(102, 126, 234, 0.25) !important;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.1) !important;
+}
+
+.series-card h2 {
+  color: #2c3e50;
+}
+
+.series-card p {
+  opacity: 0.55;
+}
+
+.card-count {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #5a6a7a !important;
+}
+
+.card-arrow {
+  color: #667eea;
+}
+
+/* 隐藏卡片图标 */
+.card-icon {
+  display: none !important;
+}
+
+/* 暗色模式 */
+[data-user-color-scheme="dark"] .series-card h2 {
+  color: #a8b0b8;
+}
+
+[data-user-color-scheme="dark"] .series-card p {
+  color: #a8b0b8 !important;
+  opacity: 1;
+}
+
+[data-user-color-scheme="dark"] .card-count {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: inherit !important;
+}
+
+[data-user-color-scheme="dark"] .card-arrow {
+  color: inherit;
+}
+
+[data-user-color-scheme="dark"] .series-card:hover {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2) !important;
+}

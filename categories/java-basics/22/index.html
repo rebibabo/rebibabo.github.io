@@ -1,0 +1,1111 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言广告系统需要频繁调用外部接口——向 DSP 发送竞价请求、调用素材审核服务、对接第三方数据平台。Java 中发起 HTTP 请求的方式经历了 HttpURLConnection → HttpClient → RestTemplate → WebC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-basics/22/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言广告系统需要频繁调用外部接口——向 DSP 发送竞价请求、调用素材审核服务、对接第三方数据平台。Java 中发起 HTTP 请求的方式经历了 HttpURLConnection → HttpClient → RestTemplate → WebC">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.152Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="RestTemplate">
+<meta property="article:tag" content="WebClient">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-22 00:00" pubdate>
+          2026年5月22日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          18k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          147 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>广告系统需要频繁调用外部接口——向 DSP 发送竞价请求、调用素材审核服务、对接第三方数据平台。Java 中发起 HTTP 请求的方式经历了 <code>HttpURLConnection</code> → <code>HttpClient</code> → <code>RestTemplate</code> → <code>WebClient</code> 的演进。这篇文章讲后两者——它们是 Spring 生态中的标准选择。</p>
+<span id="more"></span>
+
+<h2 id="1-RestTemplate-vs-WebClient"><a href="#1-RestTemplate-vs-WebClient" class="headerlink" title="1. RestTemplate vs WebClient"></a>1. RestTemplate vs WebClient</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RestTemplate</th>
+<th>WebClient</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>引入版本</td>
+<td>Spring 3（2009）</td>
+<td>Spring 5（2017）</td>
+</tr>
+<tr>
+<td>请求模式</td>
+<td>同步阻塞</td>
+<td>异步非阻塞（也支持同步）</td>
+</tr>
+<tr>
+<td>底层</td>
+<td>JDK HttpURLConnection &#x2F; Apache HttpClient</td>
+<td>Reactor Netty</td>
+</tr>
+<tr>
+<td>官方态度</td>
+<td>维护模式（不再新增功能）</td>
+<td><strong>推荐</strong>，未来方向</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>简单同步调用、传统项目</td>
+<td>高并发、响应式、新项目</td>
+</tr>
+<tr>
+<td>学习曲线</td>
+<td>低</td>
+<td>中（需了解响应式概念）</td>
+</tr>
+</tbody></table>
+<p><strong>怎么选？</strong> 传统 Spring MVC 项目两个都行，RestTemplate 上手更快。新项目或高并发场景优先 WebClient。</p>
+<h2 id="2-RestTemplate"><a href="#2-RestTemplate" class="headerlink" title="2. RestTemplate"></a>2. RestTemplate</h2><h3 id="2-1-注册为-Bean"><a href="#2-1-注册为-Bean" class="headerlink" title="2.1 注册为 Bean"></a>2.1 注册为 Bean</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RestClientConfig</span> &#123;<br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> RestTemplate <span class="hljs-title function_">restTemplate</span><span class="hljs-params">(RestTemplateBuilder builder)</span> &#123;<br>        <span class="hljs-keyword">return</span> builder<br>            .connectTimeout(Duration.ofSeconds(<span class="hljs-number">3</span>))<br>            .readTimeout(Duration.ofSeconds(<span class="hljs-number">10</span>))<br>            .build();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-GET-请求"><a href="#2-2-GET-请求" class="headerlink" title="2.2 GET 请求"></a>2.2 GET 请求</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserClient</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RestTemplate restTemplate;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">UserClient</span><span class="hljs-params">(RestTemplate restTemplate)</span> &#123;<br>        <span class="hljs-built_in">this</span>.restTemplate = restTemplate;<br>    &#125;<br><br>    <span class="hljs-comment">// 基础 GET</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getHtml</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> restTemplate.getForObject(<span class="hljs-string">&quot;https://example.com&quot;</span>, String.class);<br>    &#125;<br><br>    <span class="hljs-comment">// GET + 返回 Java 对象（自动 JSON 反序列化）</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUser</span><span class="hljs-params">(Long id)</span> &#123;<br>        <span class="hljs-keyword">return</span> restTemplate.getForObject(<br>            <span class="hljs-string">&quot;https://api.example.com/users/&#123;id&#125;&quot;</span>,<br>            User.class,<br>            id    <span class="hljs-comment">// 路径变量替换</span><br>        );<br>    &#125;<br><br>    <span class="hljs-comment">// GET + 获取完整响应（状态码、响应头、响应体）</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUserWithStatus</span><span class="hljs-params">(Long id)</span> &#123;<br>        ResponseEntity&lt;User&gt; response = restTemplate.getForEntity(<br>            <span class="hljs-string">&quot;https://api.example.com/users/&#123;id&#125;&quot;</span>,<br>            User.class,<br>            id<br>        );<br>        <span class="hljs-type">HttpStatusCode</span> <span class="hljs-variable">status</span> <span class="hljs-operator">=</span> response.getStatusCode();  <span class="hljs-comment">// 200</span><br>        <span class="hljs-type">HttpHeaders</span> <span class="hljs-variable">headers</span> <span class="hljs-operator">=</span> response.getHeaders();<br>        <span class="hljs-type">User</span> <span class="hljs-variable">body</span> <span class="hljs-operator">=</span> response.getBody();<br>        <span class="hljs-keyword">return</span> body;<br>    &#125;<br><br>    <span class="hljs-comment">// GET + 查询参数</span><br>    <span class="hljs-keyword">public</span> List&lt;User&gt; <span class="hljs-title function_">searchUsers</span><span class="hljs-params">(String name, <span class="hljs-type">int</span> page)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> UriComponentsBuilder<br>            .fromHttpUrl(<span class="hljs-string">&quot;https://api.example.com/users&quot;</span>)<br>            .queryParam(<span class="hljs-string">&quot;name&quot;</span>, name)<br>            .queryParam(<span class="hljs-string">&quot;page&quot;</span>, page)<br>            .queryParam(<span class="hljs-string">&quot;size&quot;</span>, <span class="hljs-number">10</span>)<br>            .toUriString();<br>        <span class="hljs-comment">// https://api.example.com/users?name=Alice&amp;page=1&amp;size=10</span><br><br>        User[] users = restTemplate.getForObject(url, User[].class);<br>        <span class="hljs-keyword">return</span> Arrays.asList(users);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-3-POST-请求"><a href="#2-3-POST-请求" class="headerlink" title="2.3 POST 请求"></a>2.3 POST 请求</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// POST JSON</span><br><span class="hljs-keyword">public</span> User <span class="hljs-title function_">createUser</span><span class="hljs-params">(String name, String email)</span> &#123;<br>    Map&lt;String, String&gt; body = Map.of(<span class="hljs-string">&quot;name&quot;</span>, name, <span class="hljs-string">&quot;email&quot;</span>, email);<br>    <span class="hljs-keyword">return</span> restTemplate.postForObject(<br>        <span class="hljs-string">&quot;https://api.example.com/users&quot;</span>,<br>        body,       <span class="hljs-comment">// 自动序列化为 JSON</span><br>        User.class  <span class="hljs-comment">// 响应体反序列化为 User</span><br>    );<br>&#125;<br><br><span class="hljs-comment">// POST + 自定义请求头</span><br><span class="hljs-keyword">public</span> User <span class="hljs-title function_">createUserWithHeaders</span><span class="hljs-params">(CreateUserRequest req, String token)</span> &#123;<br>    <span class="hljs-type">HttpHeaders</span> <span class="hljs-variable">headers</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpHeaders</span>();<br>    headers.setContentType(MediaType.APPLICATION_JSON);<br>    headers.setBearerAuth(token);<br><br>    HttpEntity&lt;CreateUserRequest&gt; entity = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpEntity</span>&lt;&gt;(req, headers);<br><br>    ResponseEntity&lt;User&gt; response = restTemplate.exchange(<br>        <span class="hljs-string">&quot;https://api.example.com/users&quot;</span>,<br>        HttpMethod.POST,<br>        entity,<br>        User.class<br>    );<br>    <span class="hljs-keyword">return</span> response.getBody();<br>&#125;<br><br><span class="hljs-comment">// POST 表单</span><br><span class="hljs-keyword">public</span> String <span class="hljs-title function_">submitForm</span><span class="hljs-params">(String username, String password)</span> &#123;<br>    <span class="hljs-type">HttpHeaders</span> <span class="hljs-variable">headers</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpHeaders</span>();<br>    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);<br><br>    MultiValueMap&lt;String, String&gt; form = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedMultiValueMap</span>&lt;&gt;();<br>    form.add(<span class="hljs-string">&quot;username&quot;</span>, username);<br>    form.add(<span class="hljs-string">&quot;password&quot;</span>, password);<br><br>    HttpEntity&lt;MultiValueMap&lt;String, String&gt;&gt; entity = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpEntity</span>&lt;&gt;(form, headers);<br><br>    <span class="hljs-keyword">return</span> restTemplate.postForObject(<br>        <span class="hljs-string">&quot;https://api.example.com/login&quot;</span>,<br>        entity,<br>        String.class<br>    );<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="自定义请求头：postForObject-还是-exchange？"><a href="#自定义请求头：postForObject-还是-exchange？" class="headerlink" title="自定义请求头：postForObject 还是 exchange？"></a>自定义请求头：postForObject 还是 exchange？</h4><p>上面两个带请求头的例子，一个用 <code>exchange</code>、一个用 <code>postForObject</code>，容易让人以为”自定义请求头必须用 <code>exchange</code>“——其实不是。<code>postForObject</code> 本身也支持传 <code>HttpEntity</code>（”POST 表单”那个例子就是这么写的），所以 <code>createUserWithHeaders</code> 改成下面这样同样可以工作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">return</span> restTemplate.postForObject(<br>    <span class="hljs-string">&quot;https://api.example.com/users&quot;</span>,<br>    entity,     <span class="hljs-comment">// HttpEntity&lt;CreateUserRequest&gt;，带 headers</span><br>    User.class<br>);<br></code></pre></td></tr></table></figure>
+
+<p>两者真正的区别在<strong>返回值</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>返回值</th>
+<th>能拿到什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>postForObject</code></td>
+<td><code>T</code>（只有响应体）</td>
+<td>反序列化后的 body</td>
+</tr>
+<tr>
+<td><code>exchange</code></td>
+<td><code>ResponseEntity&lt;T&gt;</code></td>
+<td>body + 状态码 + 响应头</td>
+</tr>
+</tbody></table>
+<p>如果只要响应体，<code>postForObject</code> 更简洁；如果要读响应头（比如创建资源后从 <code>Location</code> 头取新资源地址）或检查状态码是不是 <code>201 Created</code>，就必须用 <code>exchange</code>，因为 <code>postForObject</code> 把这些信息都丢弃了。</p>
+<p>另外，<code>exchange</code> 是唯一支持<strong>所有 HTTP 方法</strong>的方法——2.4 节的 <code>PATCH</code> 没有对应的 <code>patchForObject</code>，只能用 <code>exchange</code>。所以很多人习惯统一用 <code>exchange</code>，不用记 <code>postForObject</code>&#x2F;<code>putForObject</code> 各自的参数顺序。</p>
+<h3 id="2-4-PUT-DELETE-PATCH"><a href="#2-4-PUT-DELETE-PATCH" class="headerlink" title="2.4 PUT &#x2F; DELETE &#x2F; PATCH"></a>2.4 PUT &#x2F; DELETE &#x2F; PATCH</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// PUT</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">updateUser</span><span class="hljs-params">(Long id, User user)</span> &#123;<br>    restTemplate.put(<span class="hljs-string">&quot;https://api.example.com/users/&#123;id&#125;&quot;</span>, user, id);<br>&#125;<br><br><span class="hljs-comment">// DELETE</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteUser</span><span class="hljs-params">(Long id)</span> &#123;<br>    restTemplate.delete(<span class="hljs-string">&quot;https://api.example.com/users/&#123;id&#125;&quot;</span>, id);<br>&#125;<br><br><span class="hljs-comment">// PATCH（需要用 exchange）</span><br><span class="hljs-keyword">public</span> User <span class="hljs-title function_">patchUser</span><span class="hljs-params">(Long id, Map&lt;String, Object&gt; fields)</span> &#123;<br>    HttpEntity&lt;Map&lt;String, Object&gt;&gt; entity = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpEntity</span>&lt;&gt;(fields);<br>    ResponseEntity&lt;User&gt; response = restTemplate.exchange(<br>        <span class="hljs-string">&quot;https://api.example.com/users/&#123;id&#125;&quot;</span>,<br>        HttpMethod.PATCH,<br>        entity,<br>        User.class,<br>        id<br>    );<br>    <span class="hljs-keyword">return</span> response.getBody();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-5-异常处理"><a href="#2-5-异常处理" class="headerlink" title="2.5 异常处理"></a>2.5 异常处理</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// RestTemplate 在 4xx/5xx 时默认抛异常</span><br><span class="hljs-keyword">try</span> &#123;<br>    <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> restTemplate.getForObject(url, User.class);<br>&#125; <span class="hljs-keyword">catch</span> (HttpClientErrorException e) &#123;<br>    <span class="hljs-comment">// 4xx 错误</span><br>    <span class="hljs-keyword">if</span> (e.getStatusCode() == HttpStatus.NOT_FOUND) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125;<br>    <span class="hljs-keyword">throw</span> e;<br>&#125; <span class="hljs-keyword">catch</span> (HttpServerErrorException e) &#123;<br>    <span class="hljs-comment">// 5xx 错误</span><br>    log.error(<span class="hljs-string">&quot;服务端错误: &#123;&#125;&quot;</span>, e.getResponseBodyAsString());<br>    <span class="hljs-keyword">throw</span> e;<br>&#125; <span class="hljs-keyword">catch</span> (ResourceAccessException e) &#123;<br>    <span class="hljs-comment">// 连接超时、读取超时</span><br>    log.error(<span class="hljs-string">&quot;请求超时: &#123;&#125;&quot;</span>, e.getMessage());<br>    <span class="hljs-keyword">throw</span> e;<br>&#125;<br><br><span class="hljs-comment">// 或者自定义 ErrorHandler 统一处理</span><br><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> RestTemplate <span class="hljs-title function_">restTemplate</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">RestTemplate</span> <span class="hljs-variable">rt</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RestTemplate</span>();<br>    rt.setErrorHandler(<span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultResponseErrorHandler</span>() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">handleError</span><span class="hljs-params">(ClientHttpResponse response)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>            <span class="hljs-keyword">if</span> (response.getStatusCode().is4xxClientError()) &#123;<br>                <span class="hljs-comment">// 自定义 4xx 处理</span><br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-built_in">super</span>.handleError(response);<br>            &#125;<br>        &#125;<br>    &#125;);<br>    <span class="hljs-keyword">return</span> rt;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-6-拦截器（统一加请求头、日志）"><a href="#2-6-拦截器（统一加请求头、日志）" class="headerlink" title="2.6 拦截器（统一加请求头、日志）"></a>2.6 拦截器（统一加请求头、日志）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> RestTemplate <span class="hljs-title function_">restTemplate</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">RestTemplate</span> <span class="hljs-variable">rt</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RestTemplate</span>();<br>    rt.setInterceptors(List.of((request, body, execution) -&gt; &#123;<br>        <span class="hljs-comment">// 统一加请求头</span><br>        request.getHeaders().set(<span class="hljs-string">&quot;X-App-Name&quot;</span>, <span class="hljs-string">&quot;my-app&quot;</span>);<br>        request.getHeaders().set(<span class="hljs-string">&quot;X-Request-Id&quot;</span>, UUID.randomUUID().toString());<br><br>        <span class="hljs-comment">// 日志</span><br>        log.info(<span class="hljs-string">&quot;HTTP &#123;&#125; &#123;&#125;&quot;</span>, request.getMethod(), request.getURI());<br>        <span class="hljs-type">long</span> <span class="hljs-variable">start</span> <span class="hljs-operator">=</span> System.currentTimeMillis();<br><br>        <span class="hljs-type">ClientHttpResponse</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> execution.execute(request, body);<br><br>        log.info(<span class="hljs-string">&quot;HTTP &#123;&#125; &#123;&#125; → &#123;&#125; (&#123;&#125;ms)&quot;</span>,<br>            request.getMethod(), request.getURI(),<br>            response.getStatusCode(), System.currentTimeMillis() - start);<br><br>        <span class="hljs-keyword">return</span> response;<br>    &#125;));<br>    <span class="hljs-keyword">return</span> rt;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-WebClient（Spring-5-）"><a href="#3-WebClient（Spring-5-）" class="headerlink" title="3. WebClient（Spring 5+）"></a>3. WebClient（Spring 5+）</h2><h3 id="3-1-依赖"><a href="#3-1-依赖" class="headerlink" title="3.1 依赖"></a>3.1 依赖</h3><p><code>WebClient</code> 来自 <code>spring-webflux</code> 模块，所以要引入 <code>spring-boot-starter-webflux</code>：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-webflux<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>Gradle 写法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">dependencies &#123;<br>    implementation(<span class="hljs-string">&quot;org.springframework.boot:spring-boot-starter-webflux&quot;</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：引入 <code>webflux</code> 不代表你的项目变成了”响应式项目”——你完全可以在一个普通的 Spring MVC（<code>spring-boot-starter-web</code>）项目里，只用 <code>WebClient</code> 来发请求，其他部分照常写同步代码。两个 starter 可以共存，互不冲突。</p>
+</blockquote>
+<h3 id="3-2-创建-WebClient"><a href="#3-2-创建-WebClient" class="headerlink" title="3.2 创建 WebClient"></a>3.2 创建 WebClient</h3><p><code>WebClient</code> 用 <code>WebClient.builder()</code> 这种”建造者模式”来配置——把所有公共配置（域名、默认请求头、日志&#x2F;鉴权逻辑）在创建时一次性定好，之后每次发请求就不用重复写这些东西了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebClientConfig</span> &#123;<br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> WebClient <span class="hljs-title function_">webClient</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> WebClient.builder()<br>            .baseUrl(<span class="hljs-string">&quot;https://api.example.com&quot;</span>)<br>            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)<br>            .defaultHeader(<span class="hljs-string">&quot;X-App-Name&quot;</span>, <span class="hljs-string">&quot;my-app&quot;</span>)<br>            .filter(logFilter())     <span class="hljs-comment">// 日志过滤器</span><br>            .build();<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> ExchangeFilterFunction <span class="hljs-title function_">logFilter</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> ExchangeFilterFunction.ofRequestProcessor(request -&gt; &#123;<br>            log.info(<span class="hljs-string">&quot;HTTP &#123;&#125; &#123;&#125;&quot;</span>, request.method(), request.url());<br>            <span class="hljs-keyword">return</span> Mono.just(request);<br>        &#125;);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>逐项拆解 <code>builder()</code> 上配置的几个方法：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+<th>为什么要配置它</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>baseUrl(&quot;https://api.example.com&quot;)</code></td>
+<td>设置这个 <code>WebClient</code> 实例的”基础域名”</td>
+<td>之后每次请求只需要写 <code>/users/{id}</code> 这种相对路径，不用每次都拼完整 URL；更重要的是，<strong>域名可以做成配置项</strong>（<code>@Value</code> 注入），不同环境（测试&#x2F;预发&#x2F;生产）指向不同的 DSP 地址，代码完全不用改</td>
+</tr>
+<tr>
+<td><code>defaultHeader(...)</code></td>
+<td>给这个 <code>WebClient</code> 发出的<strong>所有</strong>请求都自动加上某个请求头</td>
+<td>比如 <code>Content-Type: application/json</code>、自定义的 <code>X-App-Name</code> 标识——这些是”每次请求都一样”的信息，写一次，所有请求自动带上，避免每个方法里重复写</td>
+</tr>
+<tr>
+<td><code>.filter(...)</code></td>
+<td>注册一个”请求&#x2F;响应处理函数”，所有请求都会经过它</td>
+<td>用于日志、鉴权、统一处理这类”横切逻辑”，下面单独讲</td>
+</tr>
+</tbody></table>
+<h4 id="ExchangeFilterFunction-是什么"><a href="#ExchangeFilterFunction-是什么" class="headerlink" title="ExchangeFilterFunction 是什么"></a>ExchangeFilterFunction 是什么</h4><p><code>ExchangeFilterFunction</code> 可以理解为 <strong>WebClient 专属的”过滤器”</strong>——和 <a href="/2026/05/29/Java-basic/29-tomcat-servlet/">29 Tomcat 与 Servlet</a> 里讲的 <code>Filter</code> 是同一个思路：<strong>每个请求发出去之前、响应回来之后，都会先经过这一层，可以在这里”加点东西”或者”看一眼”</strong>。</p>
+<p>它本质上是一个函数式接口，长这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Mono&lt;ClientResponse&gt; <span class="hljs-title function_">filter</span><span class="hljs-params">(ClientRequest request, ExchangeFunction next)</span>;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>request</code>：即将发出的请求</li>
+<li><code>next</code>：调用 <code>next.exchange(request)</code> 才会真正把请求发出去</li>
+<li>返回值：最终的响应</li>
+</ul>
+<p>为了不用每次都写这么复杂的签名，Spring 提供了两个常用的静态工厂方法：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>时机</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ExchangeFilterFunction.ofRequestProcessor(req -&gt; ...)</code></td>
+<td><strong>请求发出前</strong></td>
+<td>打印请求日志、注入 token&#x2F;签名、记录开始时间</td>
+</tr>
+<tr>
+<td><code>ExchangeFilterFunction.ofResponseProcessor(resp -&gt; ...)</code></td>
+<td><strong>响应返回后</strong></td>
+<td>打印响应日志、记录耗时、统一处理某些状态码</td>
+</tr>
+</tbody></table>
+<p>上面例子里的 <code>logFilter()</code> 用的是 <code>ofRequestProcessor</code>——每次请求发出前，打印一行 <code>HTTP GET /users/1</code> 的日志，然后 <code>return Mono.just(request)</code> 把请求原样传给下一环节（不修改它）。</p>
+<p><strong>什么时候调用？</strong> 和 Filter 链一样，<strong>注册了几个 <code>.filter(...)</code>，就有几层”包裹”</strong>，按注册顺序依次执行”请求前”逻辑，再发出真实请求，响应回来后再按相反顺序执行”响应后”逻辑。日常最常见的用法就是<strong>统一打日志</strong>和<strong>统一往请求头里塞鉴权 token</strong>（比如调用第三方接口需要签名时）。</p>
+<h3 id="3-3-同步调用（block）"><a href="#3-3-同步调用（block）" class="headerlink" title="3.3 同步调用（block）"></a>3.3 同步调用（block）</h3><h4 id="调用链每一步返回的是什么"><a href="#调用链每一步返回的是什么" class="headerlink" title="调用链每一步返回的是什么"></a>调用链每一步返回的是什么</h4><p><code>webClient.get().uri(...).retrieve().bodyToMono(User.class).block()</code> 这一长串，<strong>每个方法返回的对象都不一样</strong>，是一步步”换挡”的过程：</p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>返回类型</th>
+<th>这一步在干什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.get()</code></td>
+<td><code>RequestHeadersUriSpec</code></td>
+<td>声明这是一个 GET 请求，还没指定地址</td>
+</tr>
+<tr>
+<td><code>.uri(&quot;/users/{id}&quot;, id)</code></td>
+<td><code>RequestHeadersSpec</code></td>
+<td>指定了请求地址，可以继续加请求头，但<strong>还没真正发出请求</strong></td>
+</tr>
+<tr>
+<td><code>.retrieve()</code></td>
+<td><code>ResponseSpec</code></td>
+<td>表示”配置完了，准备发起请求并处理响应”——但这一步<strong>返回的还不是响应数据</strong>，而是一个”响应规格”，可以在它上面声明”4xx&#x2F;5xx 时怎么处理”（即 3.5 节的 <code>onStatus</code>）</td>
+</tr>
+<tr>
+<td><code>.bodyToMono(User.class)</code></td>
+<td><code>Mono&lt;User&gt;</code></td>
+<td><strong>这一步才是真正”取数据”的关键</strong>：告诉 WebClient”把响应体的 JSON 反序列化成 <code>User</code> 对象”，并包装成 <code>Mono&lt;User&gt;</code></td>
+</tr>
+<tr>
+<td><code>.block()</code></td>
+<td><code>User</code></td>
+<td>阻塞等待，把 <code>Mono&lt;User&gt;</code> 拆开，拿到真正的 <code>User</code> 对象</td>
+</tr>
+</tbody></table>
+<p><strong>为什么 <code>retrieve()</code> 后面一定要接一个 <code>bodyTo...</code>？</strong> 因为 <code>retrieve()</code> 本身只是”发起请求 + 准备好处理响应状态码”，它<strong>不知道你想把响应体解析成什么类型</strong>——是单个对象（<code>User</code>）还是列表（<code>List&lt;User&gt;</code>）、还是干脆不需要返回体（<code>Void</code>）。<code>bodyToMono(Class)</code> &#x2F; <code>bodyToFlux(Class)</code> &#x2F; <code>toBodilessEntity()</code> 这些方法的作用就是<strong>告诉 WebClient 该用哪种方式解析响应体</strong>，所以 <code>retrieve()</code> 必须搭配其中一个一起用，缺了它，请求虽然能发出去，但你拿不到任何结果。</p>
+<h4 id="Mono-与-Flux-的区别"><a href="#Mono-与-Flux-的区别" class="headerlink" title="Mono 与 Flux 的区别"></a>Mono 与 Flux 的区别</h4><p>可以类比”取餐小票”：请求刚发出去，菜还没做好，WebClient 先给你一张小票，等结果真的回来了，再把值”填”进这张小票里。区别在于<strong>小票对应几份餐</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>Mono&lt;T&gt;</code></th>
+<th><code>Flux&lt;T&gt;</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代表多少个结果</td>
+<td><strong>0 或 1 个</strong></td>
+<td><strong>0 到 N 个</strong>（一个序列&#x2F;数据流）</td>
+</tr>
+<tr>
+<td>类比</td>
+<td>一张小票，对应一份餐</td>
+<td>一张小票，对应一筐餐——会一份一份地往外发</td>
+</tr>
+<tr>
+<td>典型用法</td>
+<td>请求一个用户，响应体是单个 JSON 对象 → <code>bodyToMono(User.class)</code></td>
+<td>请求用户列表，响应体是 JSON 数组 → <code>bodyToFlux(User.class)</code>，每个数组元素就是流里的一个元素</td>
+</tr>
+<tr>
+<td>拆出最终值</td>
+<td><code>.block()</code> 拿到一个 <code>T</code>（或 <code>null</code>）</td>
+<td><code>.collectList().block()</code> 把流里所有元素收集成 <code>List&lt;T&gt;</code> 再拿出来；也可以 <code>.toStream()</code> 等方式逐个处理</td>
+</tr>
+</tbody></table>
+<p><strong>为什么要区分这两种？</strong> 因为”一个结果”和”一连串结果”在响应式编程里处理方式不同——<code>Mono</code> 只需要关心”有没有&#x2F;到了没”，<code>Flux</code> 还需要关心”还有没有下一个、什么时候算结束”。把这两种情况用不同的类型表达出来，编译器和 API 就能帮你避免”把单个结果当成列表处理”之类的错误。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.retrieve()</code></td>
+<td>发起请求，并声明”我要处理这个响应”。如果响应是 4xx&#x2F;5xx，<code>retrieve()</code> 会自动抛异常（3.5 节会细讲）</td>
+</tr>
+<tr>
+<td><code>.bodyToMono(User.class)</code></td>
+<td>把响应体的 JSON 反序列化成一个 <code>User</code> 对象，包装成 <code>Mono&lt;User&gt;</code></td>
+</tr>
+<tr>
+<td><code>.bodyToFlux(User.class)</code></td>
+<td>响应是一个 JSON 数组时，反序列化成多个 <code>User</code>，包装成 <code>Flux&lt;User&gt;</code></td>
+</tr>
+<tr>
+<td><code>.block()</code></td>
+<td><strong>阻塞当前线程</strong>，等待 <code>Mono</code>&#x2F;<code>Flux</code> 真正拿到结果，再把值”拆出来”返回</td>
+</tr>
+</tbody></table>
+<p>在传统的 Spring MVC 项目里（每个请求一个线程，本身就是同步模型），调用 <code>.block()</code> 把异步结果转换成同步返回值是很常见的——<code>Controller</code> 方法本身要 <code>return User</code>，不能返回一个”小票”给前端。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserClient</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> WebClient webClient;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">UserClient</span><span class="hljs-params">(WebClient webClient)</span> &#123;<br>        <span class="hljs-built_in">this</span>.webClient = webClient;<br>    &#125;<br><br>    <span class="hljs-comment">// GET</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUser</span><span class="hljs-params">(Long id)</span> &#123;<br>        <span class="hljs-keyword">return</span> webClient.get()<br>            .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, id)<br>            .retrieve()<br>            .bodyToMono(User.class)<br>            .block();  <span class="hljs-comment">// 阻塞等待结果（在传统 MVC 项目中常用）</span><br>    &#125;<br><br>    <span class="hljs-comment">// GET 列表</span><br>    <span class="hljs-keyword">public</span> List&lt;User&gt; <span class="hljs-title function_">listUsers</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> webClient.get()<br>            .uri(<span class="hljs-string">&quot;/users&quot;</span>)<br>            .retrieve()<br>            .bodyToFlux(User.class)<br>            .collectList()<br>            .block();<br>    &#125;<br><br>    <span class="hljs-comment">// POST</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">createUser</span><span class="hljs-params">(CreateUserRequest req)</span> &#123;<br>        <span class="hljs-keyword">return</span> webClient.post()<br>            .uri(<span class="hljs-string">&quot;/users&quot;</span>)<br>            .bodyValue(req)<br>            .retrieve()<br>            .bodyToMono(User.class)<br>            .block();<br>    &#125;<br><br>    <span class="hljs-comment">// PUT</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">updateUser</span><span class="hljs-params">(Long id, UpdateUserRequest req)</span> &#123;<br>        <span class="hljs-keyword">return</span> webClient.put()<br>            .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, id)<br>            .bodyValue(req)<br>            .retrieve()<br>            .bodyToMono(User.class)<br>            .block();<br>    &#125;<br><br>    <span class="hljs-comment">// DELETE</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteUser</span><span class="hljs-params">(Long id)</span> &#123;<br>        webClient.delete()<br>            .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, id)<br>            .retrieve()<br>            .toBodilessEntity()<br>            .block();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-4-异步调用（不阻塞）"><a href="#3-4-异步调用（不阻塞）" class="headerlink" title="3.4 异步调用（不阻塞）"></a>3.4 异步调用（不阻塞）</h3><p>如果项目本身是响应式的（比如用 WebFlux 写 Controller），就不应该调用 <code>.block()</code>——一旦 <code>block()</code>，当前线程就被”卡住”等结果，违背了响应式”不阻塞线程”的初衷。这种场景下，方法直接返回 <code>Mono</code>&#x2F;<code>Flux</code>，把”什么时候要结果”的决定权交给调用者（最终由 WebFlux 框架在合适的时机去”拆小票”）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 返回 Mono / Flux，由调用者决定何时获取结果</span><br><span class="hljs-keyword">public</span> Mono&lt;User&gt; <span class="hljs-title function_">getUserAsync</span><span class="hljs-params">(Long id)</span> &#123;<br>    <span class="hljs-keyword">return</span> webClient.get()<br>        .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, id)<br>        .retrieve()<br>        .bodyToMono(User.class);<br>&#125;<br><br><span class="hljs-comment">// 并发调用多个接口</span><br><span class="hljs-keyword">public</span> Mono&lt;UserPage&gt; <span class="hljs-title function_">getUserPage</span><span class="hljs-params">(Long userId)</span> &#123;<br>    Mono&lt;User&gt; userMono = webClient.get()<br>        .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, userId)<br>        .retrieve().bodyToMono(User.class);<br><br>    Mono&lt;List&lt;Order&gt;&gt; ordersMono = webClient.get()<br>        .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;/orders&quot;</span>, userId)<br>        .retrieve().bodyToFlux(Order.class).collectList();<br><br>    <span class="hljs-comment">// 两个请求并发执行，全部完成后合并</span><br>    <span class="hljs-keyword">return</span> Mono.zip(userMono, ordersMono, (user, orders) -&gt;<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">UserPage</span>(user, orders));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>Mono.zip(...)</code> 的作用：手里有两张”小票”（两个还没到的结果），<strong>等两张小票都兑换成功后</strong>，用提供的函数把两个结果合并成一个新对象，再包成一张新的”小票”返回。两个请求是<strong>并发发出</strong>的，不是”等第一个完成再发第二个”——这正是异步调用相比 <code>block()</code> 的优势：不需要为了等第一个结果而占用线程。</p>
+<h3 id="3-5-异常处理"><a href="#3-5-异常处理" class="headerlink" title="3.5 异常处理"></a>3.5 异常处理</h3><p><code>.retrieve()</code> 本身就有”默认的异常处理”——响应状态码是 4xx 或 5xx 时，会自动抛出 <code>WebClientResponseException</code>（不需要你手动判断状态码）。<code>.onStatus(...)</code> 是用来<strong>覆盖默认行为</strong>的：对特定的状态码，转换成你自己定义的异常类型，方便上层用 <code>catch</code> 区分处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUser</span><span class="hljs-params">(Long id)</span> &#123;<br>    <span class="hljs-keyword">return</span> webClient.get()<br>        .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, id)<br>        .retrieve()<br>        .onStatus(HttpStatusCode::is4xxClientError, response -&gt; &#123;<br>            <span class="hljs-keyword">if</span> (response.statusCode() == HttpStatus.NOT_FOUND) &#123;<br>                <span class="hljs-keyword">return</span> Mono.error(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ResourceNotFoundException</span>(<span class="hljs-string">&quot;User not found: &quot;</span> + id));<br>            &#125;<br>            <span class="hljs-keyword">return</span> response.bodyToMono(String.class)<br>                .flatMap(body -&gt; Mono.error(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Client error: &quot;</span> + body)));<br>        &#125;)<br>        .onStatus(HttpStatusCode::is5xxServerError, response -&gt;<br>            Mono.error(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Server error: &quot;</span> + response.statusCode())))<br>        .bodyToMono(User.class)<br>        .block();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-6-超时设置"><a href="#3-6-超时设置" class="headerlink" title="3.6 超时设置"></a>3.6 超时设置</h3><p>超时其实分两个层次，作用范围不一样：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>设置方式</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>WebClient 级别</strong>（创建时配置一次）</td>
+<td><code>HttpClient.create().option(CONNECT_TIMEOUT_MILLIS, ...)</code> + <code>.responseTimeout(...)</code></td>
+<td>对这个 <code>WebClient</code> 发出的<strong>所有</strong>请求生效——<code>CONNECT_TIMEOUT</code>是”建立TCP连接”的超时，<code>responseTimeout</code>是”等响应头返回”的超时</td>
+</tr>
+<tr>
+<td><strong>单次请求级别</strong></td>
+<td>在调用链上加 <code>.timeout(Duration...)</code></td>
+<td>只对<strong>这一次</strong>调用生效，控制”从发出请求到拿到完整响应体”的端到端总时间</td>
+</tr>
+</tbody></table>
+<p>实际项目里通常两者都配：WebClient 级别设置一个”兜底”的较大值，单次请求再根据具体接口的 SLA 设置更精确的超时（比如竞价请求要求 100ms 内必须返回，远小于全局默认值）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> WebClient <span class="hljs-title function_">webClient</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">HttpClient</span> <span class="hljs-variable">httpClient</span> <span class="hljs-operator">=</span> HttpClient.create()<br>        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, <span class="hljs-number">3000</span>)<br>        .responseTimeout(Duration.ofSeconds(<span class="hljs-number">10</span>));<br><br>    <span class="hljs-keyword">return</span> WebClient.builder()<br>        .baseUrl(<span class="hljs-string">&quot;https://api.example.com&quot;</span>)<br>        .clientConnector(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ReactorClientHttpConnector</span>(httpClient))<br>        .build();<br>&#125;<br><br><span class="hljs-comment">// 单个请求设置超时</span><br>webClient.get()<br>    .uri(<span class="hljs-string">&quot;/slow-endpoint&quot;</span>)<br>    .retrieve()<br>    .bodyToMono(String.class)<br>    .timeout(Duration.ofSeconds(<span class="hljs-number">5</span>))   <span class="hljs-comment">// 5 秒超时</span><br>    .block();<br></code></pre></td></tr></table></figure>
+
+<h2 id="4-重试与熔断"><a href="#4-重试与熔断" class="headerlink" title="4. 重试与熔断"></a>4. 重试与熔断</h2><h3 id="4-1-WebClient-内置重试"><a href="#4-1-WebClient-内置重试" class="headerlink" title="4.1 WebClient 内置重试"></a>4.1 WebClient 内置重试</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUserWithRetry</span><span class="hljs-params">(Long id)</span> &#123;<br>    <span class="hljs-keyword">return</span> webClient.get()<br>        .uri(<span class="hljs-string">&quot;/users/&#123;id&#125;&quot;</span>, id)<br>        .retrieve()<br>        .bodyToMono(User.class)<br>        .retryWhen(Retry.backoff(<span class="hljs-number">3</span>, Duration.ofSeconds(<span class="hljs-number">1</span>))  <span class="hljs-comment">// 最多重试 3 次，指数退避</span><br>            .filter(ex -&gt; ex <span class="hljs-keyword">instanceof</span> WebClientResponseException.ServiceUnavailable)<br>            .onRetryExhaustedThrow((spec, signal) -&gt;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;重试 3 次后仍然失败&quot;</span>)))<br>        .block();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-2-RestTemplate-重试（Spring-Retry）"><a href="#4-2-RestTemplate-重试（Spring-Retry）" class="headerlink" title="4.2 RestTemplate 重试（Spring Retry）"></a>4.2 RestTemplate 重试（Spring Retry）</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">dependencies &#123;<br>    implementation(<span class="hljs-string">&quot;org.springframework.retry:spring-retry&quot;</span>)<br>    implementation(<span class="hljs-string">&quot;org.springframework:spring-aspects&quot;</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserClient</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RestTemplate restTemplate;<br><br>    <span class="hljs-meta">@Retryable(</span><br><span class="hljs-meta">        retryFor = ResourceAccessException.class,   // 只对超时重试</span><br><span class="hljs-meta">        maxAttempts = 3,</span><br><span class="hljs-meta">        backoff = @Backoff(delay = 1000, multiplier = 2)  // 1s → 2s → 4s</span><br><span class="hljs-meta">    )</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUser</span><span class="hljs-params">(Long id)</span> &#123;<br>        <span class="hljs-keyword">return</span> restTemplate.getForObject(<br>            <span class="hljs-string">&quot;https://api.example.com/users/&#123;id&#125;&quot;</span>, User.class, id);<br>    &#125;<br><br>    <span class="hljs-meta">@Recover</span>  <span class="hljs-comment">// 重试全部失败后的兜底方法</span><br>    <span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUserFallback</span><span class="hljs-params">(ResourceAccessException e, Long id)</span> &#123;<br>        log.error(<span class="hljs-string">&quot;获取用户失败，返回默认值: id=&#123;&#125;&quot;</span>, id);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(<span class="hljs-string">&quot;Unknown&quot;</span>, <span class="hljs-string">&quot;unknown@example.com&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="5-广告系统中的-HTTP-调用实战"><a href="#5-广告系统中的-HTTP-调用实战" class="headerlink" title="5. 广告系统中的 HTTP 调用实战"></a>5. 广告系统中的 HTTP 调用实战</h2><h3 id="5-1-竞价请求（低延迟要求）"><a href="#5-1-竞价请求（低延迟要求）" class="headerlink" title="5.1 竞价请求（低延迟要求）"></a>5.1 竞价请求（低延迟要求）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BidClient</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> WebClient webClient;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">BidClient</span><span class="hljs-params">(WebClient.Builder builder)</span> &#123;<br>        <span class="hljs-type">HttpClient</span> <span class="hljs-variable">httpClient</span> <span class="hljs-operator">=</span> HttpClient.create()<br>            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, <span class="hljs-number">500</span>)   <span class="hljs-comment">// 连接超时 500ms</span><br>            .responseTimeout(Duration.ofMillis(<span class="hljs-number">100</span>));            <span class="hljs-comment">// 响应超时 100ms</span><br><br>        <span class="hljs-built_in">this</span>.webClient = builder<br>            .clientConnector(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ReactorClientHttpConnector</span>(httpClient))<br>            .build();<br>    &#125;<br><br>    <span class="hljs-comment">// 并发向多个 DSP 发送竞价请求</span><br>    <span class="hljs-keyword">public</span> List&lt;BidResponse&gt; <span class="hljs-title function_">sendBidRequests</span><span class="hljs-params">(BidRequest request, List&lt;String&gt; dspUrls)</span> &#123;<br>        List&lt;Mono&lt;BidResponse&gt;&gt; monos = dspUrls.stream()<br>            .map(url -&gt; webClient.post()<br>                .uri(url)<br>                .bodyValue(request)<br>                .retrieve()<br>                .bodyToMono(BidResponse.class)<br>                .timeout(Duration.ofMillis(<span class="hljs-number">150</span>))<br>                .onErrorResume(e -&gt; &#123;<br>                    log.warn(<span class="hljs-string">&quot;DSP &#123;&#125; 请求失败: &#123;&#125;&quot;</span>, url, e.getMessage());<br>                    <span class="hljs-keyword">return</span> Mono.empty();  <span class="hljs-comment">// 某个 DSP 失败不影响其他</span><br>                &#125;))<br>            .collect(Collectors.toList());<br><br>        <span class="hljs-keyword">return</span> Flux.merge(monos)<br>            .collectList()<br>            .block(Duration.ofMillis(<span class="hljs-number">200</span>));  <span class="hljs-comment">// 最多等 200ms</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-2-素材审核回调（可靠性要求）"><a href="#5-2-素材审核回调（可靠性要求）" class="headerlink" title="5.2 素材审核回调（可靠性要求）"></a>5.2 素材审核回调（可靠性要求）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AuditCallbackClient</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RestTemplate restTemplate;<br><br>    <span class="hljs-meta">@Retryable(maxAttempts = 5, backoff = @Backoff(delay = 2000, multiplier = 2))</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">notifyAuditResult</span><span class="hljs-params">(String callbackUrl, AuditResult result)</span> &#123;<br>        <span class="hljs-type">HttpHeaders</span> <span class="hljs-variable">headers</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpHeaders</span>();<br>        headers.setContentType(MediaType.APPLICATION_JSON);<br>        headers.set(<span class="hljs-string">&quot;X-Signature&quot;</span>, sign(result));<br><br>        HttpEntity&lt;AuditResult&gt; entity = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpEntity</span>&lt;&gt;(result, headers);<br>        restTemplate.postForEntity(callbackUrl, entity, Void.class);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="6-RestTemplate-vs-WebClient-选型速查"><a href="#6-RestTemplate-vs-WebClient-选型速查" class="headerlink" title="6. RestTemplate vs WebClient 选型速查"></a>6. RestTemplate vs WebClient 选型速查</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>简单的同步调用</td>
+<td>RestTemplate（代码最少）</td>
+</tr>
+<tr>
+<td>需要并发调用多个接口</td>
+<td>WebClient（Mono.zip &#x2F; Flux.merge）</td>
+</tr>
+<tr>
+<td>低延迟高并发（竞价）</td>
+<td>WebClient（非阻塞，不占线程）</td>
+</tr>
+<tr>
+<td>传统 Spring MVC 项目</td>
+<td>都行，WebClient + block() 也可以</td>
+</tr>
+<tr>
+<td>响应式项目（WebFlux）</td>
+<td>只能用 WebClient</td>
+</tr>
+<tr>
+<td>需要重试 &#x2F; 熔断</td>
+<td>WebClient 内置 retryWhen；RestTemplate 用 Spring Retry</td>
+</tr>
+</tbody></table>
+<h2 id="7-小结"><a href="#7-小结" class="headerlink" title="7. 小结"></a>7. 小结</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RestTemplate</td>
+<td>同步阻塞，API 直观；getForObject &#x2F; postForObject &#x2F; exchange</td>
+</tr>
+<tr>
+<td>请求定制</td>
+<td>HttpHeaders + HttpEntity 控制请求头和请求体</td>
+</tr>
+<tr>
+<td>异常处理</td>
+<td>4xx → HttpClientErrorException，5xx → HttpServerErrorException</td>
+</tr>
+<tr>
+<td>拦截器</td>
+<td>统一加请求头、日志、监控</td>
+</tr>
+<tr>
+<td>WebClient</td>
+<td>异步非阻塞，链式 API；.block() 可以当同步用</td>
+</tr>
+<tr>
+<td>并发调用</td>
+<td>Mono.zip 合并多个请求，Flux.merge 取最快返回的</td>
+</tr>
+<tr>
+<td>超时设置</td>
+<td>连接超时 + 响应超时分开设置</td>
+</tr>
+<tr>
+<td>重试</td>
+<td>WebClient 用 retryWhen，RestTemplate 用 @Retryable</td>
+</tr>
+<tr>
+<td>广告场景</td>
+<td>竞价请求用 WebClient 并发 + 短超时；回调通知用 RestTemplate + 重试</td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>系列完结</strong>。从 Java 语言基础到 Spring Boot 实战、缓存、HTTP 客户端，整个系列覆盖了一个 Java 后端开发者入职前需要掌握的完整知识体系。</p>
+</blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-basics/" class="category-chain-item">java-basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/HTTP/" class="print-no-link">#HTTP</a>
+      
+        <a href="/tags/RestTemplate/" class="print-no-link">#RestTemplate</a>
+      
+        <a href="/tags/WebClient/" class="print-no-link">#WebClient</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java基础(22) | HTTP 客户端：RestTemplate、WebClient 与远程调用</div>
+      <div>https://rebibabo.github.io/categories/java-basics/22/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-basics/21/" title="Java基础(21) | Redis 实战：Spring Data Redis 与缓存策略">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(21) | Redis 实战：Spring Data Redis 与缓存策略</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-basics/23/" title="Java基础(23) | SQL 进阶语法：常用函数、CTE 与窗口函数">
+                        <span class="hidden-mobile">Java基础(23) | SQL 进阶语法：常用函数、CTE 与窗口函数</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

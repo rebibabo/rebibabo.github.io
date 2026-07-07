@@ -1,0 +1,899 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="ReentrantLock 解决的是多个线程竞争共享数据时，如何保证同一时刻只有一个线程进入临界区；Condition 解决的是线程已经获得锁后，如何等待某个业务条件成立。并发程序中还有另一类问题：一个线程不一定要和其他线程互斥执行，但必须等多个任务全部完成后才能继续。 例如主线程启动三个工作线程，三个工作线程可以并发执行，但主线程必须等它们都结束后，才能汇总结果： 123456789101112">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/11/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="ReentrantLock 解决的是多个线程竞争共享数据时，如何保证同一时刻只有一个线程进入临界区；Condition 解决的是线程已经获得锁后，如何等待某个业务条件成立。并发程序中还有另一类问题：一个线程不一定要和其他线程互斥执行，但必须等多个任务全部完成后才能继续。 例如主线程启动三个工作线程，三个工作线程可以并发执行，但主线程必须等它们都结束后，才能汇总结果： 123456789101112">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.128Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="AQS">
+<meta property="article:tag" content="CountDownLatch">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-03 00:00" pubdate>
+          2026年7月3日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          65 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p><code>ReentrantLock</code> 解决的是多个线程竞争共享数据时，如何保证同一时刻只有一个线程进入临界区；<code>Condition</code> 解决的是线程已经获得锁后，如何等待某个业务条件成立。并发程序中还有另一类问题：一个线程不一定要和其他线程互斥执行，但必须等多个任务全部完成后才能继续。</p>
+<p>例如主线程启动三个工作线程，三个工作线程可以并发执行，但主线程必须等它们都结束后，才能汇总结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">CountDownLatch</span> <span class="hljs-variable">latch</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CountDownLatch</span>(<span class="hljs-number">3</span>);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    doWork1();<br>    latch.countDown();<br>&#125;);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker2</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    doWork2();<br>    latch.countDown();<br>&#125;);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker3</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    doWork3();<br>    latch.countDown();<br>&#125;);<br><br>worker1.start();<br>worker2.start();<br>worker3.start();<br><br>latch.await();<br>System.out.println(<span class="hljs-string">&quot;all workers finished&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这里的问题不是“谁能进入临界区”，而是“等待线程什么时候可以继续执行”。<code>CountDownLatch</code> 就是用来表达这种一次性的等待关系。</p>
+<h2 id="一、CountDownLatch-等待的是完成事件"><a href="#一、CountDownLatch-等待的是完成事件" class="headerlink" title="一、CountDownLatch 等待的是完成事件"></a>一、CountDownLatch 等待的是完成事件</h2><p>创建 <code>CountDownLatch</code> 时传入的数字表示还需要发生多少次完成事件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">CountDownLatch</span> <span class="hljs-variable">latch</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CountDownLatch</span>(<span class="hljs-number">3</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这个 <code>3</code> 通常对应三个任务，但它本质上不是线程数量，而是计数。每调用一次 <code>countDown()</code>，计数减少一；调用 <code>await()</code> 的线程会等待这个计数变成 <code>0</code>。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>countDown()</code></td>
+<td>报告一个完成事件已经发生</td>
+</tr>
+<tr>
+<td><code>await()</code></td>
+<td>等待所有完成事件都发生</td>
+</tr>
+</tbody></table>
+<p>因此，工作线程调用 <code>countDown()</code> 后不会等待其他线程，它只是把“自己这份事件已经完成”报告给 <code>CountDownLatch</code>，然后继续执行自己的后续代码。真正可能暂停的是调用 <code>await()</code> 的线程。</p>
+<p>也因为 CountDownLatch 只维护计数，所以它不能保证“三个不同线程各完成了一次”。即使同一个线程连续调用三次 <code>countDown()</code>，计数也会从 <code>3</code> 变成 <code>0</code>。一次 <code>countDown()</code> 是否真的对应一个任务完成，需要业务代码自己保证。</p>
+<h2 id="二、state-保存剩余计数，countDown-通过-CAS-递减"><a href="#二、state-保存剩余计数，countDown-通过-CAS-递减" class="headerlink" title="二、state 保存剩余计数，countDown 通过 CAS 递减"></a>二、state 保存剩余计数，countDown 通过 CAS 递减</h2><p><code>CountDownLatch</code> 基于 AQS 实现，并使用 AQS 的 <code>state</code> 保存剩余计数。创建对象时传入的初始值会写入 <code>state</code>：</p>
+<table>
+<thead>
+<tr>
+<th><code>state</code></th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>3</code></td>
+<td>还有三个完成事件没有发生</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>还有两个完成事件没有发生</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>还有一个完成事件没有发生</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>等待条件已经满足</td>
+</tr>
+</tbody></table>
+<p>这里的 <code>state</code> 和 <code>ReentrantLock</code> 中的含义不同。<code>ReentrantLock</code> 把 <code>state</code> 解释为锁状态和重入次数；<code>CountDownLatch</code> 把 <code>state</code> 解释为剩余完成事件数量。AQS 只提供同步状态和等待队列，具体语义由不同同步工具自己定义。</p>
+<p>多个工作线程可能同时调用 <code>countDown()</code>，所以内部不能直接执行普通的 <code>state--</code>。<code>state--</code> 至少包含读取、计算、写回三个步骤，两个线程同时执行时可能发生更新丢失。假设当前 <code>state == 3</code>，两个线程都读到 <code>3</code>，又都写回 <code>2</code>，那么两次 <code>countDown()</code> 只会产生一次有效递减。</p>
+<p><code>CountDownLatch</code> 使用 CAS 循环解决这个问题，可以简化理解为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (;;) &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">oldState</span> <span class="hljs-operator">=</span> getState();<br><br>    <span class="hljs-keyword">if</span> (oldState == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-type">int</span> <span class="hljs-variable">newState</span> <span class="hljs-operator">=</span> oldState - <span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">if</span> (compareAndSetState(oldState, newState)) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果线程 A 先执行 <code>CAS(3, 2)</code> 成功，线程 B 再执行 <code>CAS(3, 2)</code> 就会失败。线程 B 必须重新读取最新的 <code>state == 2</code>，再尝试 <code>CAS(2, 1)</code>。这样可以保证每一次成功的 <code>countDown()</code> 都对应一次真实递减。</p>
+<p>当 <code>state</code> 已经是 <code>0</code> 时，继续调用 <code>countDown()</code> 会直接返回，不会把计数减成负数。</p>
+<h2 id="三、await-等待-state-归零，共享模式放行等待线程"><a href="#三、await-等待-state-归零，共享模式放行等待线程" class="headerlink" title="三、await 等待 state 归零，共享模式放行等待线程"></a>三、await 等待 state 归零，共享模式放行等待线程</h2><p>调用 <code>await()</code> 时，线程会检查当前 <code>state</code>。如果 <code>state == 0</code>，说明等待条件已经满足，<code>await()</code> 直接返回；如果 <code>state &gt; 0</code>，说明还有完成事件没有发生，当前线程会进入 AQS 等待队列并暂停，不会持续空转占用 CPU。</p>
+<p>只有某次 <code>countDown()</code> 成功把 <code>state</code> 从 <code>1</code> 减到 <code>0</code> 时，才表示所有完成事件都已经发生，此时需要唤醒等待线程。前面的递减，例如 <code>3 → 2</code>、<code>2 → 1</code>，都不会让 <code>await()</code> 返回。</p>
+<pre><code class=" mermaid">graph LR
+    W1[&quot;工作线程 1&lt;br&gt;countDown&lt;br&gt;state 3 → 2&quot;] --&gt; W2[&quot;工作线程 2&lt;br&gt;countDown&lt;br&gt;state 2 → 1&quot;]
+    W2 --&gt; W3[&quot;工作线程 3&lt;br&gt;countDown&lt;br&gt;state 1 → 0&quot;]
+    W3 --&gt;|唤醒| Aw[&quot;等待线程&lt;br&gt;await 返回&quot;]
+    W1 -.-&gt;|不释放| Aw
+    W2 -.-&gt;|不释放| Aw
+</code></pre>
+
+<p><code>CountDownLatch</code> 使用的是 AQS 共享模式。共享的意思不是多个线程可以随意并发修改 <code>state</code>，而是当同步条件满足后，多个等待线程都可以通过。</p>
+<p>假设线程 A、B、C 都在同一个 <code>CountDownLatch</code> 上调用了 <code>await()</code>，当最后一次 <code>countDown()</code> 把 <code>state</code> 减到 <code>0</code> 后，A、B、C 都可以从 <code>await()</code> 返回。它们返回时不会消耗计数，<code>state</code> 仍然保持为 <code>0</code>。这和 <code>ReentrantLock</code> 的独占模式不同：锁一次只能由一个线程持有，而 CountDownLatch 的闸门打开后，所有等待线程都可以通过。</p>
+<h2 id="四、CountDownLatch-是一次性闸门"><a href="#四、CountDownLatch-是一次性闸门" class="headerlink" title="四、CountDownLatch 是一次性闸门"></a>四、CountDownLatch 是一次性闸门</h2><p><code>CountDownLatch</code> 的计数只能从初始值逐步减少到 <code>0</code>，不能重新增加，也没有 <code>reset()</code> 方法。一旦 <code>state</code> 变成 <code>0</code>，后续调用 <code>await()</code> 的线程都会直接返回，继续调用 <code>countDown()</code> 也不会改变状态。</p>
+<p>可以把它理解为一道一次性闸门：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>state &gt; 0</code></td>
+<td>闸门关闭，<code>await()</code> 线程等待</td>
+</tr>
+<tr>
+<td><code>state == 0</code></td>
+<td>闸门打开，所有等待线程通过</td>
+</tr>
+</tbody></table>
+<p>闸门打开后不会再次关闭。如果还要等待下一批任务完成，需要创建新的 <code>CountDownLatch</code>。如果需要同一批线程反复在多个阶段会合，应使用更适合循环使用的同步工具，而不是让一个 CountDownLatch 承担多轮协调。</p>
+<h2 id="五、countDown-通常放在-finally-中"><a href="#五、countDown-通常放在-finally-中" class="headerlink" title="五、countDown 通常放在 finally 中"></a>五、countDown 通常放在 finally 中</h2><p>如果某个工作线程在执行任务时抛出异常，并且没有执行到 <code>countDown()</code>，计数可能永远无法归零。比如初始计数是 <code>3</code>，两个任务正常调用了 <code>countDown()</code>，另一个任务异常退出却没有调用，那么 <code>state</code> 会停在 <code>1</code>，等待线程也会一直阻塞。</p>
+<p>这不是严格意义上的“两个线程互相等待对方释放资源”，更准确地说，是等待条件永远无法满足。因此，工作线程通常把 <code>countDown()</code> 放在 <code>finally</code> 中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Thread</span> <span class="hljs-variable">worker</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork();<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        latch.countDown();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>这样无论任务正常结束还是异常退出，当前任务对应的完成事件都会被报告。不过要注意，<code>countDown()</code> 只表示任务已经结束，不表示任务执行成功。完成状态和成功状态需要分开表达。</p>
+<h2 id="六、CountDownLatch-不保存任务结果"><a href="#六、CountDownLatch-不保存任务结果" class="headerlink" title="六、CountDownLatch 不保存任务结果"></a>六、CountDownLatch 不保存任务结果</h2><p><code>CountDownLatch</code> 只维护“还有多少任务没有结束”，不会记录任务返回值、成功失败或异常信息。如果等待线程还需要汇总结果，必须使用其他对象单独保存。</p>
+<p>例如多个工作线程可能抛出异常，可以使用线程安全队列保存错误：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">CountDownLatch</span> <span class="hljs-variable">latch</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CountDownLatch</span>(<span class="hljs-number">3</span>);<br><br>ConcurrentLinkedQueue&lt;Throwable&gt; errors =<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentLinkedQueue</span>&lt;&gt;();<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        errors.add(e);<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        latch.countDown();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>主线程在 <code>await()</code> 返回后再检查：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">latch.await();<br><br><span class="hljs-keyword">if</span> (errors.isEmpty()) &#123;<br>    System.out.println(<span class="hljs-string">&quot;all workers succeeded&quot;</span>);<br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    System.out.println(<span class="hljs-string">&quot;some workers failed&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里有两个独立职责：<code>CountDownLatch</code> 负责判断所有任务是否结束，结果容器负责保存任务结果。不能因为用了 CountDownLatch，就忽略结果容器本身的线程安全问题。</p>
+<p>如果多个线程都会向同一个集合添加异常，不能直接使用普通 <code>ArrayList</code>。一次 <code>add()</code> 可能涉及写入数组、修改 <code>size</code>、扩容等多个步骤，多个线程同时修改会破坏集合内部状态。此时应使用线程安全容器，或者额外加锁。</p>
+<p>不过，如果每个工作线程只写数组中固定的位置，就不一定需要线程安全队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">CountDownLatch</span> <span class="hljs-variable">latch</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CountDownLatch</span>(<span class="hljs-number">3</span>);<br>Throwable[] errors = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Throwable</span>[<span class="hljs-number">3</span>];<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork1();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        errors[<span class="hljs-number">0</span>] = e;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        latch.countDown();<br>    &#125;<br>&#125;);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker2</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork2();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        errors[<span class="hljs-number">1</span>] = e;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        latch.countDown();<br>    &#125;<br>&#125;);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker3</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork3();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        errors[<span class="hljs-number">2</span>] = e;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        latch.countDown();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>数组元素可以看作独立变量。只要每个线程写入自己的固定位置，就没有多个线程同时写同一个变量。主线程在 <code>await()</code> 返回后再读取这些位置即可。</p>
+<p>这种写法需要同时满足三个条件：每个工作线程只写自己的固定位置；写入结果发生在 <code>countDown()</code> 之前；主线程在 <code>await()</code> 返回之后读取。如果多个线程需要动态申请下标，例如使用 <code>nextIndex++</code>，竞争点就变成了 <code>nextIndex</code>，此时需要 <code>AtomicInteger</code> 等方式原子分配下标。</p>
+<h2 id="七、Lambda-捕获局部变量时，修改的是对象不是引用"><a href="#七、Lambda-捕获局部变量时，修改的是对象不是引用" class="headerlink" title="七、Lambda 捕获局部变量时，修改的是对象不是引用"></a>七、Lambda 捕获局部变量时，修改的是对象不是引用</h2><p>保存单个工作线程的异常时，有时会看到长度为 <code>1</code> 的数组：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Throwable[] error = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Throwable</span>[<span class="hljs-number">1</span>];<br></code></pre></td></tr></table></figure>
+
+<p>使用数组不是因为异常必须存进数组，而是因为 Lambda 捕获的局部变量必须是 <code>final</code> 或事实上 <code>final</code>。下面的代码无法编译：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Throwable</span> <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        error = e;<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>Lambda 试图重新给局部变量 <code>error</code> 赋值，所以它不再是事实上 <code>final</code>。使用数组后，局部变量 <code>error</code> 保存的数组引用没有变化，线程修改的是数组对象内部的元素。</p>
+<pre><code class=" mermaid">graph LR
+    subgraph Stack[&quot;工作线程栈&quot;]
+        err[&quot;error = 0x1000&quot;]
+    end
+    subgraph Heap[&quot;堆&quot;]
+        arr[&quot;Throwable[1] @ 0x1000&lt;br&gt;element[0] = exception&quot;]
+    end
+    err --&gt; arr
+</code></pre>
+
+<p>也可以使用普通 Holder 对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ResultHolder</span> &#123;<br>    Throwable error;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后在线程中修改对象字段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ResultHolder</span> <span class="hljs-variable">holder</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ResultHolder</span>();<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        holder.error = e;<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        latch.countDown();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>Lambda 限制的是不能重新给捕获的局部变量赋值，不是不能修改该局部变量所指向的对象。</p>
+<p>这一节和 CountDownLatch 本身没有直接绑定关系，只是解释结果保存代码中常见的数组或 Holder 写法。真正的并发保证仍然来自前文的线程安全容器、固定位置写入，以及后文要讲的 <code>await()</code> 可见性规则。</p>
+<h2 id="八、await-返回后为什么能看到任务结果"><a href="#八、await-返回后为什么能看到任务结果" class="headerlink" title="八、await 返回后为什么能看到任务结果"></a>八、await 返回后为什么能看到任务结果</h2><p><code>CountDownLatch</code> 不只负责等待，还提供内存可见性保证：一个线程在调用 <code>countDown()</code> 之前完成的操作，happens-before 另一个线程从对应 <code>await()</code> 成功返回后的操作。</p>
+<p>例如工作线程先保存异常，再调用 <code>countDown()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">try</span> &#123;<br>    doWork();<br>&#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>    errors.add(e);<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    latch.countDown();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>主线程随后从 <code>await()</code> 返回并检查结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">latch.await();<br><span class="hljs-type">boolean</span> <span class="hljs-variable">success</span> <span class="hljs-operator">=</span> errors.isEmpty();<br></code></pre></td></tr></table></figure>
+
+<p>当 <code>await()</code> 成功返回后，主线程不仅知道计数已经变成 <code>0</code>，还能够看到工作线程在各自 <code>countDown()</code> 之前产生的内存更新。</p>
+<p>顺序不能写反：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">latch.countDown();<br>errors.add(e);<br></code></pre></td></tr></table></figure>
+
+<p><code>errors.add(e)</code> 发生在 <code>countDown()</code> 之后，CountDownLatch 建立的 happens-before 关系不能保证主线程在 <code>await()</code> 返回时已经看到这次写入。所以任务结果必须先保存，再调用 <code>countDown()</code>。</p>
+<p>还要区分两件事：happens-before 保证的是写入结果对等待线程可见，但它不会修复多个线程同时修改同一个非线程安全对象时已经造成的内部破坏。比如多个线程并发修改普通 <code>ArrayList</code>，即使主线程在 <code>await()</code> 返回后能够看到内存更新，集合内部状态也可能已经不一致。</p>
+<h2 id="九、await-的中断、超时和边界"><a href="#九、await-的中断、超时和边界" class="headerlink" title="九、await 的中断、超时和边界"></a>九、await 的中断、超时和边界</h2><p><code>await()</code> 在等待期间支持中断：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">try</span> &#123;<br>    latch.await();<br>&#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>    Thread.currentThread().interrupt();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果等待线程被其他线程中断，<code>await()</code> 会抛出 <code>InterruptedException</code>。捕获后重新调用 <code>Thread.currentThread().interrupt()</code>，是为了恢复中断标记，让上层代码仍然知道这个线程曾经被请求中断。</p>
+<p>线程因为中断离开 <code>await()</code>，不代表计数已经变成 <code>0</code>。这只是当前线程不再继续等待，其他等待线程和剩余计数不会因此自动改变。</p>
+<p>普通 <code>await()</code> 会一直等待，直到计数归零。如果某个任务因为代码错误永远没有调用 <code>countDown()</code>，等待线程就可能永久阻塞。可以使用带超时的方法避免无限等待：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-variable">completed</span> <span class="hljs-operator">=</span> latch.await(<span class="hljs-number">5</span>, TimeUnit.SECONDS);<br><br><span class="hljs-keyword">if</span> (!completed) &#123;<br>    System.out.println(<span class="hljs-string">&quot;some tasks did not finish in time&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>返回值为 <code>true</code> 表示计数已经在超时前变成 <code>0</code>；返回值为 <code>false</code> 表示等待超时，计数仍然大于 <code>0</code>。超时不会自动停止工作线程，也不会把剩余计数改成 <code>0</code>，它只是让当前等待线程不再无限期阻塞。</p>
+<p>从适用范围看，CountDownLatch 适合表达“一批事件完成后再继续”的一次性协调，例如主线程等待多个工作线程结束、多个服务初始化完成后再开始接收请求、多个并行查询结束后汇总结果、测试线程等待一组并发操作执行完毕。它不适合代替互斥锁，也不适合需要反复打开和关闭的同步条件。</p>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p>CountDownLatch 的主线可以从“完成事件”开始理解：业务代码先把一批任务抽象成固定数量的完成事件，AQS 的 <code>state</code> 保存还剩多少事件没有发生；每个工作线程在任务收尾处通过 CAS 把 <code>state</code> 减一，只有最后一次递减把计数推到 <code>0</code> 时，等待线程才从 AQS 共享模式中被放行。</p>
+<p>这条链条也决定了它的使用边界。因为它只观察完成事件，所以它不保存任务结果，也不判断任务是否成功；因为它只在 <code>countDown()</code> 之前建立可见性，所以结果必须先写入再递减计数；因为它只从非零走向零，所以闸门一旦打开就不能复位。也就是说，CountDownLatch 解决的是“一批事情是否都结束”的时序问题，而不是“共享数据如何互斥修改”或“结果容器如何保证线程安全”的问题。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/AQS/" class="print-no-link">#AQS</a>
+      
+        <a href="/tags/CountDownLatch/" class="print-no-link">#CountDownLatch</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成</div>
+      <div>https://rebibabo.github.io/categories/java-concurrency/11/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/10/" title="Java高并发底层原理（十）—— Condition 如何实现线程等待与通知">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（十）—— Condition 如何实现线程等待与通知</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/12/" title="Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量">
+                        <span class="hidden-mobile">Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

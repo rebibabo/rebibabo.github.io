@@ -1,0 +1,914 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Java 程序最终运行在 CPU 上。CPU 有寄存器、Store Buffer 和多级 Cache，JIT 编译器会调整指令，CPU 也可能乱序执行。相同的 Java 代码可以运行在 x86、ARM 等不同架构上，而不同架构提供的内存顺序保证并不完全相同。 如果 Java 并发程序只能依赖某一种 CPU 的具体行为，那么同一段代码换一台机器、换一种 JVM 实现，结果就可能发生变化。Java 因">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（八）—— Java 内存模型到底规定了什么">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/8/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="Java 程序最终运行在 CPU 上。CPU 有寄存器、Store Buffer 和多级 Cache，JIT 编译器会调整指令，CPU 也可能乱序执行。相同的 Java 代码可以运行在 x86、ARM 等不同架构上，而不同架构提供的内存顺序保证并不完全相同。 如果 Java 并发程序只能依赖某一种 CPU 的具体行为，那么同一段代码换一台机器、换一种 JVM 实现，结果就可能发生变化。Java 因">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.135Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="JMM">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="happens-before">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（八）—— Java 内存模型到底规定了什么 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（八）—— Java 内存模型到底规定了什么"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-03 00:00" pubdate>
+          2026年7月3日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          90 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（八）—— Java 内存模型到底规定了什么</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Java 程序最终运行在 CPU 上。CPU 有寄存器、Store Buffer 和多级 Cache，JIT 编译器会调整指令，CPU 也可能乱序执行。相同的 Java 代码可以运行在 x86、ARM 等不同架构上，而不同架构提供的内存顺序保证并不完全相同。</p>
+<p>如果 Java 并发程序只能依赖某一种 CPU 的具体行为，那么同一段代码换一台机器、换一种 JVM 实现，结果就可能发生变化。Java 因此需要在语言层面定义一套统一规则，规定不同线程能够观察到什么结果。</p>
+<p>这套规则就是 Java Memory Model，简称 JMM，也就是 Java 内存模型。</p>
+<h2 id="一、JMM-是在描述内存结构吗"><a href="#一、JMM-是在描述内存结构吗" class="headerlink" title="一、JMM 是在描述内存结构吗"></a>一、JMM 是在描述内存结构吗</h2><p>提到 Java 内存模型，很容易把它理解成“每个线程都有一份工作内存，主内存中保存共享变量”。这种说法可以帮助理解可见性，但它不是 Java 程序运行时的物理结构。Java 线程不会在自己的栈中复制一整份共享对象，Heap 也不等于物理内存中的 DRAM。</p>
+<p>先看本文后面会反复回指的 <code>State</code> 例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">State</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-type">boolean</span> <span class="hljs-variable">ready</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;<br>&#125;<br><br><span class="hljs-type">State</span> <span class="hljs-variable">state</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">State</span>();<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">threadA</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    state.data = <span class="hljs-number">42</span>;<br>    state.ready = <span class="hljs-literal">true</span>;<br>&#125;);<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">threadB</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">if</span> (state.ready) &#123;<br>        System.out.println(state.data);<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>两个线程的栈中保存的是同一个对象地址，真正的 <code>State</code> 对象只有一份：</p>
+<pre><code class=" mermaid">graph TD
+    subgraph Thread_A[Thread A Stack]
+        state_a[state = 0x1000]
+    end
+    subgraph Thread_B[Thread B Stack]
+        state_b[state = 0x1000]
+    end
+    subgraph Heap
+        obj[&quot;State @ 0x1000&lt;br&gt;data = 0&lt;br&gt;ready = false&quot;]
+    end
+    state_a --&gt; obj
+    state_b --&gt; obj
+</code></pre>
+
+<p>线程 A 修改的不是线程 B 的变量副本，而是 Heap 中同一个对象的字段。线程 B 之所以可能看不到最新值，不是因为 Heap 中真的存在两份 <code>State</code> 对象，而是因为一次写入从当前线程执行完成，到被另一个线程观察到，中间还要经过寄存器、Store Buffer、Cache、JIT 优化和 CPU 指令调度。</p>
+<p>所以 JMM 关注的不是“变量具体放在哪一级硬件结构里”，而是“某次读取允许看到哪一次写入，以及哪些执行结果必须被排除”。这也是本文后面所有讨论的起点。</p>
+<h2 id="二、写入共享变量后，数据什么时候对别的线程可见"><a href="#二、写入共享变量后，数据什么时候对别的线程可见" class="headerlink" title="二、写入共享变量后，数据什么时候对别的线程可见"></a>二、写入共享变量后，数据什么时候对别的线程可见</h2><p>继续使用前文的 <code>State</code> 例子。线程 A 执行 <code>state.data = 42</code>，并不意味着 CPU 必须立刻把 <code>42</code> 写入 DRAM。现代 CPU 通常采用写回缓存，写操作可能先进入 Store Buffer，再修改 Cache Line，之后通过缓存一致性协议让其他 Core 看到这个变化。</p>
+<p>这个过程跨越了内存层级，因此可以画出传播路径：</p>
+<pre><code class=" mermaid">graph TD
+    Register[Register] --&gt;|执行写入| StoreBuffer[Store Buffer]
+    StoreBuffer --&gt;|提交到本 Core 缓存体系| CacheLine[Cache Line]
+    CacheLine --&gt;|通过一致性协议传播| OtherCache[Other Core Cache]
+    OtherCache --&gt; Lower[&quot;更低层 Cache / DRAM&lt;br&gt;可能在之后才被写回&quot;]
+</code></pre>
+
+<p>这里至少有三个不同时间点：当前 Core 认为写操作已经执行、写操作对其他 Core 可见、数据最终写回 DRAM。Java 并发主要关心第二个时间点。只要另一个 Core 能通过缓存一致性协议取得最新 Cache Line，就不需要先等待数据写回 DRAM。</p>
+<p>因此，“对其他线程可见”不能简单理解为“已经写入主内存”。JMM 只要求另一个线程在规定的位置必须能够观察到这个写入，至于 JVM 和 CPU 如何完成传播，属于实现细节。</p>
+<h2 id="三、为什么-CPU-不严格按照源码顺序执行"><a href="#三、为什么-CPU-不严格按照源码顺序执行" class="headerlink" title="三、为什么 CPU 不严格按照源码顺序执行"></a>三、为什么 CPU 不严格按照源码顺序执行</h2><p>JMM 允许底层实现做优化，前提是不能破坏单线程语义。比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><br>a = <span class="hljs-number">1</span>;<br>b = <span class="hljs-number">2</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>b = 2</code> 不依赖 <code>a = 1</code> 的结果，JIT 编译器可以调整两条机器指令的顺序，CPU 也可能让它们在流水线中重叠执行。只要当前线程最终观察到的结果没有变化，这种优化就不会破坏单线程语义。</p>
+<p>如果存在数据依赖，顺序就不能随意交换：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">a = <span class="hljs-number">1</span>;<br>b = a + <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+<p><code>b</code> 的计算依赖 <code>a</code> 的结果，所以 <code>b = a + 1</code> 不能被当作与 <code>a = 1</code> 无关的独立写入处理。编译器和 CPU 还会考虑控制依赖、异常语义、对象别名以及同步操作，但核心判断标准仍然是：调整之后能否保持当前线程的可观察行为不变。</p>
+<p>这种规则通常称为 as-if-serial：</p>
+<blockquote>
+<p>实际执行过程可以不像串行执行，但单线程观察到的结果必须像按照程序逻辑串行执行一样。</p>
+</blockquote>
+<p>如果 Java 强制所有操作严格按照源码顺序完成，每次写入都必须等待全局可见，那么 JIT 调整无依赖指令、CPU 提前执行已就绪指令、Store Buffer 隐藏一致性通信延迟、Cache 延迟回写、内存系统合并相邻写操作等优化都会受到限制。Java 采用的策略不是禁止所有优化，而是在程序明确使用 <code>volatile</code>、锁等同步机制时，再限制那些会破坏线程间语义的重排。</p>
+<h2 id="四、什么是-program-order"><a href="#四、什么是-program-order" class="headerlink" title="四、什么是 program order"></a>四、什么是 program order</h2><p>前文说底层可以重排，但 JMM 仍然需要一个线程内部的逻辑顺序。这个线程内逻辑顺序就是 program order。</p>
+<p>在前文的 <code>State</code> 例子中，线程 A 的程序逻辑是先写 <code>data</code>，再写 <code>ready</code>；线程 B 的程序逻辑是先读 <code>ready</code>，条件成立后再读 <code>data</code>。JMM 会保留这种线程内部的程序语义，但它不把两个线程的内部顺序自动拼成一条全局顺序。</p>
+<p>这句话很关键：program order 只连接同一个线程内部的操作。没有同步操作时，线程 A 中“写 <code>data</code> 先于写 <code>ready</code>”这个事实，不会自动变成线程 B 必须先看到 <code>data</code>、再看到 <code>ready</code> 的保证。</p>
+<p>因此，普通变量下线程 B 即使看到 <code>ready == true</code>，仍然不保证一定看到 <code>data == 42</code>。这不是对第一节例子的重新展开，而是从 program order 的角度解释它为什么还不够。</p>
+<h2 id="五、JMM-如何连接两个线程"><a href="#五、JMM-如何连接两个线程" class="headerlink" title="五、JMM 如何连接两个线程"></a>五、JMM 如何连接两个线程</h2><p>program order 只能连接线程内部。要让一个线程的写入对另一个线程产生约束，还需要跨线程连接，这个连接叫 synchronizes-with。</p>
+<p>继续沿用第一节的 <code>State</code> 例子：如果把 <code>ready</code> 改成 <code>volatile</code>，线程 A 对 <code>ready</code> 的 volatile 写，和线程 B 后续读到这个值的 volatile 读之间，就建立了 synchronizes-with 关系。这个关系不是因为两个线程碰巧先后执行，而是因为 JMM 明确规定 volatile 写和后续观察到该写入的 volatile 读之间存在同步关系。</p>
+<p>常见的 synchronizes-with 规则包括：volatile 写连接后续观察到该写入的 volatile 读；同一把锁的解锁连接后续加锁；<code>Thread.start()</code> 连接新线程中的动作；线程中的动作连接另一个线程从 <code>join()</code> 成功返回。</p>
+<p>到这里形成了一个新的层次：program order 负责线程内部，synchronizes-with 负责跨线程。JMM 不是要求所有读写都按物理时间排成一列，而是在必要的位置建立这些语义连接。</p>
+<h2 id="六、happens-before-到底表示什么"><a href="#六、happens-before-到底表示什么" class="headerlink" title="六、happens-before 到底表示什么"></a>六、happens-before 到底表示什么</h2><p>有了前两节的铺垫，happens-before 就可以从“连接关系”来理解：它由 program order、synchronizes-with 以及传递性共同构成。</p>
+<p>如果操作 A happens-before 操作 B，JMM 提供两类保证：A 的内存效果必须对 B 可见；同时，编译器和 CPU 不能通过重排产生违背这个关系的结果。happens-before 不是单纯的现实时间顺序。一个操作在时钟时间上先执行，并不代表它一定 happens-before 另一个操作；只有符合 JMM 规则的操作，才会建立这种关系。</p>
+<p>继续回到前文的 volatile <code>ready</code>：线程 A 在 program order 中先写 <code>data</code>，再 volatile 写 <code>ready</code>；线程 B 通过 volatile 读看到 <code>ready == true</code> 后，再按 program order 读取 <code>data</code>。中间的 volatile 写和 volatile 读建立 synchronizes-with，三段关系通过传递性连起来后，线程 A 写 <code>data = 42</code> 就 happens-before 线程 B 读 <code>data</code>。</p>
+<p>所以线程 B 读到 <code>ready == true</code> 后，必须能够看到 <code>data = 42</code>。这里不是 <code>volatile ready</code> 把 <code>data</code> 也变成了 volatile，而是 <code>ready</code> 在两个线程之间建立了一座桥，把线程 A 中 volatile 写之前的内存效果传递给线程 B 中 volatile 读之后的操作。</p>
+<pre><code class=" mermaid">graph TD
+    subgraph Thread_A[Thread A]
+        A1[写 data = 42] --&gt;|program order| A2[volatile 写 ready]
+    end
+    subgraph Thread_B[Thread B]
+        B1[volatile 读 ready] --&gt;|program order| B2[读 data]
+    end
+    A2 --&gt;|synchronizes-with| B1
+</code></pre>
+
+<h2 id="七、volatile-的保证范围有多大"><a href="#七、volatile-的保证范围有多大" class="headerlink" title="七、volatile 的保证范围有多大"></a>七、volatile 的保证范围有多大</h2><p>前文已经完整展开了 volatile 如何通过 <code>ready</code> 建立跨线程连接，这一节只讨论它的范围。</p>
+<p>volatile 的方向和位置非常重要。在线程 A 中，只有 volatile 写之前的普通写，才能随着这次 volatile 写被发布出去；在线程 B 中，只有 volatile 读之后的普通读，才能接收这次发布带来的可见性效果。</p>
+<p>因此，正确的模式是：先写普通数据，再写 volatile 标志；另一个线程先读 volatile 标志，再读普通数据。反过来就不行。如果先写 volatile 标志，再写普通数据，后面的普通写不能通过前面的 volatile 写发布出去；如果另一个线程先读普通数据，再读 volatile 标志，后面的 volatile 读也不能反过来修复之前已经读到的旧值。</p>
+<p>所以 volatile 不是让整个线程无条件互相可见，而是在特定位置建立有方向的同步边界。它的作用范围来自 happens-before 链条，而不是来自“所有变量都刷新一次”这种物理想象。</p>
+<h2 id="八、缓存一致性为什么不能代替-JMM"><a href="#八、缓存一致性为什么不能代替-JMM" class="headerlink" title="八、缓存一致性为什么不能代替 JMM"></a>八、缓存一致性为什么不能代替 JMM</h2><p>第二节已经讲过写入传播路径，这里只补上它和 JMM 的边界。缓存一致性协议主要维护同一个内存位置在多个 Core 之间的一致性：一个 Core 修改某个 Cache Line 时，需要取得修改权限，并让其他 Core 中对应的 Cache Line 失效。</p>
+<p>这个过程解决的是硬件层面的数据副本一致问题，但不能替代 JMM 的同步规则。原因有两点：第一，传播不是瞬间完成的，另一个 Core 仍可能在传播完成前读取到旧值；第二，即使某个 Cache Line 已经更新，JIT 仍可能复用寄存器中的旧值，CPU 也可能调整不同地址之间的内存操作顺序。</p>
+<p>更重要的是，缓存一致性通常关注同一个地址，而 Java 并发经常关心多个变量之间的顺序。以前文的 <code>State</code> 例子来说，<code>data</code> 和 <code>ready</code> 是两个字段，硬件最终能让每个地址保持一致，不等于线程 B 必须按照线程 A 的源码顺序观察到两个字段的变化。多变量之间的顺序需要 volatile、锁等同步规则建立约束。</p>
+<p>所以不能因为硬件最终会保持 Cache 一致，就推导出没有同步的 Java 程序最终一定能看到新值。JMM 没有建立 happens-before 时，程序不能依赖这种结果。</p>
+<h2 id="九、什么是数据竞争"><a href="#九、什么是数据竞争" class="headerlink" title="九、什么是数据竞争"></a>九、什么是数据竞争</h2><p>前面几节一直在说明“什么时候有保证”。现在反过来看“什么时候没有保证”。</p>
+<p>当两个不同线程访问同一个变量，并且至少一个操作是写，同时两个操作之间没有 happens-before，就存在数据竞争。写和读冲突，写和写也冲突；两个线程都只读取同一个变量，不构成数据竞争。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><br><span class="hljs-comment">// Thread A</span><br>data = <span class="hljs-number">1</span>;<br><br><span class="hljs-comment">// Thread B</span><br><span class="hljs-type">int</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> data;<br></code></pre></td></tr></table></figure>
+
+<p>线程 A 的写与线程 B 的读之间没有 happens-before，因此存在数据竞争。线程 B 可能读到初始值 <code>0</code>，也可能读到 <code>1</code>。</p>
+<p>没有 happens-before 的含义不是“一定读到旧值”，而是“Java 不提供必须读到哪个值的保证”。程序连续运行很多次都得到预期结果，也不能证明程序没有数据竞争；线程调度、JIT 编译结果和硬件时序发生变化后，允许范围内的其他结果仍然可能出现。</p>
+<h2 id="十、happens-before-是否保证读到某一个固定值"><a href="#十、happens-before-是否保证读到某一个固定值" class="headerlink" title="十、happens-before 是否保证读到某一个固定值"></a>十、happens-before 是否保证读到某一个固定值</h2><p>第六节已经说明，happens-before 会让前面的内存效果对后面的操作可见。但这不等于读取只能返回某一个固定值，因为在 happens-before 之外，可能还有其他合法写入参与竞争。</p>
+<p>看一个新例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">flag</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;<br><br><span class="hljs-comment">// Thread A</span><br>data = <span class="hljs-number">1</span>;<br>flag = <span class="hljs-literal">true</span>;<br><br><span class="hljs-comment">// Thread B</span><br><span class="hljs-keyword">if</span> (flag) &#123;<br>    data = <span class="hljs-number">2</span>;<br>&#125;<br><br><span class="hljs-comment">// Thread C</span><br><span class="hljs-keyword">if</span> (flag) &#123;<br>    System.out.println(data);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>线程 C 读取到 <code>flag == true</code> 后，线程 A 的 <code>data = 1</code> 通过 volatile 建立的 happens-before 关系传递到线程 C，因此线程 C 不能再读到初始值 <code>0</code>。</p>
+<p>但线程 B 对 <code>data = 2</code> 的写，与线程 C 对 <code>data</code> 的读之间没有必然的 happens-before。如果 B 已经执行并且它的写入被 C 观察到，C 可以读到 <code>2</code>；如果没有观察到，C 可以读到 <code>1</code>。所以可能结果是 <code>1</code> 或 <code>2</code>，不可能结果是 <code>0</code>。</p>
+<p>这个例子说明：happens-before 不是“指定读取必须返回哪一次写入”，而是限制一次读取允许观察到哪些写入。它能排除不合法结果，但不把所有并发竞争都变成唯一结果。</p>
+<h2 id="十一、为什么双方都可能读到初始值"><a href="#十一、为什么双方都可能读到初始值" class="headerlink" title="十一、为什么双方都可能读到初始值"></a>十一、为什么双方都可能读到初始值</h2><p>这一节完整展开一个经典的多线程交错例子，用来连接前文的 Store Buffer、重排和 happens-before。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">y</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><br><span class="hljs-comment">// Thread A</span><br>x = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">r1</span> <span class="hljs-operator">=</span> y;<br><br><span class="hljs-comment">// Thread B</span><br>y = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">r2</span> <span class="hljs-operator">=</span> x;<br></code></pre></td></tr></table></figure>
+
+<p><code>r1 == 0 &amp;&amp; r2 == 0</code> 是允许出现的。一种原因是线程内部不存在相关数据依赖，编译器或 CPU 可能产生读操作越过写操作的效果；另一种原因是机器指令没有交换，双方仍然可以因为 Store Buffer 传播延迟而读到旧值。</p>
+<p>这个场景涉及两个线程和两个 Core 的交错时序，因此可以画图：</p>
+<pre><code class=" mermaid">graph TD
+    subgraph Core_A[&quot;Thread A / Core A&quot;]
+        A1[&quot;x = 1&quot;] --&gt; A2[&quot;Store Buffer A&quot;]
+        A2 --&gt; A3[&quot;x 对 B 不可见&quot;]
+        A3 --&gt; A4[&quot;read y → 0&quot;]
+    end
+    subgraph Core_B[&quot;Thread B / Core B&quot;]
+        B1[&quot;y = 1&quot;] --&gt; B2[&quot;Store Buffer B&quot;]
+        B2 --&gt; B3[&quot;y 对 A 不可见&quot;]
+        B3 --&gt; B4[&quot;read x → 0&quot;]
+    end
+</code></pre>
+
+<p>JMM 不要求程序判断究竟是 JIT 重排、CPU 乱序执行，还是 Store Buffer 传播延迟造成了结果。因为两个线程之间没有 happens-before，双方都读到初始值就是合法结果。</p>
+<p>如果 <code>x</code> 和 <code>y</code> 都是 volatile，那么 <code>r1 == 0 &amp;&amp; r2 == 0</code> 会被排除。原因不是 volatile 让两个线程互相等待，而是所有 volatile 操作必须进入统一的同步顺序，并且这个同步顺序不能违背每个线程自己的 program order。若双方都读到 <code>0</code>，同步顺序中会形成一个无法成立的环：A 的 volatile 写必须排在 A 的 volatile 读之前，B 的 volatile 写也必须排在 B 的 volatile 读之前；同时，A 读到 <code>y == 0</code> 又要求它排在 B 写 <code>y</code> 之前，B 读到 <code>x == 0</code> 又要求它排在 A 写 <code>x</code> 之前。一个顺序无法同时满足这四个约束。</p>
+<p>但 volatile 仍然不能保证双方都读取到 <code>1</code>。它负责可见性和顺序约束，不负责等待另一个线程完成某个阶段。要保证双方都先完成写入，再开始读取，需要使用 <code>CountDownLatch</code>、<code>CyclicBarrier</code> 等线程会合工具。</p>
+<h2 id="十二、什么是正确同步程序"><a href="#十二、什么是正确同步程序" class="headerlink" title="十二、什么是正确同步程序"></a>十二、什么是正确同步程序</h2><p>如果所有存在冲突的共享变量访问，都通过锁、volatile、线程启动和结束等规则建立了 happens-before，那么程序就是正确同步的。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><br><span class="hljs-comment">// Thread A</span><br><span class="hljs-keyword">synchronized</span> (lock) &#123;<br>    count++;<br>&#125;<br><br><span class="hljs-comment">// Thread B</span><br><span class="hljs-keyword">synchronized</span> (lock) &#123;<br>    count++;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>两次 <code>count++</code> 都位于同一把锁保护的临界区中。由于同一把锁的解锁 synchronizes-with 后续加锁，先进入临界区的线程会把对 <code>count</code> 的修改发布给后进入临界区的线程。同时，互斥保证两个 <code>count++</code> 不会拆成读取、计算、写回三个步骤后互相穿插。</p>
+<p>因此两个线程执行完成后，<code>count</code> 必须为 <code>2</code>。这里不需要开发者逐条分析 Store Buffer、Cache Line 和 CPU 时序，只需要依据锁建立的 happens-before 和互斥语义推理。</p>
+<p>JMM 对正确同步程序提供一个重要保证：程序的执行结果可以按照顺序一致性进行推理。顺序一致性不表示 CPU 真的逐条串行执行，而是说最终可观察结果等价于某种全局交错顺序，并且每个线程自己的 program order 不被破坏。</p>
+<h2 id="十三、start-和-join-规定了什么"><a href="#十三、start-和-join-规定了什么" class="headerlink" title="十三、start 和 join 规定了什么"></a>十三、start 和 join 规定了什么</h2><p>除了 volatile 和锁，线程生命周期方法也能建立 happens-before。</p>
+<p><code>Thread.start()</code> 不只是启动一个线程，它还负责把启动前的内存效果发布给新线程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-number">42</span>;<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">thread</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    System.out.println(data);<br>&#125;);<br><br>thread.start();<br></code></pre></td></tr></table></figure>
+
+<p>主线程调用 <code>start()</code> 之前已经产生的内存效果，happens-before 新线程中的动作。因此子线程必须看到 <code>data == 42</code>。<code>start()</code> 发布的不是某一个变量，而是调用 <code>start()</code> 之前已经产生的全部内存效果；如果主线程在启动前完成了对象构造，对象内部字段也会被一起发布。</p>
+<p><code>Thread.join()</code> 的方向相反。一个线程中的所有操作，happens-before 另一个线程从该线程的 <code>join()</code> 中成功返回：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span>[] result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[<span class="hljs-number">1</span>];<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">thread</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    result[<span class="hljs-number">0</span>] = <span class="hljs-number">42</span>;<br>&#125;);<br><br>thread.start();<br>thread.join();<br><br>System.out.println(result[<span class="hljs-number">0</span>]);<br></code></pre></td></tr></table></figure>
+
+<p>子线程写入 <code>result[0] = 42</code> 后结束，主线程从 <code>join()</code> 返回后再读取数组元素，因此必须读到 <code>42</code>。<code>join()</code> 同时包含等待作用和可见性作用：先等待目标线程结束，再接收目标线程结束前的内存效果。</p>
+<p>可以把二者方向记成一句话：<code>start()</code> 把数据从启动线程传给新线程，<code>join()</code> 把新线程的执行结果传回等待线程。</p>
+<h2 id="十四、什么是对象发布"><a href="#十四、什么是对象发布" class="headerlink" title="十四、什么是对象发布"></a>十四、什么是对象发布</h2><p>对象发布是指让其他线程能够获得这个对象的引用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">age</span> <span class="hljs-operator">=</span> <span class="hljs-number">18</span>;<br>&#125;<br><br>User sharedUser;<br><br><span class="hljs-comment">// Thread A</span><br>sharedUser = <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br><br><span class="hljs-comment">// Thread B</span><br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> sharedUser;<br></code></pre></td></tr></table></figure>
+
+<p>线程 A 把对象地址写入共享字段 <code>sharedUser</code>，线程 B 通过这个字段得到同一个地址：</p>
+<pre><code class=" mermaid">graph TD
+    subgraph Thread_A[&quot;Thread A Stack&quot;]
+        user_a[&quot;user = 0x1000&quot;]
+    end
+    subgraph Thread_B[&quot;Thread B Stack&quot;]
+        user_b[&quot;user = 0x1000&quot;]
+    end
+    subgraph Heap
+        obj[&quot;User @ 0x1000&lt;br&gt;age = 18&quot;]
+    end
+    user_a --&gt; obj
+    user_b --&gt; obj
+</code></pre>
+
+<p>发布的是对象引用，不是复制对象。把引用写入共享字段、放入共享集合、传入线程任务或返回给其他代码，都可能构成对象发布。</p>
+<p>如果发布过程没有使用 volatile、锁、并发容器、<code>start()</code> 等方式建立 happens-before，就属于不安全发布。线程 B 可能仍然读到旧引用，例如 <code>null</code>；即使读到了对象，也不一定能看到普通字段的完整初始化结果。</p>
+<p>安全发布的核心不是对象一定放在 Heap 中，而是构造期间的写入与另一个线程读取对象之间建立了 happens-before。</p>
+<h2 id="十五、什么是-this-逃逸"><a href="#十五、什么是-this-逃逸" class="headerlink" title="十五、什么是 this 逃逸"></a>十五、什么是 this 逃逸</h2><p>上一节讲的是对象引用如何交给其他线程，这一节只讨论一种危险发布：构造函数还没结束，<code>this</code> 就被外部代码或其他线程拿到了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">static</span> User sharedUser;<br><br>    <span class="hljs-type">int</span> age;<br><br>    User() &#123;<br>        sharedUser = <span class="hljs-built_in">this</span>;<br>        age = <span class="hljs-number">18</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对象创建时，字段先具有默认值。上面这个构造函数先把 <code>this</code> 写入共享字段，再给 <code>age</code> 赋值。其他线程如果在这两个动作之间读取 <code>sharedUser</code>，就可能拿到一个尚未完成初始化的对象，并看到 <code>age == 0</code>。</p>
+<p>这个场景涉及对象引用在堆上的提前暴露，可以用引用关系表达：</p>
+<pre><code class=" mermaid">graph TD
+    Static[&quot;Static Field&lt;br&gt;sharedUser = 0x1000&quot;] --&gt; Heap[&quot;Heap: User @ 0x1000&lt;br&gt;age = 0&quot;]
+</code></pre>
+
+<p>正确做法是：完成全部字段初始化，构造函数正常结束之后，再向其他线程发布对象引用。构造函数内部启动线程、注册回调、把 <code>this</code> 放入静态字段或共享集合，都可能造成 <code>this</code> 逃逸。</p>
+<h2 id="十六、final-字段为什么具有特殊语义"><a href="#十六、final-字段为什么具有特殊语义" class="headerlink" title="十六、final 字段为什么具有特殊语义"></a>十六、final 字段为什么具有特殊语义</h2><p>从 Java 语法看，<code>final</code> 字段只能赋值一次：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> id;<br><br>    User() &#123;<br>        id = <span class="hljs-number">1</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>JMM 还为 final 字段提供了特殊的初始化安全保证。看这个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> id;<br>    <span class="hljs-type">int</span> age;<br><br>    User() &#123;<br>        id = <span class="hljs-number">1</span>;<br>        age = <span class="hljs-number">18</span>;<br>    &#125;<br>&#125;<br><br>User sharedUser;<br><br><span class="hljs-comment">// Thread A</span><br>sharedUser = <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br><br><span class="hljs-comment">// Thread B</span><br><span class="hljs-type">User</span> <span class="hljs-variable">local</span> <span class="hljs-operator">=</span> sharedUser;<br><span class="hljs-keyword">if</span> (local != <span class="hljs-literal">null</span>) &#123;<br>    System.out.println(local.id);<br>    System.out.println(local.age);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>sharedUser</code> 是普通字段，线程 A 写引用与线程 B 读引用之间没有 happens-before。因此，线程 B 不保证一定看到非空引用。但是，只要对象构造函数正常结束，并且构造期间没有发生前文说的 <code>this</code> 逃逸，那么线程 B 一旦看到了这个对象，JMM 保证它看到 final 字段的构造值，也就是 <code>local.id</code> 必须为 <code>1</code>。</p>
+<p>普通字段 <code>age</code> 没有同样的特殊保证。在不安全发布的情况下，理论上可能出现 <code>id = 1</code> 但 <code>age = 0</code>。final 字段规则不能简单写成普通的跨线程 happens-before，因为对象引用本身可能没有通过同步方式发布。它更像是 JMM 对构造完成后的 final 字段做了特殊冻结：只要对象没有在构造期间逃逸，其他线程获得对象后必须看到 final 字段在构造函数中写入的值。</p>
+<p>这里的“冻结”是 JMM 语义，不代表对象在物理内存中被锁定。final 也只保证字段本身的初始化安全，不代表整个对象自动线程安全。例如，<code>final List&lt;String&gt; names</code> 只能保证其他线程看到的是构造函数赋给 <code>names</code> 的那个引用；多个线程之后同时修改这个 <code>ArrayList</code>，仍然会产生并发问题。</p>
+<p>实际程序中仍应优先使用 volatile、锁、并发容器、静态初始化或线程启动等方式安全发布对象，而不是只依赖 final 的特殊规则。</p>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p>JMM 的主线可以从一个问题展开：Java 既要允许 JIT、CPU 和缓存体系做优化，又要让跨线程通信在必要位置具有确定语义。为了解决这个矛盾，JMM 不去承诺某个值必须立刻进入 DRAM，而是把并发程序的判断点提升为“读取允许看到哪一次写入”。</p>
+<p>在这个判断点上，单线程内部先由 program order 保持语义连续性；跨线程处再由 volatile、锁、<code>start()</code>、<code>join()</code> 等同步动作建立 synchronizes-with；这些边通过传递性汇合成 happens-before。只要链条连通，前面的内存效果就必须被后面的操作承接；链条断开，程序就不能再把某次运行结果误认为语言保证。</p>
+<p>于是，缓存一致性、Store Buffer 和重排解释的是“为什么没有同步时会出现意外结果”，而 happens-before 解释的是“哪些意外结果会被 Java 规则排除”。对象发布、<code>this</code> 逃逸和 final 字段语义也都落在同一条主线上：引用能被别的线程拿到，只说明对象地址传过去了；构造期间的写入能不能一起被看见，还要看这条发布路径上有没有被 JMM 承认的同步边界。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/JMM/" class="print-no-link">#JMM</a>
+      
+        <a href="/tags/happens-before/" class="print-no-link">#happens-before</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（八）—— Java 内存模型到底规定了什么</div>
+      <div>https://rebibabo.github.io/categories/java-concurrency/8/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/7/" title="Java高并发底层原理（七）—— volatile 到底解决了什么问题">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（七）—— volatile 到底解决了什么问题</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/9/" title="Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥">
+                        <span class="hidden-mobile">Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

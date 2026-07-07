@@ -1,0 +1,797 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="先看一段代码。两个线程，各对同一个计数器自增一百万次，理论上最终值应该是两百万。 123456789101112131415161718192021222324252627282930313233343536373839404142public class CountDemo &#123;    private static final int TIMES &#x3D; 1_000_000；    stat">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（二）—— 为什么 count++ 会出错">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/2/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="先看一段代码。两个线程，各对同一个计数器自增一百万次，理论上最终值应该是两百万。 123456789101112131415161718192021222324252627282930313233343536373839404142public class CountDemo &#123;    private static final int TIMES &#x3D; 1_000_000；    stat">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.135Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="线程安全">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（二）—— 为什么 count++ 会出错 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（二）—— 为什么 count++ 会出错"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-02 00:00" pubdate>
+          2026年7月2日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          30 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（二）—— 为什么 count++ 会出错</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>先看一段代码。两个线程，各对同一个计数器自增一百万次，理论上最终值应该是两百万。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CountDemo</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">TIMES</span> <span class="hljs-operator">=</span> <span class="hljs-number">1_000_000</span>；<br><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Counter</span> &#123;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>；<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">increment</span><span class="hljs-params">()</span> &#123;<br>            count++；<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getCount</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> count；<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException &#123;<br>        <span class="hljs-type">Counter</span> <span class="hljs-variable">counter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Counter</span>()；<br><br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">threadA</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>； i &lt; TIMES； i++) &#123;<br>                counter.increment()；<br>            &#125;<br>        &#125;)；<br><br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">threadB</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>； i &lt; TIMES； i++) &#123;<br>                counter.increment()；<br>            &#125;<br>        &#125;)；<br><br>        threadA.start()；<br>        threadB.start()；<br><br>        threadA.join()；<br>        threadB.join()；<br><br>        System.out.println(<span class="hljs-string">&quot;expected = &quot;</span> + TIMES * <span class="hljs-number">2</span>)；<br>        System.out.println(<span class="hljs-string">&quot;actual   = &quot;</span> + counter.getCount())；<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>实际跑起来，<code>actual</code> 大概率小于 <code>expected</code>。多跑几次，每次结果还不一样。代码没变，输入也没变，唯一变化的是两个线程谁先谁后——这就是这一章要讲的问题。</p>
+<h2 id="1-count-不是一步，是三步"><a href="#1-count-不是一步，是三步" class="headerlink" title="1. count++ 不是一步，是三步"></a>1. count++ 不是一步，是三步</h2><p><code>count++</code> 在源码里是一行，但 JVM 执行时会拆成三步:</p>
+<ol>
+<li>读一次 <code>count</code> 的当前值</li>
+<li>把这个值加一</li>
+<li>把结果写回 <code>count</code></li>
+</ol>
+<p>写成一行只是 Java 给你的语法糖。等价地展开，就是这样:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">current</span> <span class="hljs-operator">=</span> count；    <span class="hljs-comment">// 读</span><br><span class="hljs-type">int</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> current + <span class="hljs-number">1</span>； <span class="hljs-comment">// 算</span><br>count = next；            <span class="hljs-comment">// 写</span><br></code></pre></td></tr></table></figure>
+
+<p>这三步之间没有任何保护，线程可以在读完之后、写回之前被切走，让另一个线程插进来。这才是问题的根源。</p>
+<h2 id="2-一次更新是怎么丢的"><a href="#2-一次更新是怎么丢的" class="headerlink" title="2. 一次更新是怎么丢的"></a>2. 一次更新是怎么丢的</h2><p>假设 <code>count</code> 初始为 <code>0</code>，A、B 两个线程各执行一次 <code>count++</code>。下面是一种真实可能发生的执行顺序:</p>
+<pre><code class=" mermaid">sequenceDiagram
+    participant A as Thread A
+    participant Heap
+    participant B as Thread B
+
+    Note over Heap: count = 0
+    A-&gt;&gt;Heap: 1. Read count = 0
+    Note right of A: 2. Calculate next = 1
+    B-&gt;&gt;Heap: 3. Read count = 0
+    Note right of B: 4. Calculate next = 1
+    A-&gt;&gt;Heap: 5. Write count = 1
+    Note over Heap: count = 1
+    B-&gt;&gt;Heap: 6. Write count = 1
+    Note over Heap: count = 1（A 的更新被覆盖）
+</code></pre>
+
+<p>A 和 B 各自的三步都执行得很正常，没有任何一步出错。问题出在第 3 步:B 读 <code>count</code> 的时候，A 已经算完了 <code>1</code>，但还没来得及写回去，所以 B 看到的还是旧值 <code>0</code>。两边各自算出 <code>1</code>，分别写回，B 的写操作发生在最后，直接把 A 的结果覆盖掉了。A 那次自增，相当于白做了——这就是<strong>丢失更新(Lost Update)</strong>。</p>
+<p>单核 CPU 上，线程来回切换就能凑出这种顺序；多核上两个线程甚至可以真的同时执行，读写窗口直接重叠，效果是一样的。只要读、算、写这三步之间没有硬性的先后约束，这种覆盖就随时可能发生。</p>
+<p>同样这段代码，换一种执行顺序结果就是对的——比如 A 三步都执行完了，B 才开始读，这时候读到的就是 <code>1</code>，最后能拿到 <code>2</code>。所以这类 bug 出现得毫无规律:源码没有问题，问题出在每次运行时线程被调度的顺序不一样。</p>
+<h2 id="3-什么是原子性"><a href="#3-什么是原子性" class="headerlink" title="3. 什么是原子性"></a>3. 什么是原子性</h2><p>如果一个操作在执行过程中不能被打断——别的线程要么看到它执行前的状态，要么看到它执行完之后的状态，中间过程完全不可见——这个操作就是<strong>原子的(Atomic)</strong>。</p>
+<p><code>count++</code> 不满足这个条件，因为它是读、算、写三步拼出来的，而不是一步到位。别的线程完全可能在它读完还没写回的空档插进来。判断一个操作是不是安全，不能看它在代码里占几行，要看它在真正执行的时候能不能被拆成好几步、这几步中间会不会暴露给别的线程。</p>
+<p>同样的问题也藏在很多长得人畜无害的代码里:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">balance = balance - amount；<br>index = index + <span class="hljs-number">1</span>；<br>value = value * <span class="hljs-number">2</span>；<br>list.add(element)；<br></code></pre></td></tr></table></figure>
+
+<p>这几行代码有一个共同点:结果都依赖读进来的旧值，而不是凭空算出来的。只要涉及”先读旧值、再算新值、最后写回去”这个过程，就有被打断的风险，跟代码写成一行还是三行没有关系。</p>
+<h2 id="4-什么是竞态条件"><a href="#4-什么是竞态条件" class="headerlink" title="4. 什么是竞态条件"></a>4. 什么是竞态条件</h2><p>最终结果取决于多个线程谁先谁后，这种情况叫<strong>竞态条件(Race Condition)</strong>。这里的”竞争”不是说两个线程必须同时执行，而是它们都在抢同一份数据——谁先读到、谁后写入，直接决定了最后的值是多少。</p>
+<p>回到计数器的例子，两种不同的执行顺序会给出两个不同的答案:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">A 三步全部执行完，B 才开始  -&gt;  count = 2<br>A、B 在中间读到了同一个旧值  -&gt;  count = 1<br></code></pre></td></tr></table></figure>
+
+<p>程序只保证了一件事:单个线程内部，读、算、写这三步必须按顺序执行。但它完全没规定 A 和 B 之间谁先谁后，操作系统想怎么切换线程都可以，只要合法。只要存在一种切换顺序会让结果出错，这段代码就有竞态条件。</p>
+<p>具体来说，满足下面三条，就一定存在竞态条件:多个线程会碰同一份数据、至少有一个线程会去改这份数据、这组相关操作有可能被别的线程从中间插一脚。<code>Counter</code> 这个例子三条全占。反过来，如果线程操作的是各自独立的数据，或者共享数据从头到尾都不会变，竞态条件也就不存在了——真正的根源不是”多线程”这三个字，而是<strong>共享的、会变的状态</strong>。</p>
+<h2 id="5-为什么跑测试证明不了它是安全的"><a href="#5-为什么跑测试证明不了它是安全的" class="headerlink" title="5. 为什么跑测试证明不了它是安全的"></a>5. 为什么跑测试证明不了它是安全的</h2><p>并发 bug 依赖具体的执行时序。跑一次拿到两百万，只能说明这一次没撞上问题的执行顺序，不代表下一次也没事。CPU 核数、系统负载、线程调度策略、循环次数，随便一个变了，线程交错的方式就可能跟着变。哪怕连续跑一千次都是对的，代码里的竞态条件也没有消失——只要存在一种合法的执行顺序会出错，这段代码就不是线程安全的，跟它跑了多少次结果都对没关系。</p>
+<p>调试的时候还会遇到更麻烦的事:加一行日志、打一个断点，都会拖慢线程的执行速度，原本很容易复现的 bug 可能因此暂时消失。这不是玄学，只是多余的操作把线程原本的时序打乱了而已。</p>
+<p>所以判断一段并发代码安不安全，不能只看它跑测试跑没跑出问题，得去看它到底共享了什么数据、谁在改这份数据、这些操作有没有可能被打断。</p>
+<h2 id="6-三个问题，判断一段代码安不安全"><a href="#6-三个问题，判断一段代码安不安全" class="headerlink" title="6. 三个问题，判断一段代码安不安全"></a>6. 三个问题，判断一段代码安不安全</h2><p>拿到一段并发代码，依次问自己三个问题就够了:</p>
+<p><strong>这几个线程会不会碰到同一份状态?</strong> 局部变量一般是线程私有的，但它保存的引用可能指向一个所有线程共享的对象，不能只看变量是在方法里声明的就当成安全。</p>
+<p><strong>这份共享状态会不会被改?</strong> 如果所有线程都只读不写，通常不会有丢失更新的问题；一旦出现写操作，就得继续往下查。</p>
+<p><strong>一次操作是不是由好几步拼起来的?</strong> 读旧值、算新值、写回去，是最典型的复合操作。只要这几步能被别的线程插进来打断，结果就会跟执行顺序挂钩。</p>
+<p>拿计数器的例子过一遍这三条:两个线程共享同一个 <code>Counter</code> 对象，<code>count</code> 会被写，<code>count++</code> 是读、算、写三步组合——三条全中，竞态条件确认。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>count++</code> 出错，不是因为加法算错了，而是因为它依赖旧值，由读、算、写三步拼成，而这三步之间没有任何保护。两个线程完全可能读到同一个旧值、算出同一个新值、再互相覆盖对方的写入，导致其中一次自增凭空消失。</p>
+<p>一句话概括:</p>
+<blockquote>
+<p>多个线程并发执行一个非原子的复合操作，并且这个操作会修改同一份共享状态。</p>
+</blockquote>
+<p>问题已经找到:要让一组相关的步骤在并发环境下保持完整，不能让别的线程从中间插一脚。下一章从这个要求出发，看看 Java 提供了哪些手段来做到这件事。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8/" class="print-no-link">#线程安全</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（二）—— 为什么 count++ 会出错</div>
+      <div>https://rebibabo.github.io/categories/java-concurrency/2/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/1/" title="Java高并发底层原理（一）—— 计算机是如何执行 Java 程序的">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（一）—— 计算机是如何执行 Java 程序的</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/3/" title="Java高并发底层原理（三）—— synchronized 为什么能够保证线程安全">
+                        <span class="hidden-mobile">Java高并发底层原理（三）—— synchronized 为什么能够保证线程安全</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

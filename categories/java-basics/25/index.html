@@ -1,0 +1,936 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言Claude Code 是 Anthropic 的命令行 AI 编程助手，可以直接在终端里读写项目文件、跑命令、调试报错。这篇文章记录从基本对话到 Skills、Subagents 的常用技巧，作为开发 Mini-SSP 时的工具准备。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code 入门：日常对话、Skills 与 Subagents">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-basics/25/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言Claude Code 是 Anthropic 的命令行 AI 编程助手，可以直接在终端里读写项目文件、跑命令、调试报错。这篇文章记录从基本对话到 Skills、Subagents 的常用技巧，作为开发 Mini-SSP 时的工具准备。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.146Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="AI 工具">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="开发效率">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Claude Code 入门：日常对话、Skills 与 Subagents - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Claude Code 入门：日常对话、Skills 与 Subagents"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-25 00:00" pubdate>
+          2026年5月25日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          30 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Claude Code 入门：日常对话、Skills 与 Subagents</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <!-- series-intro -->
+<blockquote>
+<p>📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先<strong>收藏</strong>再慢慢阅读，方便日后随时回顾查阅。</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Claude Code 是 Anthropic 的命令行 AI 编程助手，可以直接在终端里读写项目文件、跑命令、调试报错。这篇文章记录从基本对话到 Skills、Subagents 的常用技巧，作为开发 Mini-SSP 时的工具准备。</p>
+<span id="more"></span>
+
+<h2 id="1-基本使用"><a href="#1-基本使用" class="headerlink" title="1. 基本使用"></a>1. 基本使用</h2><h3 id="1-1-启动和退出"><a href="#1-1-启动和退出" class="headerlink" title="1.1 启动和退出"></a>1.1 启动和退出</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 在项目根目录启动（重要：在哪个目录启动，Claude 就能访问哪个目录的文件）</span><br><span class="hljs-built_in">cd</span> mini-ssp<br>claude<br><br><span class="hljs-comment"># 退出</span><br>/exit<br><span class="hljs-comment"># 或 Ctrl+C 两次</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="1-2-直接对话"><a href="#1-2-直接对话" class="headerlink" title="1.2 直接对话"></a>1.2 直接对话</h3><p>进入交互模式后，直接用自然语言描述需求即可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">帮我创建 BidController，包含一个 POST /api/v1/bid 接口<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">SlotService</span> 里这个方法报 NullPointerException，帮我看看是什么原因<br></code></pre></td></tr></table></figure>
+
+<p>Claude Code 会自动读取相关文件、给出修改建议，并在终端里展示 diff。修改前会询问是否确认（除非配置了自动批准）。</p>
+<h3 id="1-3-文件引用"><a href="#1-3-文件引用" class="headerlink" title="1.3 文件引用"></a>1.3 文件引用</h3><p>用 <code>@</code> 引用项目里的文件，让 Claude 直接读取内容，不用自己复制粘贴：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs swift"><span class="hljs-meta">@src</span><span class="hljs-regexp">/main/</span>java<span class="hljs-regexp">/com/</span>example<span class="hljs-regexp">/ssp/</span>service<span class="hljs-operator">/</span><span class="hljs-type">BidService</span>.java 这个类里的竞价逻辑有什么问题？<br></code></pre></td></tr></table></figure>
+
+<p>也可以引用具体行号范围（用 <code>Cmd+Option+K</code> &#x2F; <code>Ctrl+Alt+K</code> 快捷插入）：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">@src<span class="hljs-regexp">/main/</span>java<span class="hljs-regexp">/com/</span>example<span class="hljs-regexp">/ssp/</span>service/BidService.java<span class="hljs-comment">#L20-45 重构这部分代码</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-常用内置命令（Slash-Commands）"><a href="#2-常用内置命令（Slash-Commands）" class="headerlink" title="2. 常用内置命令（Slash Commands）"></a>2. 常用内置命令（Slash Commands）</h2><p>输入 <code>/</code> 会弹出自动补全菜单，列出所有可用命令。常用的：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/help</code></td>
+<td>显示所有可用命令</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>清空当前对话历史，开始新会话</td>
+</tr>
+<tr>
+<td><code>/compact</code></td>
+<td>压缩对话历史，释放上下文空间（长会话变慢时用）</td>
+</tr>
+<tr>
+<td><code>/model</code></td>
+<td>切换模型（如 Sonnet &#x2F; Opus）</td>
+</tr>
+<tr>
+<td><code>/init</code></td>
+<td>扫描项目，生成 <code>CLAUDE.md</code> 项目说明文件</td>
+</tr>
+<tr>
+<td><code>/agents</code></td>
+<td>管理 Subagents</td>
+</tr>
+<tr>
+<td><code>/mcp</code></td>
+<td>管理 MCP 服务器连接</td>
+</tr>
+<tr>
+<td><code>/memory</code></td>
+<td>编辑长期记忆文件</td>
+</tr>
+<tr>
+<td><code>/login</code></td>
+<td>登录账号</td>
+</tr>
+</tbody></table>
+<h3 id="2-1-init：让-Claude-了解你的项目"><a href="#2-1-init：让-Claude-了解你的项目" class="headerlink" title="2.1 /init：让 Claude 了解你的项目"></a>2.1 <code>/init</code>：让 Claude 了解你的项目</h3><p>第一次在新项目里用，建议先跑一次：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">/init<br></code></pre></td></tr></table></figure>
+
+<p>它会扫描项目结构、依赖、代码风格，生成一个 <code>CLAUDE.md</code> 文件放在项目根目录。之后每次启动 Claude Code，都会自动读取这个文件，了解项目背景，不用每次重新解释”这是一个 Spring Boot 项目，用 MyBatis-Plus…”。</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-section"># CLAUDE.md 示例内容</span><br><span class="hljs-section">## 项目概述</span><br>Mini-SSP：程序化广告 SSP 练习项目<br><br><span class="hljs-section">## 技术栈</span><br><span class="hljs-bullet">-</span> Java 17, Spring Boot 3.x, Maven<br><span class="hljs-bullet">-</span> MyBatis-Plus + MySQL<br><span class="hljs-bullet">-</span> Redis 缓存<br><br><span class="hljs-section">## 代码规范</span><br><span class="hljs-bullet">-</span> Controller 只做参数校验和调用 Service<br><span class="hljs-bullet">-</span> 业务逻辑全部在 Service 层<br><span class="hljs-bullet">-</span> 统一用 ApiResponse 包装返回值<br></code></pre></td></tr></table></figure>
+
+<p>随着项目推进可以手动补充这个文件，比如加入团队的命名规范、踩过的坑等。</p>
+<hr>
+<h2 id="3-Skills：把重复的指令存成命令"><a href="#3-Skills：把重复的指令存成命令" class="headerlink" title="3. Skills：把重复的指令存成命令"></a>3. Skills：把重复的指令存成命令</h2><h3 id="3-1-为什么需要-Skills"><a href="#3-1-为什么需要-Skills" class="headerlink" title="3.1 为什么需要 Skills"></a>3.1 为什么需要 Skills</h3><p>如果你发现自己经常输入类似的长指令：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown">帮我检查这段代码：1. 是否有空指针风险 2. 是否需要加日志<br><span class="hljs-bullet">3.</span> 命名是否符合规范 4. 是否需要写注释<br></code></pre></td></tr></table></figure>
+
+<p>每次都重新打一遍很麻烦。Skill 就是把这类指令存成文件，之后用 <code>/命令名</code> 一键调用。</p>
+<h3 id="3-2-创建一个-Skill"><a href="#3-2-创建一个-Skill" class="headerlink" title="3.2 创建一个 Skill"></a>3.2 创建一个 Skill</h3><p>在项目根目录创建 <code>.claude/skills/&lt;名字&gt;/SKILL.md</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">mkdir</span> -p .claude/skills/review<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-section">&lt;!-- .claude/skills/review/SKILL.md --&gt;</span><br><span class="hljs-section">---</span><br>name: review<br><span class="hljs-section">description: 按团队规范审查代码</span><br><span class="hljs-section">---</span><br><br>请按以下标准审查当前文件：<br><span class="hljs-bullet">1.</span> 是否有空指针风险，是否需要加 Optional 或判空<br><span class="hljs-bullet">2.</span> 关键方法是否需要加日志<br><span class="hljs-bullet">3.</span> 命名是否符合阿里巴巴 Java 规范<br><span class="hljs-bullet">4.</span> 复杂逻辑是否需要注释说明<br><br>逐项给出问题和修改建议。<br></code></pre></td></tr></table></figure>
+
+<p>之后在对话里：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs swift"><span class="hljs-meta">@src</span><span class="hljs-regexp">/main/</span>java<span class="hljs-regexp">/com/</span>example<span class="hljs-regexp">/ssp/</span>service<span class="hljs-operator">/</span><span class="hljs-type">BidService</span>.java<br><span class="hljs-operator">/</span>review<br></code></pre></td></tr></table></figure>
+
+<p>Claude 就会按这个模板审查代码，不需要每次重新描述要求。</p>
+<h3 id="3-3-Skill-的作用域"><a href="#3-3-Skill-的作用域" class="headerlink" title="3.3 Skill 的作用域"></a>3.3 Skill 的作用域</h3><table>
+<thead>
+<tr>
+<th>位置</th>
+<th>作用范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.claude/skills/</code></td>
+<td>仅当前项目</td>
+</tr>
+<tr>
+<td><code>~/.claude/skills/</code></td>
+<td>所有项目（个人全局）</td>
+</tr>
+</tbody></table>
+<p>团队协作的 Skill 放在项目里（提交到 Git，团队共享）；个人习惯用的 Skill 放在全局目录。</p>
+<hr>
+<h2 id="4-Subagents：专门干一件事的子助手"><a href="#4-Subagents：专门干一件事的子助手" class="headerlink" title="4. Subagents：专门干一件事的子助手"></a>4. Subagents：专门干一件事的子助手</h2><h3 id="4-1-为什么需要-Subagent"><a href="#4-1-为什么需要-Subagent" class="headerlink" title="4.1 为什么需要 Subagent"></a>4.1 为什么需要 Subagent</h3><p>主对话窗口的上下文是共享的——如果你让 Claude 先去翻遍整个代码库找某个 bug，再继续聊别的，前面翻代码的内容会一直占用上下文，拖慢后续对话。</p>
+<p>Subagent 是<strong>独立的子任务</strong>，有自己的上下文窗口，做完任务后只把结论汇报给主对话，过程中的细节不会污染主对话。</p>
+<h3 id="4-2-内置-Subagent"><a href="#4-2-内置-Subagent" class="headerlink" title="4.2 内置 Subagent"></a>4.2 内置 Subagent</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Explore</code></td>
+<td>只读探索代码库，不会修改文件</td>
+</tr>
+<tr>
+<td><code>Plan</code></td>
+<td>制定计划，不执行</td>
+</tr>
+<tr>
+<td><code>general-purpose</code></td>
+<td>通用任务</td>
+</tr>
+</tbody></table>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sqf">用 Explore <span class="hljs-built_in">agent</span> 帮我找一下项目里所有调用 Redis 的地方，整理成列表<br></code></pre></td></tr></table></figure>
+
+<p>Claude 会派出一个 Explore 子任务去搜索代码库，搜索过程中产生的大量中间结果不会进入主对话，最后只返回整理好的列表。</p>
+<h3 id="4-3-自定义-Subagent"><a href="#4-3-自定义-Subagent" class="headerlink" title="4.3 自定义 Subagent"></a>4.3 自定义 Subagent</h3><p>在 <code>.claude/agents/</code> 下创建配置文件，可以定义专用的子助手，比如一个专门做 SQL 审查的：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-section">&lt;!-- .claude/agents/sql-reviewer.md --&gt;</span><br><span class="hljs-section">---</span><br>name: sql-reviewer<br>description: 审查 MyBatis SQL 是否有性能问题<br><span class="hljs-section">tools: Read, Grep, Glob</span><br><span class="hljs-section">---</span><br><br>你是 SQL 性能审查专家。检查 Mapper XML 中的 SQL：<br><span class="hljs-bullet">1.</span> 是否有全表扫描风险（缺少索引字段的 WHERE 条件）<br><span class="hljs-bullet">2.</span> 是否用了 SELECT *<br><span class="hljs-bullet">3.</span> IN 子句是否可能元素过多<br><span class="hljs-bullet">4.</span> 是否需要分页但没分页<br><br>只读，不要修改文件，给出审查报告即可。<br></code></pre></td></tr></table></figure>
+
+<p><code>tools: Read, Grep, Glob</code> 限制这个 Subagent 只能读文件、搜索，不能修改——审查类的 Subagent 建议都设为只读，避免误改代码。</p>
+<p>调用：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">用 <span class="hljs-keyword">sql</span>-reviewer 检查一下 BidLogMapper.xml<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-实用技巧"><a href="#5-实用技巧" class="headerlink" title="5. 实用技巧"></a>5. 实用技巧</h2><h3 id="5-1-后台运行长命令"><a href="#5-1-后台运行长命令" class="headerlink" title="5.1 后台运行长命令"></a>5.1 后台运行长命令</h3><p>跑测试、启动服务这类耗时命令，可以让它在后台跑，不阻塞对话：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">在后台启动 Spring <span class="hljs-keyword">Boot </span>应用，然后帮我写下一个接口<br></code></pre></td></tr></table></figure>
+
+<p>Claude 会用后台模式运行 <code>mvn spring-boot:run</code>，运行日志可以随时查看，同时继续对话。</p>
+<h3 id="5-2-长会话变慢时"><a href="#5-2-长会话变慢时" class="headerlink" title="5.2 长会话变慢时"></a>5.2 长会话变慢时</h3><p>对话太长会导致响应变慢、上下文溢出。两种处理方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">/compact   <span class="hljs-comment"># 压缩历史，保留关键信息</span><br>/clear     <span class="hljs-comment"># 直接清空，开始新会话（CLAUDE.md 仍会被读取）</span><br></code></pre></td></tr></table></figure>
+
+<p>经验：完成一个功能模块后 <code>/clear</code>，避免上下文堆积。</p>
+<h3 id="5-3-让-Claude-自己拆解任务"><a href="#5-3-让-Claude-自己拆解任务" class="headerlink" title="5.3 让 Claude 自己拆解任务"></a>5.3 让 Claude 自己拆解任务</h3><p>复杂任务直接让它规划：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs">帮我实现竞价接口的完整链路：接收请求 → 查询广告位 → 并发请求 DSP → 选最高价 → 返回结果<br>先列出实现步骤，我确认后再开始<br></code></pre></td></tr></table></figure>
+
+<p>它会先输出 TODO 列表，确认后逐项实现，过程中可以用 <code>/todos</code> 查看当前进度。</p>
+<h3 id="5-4-文件级精确修改"><a href="#5-4-文件级精确修改" class="headerlink" title="5.4 文件级精确修改"></a>5.4 文件级精确修改</h3><p>不想让 Claude 大范围重构时，明确限定范围：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">只修改 <span class="hljs-keyword">BidService.java </span>的 processBid 方法，其他文件不要动<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-小结"><a href="#6-小结" class="headerlink" title="6. 小结"></a>6. 小结</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>用途</th>
+<th>存放位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>对话 + <code>@文件</code></td>
+<td>日常开发主要交互方式</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>/init</code></td>
+<td>生成项目说明，让 Claude 记住项目背景</td>
+<td><code>CLAUDE.md</code></td>
+</tr>
+<tr>
+<td>Slash Commands</td>
+<td>内置功能（清空、压缩、切换模型等）</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Skills</td>
+<td>把重复指令存成命令，<code>/命令名</code> 调用</td>
+<td><code>.claude/skills/</code></td>
+</tr>
+<tr>
+<td>Subagents</td>
+<td>独立子任务，不污染主对话上下文</td>
+<td><code>.claude/agents/</code></td>
+</tr>
+</tbody></table>
+<p>开发 Mini-SSP 时的建议用法：先 <code>/init</code> 让 Claude 了解项目结构，日常用自然语言 + <code>@文件</code> 交互，每完成一个模块 <code>/clear</code> 一次，代码审查类重复任务可以做成 Skill。</p>
+<hr>
+<blockquote>
+<p><strong>下一篇预告</strong>：Mini-SSP 实战——用 Claude Code 搭建项目骨架</p>
+</blockquote>
+<!-- follow-me -->
+<hr>
+<blockquote>
+<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-basics/" class="category-chain-item">java-basics</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Claude-Code/" class="print-no-link">#Claude Code</a>
+      
+        <a href="/tags/AI-%E5%B7%A5%E5%85%B7/" class="print-no-link">#AI 工具</a>
+      
+        <a href="/tags/%E5%BC%80%E5%8F%91%E6%95%88%E7%8E%87/" class="print-no-link">#开发效率</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Claude Code 入门：日常对话、Skills 与 Subagents</div>
+      <div>https://rebibabo.github.io/categories/java-basics/25/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-basics/24/" title="Java基础(24) | MySQL 原理与优化：事务、存储引擎、索引与锁">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java基础(24) | MySQL 原理与优化：事务、存储引擎、索引与锁</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-basics/26/" title="Java基础(番外) | 开发规范全集：命名、代码、目录、文档、Git 一站式速查">
+                        <span class="hidden-mobile">Java基础(番外) | 开发规范全集：命名、代码、目录、文档、Git 一站式速查</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

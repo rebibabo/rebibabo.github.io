@@ -1,0 +1,1061 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="上一章讨论的是单机内存版任务处理系统：请求线程把 Task 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。 一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/29/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="上一章讨论的是单机内存版任务处理系统：请求线程把 Task 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。 一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.125Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="MQ">
+<meta property="article:tag" content="任务补偿">
+<meta property="article:tag" content="并发任务">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-05 00:00" pubdate>
+          2026年7月5日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          63 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>上一章讨论的是单机内存版任务处理系统：请求线程把 <code>Task</code> 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。</p>
+<p>一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执行到一半的任务，也没有稳定位置记录它到底完成了没有。</p>
+<p>本章继续沿用文件解析任务这个例子，讨论任务不能丢时，系统为什么要从内存队列升级到数据库任务表或 MQ。重点不是直接比较两个工具，而是先看内存队列缺了什么，再看数据库任务表和 MQ 分别补上了哪一部分能力，以及它们各自的边界。</p>
+<h2 id="1、为什么内存队列无法保证任务可靠"><a href="#1、为什么内存队列无法保证任务可靠" class="headerlink" title="1、为什么内存队列无法保证任务可靠"></a>1、为什么内存队列无法保证任务可靠</h2><p>上一章的任务提交流程是这样的：</p>
+<pre><code class=" mermaid">flowchart LR
+    Request[&quot;请求线程&quot;] --&gt; MemoryQueue[&quot;内存队列&quot;] --&gt; Worker[&quot;工作线程&quot;]
+</code></pre>
+
+<p>请求线程创建文件解析任务，然后放入本地内存队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Task</span>(taskId, TaskType.FILE_PARSE, fileId);<br><span class="hljs-type">SubmitResult</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> taskSubmitter.submit(task);<br></code></pre></td></tr></table></figure>
+
+<p>这套模型的问题在于，任务的唯一存放位置是 JVM 内存。只要任务还没被 Worker 处理完成，它就依赖当前进程继续存活。</p>
+<p>如果服务刚好在任务排队时重启，流程会变成：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[&quot;创建任务&quot;] --&gt; B[&quot;放入内存队列&quot;]
+    B --&gt; C[&quot;服务重启&quot;]
+    C --&gt; D[&quot;内存队列被清空&quot;]
+    D --&gt; E[&quot;任务丢失&quot;]
+</code></pre>
+
+<p>如果服务在 Worker 正在执行时宕机，问题会更复杂。系统不知道这个文件解析任务是完全没执行、执行了一半，还是已经处理完但没来得及记录结果。因为内存队列只负责临时排队，并不负责保存任务状态。</p>
+<p>所以内存队列的边界可以从三个问题理解：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>内存队列的表现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>服务重启后任务还在吗</td>
+<td>不在，队列随进程消失</td>
+</tr>
+<tr>
+<td>任务执行到哪一步了</td>
+<td>不知道，状态没有稳定记录</td>
+</tr>
+<tr>
+<td>多台机器能共享同一个队列吗</td>
+<td>不能，每个 JVM 只有自己的本地队列</td>
+</tr>
+</tbody></table>
+<p>因此，只要文件解析任务具备“必须最终处理”的要求，就不能只依赖内存队列。此时需要引入一个更稳定的位置保存任务，让任务即使离开当前 JVM 也能被找回来。</p>
+<h2 id="2、数据库任务表如何让任务可恢复"><a href="#2、数据库任务表如何让任务可恢复" class="headerlink" title="2、数据库任务表如何让任务可恢复"></a>2、数据库任务表如何让任务可恢复</h2><p>数据库任务表要解决的第一个问题是：任务不能只存在于内存里，必须有一个可恢复的状态记录。</p>
+<p>它不是简单地把 <code>BlockingQueue</code> 换成数据库，而是让数据库成为任务的事实来源。内存队列仍然可以存在，但它只负责加速本机 Worker 取任务；真正判断任务有没有创建、有没有成功、是否需要重试，要看数据库任务表。</p>
+<p>角色关系变成：</p>
+<pre><code class=" mermaid">flowchart LR
+    Request[&quot;请求线程&quot;] --&gt; TaskTable[&quot;数据库任务表&quot;] --&gt; MemoryQueue[&quot;内存队列&quot;]
+    TaskTable --&gt; TaskStatus[&quot;任务状态&quot;]
+    MemoryQueue --&gt; Worker[&quot;工作线程&quot;]
+</code></pre>
+
+<p>文件上传接口不再只是把任务放入内存队列，而是先写入任务表：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE TABLE</span> task_record (<br>    id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">PRIMARY KEY</span> AUTO_INCREMENT,<br>    task_id <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">64</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    task_type <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">64</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    biz_id <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">128</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    status <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">32</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    retry_count <span class="hljs-type">INT</span> <span class="hljs-keyword">NOT NULL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">0</span>,<br>    max_retry_count <span class="hljs-type">INT</span> <span class="hljs-keyword">NOT NULL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">3</span>,<br>    error_message TEXT,<br>    next_retry_time DATETIME,<br>    create_time DATETIME <span class="hljs-keyword">NOT NULL</span>,<br>    update_time DATETIME <span class="hljs-keyword">NOT NULL</span><br>);<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>task_id</code> 是任务身份，<code>task_type</code> 表示任务类型，<code>biz_id</code> 对应文件 ID，<code>status</code> 记录任务状态，<code>retry_count</code> 和 <code>next_retry_time</code> 用来支持失败重试。</p>
+<p>提交任务时，流程应该先落库，再进入内存队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> SubmitResult <span class="hljs-title function_">submit</span><span class="hljs-params">(Task task)</span> &#123;<br>    taskRepository.insert(task);<br><br>    <span class="hljs-type">boolean</span> <span class="hljs-variable">accepted</span> <span class="hljs-operator">=</span> taskQueue.offer(task);<br><br>    <span class="hljs-keyword">if</span> (accepted) &#123;<br>        <span class="hljs-keyword">return</span> SubmitResult.ACCEPTED;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> SubmitResult.PERSISTED;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里有一个关键变化：即使 <code>offer()</code> 失败，任务也不算丢失。因为任务已经写入数据库，后续可以由定时扫描器重新加载：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span><br><span class="hljs-keyword">FROM</span> task_record<br><span class="hljs-keyword">WHERE</span> status <span class="hljs-keyword">IN</span> (<span class="hljs-string">&#x27;CREATED&#x27;</span>, <span class="hljs-string">&#x27;RETRYING&#x27;</span>)<br>  <span class="hljs-keyword">AND</span> next_retry_time <span class="hljs-operator">&lt;=</span> NOW()<br><span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> create_time<br>LIMIT <span class="hljs-number">100</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这时内存队列的角色发生了变化。上一章中，内存队列是任务的主要存放位置；现在，数据库任务表才是任务的主要存放位置，内存队列只是本机执行前的缓冲。</p>
+<p>任务状态也要从内存字段变成数据库中的稳定记录：</p>
+<pre><code class=" mermaid">stateDiagram-v2
+    [*] --&gt; CREATED
+    CREATED --&gt; RUNNING
+    RUNNING --&gt; SUCCESS
+    RUNNING --&gt; FAILED
+    FAILED --&gt; RETRYING
+    RETRYING --&gt; RUNNING
+    RUNNING --&gt; DEAD
+    SUCCESS --&gt; [*]
+    DEAD --&gt; [*]
+</code></pre>
+
+<p>这样即使服务重启，系统也能根据任务表恢复现场：</p>
+<table>
+<thead>
+<tr>
+<th>数据库状态</th>
+<th>重启后的处理方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CREATED</code></td>
+<td>重新加载到队列</td>
+</tr>
+<tr>
+<td><code>RETRYING</code></td>
+<td>到达重试时间后重新加载</td>
+</tr>
+<tr>
+<td><code>RUNNING</code></td>
+<td>如果更新时间过久，可以认为上次执行中断</td>
+</tr>
+<tr>
+<td><code>SUCCESS</code></td>
+<td>不再处理</td>
+</tr>
+<tr>
+<td><code>DEAD</code></td>
+<td>留给人工排查或补偿</td>
+</tr>
+</tbody></table>
+<p>数据库任务表解决的不是高吞吐，而是可恢复。它让系统从“任务在内存里排队”升级成“任务有稳定状态，服务重启后还能继续处理”。</p>
+<h2 id="3、多实例下如何避免任务被重复执行"><a href="#3、多实例下如何避免任务被重复执行" class="headerlink" title="3、多实例下如何避免任务被重复执行"></a>3、多实例下如何避免任务被重复执行</h2><p>引入数据库任务表后，下一个问题会自然出现：如果服务部署了多个实例，它们都会扫描 <code>task_record</code>，同一个任务会不会被多个 Worker 同时取走？</p>
+<p>例如：</p>
+<pre><code class=" mermaid">flowchart LR
+    InstanceA[&quot;实例 A&quot;] --&gt; TaskTable[&quot;数据库任务表&quot;]
+    InstanceB[&quot;实例 B&quot;] --&gt; TaskTable
+</code></pre>
+
+<p>如果两个实例同时查到同一条 <code>CREATED</code> 任务，并且都开始执行，就会出现重复解析文件、重复生成预览、重复通知用户的问题。</p>
+<p>所以数据库任务表在多实例场景下，不能只会“查任务”，还必须会“抢任务”。抢任务的核心是：只有一个实例能把任务状态从 <code>CREATED</code> 改成 <code>RUNNING</code>。</p>
+<p>一种常见做法是带状态条件更新：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">UPDATE</span> task_record<br><span class="hljs-keyword">SET</span> status <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;RUNNING&#x27;</span>,<br>    update_time <span class="hljs-operator">=</span> NOW()<br><span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> ?<br>  <span class="hljs-keyword">AND</span> status <span class="hljs-keyword">IN</span> (<span class="hljs-string">&#x27;CREATED&#x27;</span>, <span class="hljs-string">&#x27;RETRYING&#x27;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>执行完之后，看影响行数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-variable">locked</span> <span class="hljs-operator">=</span> taskRepository.markRunning(taskId);<br><br><span class="hljs-keyword">if</span> (!locked) &#123;<br>    <span class="hljs-keyword">return</span>;<br>&#125;<br><br>processor.process(task);<br></code></pre></td></tr></table></figure>
+
+<p>如果影响行数是 1，说明当前实例抢到了任务；如果影响行数是 0，说明任务已经被其他实例抢走，当前实例应该放弃执行。</p>
+<p>这个设计的重点不是“加锁”这个词，而是让状态流转变成一次原子判断：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[&quot;状态为 CREATED&quot;] --&gt; B[&quot;改为 RUNNING&quot;]
+    B --&gt; C[&quot;只有一个 Worker 成功&quot;]
+</code></pre>
+
+<p>即使这样，也不能完全假设任务永远只执行一次。因为还有一些边界情况：Worker 抢到任务后宕机，数据库里任务停在 <code>RUNNING</code>；系统重试这个任务时，前一次执行可能已经对部分业务数据产生影响。</p>
+<p>所以可靠任务系统还需要幂等。幂等的意思是：同一个任务即使被执行多次，最终业务结果也应该和执行一次一致。</p>
+<p>对于文件解析任务，可以用 <code>task_id</code> 或 <code>file_id</code> 作为幂等依据。例如生成预览图时，先检查这个文件是否已经生成过预览：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">generatePreview</span><span class="hljs-params">(String fileId)</span> &#123;<br>    <span class="hljs-keyword">if</span> (previewRepository.existsByFileId(fileId)) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    <span class="hljs-type">Preview</span> <span class="hljs-variable">preview</span> <span class="hljs-operator">=</span> doGeneratePreview(fileId);<br>    previewRepository.save(preview);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>任务表负责减少重复执行，幂等设计负责兜底重复执行。二者解决的问题不同：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>解决的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态抢占</td>
+<td>尽量避免多个实例同时执行同一任务</td>
+</tr>
+<tr>
+<td>幂等设计</td>
+<td>即使任务重复执行，也不产生重复业务结果</td>
+</tr>
+</tbody></table>
+<p>所以数据库任务表不是只建一张表就结束了。只要进入多实例场景，就必须同时考虑状态抢占、超时恢复和业务幂等。</p>
+<h2 id="4、什么时候需要-MQ：从任务状态管理到任务投递通道"><a href="#4、什么时候需要-MQ：从任务状态管理到任务投递通道" class="headerlink" title="4、什么时候需要 MQ：从任务状态管理到任务投递通道"></a>4、什么时候需要 MQ：从任务状态管理到任务投递通道</h2><p>数据库任务表能让任务可恢复，也能通过状态抢占支持多实例处理。但它并不是专门为高吞吐任务投递设计的。</p>
+<p>如果文件解析任务量不大，数据库任务表很合适。因为它查询方便，状态清晰，失败任务也容易排查。但如果任务量很大，比如每秒都有大量文件处理、通知、同步任务产生，数据库就会承担频繁插入、扫描、状态更新的压力。</p>
+<p>这时需要思考另一个问题：系统真正需要的，可能不只是“保存任务状态”，而是一个能承接大量任务投递、支持多消费者消费、失败后可以重投的通道。</p>
+<p>这个通道就是 MQ。</p>
+<p>MQ 的角色关系是：</p>
+<pre><code class=" mermaid">flowchart LR
+    Producer[&quot;生产者&quot;] --&gt; Broker[&quot;Broker&quot;] --&gt; Consumer[&quot;消费者&quot;]
+</code></pre>
+
+<p>在文件解析任务里，上传服务作为 Producer，把文件解析消息发送到 MQ；MQ 的 Broker 负责保存和投递消息；解析服务作为 Consumer 消费消息并处理文件。</p>
+<p>和数据库任务表相比，MQ 更强调“投递与消费”：</p>
+<table>
+<thead>
+<tr>
+<th>关注点</th>
+<th>数据库任务表</th>
+<th>MQ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心能力</td>
+<td>保存任务状态</td>
+<td>分发任务消息</td>
+</tr>
+<tr>
+<td>消费方式</td>
+<td>定时扫描或抢占</td>
+<td>Broker 主动投递或消费者拉取</td>
+</tr>
+<tr>
+<td>扩展方式</td>
+<td>多实例抢任务</td>
+<td>增加消费者实例</td>
+</tr>
+<tr>
+<td>失败处理</td>
+<td>自己实现重试和死信</td>
+<td>通常内置重投和死信能力</td>
+</tr>
+<tr>
+<td>查询排查</td>
+<td>直接查表方便</td>
+<td>通常要配合日志和业务表</td>
+</tr>
+</tbody></table>
+<p>因此，MQ 不是“更高级的数据库任务表”。它们解决的问题侧重点不同：数据库任务表更像任务状态中心，MQ 更像分布式任务投递通道。</p>
+<p>当系统主要矛盾是“任务必须可查、可补偿、状态要清晰”时，数据库任务表更自然；当主要矛盾是“任务量大、需要削峰、多消费者扩展”时，MQ 更合适。</p>
+<h2 id="5、MQ-的消费确认、重试、死信与幂等"><a href="#5、MQ-的消费确认、重试、死信与幂等" class="headerlink" title="5、MQ 的消费确认、重试、死信与幂等"></a>5、MQ 的消费确认、重试、死信与幂等</h2><p>引入 MQ 后，任务不再靠本地 Worker 从内存队列取，而是由 Consumer 从 MQ 接收消息。</p>
+<p>一个基本消费流程是：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[&quot;发送消息&quot;] --&gt; B[&quot;Broker 保存消息&quot;]
+    B --&gt; C[&quot;消费者接收消息&quot;]
+    C --&gt; D[&quot;执行业务&quot;]
+    D --&gt; E[&quot;确认消息 ack&quot;]
+</code></pre>
+
+<p>这里第一次出现了 <code>ack</code>。它是消费确认，表示 Consumer 告诉 MQ：这条消息已经处理完成，可以从待投递范围中移除了。</p>
+<p>为什么需要 <code>ack</code>？因为 Consumer 收到消息不代表任务已经成功。文件解析可能失败，数据库写入可能失败，服务也可能在处理过程中宕机。如果 MQ 在“消息刚投递出去”时就删除消息，那么 Consumer 一旦中途失败，任务就丢了。</p>
+<p>所以更合理的顺序是：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[&quot;接收消息&quot;] --&gt; B[&quot;处理文件任务&quot;]
+    B --&gt; C[&quot;业务成功&quot;]
+    C --&gt; D[&quot;确认消息 ack&quot;]
+</code></pre>
+
+<p>不要反过来：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[&quot;接收消息&quot;] --&gt; B[&quot;确认消息 ack&quot;]
+    B --&gt; C[&quot;处理文件任务&quot;]
+</code></pre>
+
+<p>因为先确认再处理，会把可靠性窗口提前关闭。只要确认之后处理失败，MQ 已经认为消息完成，后续就不会再投递。</p>
+<p>但“处理成功后再 ack”也带来另一个边界：如果业务处理成功了，但 ack 之前 Consumer 宕机，MQ 可能会再次投递同一条消息。因此 MQ 消费通常要默认面对“至少一次投递”，也就是消息可能重复到达。</p>
+<p>这时仍然需要幂等。前面数据库任务表中提到的文件预览幂等，在 MQ 场景下同样成立：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">consume</span><span class="hljs-params">(FileParseMessage message)</span> &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">fileId</span> <span class="hljs-operator">=</span> message.getFileId();<br><br>    <span class="hljs-keyword">if</span> (taskResultRepository.existsByFileId(fileId)) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    parseFile(fileId);<br>    generatePreview(fileId);<br>    notifyUser(fileId);<br><br>    taskResultRepository.saveSuccess(fileId);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>失败重试在 MQ 中通常由消息重投或延迟消息完成。多次失败后，消息可以进入死信队列：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[&quot;消费失败&quot;] --&gt; B[&quot;稍后重试&quot;]
+    B --&gt; C[&quot;仍然失败&quot;]
+    C --&gt; D[&quot;超过重试次数&quot;]
+    D --&gt; E[&quot;进入死信队列&quot;]
+</code></pre>
+
+<p>死信队列不是垃圾桶。它的作用是把长期失败的消息从正常消费链路中隔离出来，避免它一直阻塞正常消息，同时保留排查和人工补偿入口。</p>
+<p>MQ 场景下，几个概念要放在同一条链路里理解：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>在流程中的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Broker</td>
+<td>保存并投递消息</td>
+</tr>
+<tr>
+<td>Consumer</td>
+<td>接收消息并执行业务</td>
+</tr>
+<tr>
+<td>Ack</td>
+<td>告诉 Broker 消息已完成</td>
+</tr>
+<tr>
+<td>Retry</td>
+<td>临时失败后重新投递</td>
+</tr>
+<tr>
+<td>Dead Letter</td>
+<td>多次失败后隔离</td>
+</tr>
+<tr>
+<td>Idempotency</td>
+<td>兜底重复投递导致的重复执行</td>
+</tr>
+</tbody></table>
+<p>所以 MQ 解决了任务投递和消费扩展问题，但它没有消除业务幂等问题。只要消息可能重复投递，消费者就必须能承受重复执行。</p>
+<h2 id="6、数据库任务表和-MQ-应该如何选择"><a href="#6、数据库任务表和-MQ-应该如何选择" class="headerlink" title="6、数据库任务表和 MQ 应该如何选择"></a>6、数据库任务表和 MQ 应该如何选择</h2><p>到这里，选择数据库任务表还是 MQ，就不能只看“哪个更强”，而要看当前系统的主要矛盾是什么。</p>
+<p>如果文件解析任务量不大，但业务非常关心任务状态，例如要知道每个文件是否解析成功、失败原因是什么、能不能人工重新触发，那么数据库任务表更合适。它的优势是状态清晰、查询方便、补偿直接。</p>
+<p>如果文件解析任务量很大，上传高峰明显，多个服务实例需要共同消费，而且系统更关心削峰和吞吐，那么 MQ 更合适。它的优势是投递能力强、消费者扩展方便、失败重投和死信机制更成熟。</p>
+<p>可以用下面这个表收束选择条件：</p>
+<table>
+<thead>
+<tr>
+<th>判断问题</th>
+<th>更倾向数据库任务表</th>
+<th>更倾向 MQ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>任务量是否很大</td>
+<td>中小规模</td>
+<td>高吞吐、大规模</td>
+</tr>
+<tr>
+<td>是否需要频繁查询单个任务状态</td>
+<td>需要</td>
+<td>通常配合业务表或日志</td>
+</tr>
+<tr>
+<td>是否需要多消费者扩展</td>
+<td>可以做，但要自己抢占</td>
+<td>天然支持消费组</td>
+</tr>
+<tr>
+<td>失败重试和死信</td>
+<td>自己实现</td>
+<td>通常由 MQ 支持</td>
+</tr>
+<tr>
+<td>接入成本</td>
+<td>较低</td>
+<td>中等，需要维护 MQ</td>
+</tr>
+<tr>
+<td>主要目标</td>
+<td>可恢复、可追踪、可补偿</td>
+<td>削峰、解耦、高吞吐</td>
+</tr>
+</tbody></table>
+<p>也可以用一个简单规则判断：</p>
+<pre><code class=" mermaid">flowchart TD
+    A&#123;&quot;需要清晰的任务状态？&quot;&#125; --&gt;|是| B[&quot;使用数据库任务表&quot;]
+    A --&gt;|否| C&#123;&quot;需要高吞吐投递？&quot;&#125;
+    C --&gt;|是| D[&quot;使用 MQ&quot;]
+    B --&gt; E&#123;&quot;同时需要高吞吐投递？&quot;&#125;
+    E --&gt;|是| F[&quot;MQ + 业务任务表&quot;]
+</code></pre>
+
+<p>最后一种组合在实际系统里也很常见。MQ 负责投递和削峰，业务任务表负责记录状态和支持查询。文件上传后，系统可以先写业务任务表，再发送 MQ 消息；Consumer 消费消息后，更新任务表状态。这样 MQ 负责“让任务被消费”，数据库负责“让任务可追踪”。</p>
+<p>但组合方案也意味着复杂度上升。它需要处理发送消息和写数据库之间的一致性，需要设计幂等消费，也需要处理消息重复、消息延迟和死信补偿。因此，不要为了“架构完整”一开始就上组合方案，而要根据任务量、可靠性和排查需求逐步升级。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文可以从上一章的内存队列边界开始理解：因为内存队列只存在于当前 JVM，所以它能解决短暂排队和本机并发执行，却不能保证服务重启、机器宕机、多实例部署下任务仍然可靠。文件解析任务如果不能丢，就必须把任务从“内存中的临时对象”升级成“有稳定状态的任务记录”。</p>
+<p>数据库任务表引入后，任务状态有了可恢复的位置，系统可以在重启后重新加载未完成任务，也可以通过状态抢占支持多实例处理。但数据库任务表更擅长状态管理和补偿，不适合无限承担高吞吐投递压力。当任务量继续增大，系统需要削峰、多消费者扩展和成熟的重投死信能力时，MQ 才成为更合适的投递通道。</p>
+<p>最终，数据库任务表和 MQ 不是简单的替代关系。前者解决的是任务可恢复、可查询、可补偿，后者解决的是分布式投递、削峰和消费扩展。无论选择哪一种，只要任务可能被重复执行，业务幂等都不能省略；只要任务可能失败，重试和死信都必须有边界。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E5%B9%B6%E5%8F%91%E4%BB%BB%E5%8A%A1/" class="print-no-link">#并发任务</a>
+      
+        <a href="/tags/MQ/" class="print-no-link">#MQ</a>
+      
+        <a href="/tags/%E4%BB%BB%E5%8A%A1%E8%A1%A5%E5%81%BF/" class="print-no-link">#任务补偿</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择</div>
+      <div>https://rebibabo.github.io/categories/java-concurrency/29/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/28/" title="Java高并发底层原理（二十八）—— 并发任务处理系统如何设计：从任务模型到 Worker 执行">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（二十八）—— 并发任务处理系统如何设计：从任务模型到 Worker 执行</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

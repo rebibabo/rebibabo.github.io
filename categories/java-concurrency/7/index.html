@@ -1,0 +1,954 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="缓存一致性协议能够协调多个 CPU Core 对同一条 Cache Line 的读写，但 Java 程序仍然需要明确一件事：一个线程修改变量以后，另一个线程什么时候必须看到这个修改？ volatile 就是 Java 提供的一种内存语义。它不负责把一段代码变成临界区，也不会阻止多个线程同时执行，而是围绕一个变量建立可见性和有序性规则。 1. 一个线程为什么可能看不到另一个线程的修改先看一个常见的停">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java高并发底层原理（七）—— volatile 到底解决了什么问题">
+<meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/7/index.html">
+<meta property="og:site_name" content="AI Infra">
+<meta property="og:description" content="缓存一致性协议能够协调多个 CPU Core 对同一条 Cache Line 的读写，但 Java 程序仍然需要明确一件事：一个线程修改变量以后，另一个线程什么时候必须看到这个修改？ volatile 就是 Java 提供的一种内存语义。它不负责把一段代码变成临界区，也不会阻止多个线程同时执行，而是围绕一个变量建立可见性和有序性规则。 1. 一个线程为什么可能看不到另一个线程的修改先看一个常见的停">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-07T04:24:58.133Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="JMM">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="volatile">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Java高并发底层原理（七）—— volatile 到底解决了什么问题 - AI Infra</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java高并发底层原理（七）—— volatile 到底解决了什么问题"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-02 00:00" pubdate>
+          2026年7月2日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          64 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java高并发底层原理（七）—— volatile 到底解决了什么问题</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>缓存一致性协议能够协调多个 CPU Core 对同一条 Cache Line 的读写，但 Java 程序仍然需要明确一件事：一个线程修改变量以后，另一个线程什么时候必须看到这个修改？</p>
+<p><code>volatile</code> 就是 Java 提供的一种内存语义。它不负责把一段代码变成临界区，也不会阻止多个线程同时执行，而是围绕一个变量建立可见性和有序性规则。</p>
+<h2 id="1-一个线程为什么可能看不到另一个线程的修改"><a href="#1-一个线程为什么可能看不到另一个线程的修改" class="headerlink" title="1. 一个线程为什么可能看不到另一个线程的修改"></a>1. 一个线程为什么可能看不到另一个线程的修改</h2><p>先看一个常见的停止线程示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">StopDemo</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">running</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException &#123;<br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">worker</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">while</span> (running) &#123;<br>                <span class="hljs-comment">// do something</span><br>            &#125;<br><br>            System.out.println(<span class="hljs-string">&quot;worker stopped&quot;</span>);<br>        &#125;);<br><br>        worker.start();<br><br>        Thread.sleep(<span class="hljs-number">1000</span>);<br>        running = <span class="hljs-literal">false</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>主线程在一秒后把 <code>running</code> 修改为 <code>false</code>，从源码顺序看，工作线程似乎应该很快退出循环。但在没有任何同步规则的情况下，Java 并不保证工作线程一定能及时观察到这个修改。</p>
+<p>工作线程可能反复使用寄存器、CPU Cache 或编译器优化后的结果，而不是在每次循环时都重新按照源码形式读取共享变量。JIT 编译器只需要保证单线程语义不被破坏，在它看来，如果当前线程内部没有代码修改 <code>running</code>，就可能减少重复读取。</p>
+<p>这并不表示 Java 规定线程必须拥有一份独立的变量副本，也不能简单理解为“线程只读自己的缓存”。真实执行可能涉及寄存器、Cache、Store Buffer、JIT 优化和处理器指令。Java 内存模型不要求开发者依赖某一种具体硬件结构，而是通过规则规定哪些结果必须被其他线程看到。</p>
+<h2 id="2-volatile-保证可见性"><a href="#2-volatile-保证可见性" class="headerlink" title="2. volatile 保证可见性"></a>2. volatile 保证可见性</h2><p>把 <code>running</code> 声明为 <code>volatile</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">running</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<p>主线程写入：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">running = <span class="hljs-literal">false</span>;<br></code></pre></td></tr></table></figure>
+
+<p>工作线程读取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">while</span> (running) &#123;<br>    <span class="hljs-comment">// do something</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>此时，Java 内存模型要求工作线程能够观察到对 <code>running</code> 的最新写入。主线程把它修改为 <code>false</code> 后，工作线程后续读取不能一直使用已经失效的旧值 <code>true</code>。</p>
+<p>这里的核心保证是：</p>
+<blockquote>
+<p>一个线程对 volatile 变量的写入，对随后读取同一个 volatile 变量的线程可见。</p>
+</blockquote>
+<p><code>volatile</code> 不会让两个线程停止并发执行，也不会要求读线程先获得某把锁。它只是让这个变量的读写具备特殊内存语义。</p>
+<h2 id="3-volatile-不是每次都直接访问主内存"><a href="#3-volatile-不是每次都直接访问主内存" class="headerlink" title="3. volatile 不是每次都直接访问主内存"></a>3. volatile 不是每次都直接访问主内存</h2><p>很多资料把 <code>volatile</code> 描述成“每次读取都从主内存读取，每次写入都立即刷新到主内存”。这种说法方便记忆，但不够准确。</p>
+<p>现代 CPU 仍然会使用寄存器和 Cache，<code>volatile</code> 不会关闭缓存，也不会强制所有访问都绕过 Cache。JVM 会根据目标处理器的内存模型生成合适的指令，并在需要的位置加入内存屏障或使用带有顺序语义的读写指令。</p>
+<p>缓存一致性机制负责让不同 Core 的缓存副本保持协调，内存屏障负责限制某些读写的执行顺序。两者共同实现 Java 对 <code>volatile</code> 的语义要求。</p>
+<p>因此，更准确的理解是：</p>
+<blockquote>
+<p>volatile 规定线程必须按照特定规则观察读写结果，具体如何实现由 JVM 和 CPU 决定。</p>
+</blockquote>
+<h2 id="4-什么是指令重排"><a href="#4-什么是指令重排" class="headerlink" title="4. 什么是指令重排"></a>4. 什么是指令重排</h2><p>编译器和处理器可以在不改变单线程结果的前提下调整指令执行顺序，这种优化称为<strong>指令重排（Instruction Reordering）</strong>。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>;<br></code></pre></td></tr></table></figure>
+
+<p>如果后面的代码不依赖这两个赋值的先后顺序，编译器或处理器可能先执行 <code>b = 2</code>，再执行 <code>a = 1</code>。在单线程中，两种顺序得到的结果相同，因此这种调整通常没有问题。</p>
+<p>多线程程序却可能观察到中间状态。假设一个线程发布数据：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">data = <span class="hljs-number">42</span>;<br>ready = <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<p>另一个线程读取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (ready) &#123;<br>    System.out.println(data);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>程序希望 <code>ready</code> 表示“数据已经准备完成”。如果两个写操作对其他线程的可见顺序没有约束，读线程就可能先看到 <code>ready == true</code>，却仍然没有看到 <code>data = 42</code>。</p>
+<p>问题不一定来自源码被简单交换，也可能来自写入暂存在 Store Buffer、不同缓存行传播速度不同，或者读操作以不同顺序完成。Java 不要求开发者区分每一种硬件原因，而是通过内存模型统一规定哪些重排必须被禁止。</p>
+<h2 id="5-volatile-如何保证有序性"><a href="#5-volatile-如何保证有序性" class="headerlink" title="5. volatile 如何保证有序性"></a>5. volatile 如何保证有序性</h2><p>把 <code>ready</code> 声明为 <code>volatile</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> data;<br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> ready;<br></code></pre></td></tr></table></figure>
+
+<p>写线程执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">data = <span class="hljs-number">42</span>;<br>ready = <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<p>读线程执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (ready) &#123;<br>    System.out.println(data);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>volatile</code> 在这里不仅保证 <code>ready</code> 的可见性，还建立了一条顺序关系：</p>
+<ul>
+<li><code>ready = true</code> 之前的普通写，不能被移动到这个 volatile 写之后；</li>
+<li>读取到 <code>ready == true</code> 之后的普通读，不能被移动到这个 volatile 读之前。</li>
+</ul>
+<p>可以用下面的模型表示：</p>
+<pre><code class=" mermaid">graph TD
+    subgraph Write[&quot;Write Thread&quot;]
+        D[&quot;data = 42&quot;] --&gt; VR[&quot;volatile write: ready = true&quot;]
+    end
+    subgraph Read[&quot;Read Thread&quot;]
+        VD[&quot;volatile read: ready == true&quot;] --&gt; RD[&quot;read data&quot;]
+    end
+    VR --&gt;|synchronizes-with| VD
+</code></pre>
+
+<p>中间的横线表示一条内存可见边界。只要读线程读取到写线程发布的 <code>ready == true</code>，它也必须能够看到这个 volatile 写之前已经完成的普通写，因此 <code>data</code> 应当等于 <code>42</code>。</p>
+<h2 id="6-volatile-与-happens-before"><a href="#6-volatile-与-happens-before" class="headerlink" title="6. volatile 与 happens-before"></a>6. volatile 与 happens-before</h2><p>Java 内存模型使用 <strong>happens-before</strong> 描述线程之间的可见性和顺序保证。它并不表示两个操作在现实时间上一定紧挨着发生，而是表示前一个操作的结果必须对后一个操作可见，并且前一个操作在内存语义上排在后一个操作之前。</p>
+<p>与 <code>volatile</code> 直接相关的规则是：</p>
+<blockquote>
+<p>对一个 volatile 变量的写入，happens-before 随后对同一个变量的读取。</p>
+</blockquote>
+<p>结合程序内部的执行顺序，可以得到：</p>
+<pre><code class=" mermaid">graph TD
+    D[&quot;data = 42&quot;] --&gt;|Program Order| R[&quot;ready = true&quot;]
+    R --&gt;|Volatile Rule| RR[&quot;read ready == true&quot;]
+    RR --&gt;|Program Order| RD[&quot;read data&quot;]
+</code></pre>
+
+<p>因此，<code>data = 42</code> 的结果能够传递到读线程。这里真正起作用的不是读线程直接读取了写线程的局部数据，而是 Java 内存模型通过 volatile 读写建立了跨线程的可见关系。</p>
+<p>happens-before 是判断并发代码是否具备可靠内存语义的重要工具。没有这类关系时，即使某次运行“看起来正常”，也不能证明所有线程都一定能够看到预期结果。</p>
+<h2 id="7-volatile-为什么不能解决-count"><a href="#7-volatile-为什么不能解决-count" class="headerlink" title="7. volatile 为什么不能解决 count++"></a>7. volatile 为什么不能解决 count++</h2><p><code>volatile</code> 保证单次读取能够看到较新的值，也保证单次写入能够按照规则发布，但它不能把多个步骤合并成一个原子操作。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">increment</span><span class="hljs-params">()</span> &#123;<br>    count++;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>count++</code> 仍然包含读取、计算和写回：</p>
+<pre><code class=" mermaid">graph TD
+    Read[&quot;Read count&quot;] --&gt; Calc[&quot;Calculate count + 1&quot;]
+    Calc --&gt; Write[&quot;Write count&quot;]
+</code></pre>
+
+<p>假设 Thread A 和 Thread B 都读取到 <code>count = 0</code>，随后分别计算出 <code>1</code> 并写回。即使每次读取和写入都遵守 volatile 的可见性规则，最终仍然可能只有一个 <code>1</code>。</p>
+<pre><code class=" mermaid">sequenceDiagram
+    participant A as Thread A
+    participant V as count
+    participant B as Thread B
+
+    Note over V: 0
+    A-&gt;&gt;V: 1. Read 0
+    B-&gt;&gt;V: 2. Read 0
+    Note over A: 3. Calculate 1
+    Note over B: 3. Calculate 1
+    A-&gt;&gt;V: 4. Write 1
+    Note over V: 1
+    B-&gt;&gt;V: 5. Write 1
+    Note over V: 1
+</code></pre>
+
+<p><code>volatile</code> 解决的是“是否看得到”和“以什么顺序看到”，不是“多个步骤能否被其他线程插入”。需要保护复合操作时，仍然要使用锁、CAS 或其他能够保证原子性的方案。</p>
+<h2 id="8-volatile-适合什么场景"><a href="#8-volatile-适合什么场景" class="headerlink" title="8. volatile 适合什么场景"></a>8. volatile 适合什么场景</h2><p><code>volatile</code> 最适合一个线程写、多个线程读，并且每次写入不依赖旧值的场景。</p>
+<h3 id="8-1-状态标记"><a href="#8-1-状态标记" class="headerlink" title="8.1 状态标记"></a>8.1 状态标记</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Task</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> stopped;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">stop</span><span class="hljs-params">()</span> &#123;<br>        stopped = <span class="hljs-literal">true</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">while</span> (!stopped) &#123;<br>            doWork();<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doWork</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// business logic</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>stop()</code> 只是把状态直接设置为 <code>true</code>，不需要根据旧值计算新值，因此不涉及读取后再写回的复合操作。</p>
+<h3 id="8-2-配置发布"><a href="#8-2-配置发布" class="headerlink" title="8.2 配置发布"></a>8.2 配置发布</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ConfigCenter</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">Config</span> <span class="hljs-variable">config</span> <span class="hljs-operator">=</span> loadConfig();<br><br>    <span class="hljs-keyword">public</span> Config <span class="hljs-title function_">getConfig</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> config;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">reload</span><span class="hljs-params">()</span> &#123;<br>        config = loadConfig();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>写线程先构造完整的新配置对象，再一次性替换 <code>config</code> 引用。读线程读取到新引用后，也能看到 volatile 写之前已经完成的对象初始化结果。为了避免对象发布后又被并发修改，配置对象通常设计为不可变对象。</p>
+<h3 id="8-3-完成标记"><a href="#8-3-完成标记" class="headerlink" title="8.3 完成标记"></a>8.3 完成标记</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ResultHolder</span> &#123;<br><br>    <span class="hljs-keyword">private</span> Result result;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">boolean</span> completed;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">complete</span><span class="hljs-params">(Result value)</span> &#123;<br>        result = value;<br>        completed = <span class="hljs-literal">true</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Result <span class="hljs-title function_">getResult</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (!completed) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>写线程先保存结果，再写入 volatile 标记。读线程读取到 <code>completed == true</code> 后，能够看到之前写入的 <code>result</code>。</p>
+<p>这些场景都有一个共同特点：volatile 变量本身只承担状态发布或引用替换，不需要保护多个线程围绕旧值进行竞争更新。</p>
+<h2 id="9-volatile-不能保证复杂业务状态一致"><a href="#9-volatile-不能保证复杂业务状态一致" class="headerlink" title="9. volatile 不能保证复杂业务状态一致"></a>9. volatile 不能保证复杂业务状态一致</h2><p>假设账户中有两个字段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Account</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">int</span> balance;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">int</span> transactionCount;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">withdraw</span><span class="hljs-params">(<span class="hljs-type">int</span> amount)</span> &#123;<br>        <span class="hljs-keyword">if</span> (balance &gt;= amount) &#123;<br>            balance -= amount;<br>            transactionCount++;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>即使两个字段都声明为 <code>volatile</code>，这段代码仍然不安全。余额检查、余额扣减和交易次数增加属于一个完整业务操作，多个线程可以在中间交错执行。</p>
+<p><code>volatile</code> 只能约束每个字段各自的读写，不能自动把多个字段组合成一个事务，也不能保证两个字段总是同时变化。只要业务正确性依赖多个操作共同完成，就需要更完整的同步边界。</p>
+<h2 id="10-volatile-与-synchronized-的区别"><a href="#10-volatile-与-synchronized-的区别" class="headerlink" title="10. volatile 与 synchronized 的区别"></a>10. volatile 与 synchronized 的区别</h2><p><code>volatile</code> 和 <code>synchronized</code> 都能建立可见性关系，但用途不同。</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>volatile</th>
+<th>synchronized</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>是否互斥</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>是否会阻止其他线程进入代码区域</td>
+<td>否</td>
+<td>会</td>
+</tr>
+<tr>
+<td>可见性</td>
+<td>保证</td>
+<td>保证</td>
+</tr>
+<tr>
+<td>有序性</td>
+<td>限制 volatile 前后的特定重排</td>
+<td>同步区域具有进入和退出语义</td>
+</tr>
+<tr>
+<td>原子性</td>
+<td>只保证单次读写，不保护复合操作</td>
+<td>可以保护整个临界区</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>状态标记、引用发布、简单开关</td>
+<td>多步骤操作、多个关联状态</td>
+</tr>
+</tbody></table>
+<p><code>volatile</code> 更轻量，是因为它不建立线程级互斥；这也意味着它不能替代锁。选择时不能只看哪个关键字开销更小，而要先判断业务是否需要互斥。</p>
+<h2 id="11-双重检查锁为什么需要-volatile"><a href="#11-双重检查锁为什么需要-volatile" class="headerlink" title="11. 双重检查锁为什么需要 volatile"></a>11. 双重检查锁为什么需要 volatile</h2><p>单例模式中的双重检查锁是 <code>volatile</code> 同时发挥可见性和有序性作用的经典场景：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Singleton</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> Singleton instance;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-title function_">Singleton</span><span class="hljs-params">()</span> &#123;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Singleton <span class="hljs-title function_">getInstance</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (instance == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">synchronized</span> (Singleton.class) &#123;<br>                <span class="hljs-keyword">if</span> (instance == <span class="hljs-literal">null</span>) &#123;<br>                    instance = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Singleton</span>();<br>                &#125;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-keyword">return</span> instance;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>第一次检查避免每次调用都进入同步区域，第二次检查防止多个线程先后创建对象。<code>instance</code> 必须声明为 <code>volatile</code>，因为创建对象并赋值给引用并不是一个抽象上的单一步骤，可以粗略理解为：</p>
+<pre><code class=" mermaid">graph TD
+    Alloc[&quot;Allocate memory&quot;] --&gt; Init[&quot;Initialize object&quot;]
+    Init --&gt; Assign[&quot;Assign reference&quot;]
+</code></pre>
+
+<p>如果缺少内存顺序约束，其他线程可能先观察到非空引用，却还不能可靠地看到完整初始化结果。<code>volatile</code> 会限制这种不安全发布，并保证读取到 <code>instance</code> 的线程能够看到对象构造期间已经完成的写入。</p>
+<p>这里不应理解为 JVM 必然机械地把三步交换成某个固定顺序，而应理解为：没有安全发布规则时，其他线程观察对象状态的结果缺乏保证；<code>volatile</code> 为引用发布建立了必要的 happens-before 关系。</p>
+<h2 id="12-常见误解"><a href="#12-常见误解" class="headerlink" title="12. 常见误解"></a>12. 常见误解</h2><h3 id="12-1-volatile-会把变量锁住"><a href="#12-1-volatile-会把变量锁住" class="headerlink" title="12.1 volatile 会把变量锁住"></a>12.1 volatile 会把变量锁住</h3><p>不会。多个线程仍然可以同时读取和写入 volatile 变量，<code>volatile</code> 不建立临界区，也不会让某个线程独占变量。</p>
+<h3 id="12-2-volatile-能让所有操作变成原子操作"><a href="#12-2-volatile-能让所有操作变成原子操作" class="headerlink" title="12.2 volatile 能让所有操作变成原子操作"></a>12.2 volatile 能让所有操作变成原子操作</h3><p>不会。它不能保护 <code>count++</code>、先判断再修改、同时更新多个字段等复合操作。</p>
+<h3 id="12-3-volatile-等于禁用-CPU-Cache"><a href="#12-3-volatile-等于禁用-CPU-Cache" class="headerlink" title="12.3 volatile 等于禁用 CPU Cache"></a>12.3 volatile 等于禁用 CPU Cache</h3><p>不会。CPU 仍然使用 Cache，JVM 通过内存屏障、特殊指令和硬件一致性机制实现 volatile 语义。</p>
+<h3 id="12-4-volatile-保证读到绝对最新的现实时间值"><a href="#12-4-volatile-保证读到绝对最新的现实时间值" class="headerlink" title="12.4 volatile 保证读到绝对最新的现实时间值"></a>12.4 volatile 保证读到绝对最新的现实时间值</h3><p>更准确地说，volatile 读必须遵守 Java 内存模型的可见性规则。并发程序中不存在一个脱离同步规则、所有线程随时共享的“绝对瞬间”。程序应依据 happens-before 判断结果是否可靠，而不是依赖现实时间上的先后猜测。</p>
+<h3 id="12-5-声明了-volatile-就是线程安全"><a href="#12-5-声明了-volatile-就是线程安全" class="headerlink" title="12.5 声明了 volatile 就是线程安全"></a>12.5 声明了 volatile 就是线程安全</h3><p>线程安全取决于完整业务操作。一个字段声明为 volatile，只能保证围绕这个字段的特定内存语义，不能自动保证整个类或整个方法安全。</p>
+<h2 id="13-如何判断是否适合使用-volatile"><a href="#13-如何判断是否适合使用-volatile" class="headerlink" title="13. 如何判断是否适合使用 volatile"></a>13. 如何判断是否适合使用 volatile</h2><p>可以依次判断三个问题：</p>
+<ol>
+<li>写入是否只是直接设置新值，而不是根据旧值计算新值；</li>
+<li>是否不需要多个线程互斥执行一段代码；</li>
+<li>是否只需要发布状态、对象引用或完成标记。</li>
+</ol>
+<p>如果答案都是肯定的，<code>volatile</code> 通常比较合适。如果操作包含“读取—判断—修改”，或者需要同时维护多个字段之间的一致性，就不能只依靠 <code>volatile</code>。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">running = <span class="hljs-literal">false</span>;<br>config = newConfig;<br>completed = <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这些操作通常可以使用 <code>volatile</code>。</p>
+<p>而下面这些操作通常不行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">count++;<br>balance -= amount;<br><br><span class="hljs-keyword">if</span> (stock &gt; <span class="hljs-number">0</span>) &#123;<br>    stock--;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>判断标准不是代码有几行，而是业务操作是否依赖旧状态，以及多个线程是否可以在步骤之间交错执行。</p>
+<h2 id="本章总结"><a href="#本章总结" class="headerlink" title="本章总结"></a>本章总结</h2><p><code>volatile</code> 为一个变量建立了可见性和有序性规则。一个线程写入 volatile 变量后，随后读取同一变量的线程能够观察到这次写入；volatile 写之前的普通写，也能够通过 happens-before 关系对读线程可见。</p>
+<p>本章的核心结论包括：</p>
+<ul>
+<li>线程之间的数据可见性不能只用“是否写回主内存”解释；</li>
+<li><code>volatile</code> 不会关闭 Cache，也不会让所有访问都直接经过主内存；</li>
+<li>JVM 通过内存屏障、特殊指令和硬件一致性机制实现 volatile 语义；</li>
+<li>volatile 写与随后对同一变量的 volatile 读之间存在 happens-before 关系；</li>
+<li><code>volatile</code> 能限制特定的指令重排；</li>
+<li><code>volatile</code> 不提供互斥，不能保护 <code>count++</code> 等复合操作；</li>
+<li>状态标记、配置发布和完成通知是常见使用场景；</li>
+<li>多字段一致性和读取后修改仍然需要锁、CAS 或其他同步方案；</li>
+<li>双重检查锁中的实例引用必须安全发布；</li>
+<li>判断是否适合使用 <code>volatile</code>，关键在于操作是否依赖旧状态。</li>
+</ul>
+<p>原子性、可见性和有序性是并发程序中三个不同的问题。<code>synchronized</code>、CAS 和 <code>volatile</code> 分别从不同角度处理这些问题，后续可以继续把它们统一到 Java 内存模型中理解。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/" class="print-no-link">#高并发</a>
+      
+        <a href="/tags/volatile/" class="print-no-link">#volatile</a>
+      
+        <a href="/tags/JMM/" class="print-no-link">#JMM</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java高并发底层原理（七）—— volatile 到底解决了什么问题</div>
+      <div>https://rebibabo.github.io/categories/java-concurrency/7/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/6/" title="Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/categories/java-concurrency/8/" title="Java高并发底层原理（八）—— Java 内存模型到底规定了什么">
+                        <span class="hidden-mobile">Java高并发底层原理（八）—— Java 内存模型到底规定了什么</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
