@@ -160,36 +160,34 @@ def safe_click(page, selector: str, timeout: int = 2000):
 # ============================================================
 # 登录状态检测 + 自动重新登录
 # ============================================================
-def ensure_login(browser, context) -> bool:
-    """检查 auth.json 是否有效，过期则重新登录"""
+def _check_logged_in(context) -> bool:
+    """快速检查当前 auth 是否有效"""
     page = context.new_page()
     page.goto("https://mp.csdn.net/", wait_until="domcontentloaded")
     page.wait_for_timeout(2000)
-
-    # 检查是否已登录（有头像或用户信息）
     logged_in = page.evaluate("""() => {
-        const el = document.querySelector('.user-info, .user-img, .avatar, .user-name, [class*="login"], .user');
-        return el ? !!el.textContent.trim() : !!document.querySelector('img[class*="avatar"]');
+        return !!document.querySelector('img[class*="avatar"], .user-info, .user-name');
     }""")
+    page.close()
+    return logged_in
 
-    if logged_in:
-        print("  ✅ 登录状态有效")
-        page.close()
-        return True
 
-    # 登录过期，重新走登录流程
-    print("  ⚠️  登录已过期，请在浏览器中重新登录...")
+def _do_login(browser):
+    """无头或有头模式打开登录页，等用户手动登录后保存 auth"""
+    login_context = browser.new_context(
+        viewport={"width": 1280, "height": 900},
+        locale="zh-CN",
+    )
+    page = login_context.new_page()
     page.goto("https://passport.csdn.net/login", wait_until="domcontentloaded")
     print("\n" + "=" * 50)
     print("请在浏览器窗口中完成登录（扫码/密码均可）")
     print("登录成功后，回到这里按 Enter 继续...")
     print("=" * 50 + "\n")
     input()
-
-    context.storage_state(path=AUTH_FILE)
+    login_context.storage_state(path=AUTH_FILE)
     print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
-    page.close()
-    return True
+    login_context.close()
 
 
 # ============================================================
@@ -263,15 +261,31 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # ============================================================
 def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
     browser = playwright.chromium.launch(headless=False)
+
+    # ---- 第零步：检查/创建登录态 ----
+    if not os.path.exists(AUTH_FILE):
+        print("0. auth.json 不存在，需要先登录...")
+        _do_login(browser)
+    else:
+        print("0. 检查登录状态...")
+        test_ctx = browser.new_context(
+            storage_state=AUTH_FILE,
+            viewport={"width": 1280, "height": 900},
+            locale="zh-CN",
+        )
+        if _check_logged_in(test_ctx):
+            print("  ✅ 登录有效")
+        else:
+            print("  ⚠️  登录已过期，重新登录...")
+            _do_login(browser)
+        test_ctx.close()
+
     context = browser.new_context(
         storage_state=AUTH_FILE,
         viewport={"width": 1280, "height": 900},
         locale="zh-CN",
         permissions=["clipboard-read", "clipboard-write"],
     )
-    # ---- 第零步：检查登录状态 ----
-    ensure_login(browser, context)
-
     page = context.new_page()
 
     # ---- 第一步：打开 CSDN 后台，关闭广告 ----
