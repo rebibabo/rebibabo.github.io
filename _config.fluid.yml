@@ -9,6 +9,7 @@ post:
     enable: true
     specific: false
     options: { theme: 'default' }
+  post_order_by: "source"
 
 index:
   slogan:
