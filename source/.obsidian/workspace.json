@@ -194,6 +194,7 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "skills/playwright-automation.md",
     "_posts/programmatic-ads/08-key-metrics.md",
     "_posts/programmatic-ads/07-trading-mode-part2.md",
     "_posts/programmatic-ads/06-trading-mode-part1.md",
@@ -234,7 +235,6 @@
     "wiki/glossary/concurrency/ThreadLocal.md",
     "wiki/glossary/concurrency/Cache-Line.md",
     "wiki/glossary/concurrency/BlockingQueue.md",
-    "wiki/glossary/concurrency/ABA.md",
     "wiki/_index.md.bak",
     "_posts/programmatic-ads",
     "_posts/llm-inference/scripts/prefix_caching/__pycache__/prefix_length_plot.cpython-312.pyc",
