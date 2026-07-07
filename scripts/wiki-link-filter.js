@@ -110,9 +110,24 @@ function convertWikilinks(content, data) {
 hexo.extend.filter.register('after_render:html', function(html, data) {
   if (!data.path || !/^wiki\/(concepts|glossary|maps|series)\//.test(data.path)) return html;
 
-  // Add back-to-wiki button before </body>
+  // Add back-to-wiki button
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
-  html = html.replace('</body>', btn + '\n</body>');
+  let bodyEnd = btn + '\n';
+
+  // Add mermaid (same CDN & init as Fluid theme)
+  if (/class=" ?mermaid"/.test(html)) {
+    bodyEnd += `<script src="https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js"></script>
+<script>
+  (function(){
+    if (typeof mermaid === 'undefined') return;
+    mermaid.initialize({"theme":"default"});
+    mermaid.init();
+  })();
+</script>\n`;
+  }
+
+  bodyEnd += '</body>';
+  html = html.replace('</body>', bodyEnd);
 
   // Add CSS for the button
   const style = `<style>
