@@ -1,8 +1,3 @@
 graph LR
-    subgraph "虚拟机 (VM)"
-        direction TB
-        VM_Apps["应用 A (完整OS) | 应用 B (完整OS) | 应用 C (完整OS)<br/>← 每个 VM 装一套完整操作系统，很重"]
-        VM_Hyper["Hypervisor<br/>← 虚拟化层"]
-        VM_Host["宿主机操作系统"]
-        VM_Apps --- VM_Hyper --- VM_Host
-    end
+    V1["应用 A 应用 B 应用 C<br/>各自装完整操作系统（很重）"] --> V2["Hypervisor 虚拟化层"]
+    V2 --> V3["宿主机操作系统"]
