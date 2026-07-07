@@ -27,7 +27,7 @@
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言前面 27 篇基本都是”一个应用、一个数据库”的视角——写 Controller、Service、Mapper，连上 MySQL&#x2F;Redis 就能跑。但当系统越来越大（比如一个完整的广告投放平台，要做投放管理、计费、报表、用户中心），继">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T10:28:33.888Z">
+<meta property="article:modified_time" content="2026-07-07T10:40:46.595Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Spring Cloud">
@@ -239,7 +239,7 @@
         
         
         
-          89 分钟
+          88 分钟
         
       </span>
     
@@ -439,14 +439,9 @@
 <li><strong>服务发现</strong>：投放服务要调用计费服务时，先问注册中心”计费服务现在有哪些可用实例”，拿到一个地址列表</li>
 </ol>
 <pre><code class=" mermaid">graph TB
-    subgraph &quot;计费服务集群&quot;
-        B1[&quot;计费服务实例1&quot;]
-        B2[&quot;计费服务实例2&quot;]
-        B3[&quot;计费服务实例3&quot;]
-    end
-    B1 --&gt;|① 注册 + 心跳| Registry[&quot;注册中心&lt;br/&gt;(Nacos / Eureka)&quot;]
-    B2 --&gt;|① 注册 + 心跳| Registry
-    B3 --&gt;|① 注册 + 心跳| Registry
+    B1[&quot;计费服务实例1&quot;] --&gt;|① 注册 + 心跳| Registry[&quot;注册中心&lt;br/&gt;(Nacos / Eureka)&quot;]
+    B2[&quot;计费服务实例2&quot;] --&gt;|① 注册 + 心跳| Registry
+    B3[&quot;计费服务实例3&quot;] --&gt;|① 注册 + 心跳| Registry
     Registry --&gt;|② 查询计费服务地址列表| Consumer[&quot;投放服务&quot;]
 </code></pre>
 
@@ -897,7 +892,7 @@
 
 
   <script>
-  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js', function() {
     mermaid.initialize({"theme":"default"});
 
     Fluid.utils.listenDOMLoaded(function() {
