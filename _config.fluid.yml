@@ -9,10 +9,9 @@ post:
     enable: true
     specific: false
     options:
-      theme: 'neutral'
+      theme: 'default'
       themeVariables:
         fontSize: '13px'
-        primaryBorderColor: '#ccc'
       flowchart:
         useMaxWidth: true
         htmlLabels: true
