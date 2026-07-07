@@ -152,7 +152,7 @@ graph TB
     ServerCheck --> Mismatch{"和 token 里的签名一致?"}
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
 </pre>
-![300](/images/Java-advanced/IMG-20260707-000015.png)
+![305](/images/Java-advanced/IMG-20260707-000015.png)
 
 
 
@@ -208,7 +208,7 @@ graph TB
     S3 --> S4["④ 把 JWT 返回给客户端"]
     S4 --> S5["⑤ 客户端保存 JWT<br/>比如存在 localStorage"]
 </pre>
-![|300](/images/Java-advanced/IMG-20260707-000017.png)
+![|298](/images/Java-advanced/IMG-20260707-000017.png)
 
 
 
@@ -226,7 +226,7 @@ graph TB
     S4 --> S5["⑤ 放行到 Controller<br/>业务代码拿到当前用户"]
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 </pre>
-![|400](/images/Java-advanced/IMG-20260707-000018.png)
+![|396](/images/Java-advanced/IMG-20260707-000018.png)
 
 
 

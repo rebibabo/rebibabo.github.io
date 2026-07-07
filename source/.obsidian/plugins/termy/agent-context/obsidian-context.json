@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T12:30:14.754Z",
+  "updatedAt": "2026-07-07T12:31:23.978Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
     "vaultPath": "_posts/Java-advanced/04-jwt.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "hasFocus": true
+    "hasFocus": false
   },
   "openFiles": [
     {
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "![374](/images/Java-advanced/IMG-20260707-000014.png)",
-    "isEmpty": false,
+    "text": "",
+    "isEmpty": true,
     "from": {
-      "line": 137,
+      "line": 112,
       "ch": 0,
-      "offset": 2698
+      "offset": 2080
     },
     "to": {
-      "line": 137,
-      "ch": 53,
-      "offset": 2751
+      "line": 112,
+      "ch": 0,
+      "offset": 2080
     }
   }
 }
