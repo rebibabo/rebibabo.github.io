@@ -106,9 +106,9 @@ JWT（JSON Web Token）反过来——**把用户信息直接编码进 token 本
 graph LR
     Header["Header（头部）<br/>{alg: HS256, typ: JWT}"] --> Payload["Payload（载荷）<br/>{sub: 1001, role: admin}"]
     Payload --> Signature["Signature（签名）<br/>防篡改校验值"]
-
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000013.png)
+
 
 
 
@@ -135,9 +135,9 @@ graph TB
     Compute --> Compare
     Compare -->|相等 ✅| Trust["没被篡改，可信"]
     Compare -->|不相等 ❌| Reject["被人改过，拒绝"]
-
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000014.png)
+
 
 
 
@@ -153,9 +153,9 @@ graph TB
     NoKey --> ServerCheck["服务端用密钥重新计算签名"]
     ServerCheck --> Mismatch{"和 token 里的签名一致?"}
     Mismatch -->|不一致 ❌| Reject["拒绝 ✅"]
-
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000015.png)
+
 
 
 
@@ -175,9 +175,9 @@ Spring Security 的工作方式是在请求到达 Controller **之前**，先经
 graph TB
     Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]
-
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000016.png)
+
 
 
 
@@ -220,6 +220,7 @@ graph TB
 
 
 
+
 ### 5.2 阶段二：带 token 访问接口
 
 <pre style="display:none">
@@ -231,6 +232,7 @@ graph TB
     S3 -->|失败 ❌| Fail["直接返回 401<br/>不进 Controller"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000018.png)
+
 
 
 
