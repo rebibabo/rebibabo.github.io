@@ -1,140 +1,55 @@
-"""
-CSDN 自动发布文章脚本
-=====================
-使用已保存的 auth.json 跳过登录，打开 CSDN 写文章页面，
-自动填入标题和内容并发布。
-
-用法：
-    python3 auto-upload/publish_csdn.py <markdown文件路径>
-
-示例：
-    python3 auto-upload/publish_csdn.py source/_posts/xxx.md
-"""
-
-import sys
-import os
 import re
-import json
-from pathlib import Path
-from playwright.sync_api import sync_playwright
-
-AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
-CSDN_WRITE_URL = "https://mp.csdn.net/mp_blog/creation/editor"
+from playwright.sync_api import Playwright, sync_playwright, expect
 
 
-def parse_markdown(filepath: str) -> dict:
-    """解析 hexo markdown 文章的 front matter 和正文"""
-    with open(filepath, "r", encoding="utf-8") as f:
-        content = f.read()
+def run(playwright: Playwright) -> None:
+    browser = playwright.chromium.launch(headless=False)
+    context = browser.new_context(storage_state="auth.json")
+    page = context.new_page()
+    page.goto("https://mp.csdn.net/")
+    page.locator(".close-btn").click()
+    with page.expect_popup() as page1_info:
+        page.get_by_role("link", name="创作").first.click()
+    page1 = page1_info.value
+    with page1.expect_popup() as page2_info:
+        page1.get_by_role("button", name="使用 MD 编辑器").click()
+    page2 = page2_info.value
+    page2.get_by_text("1. **全新的界面设计** ，将会带来全新的写作体验；").click()
+    page2.get_by_text("@[TOC](这里写自定义目录标题) # 欢迎使用").press("ControlOrMeta+a")
+    page2.goto("https://editor.csdn.net/md?not_checkout=1&spm=1015.2103.3001.8066&articleId=162665186")
+    page2.locator("div").filter(has_text=re.compile(r"^【无标题】$")).click()
+    page2.get_by_role("textbox", name="请输入文章标题（5~100个字）").press("ControlOrMeta+a")
+    page2.get_by_role("textbox", name="请输入文章标题（5~100个字）").fill("Java高并发底层原理（二十九）—— 从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择")
+    page2.get_by_role("button", name="发布文章").click()
+    page2.get_by_text("Java高并发", exact=True).click()
+    page2.locator("i").nth(2).click()
+    page2.locator("i").nth(2).click()
+    page2.locator("i").nth(2).click()
+    page2.get_by_role("button", name="添加文章标签").click()
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").click()
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("java")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("CapsLock")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("java")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("CapsLock")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("高并发")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("标签2")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").fill("标签3")
+    page2.get_by_role("textbox", name="请输入文字搜索，Enter键入可添加自定义标签").press("Enter")
+    page2.get_by_role("button", name="关闭").nth(1).click()
+    page2.get_by_role("textbox", name="本内容会在各展现列表中展示，帮助读者快速了解内容。若不填，则默认提取正文前256个字。").click()
+    page2.get_by_role("textbox", name="本内容会在各展现列表中展示，帮助读者快速了解内容。若不填，则默认提取正文前256个字。").fill("\n上一章讨论的是单机内存版任务处理系统：请求线程把 `Task` 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。\n\n一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执行到一半的任务，也没有稳定位置记录它到底完成了没有。\n\n本章继续沿用文件解析任务这个例子，讨论任务不能丢")
+    page2.get_by_role("textbox", name="无声明").click()
+    page2.get_by_text("部分内容由AI辅助生成").click()
+    page2.locator(".el-checkbox__inner").click()
+    page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
 
-    # 解析 front matter
-    front_matter = {}
-    body = content
-    m = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
-    if m:
-        body = content[m.end():]
-        for line in m.group(1).strip().split("\n"):
-            line = line.strip()
-            if ":" in line:
-                key, _, val = line.partition(":")
-                front_matter[key.strip()] = val.strip().strip('"').strip("'")
-
-    title = front_matter.get("title", Path(filepath).stem)
-
-    # 处理 hexo 特有标签转为纯 markdown（简单处理）
-    # 移除 {% ... %} 标签块
-    body = re.sub(r'\{%\s*note[^%]*%\}|'r'\{%\s*endnote[^%]*%\}', '', body)
-    body = re.sub(r'\{%[^%]*%\}', '', body)
-
-    return {"title": title, "body": body.strip(), "tags": front_matter.get("tags", "")}
-
-
-def publish(title: str, body: str, tags: str = ""):
-    """用 Playwright 自动发布 CSDN 文章"""
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context(
-            storage_state=AUTH_FILE,
-            viewport={"width": 1280, "height": 900},
-            locale="zh-CN",
-        )
-        page = context.new_page()
-
-        print("打开 CSDN 写文章页面...")
-        page.goto(CSDN_WRITE_URL, wait_until="domcontentloaded")
-        page.wait_for_timeout(3000)
-
-        # 填入标题
-        print(f"填入标题: {title}")
-        try:
-            title_input = page.locator('input[placeholder*="标题"], .article-title-input input, #article-title')
-            title_input.wait_for(timeout=10000)
-            title_input.click()
-            title_input.fill("")
-            title_input.fill(title)
-        except Exception as e:
-            print(f"⚠️  填写标题失败: {e}")
-
-        # 填入正文（CSDN 编辑器通常是 contenteditable / markdown 编辑器）
-        print("填入正文...")
-        try:
-            # CSDN 编辑器通常是一个 contenteditable 区域或者 CodeMirror/Monaco 编辑器
-            # 尝试几种常见选择器
-            editor = page.locator(
-                ".editor-content, .markdown-editor, #editor, .CodeMirror, "
-                "textarea, [contenteditable='true'].editor"
-            ).first
-            editor.wait_for(timeout=10000)
-            editor.click()
-            # 如果是纯文本编辑器直接填
-            if editor.evaluate("el => el.tagName") == "TEXTAREA":
-                editor.fill(body)
-            else:
-                # contenteditable 类型用键盘输入
-                editor.fill(body)
-        except Exception as e:
-            print(f"⚠️  自动填写正文失败: {e}")
-            print("正文需要手动粘贴，脚本已阻塞，请手动操作后按 Enter...")
-            input()
-
-        # 等待一下，让你确认内容
-        print("\n内容已填入，请在浏览器中检查。")
-        print("确认无误后按 Enter 发布，或 Ctrl+C 取消...")
-        input()
-
-        # 点击发布按钮
-        print("正在点击发布...")
-        try:
-            publish_btn = page.locator(
-                'button:has-text("发布"), .publish-btn, #publish, '
-                '[class*="publish"]:not([class*="publish"])'
-            ).first
-            publish_btn.wait_for(timeout=5000)
-            publish_btn.click()
-            page.wait_for_timeout(5000)
-            print("✅ 发布完成！")
-        except Exception as e:
-            print(f"⚠️  自动点击发布失败: {e}")
-            print("请手动点击发布按钮。")
-
-        page.wait_for_timeout(3000)
-        browser.close()
+    # ---------------------
+    context.close()
+    browser.close()
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("用法: python3 auto-upload/publish_csdn.py <markdown文件路径>")
-        sys.exit(1)
-
-    filepath = sys.argv[1]
-    if not os.path.exists(filepath):
-        print(f"文件不存在: {filepath}")
-        sys.exit(1)
-
-    article = parse_markdown(filepath)
-    print(f"文章标题: {article['title']}")
-    publish(article["title"], article["body"], article.get("tags", ""))
-
-
-if __name__ == "__main__":
-    main()
+with sync_playwright() as playwright:
+    run(playwright)
