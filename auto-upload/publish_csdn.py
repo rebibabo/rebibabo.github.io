@@ -185,6 +185,15 @@ def _do_login(browser):
     print("登录成功后，回到这里按 Enter 继续...")
     print("=" * 50 + "\n")
     input()
+    # 跳过引导页
+    page.wait_for_timeout(2000)
+    try:
+        page.locator(".btn-skip").click(timeout=5000)
+        page.wait_for_timeout(500)
+        print("  ✅ 已跳过引导")
+    except Exception:
+        pass
+
     login_context.storage_state(path=AUTH_FILE)
     print(f"  ✅ 登录信息已保存到: {AUTH_FILE}")
     login_context.close()
