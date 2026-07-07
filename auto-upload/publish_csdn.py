@@ -91,7 +91,7 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
         print(f"     正在 git add → commit → push...")
         _git_sync()
         print(f"     ✅ 已推送，直接使用外链")
-        return f"![{alt}]({raw_url})")
+        return f"![{alt}]({raw_url})"
 
     return image_pattern.sub(replace_image, body)
 
@@ -432,7 +432,6 @@ if __name__ == "__main__":
     print("-1. 替换图片为外链...", flush=True)
     article["body"] = resolve_images_in_body(article["body"], filepath)
 
-    input()
     cli_tags = sys.argv[2:] if len(sys.argv) > 2 else []
 
     # 先调 AI 提取摘要和标签
