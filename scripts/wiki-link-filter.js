@@ -60,13 +60,6 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
     return '<a href="' + url + '" class="wiki-link">' + display + '</a>';
   });
 
-  // Transform mermaid code blocks: <pre><code class="hljs mermaid"> → <pre class="mermaid">
-  // mermaid 10.x expects <pre class="mermaid">, not <code class="...mermaid">
-  body = body.replace(
-    /<pre><code class="hljs mermaid">([\s\S]*?)<\/code><\/pre>/g,
-    '<pre class="mermaid">$1</pre>'
-  );
-
   // Convert mermaid click directives: .md → .html, make URLs absolute
   body = body.replace(/(click\s+\w+\s+(?:&quot;|"))(wiki\/[^"&]+)\.md((?:&quot;|"))/g, function(m, prefix, path, suffix) {
     return prefix + '/' + path + '.html' + suffix;
@@ -127,11 +120,13 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
   const btn = '<a href="/wiki/" class="back-to-wiki-btn">← 返回 Wiki</a>';
   let bodyEnd = btn + '\n';
 
-  // Inject mermaid 10.x via after_render — mermaid renders server-side code blocks
   if (/class="[^"]*mermaid[^"]*"/.test(html)) {
-    bodyEnd += `<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
-<script>
-  mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    bodyEnd += `<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    if (typeof mermaid === 'undefined') return;
+    mermaid.initialize({"theme":"default"});
+    mermaid.init();
+  });
 </script>\n`;
   }
 
