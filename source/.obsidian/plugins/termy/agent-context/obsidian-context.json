@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T11:54:24.747Z",
+  "updatedAt": "2026-07-07T11:55:17.963Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/06-grafana.md",
     "vaultPath": "_posts/Java-advanced/06-grafana.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/06-grafana.md",
-    "hasFocus": true
+    "hasFocus": false
   },
   "openFiles": [
     {
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 207,
+      "line": 45,
       "ch": 0,
-      "offset": 5835
+      "offset": 1271
     },
     "to": {
-      "line": 207,
+      "line": 45,
       "ch": 0,
-      "offset": 5835
+      "offset": 1271
     }
   }
 }
