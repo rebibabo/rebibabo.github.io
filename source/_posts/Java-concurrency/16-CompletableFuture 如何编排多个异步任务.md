@@ -209,10 +209,6 @@ CompletableFuture<List<Order>> ordersFuture =
 
 `thenCompose()` 的作用是连接两个前后依赖的异步阶段，并把嵌套结构展平成一层。
 
-![](/images/Java-concurrency/IMG-20260707-000071.png)
-
-
-
 
 
 判断规则可以简化为：
@@ -331,11 +327,6 @@ CompletableFuture<Object> anyFuture =
 `anyOf()` 返回 `CompletableFuture<Object>`，保存的是最先完成任务的结果。之所以是 `Object`，是因为传入任务的结果类型可能不同，编译器无法提前确定最先完成的是哪一种结果。
 
 需要注意，`anyOf()` 完成后，其他任务不会自动取消：
-
-![](/images/Java-concurrency/IMG-20260707-000073.png)
-
-
-
 
 
 此外，最先完成不一定是最先成功。如果某个任务最先异常完成，`anyOf()` 也可能直接异常完成。异常处理会放到下一章单独讨论。
