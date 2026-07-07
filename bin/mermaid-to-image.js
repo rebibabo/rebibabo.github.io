@@ -84,7 +84,7 @@ function normalizeMermaid(code) {
     (m, prefix, nodes) => {
       const ids = nodes.match(/\b(\w+)\[/g).map(s => s.replace('[', ''));
       if (ids.length < 2) return m;
-      return prefix + '    ' + ids.join(' --- ') + '\n';
+      return prefix + '    ' + ids.join(' ~~~ ') + '\n';
     }
   );
 
