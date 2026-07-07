@@ -1,42 +1,24 @@
 /* global hexo */
 'use strict';
 
-// Override prev_post helper — find previous post by source file order
-hexo.extend.helper.register('prev_post', function(post) {
-  var all = hexo.model('Post');
-  if (!all) return null;
+var through2 = require('through2');
 
-  var posts = all.toArray();
-  if (posts.length < 2) return null;
-
-  posts.sort(function(a, b) {
-    return a.source.localeCompare(b.source);
-  });
-
-  var idx = posts.indexOf(post);
-  if (idx <= 0) return null;
-
-  var prev = posts[idx - 1];
-  if (prev && prev.hide) return null;
-  return prev;
-});
-
-// Override next_post helper — find next post by source file order
-hexo.extend.helper.register('next_post', function(post) {
-  var all = hexo.model('Post');
-  if (!all) return null;
-
-  var posts = all.toArray();
-  if (posts.length < 2) return null;
+// Hook into Hexo's Router to inject prev/next URLs based on source order
+hexo.extend.filter.register('before_generate', function() {
+  // Get all posts sorted by source
+  var posts = hexo.locals.get('posts').data;
+  if (!posts || posts.length < 2) return;
 
   posts.sort(function(a, b) {
     return a.source.localeCompare(b.source);
   });
 
-  var idx = posts.indexOf(post);
-  if (idx < 0 || idx >= posts.length - 1) return null;
+  // Directly set prev/next on each post so the theme's helpers pick them up
+  for (var i = 0; i < posts.length; i++) {
+    if (i > 0) posts[i].prev = posts[i - 1];
+    else posts[i].prev = null;
 
-  var next = posts[idx + 1];
-  if (next && next.hide) return null;
-  return next;
+    if (i < posts.length - 1) posts[i].next = posts[i + 1];
+    else posts[i].next = null;
+  }
 });
