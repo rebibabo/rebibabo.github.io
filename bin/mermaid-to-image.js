@@ -100,34 +100,13 @@ async function runConcurrent(tasks, concurrency) {
   });
 }
 
-/** 渲染单个 mermaid 块，限制图片最大尺寸 */
+/** 渲染单个 mermaid 块 */
 async function renderBlock(mmdContent, outputPath) {
   const mmdPath = outputPath.replace(/\.png$/, '.mmd');
   fs.writeFileSync(mmdPath, mmdContent, 'utf-8');
 
-  // scale 2 高清渲染
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
-
-  // 限制图片最大宽度 760px、最大高度 700px，保持比例
-  try {
-    const { stdout: info } = await execAsync(
-      `sips --getProperty pixelWidth --getProperty pixelHeight "${outputPath}"`,
-      { timeout: 5000 }
-    );
-    const w = parseInt(info.match(/pixelWidth: (\d+)/)[1], 10);
-    const h = parseInt(info.match(/pixelHeight: (\d+)/)[1], 10);
-    const MAX_W = 760, MAX_H = 700;
-
-    if (w > MAX_W || h > MAX_H) {
-      const scaleW = MAX_W / w;
-      const scaleH = MAX_H / h;
-      const scale = Math.min(scaleW, scaleH);
-      const newW = Math.round(w * scale);
-      const newH = Math.round(h * scale);
-      await execAsync(`sips --resampleWidth ${newW} --resampleHeight ${newH} "${outputPath}"`, { timeout: 10000 });
-    }
-  } catch { /* sips 不可用则跳过 */ }
 
   // 删除临时 .mmd 文件
   try { fs.unlinkSync(mmdPath); } catch {}

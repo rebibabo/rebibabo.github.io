@@ -68,6 +68,7 @@ graph TB
 
 
 
+
 <pre style="display:none">
 graph TB
     subgraph "容器 (Container)"
@@ -79,6 +80,7 @@ graph TB
     end
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000007.png)
+
 
 
 
@@ -109,6 +111,7 @@ graph LR
     Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000008.png)
+
 
 
 
@@ -192,6 +195,7 @@ graph LR
     Host -->|Docker 转发| Container["容器内部 8080 端口<br/>Spring Boot 应用监听 8080"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000009.png)
+
 
 
 
@@ -382,6 +386,7 @@ graph TB
     L3 --> View["合并视图：完整的运行环境"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000010.png)
+
 
 
 
