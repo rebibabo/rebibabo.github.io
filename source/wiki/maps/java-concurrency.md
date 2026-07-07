@@ -21,7 +21,7 @@ status: seed
 graph TD
     subgraph L7["Layer 7 任务系统"]
         WM["Worker Model"] --> TT["数据库任务表"]
-        TT <--> MQ
+        TT --- MQ
         MQ --> ID["幂等"]
     end
 
@@ -127,16 +127,16 @@ graph TD
 ```mermaid
 graph LR
     REQ["请求线程"] -->|"提交 Task"| BQ["有界队列<br/>ArrayBlockingQueue"]
-    BQ --> WP["Worker Pool"]
+    BQ --> WPSUB
 
-    subgraph WP["Worker Pool"]
+    subgraph WPSUB["Worker Pool"]
         W1["Worker-1"]
         W2["Worker-2"]
         W3["Worker-N"]
     end
 
-    WP --> PROC["Processor<br/>业务逻辑"]
-    WP --> FH["FailureHandler<br/>重试 · 死信"]
+    WPSUB --> PROC["Processor<br/>业务逻辑"]
+    WPSUB --> FH["FailureHandler<br/>重试 · 死信"]
 
     BQ -.->|"升级方案"| DB["数据库任务表<br/>可恢复 · 可追踪"]
     BQ -.->|"升级方案"| MQ["MQ<br/>削峰 · 分布式投递"]
