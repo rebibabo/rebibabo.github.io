@@ -1,10 +1,18 @@
 /* global hexo */
 'use strict';
 
-// Re-sort posts by source file path so prev/next follow filename order
-hexo.extend.filter.register('after_init', function() {
-  var Post = hexo.model('Post');
+hexo.extend.filter.register('before_generate', function() {
+  var posts = hexo.locals.get('posts');
+  if (!posts || !posts.data || posts.data.length < 2) return;
 
-  // Sort by source (file path), same as order_by: source
-  Post.sort('source');
+  // Sort by source file path
+  posts.data.sort(function(a, b) {
+    return a.source.localeCompare(b.source);
+  });
+
+  // Rebuild prev/next chain to follow sorted order
+  for (var i = 0; i < posts.data.length; i++) {
+    posts.data[i].prev = i > 0 ? posts.data[i - 1] : null;
+    posts.data[i].next = i < posts.data.length - 1 ? posts.data[i + 1] : null;
+  }
 });
