@@ -213,6 +213,7 @@ CompletableFuture<List<Order>> ordersFuture =
 
 
 
+
 判断规则可以简化为：
 
 | Lambda 返回值 | 应使用的方法 |
@@ -273,6 +274,7 @@ CompletableFuture<Price> priceFuture =
 
 
 
+
 合并函数只有在两个任务都正常完成后才会执行。它不要求哪个任务先完成，只要求两个结果最终都可用。
 
 `thenCompose()` 和 `thenCombine()` 的区别可以概括为：
@@ -329,6 +331,7 @@ CompletableFuture<Object> anyFuture =
 需要注意，`anyOf()` 完成后，其他任务不会自动取消：
 
 ![](/images/Java-concurrency/IMG-20260707-000073.png)
+
 
 
 

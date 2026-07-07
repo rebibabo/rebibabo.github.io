@@ -110,6 +110,7 @@ for (;;) {
 
 
 
+
 `CountDownLatch` 使用的是 AQS 共享模式。共享的意思不是多个线程可以随意并发修改 `state`，而是当同步条件满足后，多个等待线程都可以通过。
 
 假设线程 A、B、C 都在同一个 `CountDownLatch` 上调用了 `await()`，当最后一次 `countDown()` 把 `state` 减到 `0` 后，A、B、C 都可以从 `await()` 返回。它们返回时不会消耗计数，`state` 仍然保持为 `0`。这和 `ReentrantLock` 的独占模式不同：锁一次只能由一个线程持有，而 CountDownLatch 的闸门打开后，所有等待线程都可以通过。
@@ -250,6 +251,7 @@ Thread worker = new Thread(() -> {
 Lambda 试图重新给局部变量 `error` 赋值，所以它不再是事实上 `final`。使用数组后，局部变量 `error` 保存的数组引用没有变化，线程修改的是数组对象内部的元素。
 
 ![](/images/Java-concurrency/IMG-20260707-000054.png)
+
 
 
 

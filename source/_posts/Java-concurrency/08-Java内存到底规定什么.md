@@ -52,6 +52,7 @@ Thread threadB = new Thread(() -> {
 
 
 
+
 线程 A 修改的不是线程 B 的变量副本，而是 Heap 中同一个对象的字段。线程 B 之所以可能看不到最新值，不是因为 Heap 中真的存在两份 `State` 对象，而是因为一次写入从当前线程执行完成，到被另一个线程观察到，中间还要经过寄存器、Store Buffer、Cache、JIT 优化和 CPU 指令调度。
 
 所以 JMM 关注的不是“变量具体放在哪一级硬件结构里”，而是“某次读取允许看到哪一次写入，以及哪些执行结果必须被排除”。这也是本文后面所有讨论的起点。
@@ -63,6 +64,7 @@ Thread threadB = new Thread(() -> {
 这个过程跨越了内存层级，因此可以画出传播路径：
 
 ![](/images/Java-concurrency/IMG-20260707-000047.png)
+
 
 
 
@@ -130,6 +132,7 @@ program order 只能连接线程内部。要让一个线程的写入对另一个
 所以线程 B 读到 `ready == true` 后，必须能够看到 `data = 42`。这里不是 `volatile ready` 把 `data` 也变成了 volatile，而是 `ready` 在两个线程之间建立了一座桥，把线程 A 中 volatile 写之前的内存效果传递给线程 B 中 volatile 读之后的操作。
 
 ![](/images/Java-concurrency/IMG-20260707-000048.png)
+
 
 
 
@@ -231,6 +234,7 @@ int r2 = x;
 
 
 
+
 JMM 不要求程序判断究竟是 JIT 重排、CPU 乱序执行，还是 Store Buffer 传播延迟造成了结果。因为两个线程之间没有 happens-before，双方都读到初始值就是合法结果。
 
 如果 `x` 和 `y` 都是 volatile，那么 `r1 == 0 && r2 == 0` 会被排除。原因不是 volatile 让两个线程互相等待，而是所有 volatile 操作必须进入统一的同步顺序，并且这个同步顺序不能违背每个线程自己的 program order。若双方都读到 `0`，同步顺序中会形成一个无法成立的环：A 的 volatile 写必须排在 A 的 volatile 读之前，B 的 volatile 写也必须排在 B 的 volatile 读之前；同时，A 读到 `y == 0` 又要求它排在 B 写 `y` 之前，B 读到 `x == 0` 又要求它排在 A 写 `x` 之前。一个顺序无法同时满足这四个约束。
@@ -324,6 +328,7 @@ User user = sharedUser;
 
 
 
+
 发布的是对象引用，不是复制对象。把引用写入共享字段、放入共享集合、传入线程任务或返回给其他代码，都可能构成对象发布。
 
 如果发布过程没有使用 volatile、锁、并发容器、`start()` 等方式建立 happens-before，就属于不安全发布。线程 B 可能仍然读到旧引用，例如 `null`；即使读到了对象，也不一定能看到普通字段的完整初始化结果。
@@ -352,6 +357,7 @@ class User {
 这个场景涉及对象引用在堆上的提前暴露，可以用引用关系表达：
 
 ![](/images/Java-concurrency/IMG-20260707-000051.png)
+
 
 
 

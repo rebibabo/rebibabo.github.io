@@ -241,6 +241,7 @@ if (queue.isEmpty()) {
 
 
 
+
 图中的 `Sync Queue` 就是 AQS 中用于竞争锁的等待队列。线程从 `await()` 返回时，已经重新持有了 `lock`，所以外层 `finally` 中可以安全执行 `unlock()`。
 
 ## 八、为什么一把锁可以创建多个 Condition

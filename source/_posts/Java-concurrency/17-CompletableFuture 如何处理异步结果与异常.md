@@ -34,6 +34,7 @@ System.out.println("调用线程继续执行");
 
 
 
+
 因此，`CompletableFuture` 必须先把任务的完成状态保存到堆对象中。正常完成时保存正常结果；异常完成时保存异常对象。调用线程之后只能通过异常处理阶段、`get()` 或 `join()`，再去感知这次失败。
 
 这和前文的 `FutureTask` 思路一致：跨线程不能靠方法返回值和异常直接传递，只能靠共享的结果对象保存完成状态。
@@ -110,6 +111,7 @@ CompletableFuture<String> future =
 可以把任务链理解成两条路径：
 
 ![](/images/Java-concurrency/IMG-20260707-000075.png)
+
 
 
 
@@ -447,11 +449,13 @@ CompletableFuture<Void> future =
 
 
 
+
 各个任务的结果和异常仍然保存在原来的 `CompletableFuture` 中。`allOf()` 本身只表达“这一批任务都完成了”，不负责收集每个业务结果。
 
 `anyOf()` 在任意一个任务最先完成时结束，这里的“完成”包括正常完成和异常完成。
 
 ![](/images/Java-concurrency/IMG-20260707-000077.png)
+
 
 
 

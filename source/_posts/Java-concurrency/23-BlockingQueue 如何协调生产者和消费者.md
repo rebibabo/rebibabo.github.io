@@ -19,6 +19,7 @@ categories:
 
 
 
+
 因此，`BlockingQueue` 不是简单的“线程安全队列”，而是一个带等待语义的线程安全队列。线程安全保证多个线程同时访问队列时内部状态不会损坏；等待语义保证队列空或满时，线程可以按约定阻塞、超时、失败或抛异常。
 
 ## 一、BlockingQueue 的方法差异，本质是失败策略差异
@@ -63,15 +64,18 @@ Task task = queue.take();
 
 
 
+
 此时执行一次 `take()`，取出的不是移动整个数组，而是读取 `takeIndex` 指向的位置，然后让 `takeIndex` 后移。数组不会把 `B`、`C` 搬到前面，因为每次搬移都会带来额外成本。队列只需要维护“下次从哪里取”和“下次往哪里放”。
 
 ![](/images/Java-concurrency/IMG-20260707-000144.png)
 
 
 
+
 数组下标走到末尾后会回到 0，所以这个数组是循环使用的。继续放入 `D`、`E`，再放入 `F` 时，`putIndex` 会回到开头，把已经被取走的位置重新利用。
 
 ![](/images/Java-concurrency/IMG-20260707-000145.png)
+
 
 
 
@@ -116,6 +120,7 @@ return e;
 
 
 
+
 这也带来明显代价：即使队列既不空也不满，一个生产者正在 `put()`，一个消费者也不能同时 `take()`，因为二者竞争的是同一把锁。两个 `Condition` 只是把等待线程按业务条件分组，`notEmpty` 给消费者等待数据，`notFull` 给生产者等待空间，并不代表有两把锁。
 
 所以，`ArrayBlockingQueue` 的特点可以概括为：固定数组、容量明确、内存稳定、实现简单，但 `put()` 和 `take()` 不能真正并行。在容量边界清晰、希望内存可控的场景中，它是一个很稳妥的选择。
@@ -135,13 +140,16 @@ return e;
 
 
 
+
 ![](/images/Java-concurrency/IMG-20260707-000148.png)
+
 
 
 
 两把锁提高了并发度，但也引出一个新问题：入队和出队都会修改元素数量，而它们并不持有同一把锁。为了解决这个共享计数问题，`LinkedBlockingQueue` 使用 `AtomicInteger count`。链表尾部由 `putLock` 保护，链表头部由 `takeLock` 保护，数量变化由原子变量保护。
 
 ![](/images/Java-concurrency/IMG-20260707-000149.png)
+
 
 
 
@@ -154,6 +162,7 @@ return e;
 初始状态下，队列只有一个哨兵节点，`head` 和 `last` 都指向它。
 
 ![](/images/Java-concurrency/IMG-20260707-000150.png)
+
 
 
 
@@ -170,15 +179,18 @@ last = node;
 
 
 
+
 继续放入 `B`，就是把 `B` 接到旧尾节点 `A` 后面，再把 `last` 移到 `B`。
 
 ![](/images/Java-concurrency/IMG-20260707-000152.png)
 
 
 
+
 出队时取的不是 `head`，而是 `head.next`。假设当前第一个真实节点是 `A`，`take()` 会读取 `A.item`，然后把 `head` 移动到 `A`，并把 `A.item` 置为 `null`。这样原来的 `A` 节点变成新的哨兵节点，`B` 成为新的第一个真实元素。
 
 ![](/images/Java-concurrency/IMG-20260707-000153.png)
+
 
 
 
@@ -311,6 +323,7 @@ private void signalNotEmpty() {
 
 
 
+
 这个例子体现了 `LinkedBlockingQueue` 的通知规则：生产者侧的尾部追加由 `putLock` 保护，数量变化由 `AtomicInteger count` 保证，放完后如果本侧条件仍然满足，就继续唤醒其他生产者；如果这次入队打破了“空队列”边界，就跨到 `takeLock` 一侧唤醒消费者。
 
 
@@ -343,9 +356,11 @@ new LinkedBlockingQueue<>(capacity);
 
 
 
+
 `SynchronousQueue` 则要求双方同时在场：
 
 ![](/images/Java-concurrency/IMG-20260707-000156.png)
+
 
 
 
@@ -501,11 +516,13 @@ B → C → A
 
 
 
+
 普通队列只要非空，消费者就可以取元素；但 `DelayQueue` 会先看堆顶元素是否到期。如果堆顶没到期，说明后面的元素只会更晚到期，所以消费者没有必要扫描整个队列，只需要等待堆顶元素到期。
 
 可以简单理解为：
 
 ![](/images/Java-concurrency/IMG-20260707-000158.png)
+
 
 
 
@@ -523,6 +540,7 @@ Consumer-3: awaits normally
 
 
 
+
 所以，`DelayQueue` 的核心可以压缩成一句话：
 
 > `DelayQueue` 是按到期时间释放元素的阻塞队列；队列非空不代表可以取，只有最早到期的元素真正到期后，`take()` 才会返回。
@@ -534,6 +552,7 @@ Consumer-3: awaits normally
 `ThreadPoolExecutor` 的构造参数中，`workQueue` 就是 `BlockingQueue<Runnable>`。它不仅是任务容器，还会影响线程池的扩容路径。简化后的 `execute()` 流程是：
 
 ![](/images/Java-concurrency/IMG-20260707-000160.png)
+
 
 
 

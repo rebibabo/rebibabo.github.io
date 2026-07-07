@@ -232,6 +232,7 @@ return futureTask;
 
 
 
+
 提交线程和工作线程各自有独立的线程栈，但它们都持有同一个 `FutureTask` 引用。工作线程通过这个对象执行任务并写入结果，提交线程通过这个对象等待并读取结果。
 
 ## 七、FutureTask.run() 如何执行原始任务
@@ -547,15 +548,18 @@ for (Future<Integer> future : futures) {
 
 
 
+
 工作线程一侧：
 
 ![](/images/Java-concurrency/IMG-20260707-000069.png)
 
 
 
+
 提交线程一侧：
 
 ![](/images/Java-concurrency/IMG-20260707-000070.png)
+
 
 
 

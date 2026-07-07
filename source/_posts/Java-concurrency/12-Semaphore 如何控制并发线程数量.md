@@ -48,9 +48,11 @@ Semaphore semaphore = new Semaphore(3);
 
 
 
+
 当某个线程执行完受限任务并调用 `release()` 后，许可证数量增加，等待线程才有机会重新尝试获取许可证。
 
 ![](/images/Java-concurrency/IMG-20260707-000056.png)
+
 
 
 
@@ -96,6 +98,7 @@ release(): state increases
 
 
 
+
 这会破坏并发数量限制。`Semaphore` 因此使用 CAS 循环修改 `state`。可以简化理解为：
 
 ```java
@@ -123,6 +126,7 @@ for (;;) {
 当线程调用 `acquire()` 时，如果发现 `state == 0`，它不会一直空转重试。AQS 会把它加入等待队列，并暂停线程执行。等其他线程调用 `release()` 增加许可证后，等待线程会被唤醒，再重新尝试获取许可证。
 
 ![](/images/Java-concurrency/IMG-20260707-000058.png)
+
 
 
 
@@ -160,6 +164,7 @@ Thread C acquire: 1 -> 0
 `CountDownLatch` 的计数只能减少，到达 `0` 后不会恢复，因此只能使用一轮。`Semaphore` 的 `state` 既会因为 `acquire()` 减少，也会因为 `release()` 增加，所以它可以在长期运行的程序中反复控制并发数量。
 
 ![](/images/Java-concurrency/IMG-20260707-000059.png)
+
 
 
 
