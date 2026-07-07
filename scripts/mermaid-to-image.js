@@ -169,7 +169,7 @@ async function main() {
     for (const block of blocks) {
       const basename = generateFilename(globalIndex++);
       const outputPath = path.join(catImagesDir, `${basename}.png`);
-      const imgRef = `![mermaid](${path.posix.join('/images', category, `${basename}.png`)})`;
+      const imgRef = `![图](${path.posix.join('/images', category, `${basename}.png`)})`;
 
       tasks.push({
         category,
@@ -219,10 +219,14 @@ async function main() {
     let content = fs.readFileSync(mdFile, 'utf-8');
 
     for (const edit of edits) {
-      const before = content.slice(edit.block.startIndex, edit.block.endIndex);
+      const prefix =
+        '<pre style="display:none">\n' +
+        edit.sourceCode +
+        '\n</pre>\n';
       const imgLine = edit.imgRef;
       content =
         content.slice(0, edit.block.startIndex) +
+        prefix +
         imgLine +
         '\n' +
         content.slice(edit.block.endIndex);
