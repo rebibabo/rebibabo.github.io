@@ -191,11 +191,12 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "65aff21f3d59f825",
+  "active": "9ea592f34f44e7dc",
   "lastOpenFiles": [
+    "附件/Pasted image 20260707154202.png",
+    "附件",
     "附件/Pasted image 20260707153954.png",
     "附件/Pasted image 20260707153946.png",
-    "附件",
     "附件/Pasted image 20260707153724.png",
     "source/images/Pasted image 20260707153621.png",
     "source/images",
@@ -237,7 +238,6 @@
     "_posts/LLM Inference/02-quantization.md",
     "_posts/LLM Inference/01-baseline-deployment.md",
     "images/Java-basic/arraydeque-methods.png",
-    "images/Java-basic/IMG-20260706212847507.png",
-    "images/Java-basic/IMG-20260706212906174.png"
+    "images/Java-basic/IMG-20260706212847507.png"
   ]
 }
