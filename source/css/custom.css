@@ -18,22 +18,22 @@ body > header .header-inner {
   min-height: 200px !important;
 }
 
-/* 导航栏高度缩小 */
+/* 导航栏 */
 #navbar.navbar {
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
 }
 
 #navbar .navbar-brand {
-  padding-top: 2px;
-  padding-bottom: 2px;
-  font-size: 0.95rem;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 1rem;
 }
 
 #navbar .nav-link {
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
-  font-size: 0.88rem;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  font-size: 0.92rem;
 }
 
 /* 去掉隐藏日期后可能留下的缩进 */
