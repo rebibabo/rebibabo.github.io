@@ -25,6 +25,7 @@ from playwright.sync_api import Playwright, sync_playwright
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAMES = ["Java高并发", "Java基础"]       # 专栏名列表，可多选
 DEFAULT_TAGS = ["学习笔记"]   # 默认标签（AI 失败时的兜底）
+HEADLESS = os.environ.get("CSDN_HEADLESS", "1") == "1"  # 默认无头，设 CSDN_HEADLESS=0 开启有头
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = "deepseek-chat"    # v4 pro 模型
 
@@ -305,7 +306,7 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # 主流程
 # ============================================================
 def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=HEADLESS)
     context = browser.new_context(
         storage_state=AUTH_FILE,
         viewport={"width": 1280, "height": 900},
@@ -548,7 +549,7 @@ if __name__ == "__main__":
             _do_login(playwright)
         else:
             print("-2. 检查登录状态...")
-            b = playwright.chromium.launch(headless=False)
+            b = playwright.chromium.launch(headless=HEADLESS)
             c = b.new_context(storage_state=AUTH_FILE)
             if _check_logged_in(c):
                 print("  ✅ 登录有效")
