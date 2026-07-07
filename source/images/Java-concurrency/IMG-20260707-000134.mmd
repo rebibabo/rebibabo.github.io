@@ -1,5 +1,0 @@
-flowchart LR
-    A["读取 oldTable[i]"] --> B["发现 ForwardingNode"]
-    B --> C["读取 nextTable"]
-    C --> D["根据 hash 和 nextTable.length<br>计算新下标"]
-    D --> E["在 nextTable 中继续查找"]

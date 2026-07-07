@@ -1,8 +1,0 @@
-flowchart LR
-    A["Worker 卡在哪里?"] --> B["慢 SQL"]
-    B --> C["远程接口"]
-    C --> D["文件 IO"]
-    D --> E["锁等待"]
-    E --> F["Future.get()"]
-    F --> G["CountDownLatch.await()"]
-    G --> H["BlockingQueue.take()"]

@@ -252,7 +252,7 @@ async function main() {
     await renderBlock(t.sourceCode, t.outputPath);
     completed++;
     const pct = ((completed / tasks.length) * 100).toFixed(1);
-    process.stdout.write(`\r  渲染进度: ${completed}/${tasks.length} (${pct}%) — ${path.basename(t.outputPath)}`);
+    if (t && t.outputPath) process.stdout.write(`\r  渲染进度: ${completed}/${tasks.length} (${pct}%) — ${path.basename(t.outputPath)}`);
     return t;
   });
 
@@ -262,8 +262,8 @@ async function main() {
   // 第四阶段：按文件分组替换
   const fileEdits = new Map();
   for (const t of renderedTasks) {
-    if (t.error) {
-      console.error(`   ❌ ${path.basename(t.outputPath)} 渲染失败: ${t.error.message}`);
+    if (!t || t.error) {
+      console.error(`   ❌ 渲染失败: ${t?.error?.message || '未知错误'}`);
       continue;
     }
     if (!fileEdits.has(t.mdFile)) {

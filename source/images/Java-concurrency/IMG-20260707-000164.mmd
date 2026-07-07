@@ -1,7 +1,0 @@
-graph LR
-    subgraph Deque["本地双端队列"]
-        direction LR
-    T1 --- T2 --- T3 --- T4
-    end
-    Stealer["其他 Worker<br>（窃取者）"] -->|"窃取"| T1
-    Owner["当前 Worker<br>（拥有者）"] -->|"push / pop"| T4

@@ -1,4 +1,0 @@
-graph LR
-    CondQueue["条件队列"] -->|signal| SyncQueue["同步队列"]
-    CondQueue -->|await 阻塞| Parked["线程挂起"]
-    SyncQueue -->|重新获取锁| Return["await 返回"]
