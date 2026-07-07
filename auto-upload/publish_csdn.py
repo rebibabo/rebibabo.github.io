@@ -91,12 +91,17 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
         print(f"     正在 git add → commit → push...")
         _git_sync()
 
-        if _check_url(raw_url):
-            print(f"     ✅ push 后外链可用")
-            return f"![{alt}]({raw_url})"
-        else:
-            print(f"     ❌ push 后仍不可用，保留本地路径")
-            return match.group(0)
+        # GitHub raw CDN 有延迟，等几秒再重试
+        import time
+        for retry in range(5):
+            time.sleep(2)
+            if _check_url(raw_url):
+                print(f"     ✅ push 后外链可用")
+                return f"![{alt}]({raw_url})"
+            print(f"     等待 CDN 同步... ({retry + 1}/5)")
+
+        print(f"     ❌ 等待超时，保留本地路径")
+        return match.group(0)
 
     return image_pattern.sub(replace_image, body)
 
