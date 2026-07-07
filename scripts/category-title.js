@@ -38,24 +38,24 @@ const CATEGORY_MAP = {};
   });
 })();
 
-// Intercept category page rendering to override title
-hexo.extend.generator.register('category-page-override', function(locals) {
-  const categories = locals.categories;
-  if (!categories || !categories.length) return [];
+// Override category page title in generated HTML
+hexo.extend.filter.register('after_render:html', function(html, data) {
+  // Only process category listing pages
+  if (!data.path || !/^categories\/[^/]+\/index\.html$/.test(data.path)) return html;
 
-  return categories.map(cat => {
-    const slug = cat.name;
-    const display = CATEGORY_MAP[slug];
-    if (!display) return null;
+  const slug = data.path.split('/')[1];
+  const display = CATEGORY_MAP[slug];
+  if (!display) return html;
 
-    return {
-      path: 'categories/' + slug + '/index.html',
-      data: Object.assign({}, cat, {
-        title: display,
-        category: slug,
-        layout: 'category'
-      }),
-      layout: 'category'
-    };
-  }).filter(Boolean);
-});
+  // Replace title: "分类 - slug - site" → "display - site"
+  // Also fix og:title
+  html = html.replace(/<title>[^<]*<\/title>/, function(match) {
+    // Match "分类 - slug" or just "slug" followed by " - site"
+    return match.replace(/分类 - [^-]+/, display);
+  });
+  html = html.replace(/<meta property="og:title" content="[^"]*">/, function(match) {
+    return match.replace(/分类 - [^-]+/, display);
+  });
+
+  return html;
+}, 10);
