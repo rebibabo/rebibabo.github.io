@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T09:00:31.969Z",
+  "updatedAt": "2026-07-07T09:02:18.192Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad network&server.md",
-    "vaultPath": "_posts/programmatic-ads/05-Ad network&server.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad%20network&server.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
+    "vaultPath": "_posts/llm-inference/03-kvcache.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
     "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad network&server.md",
-      "vaultPath": "_posts/programmatic-ads/05-Ad network&server.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/05-Ad%20network&server.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
+      "vaultPath": "_posts/llm-inference/03-kvcache.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/llm-inference/03-kvcache.md",
       "isActive": true
     }
   ],
   "selection": {
-    "text": "![ad network工作时序图](images/programmatic-ads/IMG-20260609092106611.png)",
+    "text": "![PagedAttention 示意图](images/llm-inference/IMG-20260604165608946.png)",
     "isEmpty": false,
     "from": {
-      "line": 75,
+      "line": 124,
       "ch": 0,
-      "offset": 1203
+      "offset": 3662
     },
     "to": {
-      "line": 75,
+      "line": 124,
       "ch": 69,
-      "offset": 1272
+      "offset": 3731
     }
   }
 }
