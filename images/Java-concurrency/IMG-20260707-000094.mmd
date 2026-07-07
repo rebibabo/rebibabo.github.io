@@ -6,4 +6,4 @@ graph LR
     subgraph SyncQueue["AQS 同步队列"]
         direction LR
         Head["head"] <--> B["Node B"] <--> C1["Node C1"] <--> Tail["tail"]
-    end
+    end    C2 --> Head

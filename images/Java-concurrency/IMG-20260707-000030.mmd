@@ -1,8 +1,5 @@
 graph LR
     subgraph CacheLine["Cache Line"]
         direction LR
-        F1["count: 4 bytes"]
-        F2["status: 4 bytes"]
-        F3["version: 8 bytes"]
-        F4["other data: ..."]
+    F1 --- F2 --- F3 --- F4
     end

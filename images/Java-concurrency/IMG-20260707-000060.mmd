@@ -1,9 +1,7 @@
 graph LR
     subgraph Monitor["Object Monitor"]
         direction LR
-        Owner["Owner<br>持有锁的线程"]
-        Entry["Entry Set<br>等待锁的线程"]
-        Wait["Wait Set<br>等待 notify 的线程"]
+    Owner --- Entry --- Wait
     end
     Owner --> Entry
     Entry --> Wait

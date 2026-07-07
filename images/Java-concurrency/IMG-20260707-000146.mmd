@@ -6,4 +6,4 @@ flowchart LR
     subgraph take["take()"]
         direction LR
         t1["获取锁"] --> t2["读取头部"] --> t3["更新 count"] --> t4["释放锁"]
-    end
+    end    p1 --> t1

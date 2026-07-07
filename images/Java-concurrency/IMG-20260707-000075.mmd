@@ -6,4 +6,4 @@ graph LR
     subgraph Error["异常路径"]
         direction LR
         SA2["supplyAsync"] --> EX["exceptionally<br>handle<br>whenComplete"]
-    end
+    end    SA --> SA2
