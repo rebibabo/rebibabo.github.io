@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T13:53:59.040Z",
+  "updatedAt": "2026-07-07T13:55:29.040Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
     "vaultPath": "_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-concurrency/21-%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1%E3%80%81ABA%20%E4%B8%8E%20LongAdder.md",
-    "hasFocus": false
+    "hasFocus": true
   },
   "openFiles": [
     {
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 13,
+      "line": 482,
       "ch": 0,
-      "offset": 183
+      "offset": 10322
     },
     "to": {
-      "line": 13,
+      "line": 482,
       "ch": 0,
-      "offset": 183
+      "offset": 10322
     }
   }
 }

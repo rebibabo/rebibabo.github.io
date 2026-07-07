@@ -24,7 +24,7 @@
               "type": "markdown",
               "state": {
                 "file": "_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
