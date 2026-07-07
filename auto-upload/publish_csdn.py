@@ -127,12 +127,12 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     # ---- 第六步：点击发布，弹出发布设置弹窗 ----
     print("6. 打开发布设置...")
     page2.get_by_role("button", name="发布文章").click()
-    page2.wait_for_timeout(2000)
+    page2.wait_for_timeout(200)
 
     # ---- 第七步：选择专栏 ----
     print(f"7. 选择专栏: {COLUMN_NAME}")
     page2.get_by_text(COLUMN_NAME, exact=True).click()
-    page2.wait_for_timeout(500)
+    page2.wait_for_timeout(50000)
 
     # ---- 第八步：删除已有标签 ----
     print("8. 清理已有标签...")
