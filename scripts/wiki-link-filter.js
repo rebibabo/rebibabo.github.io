@@ -129,7 +129,7 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
 
   // Inject mermaid 10.x via after_render — mermaid renders server-side code blocks
   if (/class="[^"]*mermaid[^"]*"/.test(html)) {
-    bodyEnd += `<script src="https://lib.baomitu.com/mermaid/10.9.0/mermaid.min.js"></script>
+    bodyEnd += `<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
 <script>
   mermaid.initialize({ startOnLoad: true, theme: 'default' });
 </script>\n`;
