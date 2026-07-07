@@ -130,7 +130,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     page2.wait_for_timeout(200)
 
     # ---- 第七步：打开专栏选择，选中目标专栏 ----
-    print(f"7. 选择专栏: {COLUMN_NAME}")
+    print(f"7. 选择专栏: {COLUMN_NAMES}")
     # 先点开专栏选择面板
     try:
         page2.locator("#tagList .tag__btn-tag").wait_for(timeout=10_000)
@@ -140,18 +140,17 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     except Exception:
         print("  ⚠️  未找到专栏选择按钮，尝试直接选择...")
 
-    # 遍历所有专栏，找到匹配名称的
+    # 遍历所有专栏，匹配配置中的专栏名
     columns = page2.locator(".spanIsAgree").all()
-    found = False
-    for col in columns:
-        if col.text_content().strip() == COLUMN_NAME:
-            col.click(timeout=600_000)
-            found = True
-            print(f"  ✅ 已选择专栏: {COLUMN_NAME}")
-            break
+    column_texts = {col.text_content().strip(): col for col in columns}
 
-    if not found:
-        print(f"  ⚠️  未找到专栏「{COLUMN_NAME}」，跳过专栏选择")
+    for name in COLUMN_NAMES:
+        if name in column_texts:
+            column_texts[name].click(timeout=600_000)
+            print(f"  ✅ 已选择专栏: {name}")
+            page2.wait_for_timeout(300)
+        else:
+            print(f"  ⚠️  未找到专栏「{name}」，跳过")
 
     page2.wait_for_timeout(500)
 
