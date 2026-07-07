@@ -1,12 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T04:18:58.826Z",
+  "updatedAt": "2026-07-07T05:07:34.231Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
-  "activeFile": null,
-  "openFiles": [],
-  "selection": null
+  "activeFile": {
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+    "vaultPath": "wiki/maps/java-basic.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+    "hasFocus": false
+  },
+  "openFiles": [
+    {
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+      "vaultPath": "wiki/maps/java-basic.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+      "isActive": true
+    }
+  ],
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 11,
+      "ch": 0,
+      "offset": 115
+    },
+    "to": {
+      "line": 11,
+      "ch": 0,
+      "offset": 115
+    }
+  }
 }
