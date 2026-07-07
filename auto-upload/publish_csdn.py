@@ -111,14 +111,16 @@ def _check_url(url: str) -> bool:
 
 def _git_sync():
     """在博客根目录执行 git add → commit → push"""
+    import subprocess
     blog_root = os.path.join(os.path.dirname(__file__), "..")
-    cmds = [
-        f"cd {blog_root}",
-        "git add source/images/",
-        'git commit -m "auto: sync images for CSDN upload"',
-        "git push origin source",
-    ]
-    os.system(" && ".join(cmds))
+
+    subprocess.run(["git", "add", "source/images/"], cwd=blog_root, capture_output=True)
+    # commit 可能因为没变更而失败，不影响 push
+    subprocess.run(
+        ["git", "commit", "-m", "auto: sync images for CSDN upload"],
+        cwd=blog_root, capture_output=True,
+    )
+    subprocess.run(["git", "push", "origin", "source"], cwd=blog_root, capture_output=True)
 
 
 # ============================================================
