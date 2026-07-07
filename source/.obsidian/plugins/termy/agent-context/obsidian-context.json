@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T14:19:51.894Z",
+  "updatedAt": "2026-07-07T14:20:25.977Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "vaultPath": "_posts/Java-advanced/04-jwt.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "hasFocus": true
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
+    "vaultPath": "_posts/Java-advanced/07-tracing.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
+    "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-      "vaultPath": "_posts/Java-advanced/04-jwt.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
+      "vaultPath": "_posts/Java-advanced/07-tracing.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
       "isActive": true
     }
   ],
@@ -24,14 +24,14 @@
     "text": "",
     "isEmpty": true,
     "from": {
-      "line": 12,
+      "line": 13,
       "ch": 0,
-      "offset": 177
+      "offset": 174
     },
     "to": {
-      "line": 12,
+      "line": 13,
       "ch": 0,
-      "offset": 177
+      "offset": 174
     }
   }
 }

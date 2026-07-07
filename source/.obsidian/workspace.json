@@ -23,12 +23,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_posts/Java-advanced/04-jwt.md",
+                "file": "_posts/Java-advanced/07-tracing.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "04-jwt"
+              "title": "07-tracing"
             }
           }
         ],
@@ -194,6 +194,9 @@
   },
   "active": "36e60ba979dacb50",
   "lastOpenFiles": [
+    "_posts/Java-advanced/06-grafana.md",
+    "_posts/Java-advanced/05-metric.md",
+    "_posts/Java-advanced/04-jwt.md",
     "_posts/Java-advanced/03-k8s.md",
     "_posts/Java-advanced/02-docker.md",
     "_posts/Java-advanced/01-microservices-intro.md",
@@ -236,9 +239,6 @@
     "_posts/Java-concurrency/23-BlockingQueue 如何协调生产者和消费者.md",
     "_posts/Java-concurrency/21-无锁设计、ABA 与 LongAdder.md",
     "_posts/Java-concurrency/20-ReentrantReadWriteLock 与 StampedLock.md",
-    "_posts/Java-concurrency/19-AQS 独占与共享模式如何完成排队与唤醒.md",
-    "_posts/Java-concurrency/06-多核CPU如何保持缓存一致.md",
-    "_posts/Java-advanced/04-jwt.md",
-    "_posts/programmatic-ads/02-DSP.md"
+    "_posts/Java-concurrency/19-AQS 独占与共享模式如何完成排队与唤醒.md"
   ]
 }
