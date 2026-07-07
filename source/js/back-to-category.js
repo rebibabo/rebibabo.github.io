@@ -14,13 +14,13 @@
     return SCROLL_KEY_PREFIX + pathname;
   }
 
-  // 1. 在分类页保存滚动位置，并在回来时恢复
+  // 1. 在分类页：保存滚动位置 + 显示"返回主页"按钮
   if (isCategoryPage()) {
+    // 保存和恢复滚动位置
     const key = scrollKey(location.pathname);
 
     const savedY = sessionStorage.getItem(key);
     if (savedY !== null) {
-      // 等页面渲染完成后再恢复，避免内容还没撑开导致滚动失败
       setTimeout(function () {
         window.scrollTo(0, Number(savedY));
       }, 80);
@@ -40,6 +40,13 @@
         ticking = false;
       });
     });
+
+    // 添加"返回主页"按钮
+    var homeBtn = document.createElement("a");
+    homeBtn.className = "back-to-home-btn";
+    homeBtn.href = "/series/";
+    homeBtn.innerText = "← 返回主页";
+    document.body.appendChild(homeBtn);
 
     return;
   }

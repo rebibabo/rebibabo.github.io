@@ -41,8 +41,32 @@
   color: #fff !important;
 }
 
+/* 分类页：返回主页按钮 */
+.back-to-home-btn {
+  position: fixed;
+  left: 24px;
+  bottom: 32px;
+  z-index: 9999;
+
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  background: rgba(118, 75, 162, 0.9);
+  color: #fff !important;
+  font-size: 14px;
+  text-decoration: none !important;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.back-to-home-btn:hover {
+  background: rgba(102, 126, 234, 0.95);
+  color: #fff !important;
+}
+
 @media (max-width: 768px) {
-  .back-to-category-btn {
+  .back-to-category-btn,
+  .back-to-home-btn {
     left: 16px;
     bottom: 20px;
     font-size: 13px;
