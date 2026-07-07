@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T14:59:48.967Z",
+  "updatedAt": "2026-07-07T15:03:05.874Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/concepts/concurrency/并发总图.md",
     "vaultPath": "wiki/concepts/concurrency/并发总图.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/concepts/concurrency/%E5%B9%B6%E5%8F%91%E6%80%BB%E5%9B%BE.md",
-    "hasFocus": true
+    "hasFocus": false
   },
   "openFiles": [
     {
