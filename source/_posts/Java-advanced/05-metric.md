@@ -256,15 +256,11 @@ else if (channel.equals("wechat")) wechatCount.increment();
 
 **标签（Tag）= 给一个指标补上一个"按什么分类"的维度。** 用一张表来理解最直观：
 
-```
-指标名 order.create.total   ← 相当于一张表的"表名"
-┌──────────────┬──────┐
-│channel（列名）│ 计数  │
-├──────────────┼──────┤
-│ alipay       │ 1200 │   ← 每一行是一个独立的计数器
-│ wechat       │  980 │
-│ unionpay     │  450 │
-└──────────────┴──────┘
+```mermaid
+graph TB
+    Metric["指标名: order.create.total<br/>← 相当于一张表的表名"] --> R1["channel: alipay<br/>计数: 1200"]
+    Metric --> R2["channel: wechat<br/>计数: 980"]
+    Metric --> R3["channel: unionpay<br/>计数: 450"]
 ```
 
 - **指标名**（`order.create.total`）：相当于表名，整张表共用一个。
@@ -637,9 +633,13 @@ histogram_quantile(0.99, rate(order_create_duration_seconds_bucket[5m]))
 
 写 PromQL 基本就是这套组合拳，按需叠加：
 
-```
-指标名  {标签筛选}  [时间范围]  → rate() 算速率  → sum() by() 聚合  → 相除/比较
-  └选哪个指标┘ └选哪些序列┘ └取一段┘    └变成QPS┘      └按维度汇总┘   └算比率┘
+```mermaid
+graph LR
+    M["指标名<br/>选哪个指标"] --> L["{标签筛选}<br/>选哪些序列"]
+    L --> R["[时间范围]<br/>取一段"]
+    R --> Rate["rate() 算速率<br/>变成 QPS"]
+    Rate --> Sum["sum() by() 聚合<br/>按维度汇总"]
+    Sum --> Div["相除/比较<br/>算比率"]
 ```
 
 记住几个最高频的就够日常用了：`rate()` 算速率（QPS）、两个 rate 相除算比率（成功率）、`sum by()` 按维度汇总、`histogram_quantile` 算 P99。Grafana 大盘里每个面板背后，写的就是这样一行 PromQL（下一篇会讲）。

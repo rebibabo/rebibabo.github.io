@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T10:31:59.730Z",
+  "updatedAt": "2026-07-07T10:33:27.958Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
     "vaultPath": "_posts/Java-advanced/04-jwt.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/04-jwt.md",
-    "hasFocus": true
+    "hasFocus": false
   },
   "openFiles": [
     {
@@ -21,17 +21,17 @@
     }
   ],
   "selection": {
-    "text": "### 5.1 阶段一：登录拿 token\n\n```mermaid\ngraph TB\n    S1[\"1. 用户 POST /login<br/>带上用户名 + 密码\"] --> S2[\"2. 服务端查数据库<br/>用 PasswordEncoder 校验密码\"]\n    S2 --> S3[\"3. 密码正确 → 生成 JWT<br/>把用户 id、角色打包签名\"]\n    S3 --> S4[\"4. 把 JWT 返回给客户端\"]\n    S4 --> S5[\"5. 客户端保存 JWT<br/>比如存在 localStorage\"]\n```\n\n### 5.2 阶段二：带 token 访问接口\n\n```mermaid\ngraph TB\n    S1[\"1. 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci...\"] --> S2[\"2. JWT 过滤器拦截请求，取出 token\"]\n    S2 --> S3{\"3. 用密钥验证签名<br/>验证是否过期\"}\n    S3 -->|通过 ✅| S4[\"4. 解析用户信息<br/>存入 SecurityContext\"]\n    S4 --> S5[\"5. 放行到 Controller<br/>业务代码拿到当前用户\"]\n    S3 -->|失败 ❌| Fail[\"直接返回 401<br/>不进 Controller\"]\n```\n\n注意阶段二**全程不查数据库**——验签 + 解析 token 即可，这就是 JWT \"无状态\"的体现。\n\n---\n\n",
-    "isEmpty": false,
+    "text": "",
+    "isEmpty": true,
     "from": {
-      "line": 173,
+      "line": 12,
       "ch": 0,
-      "offset": 3635
+      "offset": 177
     },
     "to": {
-      "line": 198,
+      "line": 12,
       "ch": 0,
-      "offset": 4314
+      "offset": 177
     }
   }
 }
