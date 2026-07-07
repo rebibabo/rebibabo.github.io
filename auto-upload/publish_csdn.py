@@ -461,6 +461,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
 
     # ---- 第十二步：最终发布 ----
     print("12. 发布文章...")
+    input()
     page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
     page2.wait_for_timeout(5000)
     print("  ✅ 发布完成")

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T14:20:25.977Z",
+  "updatedAt": "2026-07-07T14:30:00.047Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
@@ -10,7 +10,7 @@
     "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
     "vaultPath": "_posts/Java-advanced/07-tracing.md",
     "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/07-tracing.md",
-    "hasFocus": false
+    "hasFocus": true
   },
   "openFiles": [
     {
