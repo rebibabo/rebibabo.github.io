@@ -1,0 +1,19 @@
+/* 隐藏归档页、分类页、标签页文章列表左侧日期 */
+.archive-post-date,
+.category-post-date,
+.tag-post-date,
+.list-group-item time {
+  display: none !important;
+}
+
+/* 去掉隐藏日期后可能留下的缩进 */
+.archive-post-title,
+.category-post-title,
+.tag-post-title {
+  margin-left: 0 !important;
+}
+
+.archive-year,
+.archive .h4 {
+  display: none !important;
+}
