@@ -1,5 +1,5 @@
 ---
-title: 程序化广告生态全景图
+title: programmatic-ads生态全景图
 tags:
   - wiki
   - map
@@ -9,7 +9,7 @@ type: map
 status: seed
 ---
 
-# 程序化广告生态全景图
+# programmatic-ads生态全景图
 
 [[wiki/index|返回 Wiki 首页]]
 
@@ -131,8 +131,8 @@ sequenceDiagram
 
 ## 相关入口
 
-- [[wiki/series/programmatic-ads\|程序化广告系列]]
-- [[wiki/glossary/programmatic-ads/index\|程序化广告词汇表]]
+- [[wiki/series/programmatic-ads\|programmatic-ads系列]]
+- [[wiki/glossary/programmatic-ads/index\|programmatic-ads词汇表]]
 - [[wiki/concepts/programmatic-ads/角色总图\|角色关系图]]
 - [[wiki/concepts/programmatic-ads/交易模式\|交易模式框架]]
 - [[wiki/concepts/programmatic-ads/指标\|Metrics]]

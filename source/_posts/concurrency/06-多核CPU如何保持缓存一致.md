@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（六）—— 多核 CPU 如何保持缓存一致
+title: java-concurrency（六）—— 多核 CPU 如何保持缓存一致
 date: 2026-07-02
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - CPU Cache
   - MESI
 categories:
-  - Java高并发底层原理
+  - java-concurrency
 ---
 
 

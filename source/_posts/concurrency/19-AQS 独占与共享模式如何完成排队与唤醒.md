@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（十九）—— AQS 独占与共享模式如何完成排队与唤醒
+title: java-concurrency（十九）—— AQS 独占与共享模式如何完成排队与唤醒
 date: 2026-07-04
 tags:
     - Java
@@ -9,7 +9,7 @@ tags:
     - Semaphore
     - CountDownLatch
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 ## 1. AQS 先解决什么问题

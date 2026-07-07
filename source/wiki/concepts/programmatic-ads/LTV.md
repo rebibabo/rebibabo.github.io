@@ -33,7 +33,7 @@ LTV 正是在补这件事。
 - [[wiki/concepts/programmatic-ads/ROAS|ROAS]]：短期回报好不好，和长期价值高不高，不一定完全一致
 - [[wiki/concepts/programmatic-ads/CVR|CVR]]：转化率高不代表来的都是高价值用户
 
-## 在程序化广告里的位置
+## 在programmatic-ads里的位置
 
 LTV 属于效果层里更偏长期经营的一类指标。
 
@@ -47,8 +47,8 @@ LTV 属于效果层里更偏长期经营的一类指标。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
-- [[_posts/programmatic-ads/03-DSP-helper|程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
+- [[_posts/programmatic-ads/03-DSP-helper|programmatic-ads (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
 
 ## 相关概念
 

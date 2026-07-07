@@ -31,4 +31,4 @@ IoC（Inversion of Control）是一种设计原则，将对象创建、依赖管
 
 ## 深入阅读
 
-- [[_posts/Java-basic/16-spring-ioc-aop|Java基础(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题]]
+- [[_posts/Java-basic/16-spring-ioc-aop|java-basics(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题]]

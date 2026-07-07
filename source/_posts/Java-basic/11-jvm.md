@@ -1,12 +1,12 @@
 ---
-title: 'Java基础(11) | JVM 基础：内存结构、类加载与垃圾回收'
+title: 'java-basics(11) | JVM 基础：内存结构、类加载与垃圾回收'
 date: 2026-05-11
 tags:
   - Java
   - JVM
   - GC
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

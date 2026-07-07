@@ -42,8 +42,8 @@ Deal ID 是把“私有商业约定”真正落到程序化接口里的关键对
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/07-trading-mode-part2|程序化广告 (6)：交易模式（下）——Header Bidding 的革命]]
-- [[_posts/programmatic-ads/09-openRTB|程序化广告 (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
+- [[_posts/programmatic-ads/07-trading-mode-part2|programmatic-ads (6)：交易模式（下）——Header Bidding 的革命]]
+- [[_posts/programmatic-ads/09-openRTB|programmatic-ads (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
 
 ## 相关概念
 

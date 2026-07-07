@@ -8,7 +8,7 @@ tags:
   - 可观测性
   - Spring Boot
 categories:
-  - Java进阶
+  - java-advanced
 ---
 
 <!-- series-intro -->

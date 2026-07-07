@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（二十三）—— BlockingQueue 如何协调生产者和消费者
+title: java-concurrency（二十三）—— BlockingQueue 如何协调生产者和消费者
 date: 2026-07-04
 tags:
     - Java
@@ -7,7 +7,7 @@ tags:
     - BlockingQueue
     - 线程池
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 前面已经讨论了 `Condition` 如何让线程在业务条件不满足时释放锁并等待。`BlockingQueue` 正是这类机制在队列场景中的标准化封装：队列为空时，消费者不需要自己写 `await()`；队列已满时，生产者也不需要自己管理 `notFull`。它把“存取元素”和“空满等待”合并成了一套统一的队列接口。

@@ -1,5 +1,5 @@
 ---
-title: 程序化广告词汇表
+title: programmatic-ads词汇表
 tags:
   - wiki
   - glossary
@@ -9,12 +9,12 @@ source_series: programmatic-ads
 status: seed
 ---
 
-# 程序化广告词汇表
+# programmatic-ads词汇表
 
 [[wiki/index|返回 Wiki 首页]]  
-[[wiki/series/programmatic-ads|返回程序化广告系列]]
+[[wiki/series/programmatic-ads|返回programmatic-ads系列]]
 
-程序化广告领域有大量缩写和专业术语。这个词汇表提供每个术语的**简短定义**和**快速索引**，不做深度展开——想深入了解任何术语，请跳转到对应的概念页或原始文章。
+programmatic-ads领域有大量缩写和专业术语。这个词汇表提供每个术语的**简短定义**和**快速索引**，不做深度展开——想深入了解任何术语，请跳转到对应的概念页或原始文章。
 
 ## 角色与平台
 
@@ -49,7 +49,7 @@ status: seed
 
 | 术语 | 全称 | 一句话 |
 |------|------|--------|
-| [[wiki/glossary/programmatic-ads/OpenRTB\|OpenRTB]] | Open Real-Time Bidding | 程序化广告竞价通信协议 |
+| [[wiki/glossary/programmatic-ads/OpenRTB\|OpenRTB]] | Open Real-Time Bidding | programmatic-ads竞价通信协议 |
 | [[wiki/glossary/programmatic-ads/竞价请求\|竞价请求]] | Bid Request | SSP/ADX 发给 DSP 的竞价请求 |
 | [[wiki/glossary/programmatic-ads/竞价响应\|竞价响应]] | Bid Response | DSP 返回给 SSP/ADX 的竞价响应 |
 | [[wiki/glossary/programmatic-ads/原生广告\|原生广告]] | Native Ads | 与页面内容风格一致的广告形式 |

@@ -1,12 +1,12 @@
 ---
-title: 'Java基础(番外) | 团队开发全流程：从需求到上线的完整链路'
+title: 'java-basics(番外) | 团队开发全流程：从需求到上线的完整链路'
 date: 2026-05-27
 tags:
   - 开发流程
   - 团队协作
   - DevOps
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

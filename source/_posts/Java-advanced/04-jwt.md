@@ -1,5 +1,5 @@
 ---
-title: 'Java进阶(4) | Spring Security + JWT：认证授权入门'
+title: 'java-advanced(4) | Spring Security + JWT：认证授权入门'
 date: 2026-05-04
 tags:
   - Spring Security
@@ -7,7 +7,7 @@ tags:
   - 认证授权
   - Spring Boot
 categories:
-  - Java进阶
+  - java-advanced
 ---
 
 <!-- series-intro -->

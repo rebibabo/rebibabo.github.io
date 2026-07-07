@@ -1,12 +1,12 @@
 ---
-title: 'Java基础(12) | 注解与反射：框架背后的魔法'
+title: 'java-basics(12) | 注解与反射：框架背后的魔法'
 date: 2026-05-12
 tags:
   - Java
   - 注解
   - 反射
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

@@ -33,4 +33,4 @@ CPA 是比 CPC 更激进的"效果导向"计费方式——广告主只为最终
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/CPA|CPA 概念页（完整版）]]
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标]]

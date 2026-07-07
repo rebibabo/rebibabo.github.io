@@ -30,4 +30,4 @@ Kafka 高吞吐的核心技术：顺序写磁盘（每个 Partition 是 append-o
 
 ## 深入阅读
 
-- [[_posts/Java-basic/31-kafka|Java基础(番外) Kafka 入门：分区、副本与消费者组原理]]
+- [[_posts/Java-basic/31-kafka|java-basics(番外) Kafka 入门：分区、副本与消费者组原理]]

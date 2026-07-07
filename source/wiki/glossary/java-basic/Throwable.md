@@ -30,4 +30,4 @@ Throwable 是 Java 异常体系的根类，所有可被抛出和捕获的异常�
 
 ## 深入阅读
 
-- [[_posts/Java-basic/07-exception|Java基础(7) 异常体系：Checked vs Unchecked 与 try-with-resources]]
+- [[_posts/Java-basic/07-exception|java-basics(7) 异常体系：Checked vs Unchecked 与 try-with-resources]]

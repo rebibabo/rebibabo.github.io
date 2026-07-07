@@ -33,4 +33,4 @@ CVR 受落地页体验、产品吸引力、价格等多重因素影响，比 CTR
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/CVR|CVR 概念页（完整版）]]
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标]]

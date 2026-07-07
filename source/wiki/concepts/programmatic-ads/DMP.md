@@ -16,7 +16,7 @@ status: seed
 
 ## 定义
 
-DMP（Data Management Platform，数据管理平台）是程序化广告里的数据资产组织层。
+DMP（Data Management Platform，数据管理平台）是programmatic-ads里的数据资产组织层。
 
 它的核心任务是：
 
@@ -47,7 +47,7 @@ DMP 正是在回答这件事：
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/03-DSP-helper|程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
+- [[_posts/programmatic-ads/03-DSP-helper|programmatic-ads (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
 
 ## 相关概念
 

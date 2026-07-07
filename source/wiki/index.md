@@ -20,19 +20,19 @@ tags:
 - [[wiki/series/java-advanced|Java 进阶系列]]
 - [[wiki/series/concurrency|Java 高并发底层原理]]
 - [[wiki/series/llm-inference|LLM Inference 系列]]
-- [[wiki/series/programmatic-ads|程序化广告系列]]
+- [[wiki/series/programmatic-ads|programmatic-ads系列]]
 
 ## 学习路径图
 
 - [[wiki/maps/java-basic|Java 基础学习路径]] — 从语言基础到工程实践的全景路线
 - [[wiki/maps/java-concurrency|Java 并发学习路径]] — 7 层概念依赖图
-- [[wiki/maps/programmatic-ads|程序化广告学习路径]]
+- [[wiki/maps/programmatic-ads|programmatic-ads学习路径]]
 
 ## 词汇表（快速参考）
 
 - [[wiki/glossary/java-basic/index|Java 基础词汇表]] — 110+ 术语，涵盖语言、JVM、Spring、数据、工程
 - [[wiki/glossary/concurrency/index|Java 并发词汇表]] — 并发领域术语速查
-- [[wiki/glossary/programmatic-ads/index|程序化广告词汇表]]
+- [[wiki/glossary/programmatic-ads/index|programmatic-ads词汇表]]
 
 使用方式：
 

@@ -16,7 +16,7 @@ status: seed
 
 ## 定义
 
-PD（Preferred Deal，首选交易）是程序化广告里的一种非竞价私有交易模式。
+PD（Preferred Deal，首选交易）是programmatic-ads里的一种非竞价私有交易模式。
 
 最核心的理解是：
 
@@ -43,7 +43,7 @@ PD 是私有交易从“竞价”走向“协议化购买”的关键一步。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/06-trading-mode-part1|程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史]]
+- [[_posts/programmatic-ads/06-trading-mode-part1|programmatic-ads (5)：交易模式（上）——单 SSP 内部的演化史]]
 
 ## 相关概念
 

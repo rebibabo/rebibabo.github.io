@@ -12,7 +12,7 @@ status: seed
 
 # ADX
 
-[[wiki/series/programmatic-ads|返回程序化广告系列]]  
+[[wiki/series/programmatic-ads|返回programmatic-ads系列]]  
 [[wiki/concepts/programmatic-ads/角色总图|返回角色关系图]]
 
 ## 定义
@@ -46,12 +46,12 @@ ADX（Ad Exchange，广告交易平台）是连接需求方与供给方的交易
 
 ## 在系列里的位置
 
-ADX 让程序化广告从“平台能力”真正演化成“市场结构”。如果没有 ADX 或类似交换层，大规模的实时竞价很难成立。
+ADX 让programmatic-ads从“平台能力”真正演化成“市场结构”。如果没有 ADX 或类似交换层，大规模的实时竞价很难成立。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
-- [[_posts/programmatic-ads/09-openRTB|程序化广告 (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
+- [[_posts/programmatic-ads/04-SSP|programmatic-ads (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
+- [[_posts/programmatic-ads/09-openRTB|programmatic-ads (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
 
 ## 相关概念
 

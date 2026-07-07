@@ -18,7 +18,7 @@ status: seed
 
 ROI（Return on Investment，投资回报率）衡量的是：花出去的钱，最终换回来了多少价值。
 
-它是程序化广告里最典型的“经营结果指标”之一。
+它是programmatic-ads里最典型的“经营结果指标”之一。
 
 ## 它解决什么问题
 
@@ -37,8 +37,8 @@ ROI 正是在回答这个问题。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
-- [[_posts/programmatic-ads/03-DSP-helper|程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
+- [[_posts/programmatic-ads/03-DSP-helper|programmatic-ads (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
 
 ## 相关概念
 

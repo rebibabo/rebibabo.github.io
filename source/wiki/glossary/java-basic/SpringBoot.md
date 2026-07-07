@@ -32,4 +32,4 @@ Spring Boot 的核心哲学是"约定优于配置"——只要引入了对应的
 
 ## 深入阅读
 
-- [[_posts/Java-basic/17-springboot|Java基础(17) | Spring Boot 快速上手：自动配置与 REST 服务实战]]
+- [[_posts/Java-basic/17-springboot|java-basics(17) | Spring Boot 快速上手：自动配置与 REST 服务实战]]

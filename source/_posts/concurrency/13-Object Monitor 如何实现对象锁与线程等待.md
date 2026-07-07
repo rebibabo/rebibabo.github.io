@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（十三）—— Object Monitor 如何实现对象锁与线程等待
+title: java-concurrency（十三）—— Object Monitor 如何实现对象锁与线程等待
 date: 2026-07-03
 tags:
     - Java
@@ -9,7 +9,7 @@ tags:
     - wait
     - notify
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 `synchronized` 不仅可以实现线程互斥，还可以配合 `Object.wait()`、`notify()` 和 `notifyAll()`，让线程在业务条件不满足时释放锁并等待。

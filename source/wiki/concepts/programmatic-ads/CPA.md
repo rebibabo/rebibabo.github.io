@@ -32,7 +32,7 @@ CPA 正是在回答：
 - [[wiki/concepts/programmatic-ads/CPC|CPC]]：点击成本会向下游传导到转化成本
 - [[wiki/concepts/programmatic-ads/ROI|ROI]]：CPA 决定投放是否还有利润空间
 
-## 在程序化广告里的位置
+## 在programmatic-ads里的位置
 
 CPA 往往是效果广告最关注的经营指标之一。
 
@@ -40,7 +40,7 @@ CPA 往往是效果广告最关注的经营指标之一。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
 
 ## 相关概念
 

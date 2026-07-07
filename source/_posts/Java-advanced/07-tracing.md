@@ -1,5 +1,5 @@
 ---
-title: 'Java进阶(7) | 链路追踪入门：一个请求是怎么被"全程跟拍"的'
+title: 'java-advanced(7) | 链路追踪入门：一个请求是怎么被"全程跟拍"的'
 date: 2026-05-07
 tags:
   - 链路追踪
@@ -8,7 +8,7 @@ tags:
   - 可观测性
   - 微服务
 categories:
-  - Java进阶
+  - java-advanced
 ---
 
 <!-- series-intro -->

@@ -37,12 +37,12 @@ PMP 主要解决 OA 的两个问题：
 
 ## 在系列里的位置
 
-PMP 是程序化广告从“完全公开”走向“有限开放”的关键中间态。
+PMP 是programmatic-ads从“完全公开”走向“有限开放”的关键中间态。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/06-trading-mode-part1|程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史]]
-- [[_posts/programmatic-ads/07-trading-mode-part2|程序化广告 (6)：交易模式（下）——Header Bidding 的革命]]
+- [[_posts/programmatic-ads/06-trading-mode-part1|programmatic-ads (5)：交易模式（上）——单 SSP 内部的演化史]]
+- [[_posts/programmatic-ads/07-trading-mode-part2|programmatic-ads (6)：交易模式（下）——Header Bidding 的革命]]
 
 ## 相关概念
 

@@ -1,5 +1,5 @@
 ---
-title: 'Java基础(5) | 继承与多态：extends、重写、抽象类与接口'
+title: 'java-basics(5) | 继承与多态：extends、重写、抽象类与接口'
 date: 2026-05-05
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - 继承
   - 多态
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

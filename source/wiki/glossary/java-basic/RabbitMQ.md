@@ -29,4 +29,4 @@ RabbitMQ 的消息流转路径为 Producer -> Exchange -> Queue -> Consumer。Ex
 
 ## 深入阅读
 
-- [[_posts/Java-basic/30-RabbitMQ|Java基础(番外) 消息队列入门：为什么用、怎么用、踩坑点]]
+- [[_posts/Java-basic/30-RabbitMQ|java-basics(番外) 消息队列入门：为什么用、怎么用、踩坑点]]

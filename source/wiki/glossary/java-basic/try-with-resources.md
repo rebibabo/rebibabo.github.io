@@ -29,4 +29,4 @@ Java 7 之前关闭资源需要在 finally 块中手写嵌套的 try-catch，代
 
 ## 深入阅读
 
-- [[_posts/Java-basic/07-exception|Java基础(7) 异常体系：Checked vs Unchecked 与 try-with-resources]]
+- [[_posts/Java-basic/07-exception|java-basics(7) 异常体系：Checked vs Unchecked 与 try-with-resources]]

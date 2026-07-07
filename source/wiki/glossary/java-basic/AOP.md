@@ -31,4 +31,4 @@ Spring AOP 基于动态代理实现：有接口时使用 JDK 动态代理（`jav
 
 ## 深入阅读
 
-- [[_posts/Java-basic/16-spring-ioc-aop|Java基础(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题]]
+- [[_posts/Java-basic/16-spring-ioc-aop|java-basics(16) | Spring 核心思想：IoC 与 AOP 到底解决了什么问题]]

@@ -29,13 +29,13 @@ status: seed
 
 ## 推荐阅读顺序
 
-1. [[_posts/Java-advanced/01-microservices-intro|Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶]]
-2. [[_posts/Java-advanced/02-docker|Java进阶(2) | Docker 容器入门：从原理到打包部署]]
-3. [[_posts/Java-advanced/03-k8s|Java进阶(3) | Kubernetes 入门：为什么需要它，核心概念与实战]]
-4. [[_posts/Java-advanced/04-jwt|Java进阶(4) | Spring Security + JWT：认证授权入门]]
+1. [[_posts/Java-advanced/01-microservices-intro|java-advanced(1) | 微服务入门：从单体到 Spring Cloud 全家桶]]
+2. [[_posts/Java-advanced/02-docker|java-advanced(2) | Docker 容器入门：从原理到打包部署]]
+3. [[_posts/Java-advanced/03-k8s|java-advanced(3) | Kubernetes 入门：为什么需要它，核心概念与实战]]
+4. [[_posts/Java-advanced/04-jwt|java-advanced(4) | Spring Security + JWT：认证授权入门]]
 5. [[_posts/Java-advanced/05-metric|Java全貌(5) | 监控指标入门：Micrometer + Prometheus]]
-6. [[_posts/Java-advanced/06-grafana|Java进阶(6) | Grafana 搭建监控大盘：让指标"看得见"]]
-7. [[_posts/Java-advanced/07-tracing|Java进阶(7) | 链路追踪入门：一个请求是怎么被"全程跟拍"的]]
+6. [[_posts/Java-advanced/06-grafana|java-advanced(6) | Grafana 搭建监控大盘：让指标"看得见"]]
+7. [[_posts/Java-advanced/07-tracing|java-advanced(7) | 链路追踪入门：一个请求是怎么被"全程跟拍"的]]
 
 ## 结构脉络
 

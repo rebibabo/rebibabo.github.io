@@ -32,7 +32,7 @@ CPM 是最基础的曝光计价方式之一。
 - [[wiki/concepts/programmatic-ads/eCPM|eCPM]]：一个从广告主成本侧看，一个从媒体收益侧看
 - [[wiki/concepts/programmatic-ads/填充率|Fill Rate]]：媒体方通常会同时关注填充率和千次收益
 
-## 在程序化广告里的位置
+## 在programmatic-ads里的位置
 
 CPM 更接近“买量成本视角”。
 
@@ -40,7 +40,7 @@ CPM 更接近“买量成本视角”。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
 
 ## 相关概念
 

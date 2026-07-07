@@ -1,12 +1,12 @@
 ---
 categories:
-     - Java高并发底层原理
+     - java-concurrency
 date: 2026-07-02
 tags:
      - Java
      - 高并发
      - JVM
-title: Java高并发底层原理（一）—— 计算机是如何执行 Java 程序的
+title: java-concurrency（一）—— 计算机是如何执行 Java 程序的
 ---
 
 

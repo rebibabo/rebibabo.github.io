@@ -29,4 +29,4 @@ LocalDateTime 由 LocalDate 和 LocalTime 组合而成，可通过 `LocalDateTim
 
 ## 深入阅读
 
-- [[_posts/Java-basic/14-datetime|Java基础(14) | 日期时间 API：java.time 全梳理]]
+- [[_posts/Java-basic/14-datetime|java-basics(14) | 日期时间 API：java.time 全梳理]]

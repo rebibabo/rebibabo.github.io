@@ -29,4 +29,4 @@ Servlet 生命周期分三个阶段：`init()` 在第一次请求或容器启动
 
 ## 深入阅读
 
-- [[_posts/Java-basic/29-tomcat-servlet|Java基础(番外) Tomcat 与 Servlet：Spring Boot 背后的请求处理流程]]
+- [[_posts/Java-basic/29-tomcat-servlet|java-basics(番外) Tomcat 与 Servlet：Spring Boot 背后的请求处理流程]]

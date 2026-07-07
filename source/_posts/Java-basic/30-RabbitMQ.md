@@ -1,5 +1,5 @@
 ---
-title: 'Java基础(番外) | 消息队列入门：为什么用、怎么用、踩坑点'
+title: 'java-basics(番外) | 消息队列入门：为什么用、怎么用、踩坑点'
 date: 2026-05-30
 tags:
   - 消息队列
@@ -7,7 +7,7 @@ tags:
   - Kafka
   - 分布式
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

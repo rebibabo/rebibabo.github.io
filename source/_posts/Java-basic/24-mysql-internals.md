@@ -1,5 +1,5 @@
 ---
-title: 'Java基础(24) | MySQL 原理与优化：事务、存储引擎、索引与锁'
+title: 'java-basics(24) | MySQL 原理与优化：事务、存储引擎、索引与锁'
 date: 2026-05-24
 tags:
   - MySQL
@@ -7,7 +7,7 @@ tags:
   - 索引
   - 锁
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

@@ -29,5 +29,5 @@ HashMap 不是线程安全的：JDK 7 扩容头插法可能导致死循环，JDK
 
 ## 深入阅读
 
-- [[_posts/Java-basic/10-concurrency|Java基础(10) 并发编程：线程、锁、线程池与 CompletableFuture]]
-- [[_posts/Java-basic/32-data-structure-internals|Java基础(番外) 集合的底层原理：HashMap、ArrayList 与红黑树]]
+- [[_posts/Java-basic/10-concurrency|java-basics(10) 并发编程：线程、锁、线程池与 CompletableFuture]]
+- [[_posts/Java-basic/32-data-structure-internals|java-basics(番外) 集合的底层原理：HashMap、ArrayList 与红黑树]]

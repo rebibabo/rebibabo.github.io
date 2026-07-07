@@ -33,4 +33,4 @@ ROAS 的挑战同样在于归因：用户看了多个广告、点了多个渠道
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/ROAS|ROAS 概念页（完整版）]]
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标]]

@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（四）—— synchronized 为什么会影响性能
+title: java-concurrency（四）—— synchronized 为什么会影响性能
 date: 2026-07-02
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - synchronized
   - 线程调度
 categories:
-  - Java高并发底层原理
+  - java-concurrency
 ---
 
 

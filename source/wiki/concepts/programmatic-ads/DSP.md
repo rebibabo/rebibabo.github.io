@@ -12,7 +12,7 @@ status: seed
 
 # DSP
 
-[[wiki/series/programmatic-ads|返回程序化广告系列]]  
+[[wiki/series/programmatic-ads|返回programmatic-ads系列]]  
 [[wiki/concepts/programmatic-ads/角色总图|返回角色关系图]]
 
 ## 定义
@@ -21,7 +21,7 @@ DSP（Demand Side Platform，需求方平台）是服务广告主的一侧平台
 
 > 用尽量合适的价格，把广告投给更可能产生效果的人。
 
-如果把程序化广告看成一场实时拍卖，DSP 就是广告主的自动化出价代理人。
+如果把programmatic-ads看成一场实时拍卖，DSP 就是广告主的自动化出价代理人。
 
 ## 它解决什么问题
 
@@ -44,12 +44,12 @@ DSP（Demand Side Platform，需求方平台）是服务广告主的一侧平台
 
 ## 在系列里的位置
 
-这是程序化广告买方视角的第一块核心拼图。理解 DSP 之后，再看 SSP / ADX，就能更容易理解为什么程序化广告本质上是一场多方博弈。
+这是programmatic-ads买方视角的第一块核心拼图。理解 DSP 之后，再看 SSP / ADX，就能更容易理解为什么programmatic-ads本质上是一场多方博弈。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/02-DSP|程序化广告 (1)：DSP——广告主的"代理人"]]
-- [[_posts/programmatic-ads/01-introduction|程序化广告 (0)：先看清楚整个江湖]]
+- [[_posts/programmatic-ads/02-DSP|programmatic-ads (1)：DSP——广告主的"代理人"]]
+- [[_posts/programmatic-ads/01-introduction|programmatic-ads (0)：先看清楚整个江湖]]
 
 ## 相关概念
 

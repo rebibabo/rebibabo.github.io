@@ -28,4 +28,4 @@ Path 是 Java 7 引入的 `java.nio.file.Path` 接口，用于替代老旧的 `j
 
 ## 深入阅读
 
-- [[_posts/Java-basic/09-io|Java基础(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类]]
+- [[_posts/Java-basic/09-io|java-basics(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类]]

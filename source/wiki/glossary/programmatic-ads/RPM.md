@@ -32,4 +32,4 @@ RPM 是媒体方经营层面最关心的指标之一——它直接回答"每 10
 
 ## 深入阅读
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标]]

@@ -28,4 +28,4 @@ ZonedDateTime 由 LocalDateTime + ZoneId + ZoneOffset 组成，可通过 `ZonedD
 
 ## 深入阅读
 
-- [[_posts/Java-basic/14-datetime|Java基础(14) | 日期时间 API：java.time 全梳理]]
+- [[_posts/Java-basic/14-datetime|java-basics(14) | 日期时间 API：java.time 全梳理]]

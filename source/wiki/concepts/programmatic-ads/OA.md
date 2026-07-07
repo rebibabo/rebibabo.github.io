@@ -17,7 +17,7 @@ status: seed
 
 ## 定义
 
-OA（Open Auction，公开竞价）是程序化广告里最基础、最公开的一种实时竞价模式。
+OA（Open Auction，公开竞价）是programmatic-ads里最基础、最公开的一种实时竞价模式。
 
 核心特征是：
 
@@ -45,11 +45,11 @@ OA 的公开性也带来新问题：
 
 ## 在系列里的位置
 
-它是程序化广告交易模式演化的起点，也是理解后续所有“私有化交易”与“多 SSP 竞争”模式的基础。
+它是programmatic-ads交易模式演化的起点，也是理解后续所有“私有化交易”与“多 SSP 竞争”模式的基础。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/06-trading-mode-part1|程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史]]
+- [[_posts/programmatic-ads/06-trading-mode-part1|programmatic-ads (5)：交易模式（上）——单 SSP 内部的演化史]]
 
 ## 相关概念
 

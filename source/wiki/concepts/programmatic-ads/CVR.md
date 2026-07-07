@@ -34,7 +34,7 @@ CVR 是把“感兴趣”推进到“真的行动”的关键指标。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
 
 ## 相关概念
 

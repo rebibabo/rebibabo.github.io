@@ -17,7 +17,7 @@ layout: page
 
 <div class="series-grid">
 
-  <a href="/categories/Java高并发底层原理/" class="series-card card-concurrency">
+  <a href="/categories/java-concurrency/" class="series-card card-concurrency">
     <div class="card-glow"></div>
     <div class="card-icon">
       <svg viewBox="0 0 48 48" fill="none"><rect x="4" y="4" width="17" height="17" rx="3" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)"/><rect x="27" y="4" width="17" height="17" rx="3" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)"/><rect x="14" y="27" width="17" height="17" rx="3" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.4)"/><line x1="12" y1="12" x2="36" y2="12" stroke="rgba(255,255,255,0.2)"/><line x1="22" y1="12" x2="22" y2="35" stroke="rgba(255,255,255,0.2)"/></svg>
@@ -28,7 +28,7 @@ layout: page
     <div class="card-arrow">→</div>
   </a>
 
-  <a href="/categories/Java基础/" class="series-card card-basic">
+  <a href="/categories/java-basics/" class="series-card card-basic">
     <div class="card-glow"></div>
     <div class="card-icon">
       <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><circle cx="24" cy="18" r="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)"/><circle cx="24" cy="32" r="5" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)"/></svg>
@@ -39,7 +39,7 @@ layout: page
     <div class="card-arrow">→</div>
   </a>
 
-  <a href="/categories/Java进阶/" class="series-card card-advanced">
+  <a href="/categories/java-advanced/" class="series-card card-advanced">
     <div class="card-glow"></div>
     <div class="card-icon">
       <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="14" height="32" rx="2" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/><rect x="26" y="8" width="14" height="32" rx="2" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/><rect x="12" y="14" width="6" height="3" rx="1" fill="rgba(255,255,255,0.15)"/><rect x="12" y="21" width="6" height="3" rx="1" fill="rgba(255,255,255,0.1)"/><rect x="30" y="14" width="6" height="3" rx="1" fill="rgba(255,255,255,0.1)"/><rect x="30" y="21" width="6" height="3" rx="1" fill="rgba(255,255,255,0.15)"/></svg>
@@ -61,12 +61,12 @@ layout: page
     <div class="card-arrow">→</div>
   </a>
 
-  <a href="/categories/程序化广告/" class="series-card card-ads">
+  <a href="/categories/programmatic-ads/" class="series-card card-ads">
     <div class="card-glow"></div>
     <div class="card-icon">
       <svg viewBox="0 0 48 48" fill="none"><polygon points="24,4 44,16 40,34 24,44 8,34 4,16" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/><circle cx="24" cy="22" r="6" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/></svg>
     </div>
-    <h2>程序化广告</h2>
+    <h2>programmatic-ads</h2>
     <p>DSP · SSP · RTB · 交易模式 · OpenRTB</p>
     <span class="card-count">9 篇</span>
     <div class="card-arrow">→</div>

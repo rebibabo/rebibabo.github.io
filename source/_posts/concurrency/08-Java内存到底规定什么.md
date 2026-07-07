@@ -1,6 +1,6 @@
 ---
 
-title: Java高并发底层原理（八）—— Java 内存模型到底规定了什么
+title: java-concurrency（八）—— Java 内存模型到底规定了什么
 date: 2026-07-03
 tags:
     - Java
@@ -8,7 +8,7 @@ tags:
     - JMM
     - happens-before
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 
 ---
 

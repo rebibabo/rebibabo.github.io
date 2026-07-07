@@ -28,4 +28,4 @@ Mockito 是 Java 主流的 Mock 框架，通过 `@Mock` 创建假对象替代真
 
 ## 深入阅读
 
-- [[_posts/Java-basic/20-unit-testing|Java基础(20) 单元测试：JUnit 5 + Mockito 实战]]
+- [[_posts/Java-basic/20-unit-testing|java-basics(20) 单元测试：JUnit 5 + Mockito 实战]]

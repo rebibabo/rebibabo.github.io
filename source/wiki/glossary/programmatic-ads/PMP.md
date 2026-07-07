@@ -33,4 +33,4 @@ PMP 依赖于 Deal ID 来识别每个私有交易的合约条款。
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/PMP|PMP 概念页（完整版）]]
-- [[_posts/programmatic-ads/06-trading-mode-part1|程序化广告 (5)：交易模式（上）]]
+- [[_posts/programmatic-ads/06-trading-mode-part1|programmatic-ads (5)：交易模式（上）]]

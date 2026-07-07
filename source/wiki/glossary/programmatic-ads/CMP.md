@@ -33,4 +33,4 @@ CMP 收集的授权信息通过 IAB Europe 的 TCF（Transparency & Consent Fram
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/CMP|CMP 概念页（完整版）]]
-- [[_posts/programmatic-ads/03-DSP-helper|程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
+- [[_posts/programmatic-ads/03-DSP-helper|programmatic-ads (2)：DSP 身边的 4 个帮手——广告服务平台全解]]

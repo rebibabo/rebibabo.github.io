@@ -36,4 +36,4 @@ SSP 和 ADX 的边界有时模糊——部分 ADX 内置了 SSP 能力，部分 
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/SSP|SSP 概念页（完整版）]]
-- [[_posts/programmatic-ads/04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
+- [[_posts/programmatic-ads/04-SSP|programmatic-ads (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]

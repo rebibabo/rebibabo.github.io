@@ -1,5 +1,5 @@
 ---
-title: 'Java进阶(6) | Grafana 搭建监控大盘：让指标"看得见"'
+title: 'java-advanced(6) | Grafana 搭建监控大盘：让指标"看得见"'
 date: 2026-05-06
 tags:
   - Grafana
@@ -8,7 +8,7 @@ tags:
   - 可观测性
   - 数据可视化
 categories:
-  - Java进阶
+  - java-advanced
 ---
 
 <!-- series-intro -->

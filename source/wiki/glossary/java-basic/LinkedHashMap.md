@@ -29,4 +29,4 @@ LinkedHashMap 在 HashMap 的数组+链表+红黑树基础上增加双向链表�
 
 ## 深入阅读
 
-- [[_posts/Java-basic/03-collections|Java基础(3) 集合框架：List、Set、Map 与队列全梳理]]
+- [[_posts/Java-basic/03-collections|java-basics(3) 集合框架：List、Set、Map 与队列全梳理]]

@@ -30,4 +30,4 @@ Tomcat 内部是一层套一层的容器结构：Server -> Service -> Connector 
 
 ## 深入阅读
 
-- [[_posts/Java-basic/29-tomcat-servlet|Java基础(番外) Tomcat 与 Servlet：Spring Boot 背后的请求处理流程]]
+- [[_posts/Java-basic/29-tomcat-servlet|java-basics(番外) Tomcat 与 Servlet：Spring Boot 背后的请求处理流程]]

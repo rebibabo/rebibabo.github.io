@@ -29,4 +29,4 @@ SQL 窗口函数通过 `OVER()` 子句在每一行数据旁边计算一个基于
 
 ## 深入阅读
 
-- [[_posts/Java-basic/23-sql-advanced-syntax|Java基础(23) SQL 进阶语法：常用函数、CTE 与窗口函数]]
+- [[_posts/Java-basic/23-sql-advanced-syntax|java-basics(23) SQL 进阶语法：常用函数、CTE 与窗口函数]]

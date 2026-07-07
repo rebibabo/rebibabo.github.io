@@ -33,5 +33,5 @@ HashMap 是 Java 中最常用的键值映射结构。put 流程：计算 key 的
 
 ## 深入阅读
 
-- [[_posts/Java-basic/03-collections|Java基础(3) 集合框架：List、Set、Map 与队列全梳理]]
-- [[_posts/Java-basic/32-data-structure-internals|Java基础(番外) 集合的底层原理：HashMap、ArrayList 与红黑树]]
+- [[_posts/Java-basic/03-collections|java-basics(3) 集合框架：List、Set、Map 与队列全梳理]]
+- [[_posts/Java-basic/32-data-structure-internals|java-basics(番外) 集合的底层原理：HashMap、ArrayList 与红黑树]]

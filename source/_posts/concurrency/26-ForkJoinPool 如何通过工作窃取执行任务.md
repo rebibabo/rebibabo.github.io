@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（二十六）—— ForkJoinPool 如何通过工作窃取执行任务
+title: java-concurrency（二十六）—— ForkJoinPool 如何通过工作窃取执行任务
 date: 2026-07-05
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - ForkJoinPool
   - 工作窃取
 categories:
-  - Java高并发底层原理
+  - java-concurrency
 ---
 
 

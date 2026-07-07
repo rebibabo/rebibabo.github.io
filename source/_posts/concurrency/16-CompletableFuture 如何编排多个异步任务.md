@@ -1,12 +1,12 @@
 ---
-title: Java高并发底层原理（十六）—— CompletableFuture 如何编排多个异步任务
+title: java-concurrency（十六）—— CompletableFuture 如何编排多个异步任务
 date: 2026-07-03
 tags:
     - Java
     - 高并发
     - CompletableFuture
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 

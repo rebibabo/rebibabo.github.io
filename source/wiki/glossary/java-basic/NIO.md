@@ -29,4 +29,4 @@ NIO（New I/O，Java 1.4 引入）是 Java 的非阻塞 I/O 模型，基于 Chan
 
 ## 深入阅读
 
-- [[_posts/Java-basic/09-io|Java基础(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类]]
+- [[_posts/Java-basic/09-io|java-basics(9) | I/O 与文件操作：从 BIO 到 NIO 与 Files 工具类]]

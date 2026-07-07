@@ -1,5 +1,5 @@
 ---
-title: 程序化广告系列
+title: programmatic-ads系列
 tags:
   - wiki
   - series
@@ -9,19 +9,19 @@ source_series: programmatic-ads
 status: seed
 ---
 
-# 程序化广告系列
+# programmatic-ads系列
 
 [[wiki/index|返回 Wiki 首页]]
 
 ## 系列定位
 
-这是一组按“先看全景，再拆角色，再讲交易规则，最后落到指标与协议”的程序化广告入门笔记。
+这是一组按“先看全景，再拆角色，再讲交易规则，最后落到指标与协议”的programmatic-ads入门笔记。
 
 它更像一条完整学习路径，而不是零散词条，所以这一版 `wiki` 先保留“系列页”作为主入口，不急着把每个概念拆成独立知识卡片。
 
 ## 这个系列回答什么问题
 
-- 程序化广告生态里到底有哪些核心角色
+- programmatic-ads生态里到底有哪些核心角色
 - 广告主、DSP、SSP、ADX、Ad Network、Ad Server 分别做什么
 - 广告交易为什么会从人工合约演化到 RTB、PMP、PD、PDB、Header Bidding
 - 怎么衡量投放效果
@@ -103,15 +103,15 @@ status: seed
 
 ## 推荐阅读顺序
 
-1. [[_posts/programmatic-ads/01-introduction|程序化广告 (0)：先看清楚整个江湖]]
-2. [[_posts/programmatic-ads/02-DSP|程序化广告 (1)：DSP——广告主的"代理人"]]
-3. [[_posts/programmatic-ads/03-DSP-helper|程序化广告 (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
-4. [[_posts/programmatic-ads/04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
-5. [[_posts/programmatic-ads/05-Ad network&server|程序化广告 (4)：Ad Network 和 Ad Server——被忽略的两个重要角色]]
-6. [[_posts/programmatic-ads/06-trading-mode-part1|程序化广告 (5)：交易模式（上）——单 SSP 内部的演化史]]
-7. [[_posts/programmatic-ads/07-trading-mode-part2|程序化广告 (6)：交易模式（下）——Header Bidding 的革命]]
-8. [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
-9. [[_posts/programmatic-ads/09-openRTB|程序化广告 (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
+1. [[_posts/programmatic-ads/01-introduction|programmatic-ads (0)：先看清楚整个江湖]]
+2. [[_posts/programmatic-ads/02-DSP|programmatic-ads (1)：DSP——广告主的"代理人"]]
+3. [[_posts/programmatic-ads/03-DSP-helper|programmatic-ads (2)：DSP 身边的 4 个帮手——广告服务平台全解]]
+4. [[_posts/programmatic-ads/04-SSP|programmatic-ads (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
+5. [[_posts/programmatic-ads/05-Ad network&server|programmatic-ads (4)：Ad Network 和 Ad Server——被忽略的两个重要角色]]
+6. [[_posts/programmatic-ads/06-trading-mode-part1|programmatic-ads (5)：交易模式（上）——单 SSP 内部的演化史]]
+7. [[_posts/programmatic-ads/07-trading-mode-part2|programmatic-ads (6)：交易模式（下）——Header Bidding 的革命]]
+8. [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
+9. [[_posts/programmatic-ads/09-openRTB|programmatic-ads (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
 
 ## 结构脉络
 

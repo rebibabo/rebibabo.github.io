@@ -28,4 +28,4 @@ Instant 通过 `Instant.now()` 获取当前时刻（输出如 `2026-06-16T06:30:
 
 ## 深入阅读
 
-- [[_posts/Java-basic/14-datetime|Java基础(14) | 日期时间 API：java.time 全梳理]]
+- [[_posts/Java-basic/14-datetime|java-basics(14) | 日期时间 API：java.time 全梳理]]

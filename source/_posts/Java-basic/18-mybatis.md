@@ -1,12 +1,12 @@
 ---
-title: 'Java基础(18) | MyBatis 数据访问：SQL 映射、动态 SQL 与 MyBatis-Plus'
+title: 'java-basics(18) | MyBatis 数据访问：SQL 映射、动态 SQL 与 MyBatis-Plus'
 date: 2026-05-18
 tags:
   - Java
   - MyBatis
   - 数据库
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

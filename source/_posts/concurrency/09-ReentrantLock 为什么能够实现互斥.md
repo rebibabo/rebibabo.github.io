@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（九）—— ReentrantLock 为什么能够实现互斥
+title: java-concurrency（九）—— ReentrantLock 为什么能够实现互斥
 date: 2026-07-03
 tags:
     - Java
@@ -8,7 +8,7 @@ tags:
     - AQS
     - CAS
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 

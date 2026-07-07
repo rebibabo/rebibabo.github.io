@@ -33,4 +33,4 @@ Deal ID 由 SSP/ADX 或媒体方生成，在合约签订时分发给对应的 DS
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/交易ID|Deal ID 概念页（完整版）]]
-- [[_posts/programmatic-ads/07-trading-mode-part2|程序化广告 (6)：交易模式（下）——Header Bidding 的革命]]
+- [[_posts/programmatic-ads/07-trading-mode-part2|programmatic-ads (6)：交易模式（下）——Header Bidding 的革命]]

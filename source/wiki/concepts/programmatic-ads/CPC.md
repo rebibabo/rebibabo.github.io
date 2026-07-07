@@ -30,7 +30,7 @@ CPC（Cost Per Click）表示每获得一次点击，广告主平均要付出多
 - [[wiki/concepts/programmatic-ads/CVR|CVR]]：点进来之后能不能继续转化
 - [[wiki/concepts/programmatic-ads/CPA|CPA]]：从点击成本继续推到转化成本
 
-## 在程序化广告里的位置
+## 在programmatic-ads里的位置
 
 CPC 是曝光层和转化层之间的一道中间观察值。
 
@@ -38,7 +38,7 @@ CPC 是曝光层和转化层之间的一道中间观察值。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/08-key-metrics|程序化广告 (7)：考核指标——程序化广告的"成绩单"]]
+- [[_posts/programmatic-ads/08-key-metrics|programmatic-ads (7)：考核指标——programmatic-ads的"成绩单"]]
 
 ## 相关概念
 

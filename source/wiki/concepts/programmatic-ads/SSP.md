@@ -12,7 +12,7 @@ status: seed
 
 # SSP
 
-[[wiki/series/programmatic-ads|返回程序化广告系列]]  
+[[wiki/series/programmatic-ads|返回programmatic-ads系列]]  
 [[wiki/concepts/programmatic-ads/角色总图|返回角色关系图]]
 
 ## 定义
@@ -21,7 +21,7 @@ SSP（Supply Side Platform，供给方平台）是服务媒体方的一侧平台
 
 > 帮媒体把每一个广告位卖出更合理、通常也更高的价格。
 
-如果把程序化广告看成一场实时拍卖，SSP 就是媒体方的自动化售卖代理人。
+如果把programmatic-ads看成一场实时拍卖，SSP 就是媒体方的自动化售卖代理人。
 
 ## 它解决什么问题
 
@@ -44,12 +44,12 @@ SSP（Supply Side Platform，供给方平台）是服务媒体方的一侧平台
 
 ## 在系列里的位置
 
-SSP 是从“广告主怎么花钱”切换到“媒体方怎么卖流量”的关键节点。它把程序化广告从单纯投放系统，扩展成了完整的商业化系统。
+SSP 是从“广告主怎么花钱”切换到“媒体方怎么卖流量”的关键节点。它把programmatic-ads从单纯投放系统，扩展成了完整的商业化系统。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
-- [[_posts/programmatic-ads/01-introduction|程序化广告 (0)：先看清楚整个江湖]]
+- [[_posts/programmatic-ads/04-SSP|programmatic-ads (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
+- [[_posts/programmatic-ads/01-introduction|programmatic-ads (0)：先看清楚整个江湖]]
 
 ## 相关概念
 

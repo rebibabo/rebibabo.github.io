@@ -12,12 +12,12 @@ status: seed
 
 # OpenRTB
 
-[[wiki/series/programmatic-ads|返回程序化广告系列]]  
+[[wiki/series/programmatic-ads|返回programmatic-ads系列]]  
 [[wiki/concepts/programmatic-ads/角色总图|返回角色关系图]]
 
 ## 定义
 
-OpenRTB 是程序化广告里最常见的实时竞价通信协议之一。
+OpenRTB 是programmatic-ads里最常见的实时竞价通信协议之一。
 
 它定义了 DSP、SSP、ADX 之间如何用统一格式传递：
 
@@ -26,7 +26,7 @@ OpenRTB 是程序化广告里最常见的实时竞价通信协议之一。
 - No Bid
 - 以及中标、计费、丢标相关通知
 
-可以把它理解成程序化广告交易里的“通用语言”。
+可以把它理解成programmatic-ads交易里的“通用语言”。
 
 ## 它解决什么问题
 
@@ -55,8 +55,8 @@ OpenRTB 是程序化广告里最常见的实时竞价通信协议之一。
 
 ## 推荐回看原文
 
-- [[_posts/programmatic-ads/09-openRTB|程序化广告 (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
-- [[_posts/programmatic-ads/04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
+- [[_posts/programmatic-ads/09-openRTB|programmatic-ads (8)：OpenRTB 2.5 协议 & Native Ads Spec 学习笔记]]
+- [[_posts/programmatic-ads/04-SSP|programmatic-ads (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
 
 ## 相关概念
 

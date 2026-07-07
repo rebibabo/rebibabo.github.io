@@ -32,4 +32,4 @@ MyBatis 是一款半自动的 ORM（对象关系映射）框架，将 SQL 语句
 
 ## 深入阅读
 
-- [[_posts/Java-basic/18-mybatis|Java基础(18) | MyBatis 数据访问：SQL 映射、动态 SQL 与 MyBatis-Plus]]
+- [[_posts/Java-basic/18-mybatis|java-basics(18) | MyBatis 数据访问：SQL 映射、动态 SQL 与 MyBatis-Plus]]

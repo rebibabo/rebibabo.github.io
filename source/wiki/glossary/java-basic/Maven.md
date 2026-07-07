@@ -31,4 +31,4 @@ Maven 采用"约定优于配置"原则，规定标准目录结构（`src/main/ja
 
 ## 深入阅读
 
-- [[_posts/Java-basic/15-maven-and-gradle|Java基础(15) | 构建工具：Maven vs Gradle，依赖管理与项目结构]]
+- [[_posts/Java-basic/15-maven-and-gradle|java-basics(15) | 构建工具：Maven vs Gradle，依赖管理与项目结构]]

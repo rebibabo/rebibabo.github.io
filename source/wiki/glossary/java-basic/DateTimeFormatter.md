@@ -27,4 +27,4 @@ DateTimeFormatter 是 Java 8 `java.time` 包中的线程安全日期时间格式
 
 ## 深入阅读
 
-- [[_posts/Java-basic/14-datetime|Java基础(14) | 日期时间 API：java.time 全梳理]]
+- [[_posts/Java-basic/14-datetime|java-basics(14) | 日期时间 API：java.time 全梳理]]

@@ -32,4 +32,4 @@ status: seed
 
 ## 深入阅读
 
-- [[_posts/Java-basic/02-basic-types|Java基础(2) | 基本数据类型：八大原始类型与那些必踩的坑]]
+- [[_posts/Java-basic/02-basic-types|java-basics(2) | 基本数据类型：八大原始类型与那些必踩的坑]]

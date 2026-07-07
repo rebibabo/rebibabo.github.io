@@ -29,4 +29,4 @@ PriorityQueue 底层是一个数组表示的完全二叉树，通过上浮（sif
 
 ## 深入阅读
 
-- [[_posts/Java-basic/03-collections|Java基础(3) 集合框架：List、Set、Map 与队列全梳理]]
+- [[_posts/Java-basic/03-collections|java-basics(3) 集合框架：List、Set、Map 与队列全梳理]]

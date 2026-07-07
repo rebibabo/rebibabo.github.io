@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（二十一）—— 无锁设计、ABA 与 LongAdder
+title: java-concurrency（二十一）—— 无锁设计、ABA 与 LongAdder
 date: 2026-07-04
 tags:
     - Java
@@ -8,7 +8,7 @@ tags:
     - ABA
     - LongAdder
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 

@@ -1,6 +1,6 @@
 ---
 
-title: Java高并发底层原理（二十二）—— ConcurrentHashMap 为什么能支持高并发访问
+title: java-concurrency（二十二）—— ConcurrentHashMap 为什么能支持高并发访问
 date: 2026-07-04
 tags:
     - Java
@@ -8,7 +8,7 @@ tags:
     - ConcurrentHashMap
     - HashMap
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 `ConcurrentHashMap` 要解决的核心问题，不是让 `Map` 变得“有序”，而是让它在多线程读写下仍然保持结构安全，并尽量减少线程之间的互相阻塞。

@@ -34,4 +34,4 @@ ADX 和 SSP 的边界在实践中常常交叉——大平台（如 Google AdX）
 ## 深入阅读
 
 - [[wiki/concepts/programmatic-ads/ADX|ADX 概念页（完整版）]]
-- [[_posts/programmatic-ads/04-SSP|程序化广告 (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]
+- [[_posts/programmatic-ads/04-SSP|programmatic-ads (3)：SSP 和 ADX——媒体方的"商业化中枢"与"交易所"]]

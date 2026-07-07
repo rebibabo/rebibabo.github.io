@@ -1,5 +1,5 @@
 ---
-title: Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量
+title: java-concurrency（十二）—— Semaphore 如何控制并发线程数量
 date: 2026-07-03
 tags:
     - Java
@@ -8,7 +8,7 @@ tags:
     - AQS
     - CAS
 categories:
-    - Java高并发底层原理
+    - java-concurrency
 ---
 
 `CountDownLatch` 适合等待一批任务全部完成，但它不限制这些任务能够同时执行多少个。假设程序需要访问一个外部服务，而这个服务最多只能同时处理三个请求，如果十个线程一起访问，就可能造成连接耗尽、响应变慢甚至服务崩溃。

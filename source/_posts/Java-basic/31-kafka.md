@@ -1,12 +1,12 @@
 ---
-title: 'Java基础(番外) | Kafka 入门：分区、副本与消费者组原理'
+title: 'java-basics(番外) | Kafka 入门：分区、副本与消费者组原理'
 date: 2026-05-31
 tags:
   - Kafka
   - 消息队列
   - 分布式
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->

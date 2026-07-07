@@ -28,4 +28,4 @@ Optional 是 Java 8 引入的容器类，表示一个值可能存在也可能不
 
 ## 深入阅读
 
-- [[_posts/Java-basic/08-lambda-and-stream|Java基础(8) | Lambda 与 Stream API：函数式编程核心工具]]
+- [[_posts/Java-basic/08-lambda-and-stream|java-basics(8) | Lambda 与 Stream API：函数式编程核心工具]]

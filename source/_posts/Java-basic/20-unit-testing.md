@@ -1,5 +1,5 @@
 ---
-title: 'Java基础(20) | 单元测试：JUnit 5 + Mockito 实战'
+title: 'java-basics(20) | 单元测试：JUnit 5 + Mockito 实战'
 date: 2026-05-20
 tags:
   - Java
@@ -7,7 +7,7 @@ tags:
   - Mockito
   - 测试
 categories:
-  - Java基础
+  - java-basics
 ---
 
 <!-- series-intro -->
