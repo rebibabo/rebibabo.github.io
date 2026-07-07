@@ -20,14 +20,24 @@ categories:
 
 `HashMap` 的底层可以先理解成一个数组，数组中的每个位置称为一个桶。多个 key 经过 hash 计算后会落到不同桶中，如果多个 key 落到同一个桶，就会形成链表或红黑树。
 
-![](/images/Java-concurrency/IMG-20260707-000116.png)
+```mermaid
+graph LR
+    table["table"]
+    table --> bucket0["[0] null"]
+    table --> bucket1["[1] A -> B"]
+    table --> bucket2["[2] null"]
+    table --> bucket3["[3] C"]
+```
 
 
 
 
 单线程下，`put` 的过程大致是：计算 key 的 hash，定位数组下标，再根据桶的状态插入新节点或覆盖旧 value。问题出现在多线程同时修改同一个桶时。假设 `table[1]` 原来只有节点 `A`，两个线程同时向这个桶插入节点 `B` 和 `C`，它们可能都先看到同一个旧状态：
 
-![](/images/Java-concurrency/IMG-20260707-000117.png)
+```mermaid
+graph LR
+    t1["table[1]"] --> A["A"]
+```
 
 
 
@@ -40,7 +50,12 @@ categories:
 
 最直接的办法是给整张表加一把锁。`Hashtable` 的很多方法都是 `synchronized` 的，可以把它理解成所有 `get`、`put`、`remove` 都必须先抢同一把锁。
 
-![](/images/Java-concurrency/IMG-20260707-000118.png)
+```mermaid
+graph LR
+    subgraph Hashtable
+        lock["全局锁<br>get / put / remove"]
+    end
+```
 
 
 
@@ -55,7 +70,13 @@ categories:
 
 JDK 1.7 的 `ConcurrentHashMap` 使用 `Segment` 分段锁。可以把整张 Map 拆成多个小区域，每个 `Segment` 内部像一个小型 `HashMap`，并且每个 `Segment` 有自己的锁。
 
-![](/images/Java-concurrency/IMG-20260707-000119.png)
+```mermaid
+graph LR
+    chm["ConcurrentHashMap"]
+    chm --> seg0["Segment 0<br>lock"]
+    seg0 --> seg1["Segment 1<br>lock"]
+    seg1 --> seg2["Segment 2<br>lock"]
+```
 
 
 
@@ -81,7 +102,11 @@ table[i] = null
 
 这时写入只需要做一件事：把 `table[i]` 从 `null` 改成新节点。这个动作可以用 CAS 完成。
 
-![](/images/Java-concurrency/IMG-20260707-000120.png)
+```mermaid
+flowchart LR
+    A["读取 table[i]"] --> B["table[i] == null?"]
+    B -->|是| C["CAS null -> newNode"]
+```
 
 
 
@@ -94,7 +119,10 @@ table[i] = null
 
 如果桶已经不是空的，例如：
 
-![](/images/Java-concurrency/IMG-20260707-000121.png)
+```mermaid
+graph LR
+    ti["table[i]"] --> A["A"] --> B["B"]
+```
 
 
 
@@ -112,7 +140,15 @@ synchronized (f) {
 
 这里锁住的是 `table[i]` 对应的桶头，而不是整张表。其他线程如果修改的是不同桶，就不会被这把锁阻塞。
 
-![](/images/Java-concurrency/IMG-20260707-000122.png)
+```mermaid
+graph LR
+    table2["table"]
+    table2 --> b0["[0] null"]
+    table2 --> b1["[1] X -> Y"]
+    table2 --> b2["[2] null"]
+    table2 --> b3["[3] A -> B"]
+    b3 --> lock["🔒 锁住 A"]
+```
 
 
 
@@ -123,7 +159,12 @@ synchronized (f) {
 
 `get` 不修改结构，只是沿着已经发布出来的结构向下查找：
 
-![](/images/Java-concurrency/IMG-20260707-000123.png)
+```mermaid
+flowchart LR
+    A["计算 hash"] --> B["读取 table[i]"]
+    B --> C["比较 key"]
+    C --> D["跟随 next"]
+```
 
 
 
@@ -145,7 +186,15 @@ static class Node<K,V> {
 
 这里要注意，`get` 不保证一定读到全局最新的一瞬间状态。比如一个线程正在向链表尾部追加 `C`：
 
-![](/images/Java-concurrency/IMG-20260707-000124.png)
+```mermaid
+flowchart LR
+    subgraph 写入前
+        Ab["A"] --> Bb["B"] --> nullb["null"]
+    end
+    subgraph 写入后
+        Aa["A"] --> Ba["B"] --> Ca["C"]
+    end
+```
 
 
 
@@ -156,7 +205,10 @@ static class Node<K,V> {
 
 非空桶新增节点时，JDK 1.8 通常是在链表尾部追加，而不是头插。假设原链表是：
 
-![](/images/Java-concurrency/IMG-20260707-000125.png)
+```mermaid
+graph LR
+    A["A"] --> B["B"] --> null["null"]
+```
 
 
 
@@ -169,21 +221,30 @@ B.next = C;
 
 对读线程来说，结构只有两种可能：
 
-![](/images/Java-concurrency/IMG-20260707-000126.png)
+```mermaid
+graph LR
+    A1["A"] --> B1["B"] --> null1["null"]
+```
 
 
 
 
 或者：
 
-![](/images/Java-concurrency/IMG-20260707-000127.png)
+```mermaid
+graph LR
+    A2["A"] --> B2["B"] --> C2["C"]
+```
 
 
 
 
 不会出现：
 
-![](/images/Java-concurrency/IMG-20260707-000128.png)
+```mermaid
+graph LR
+    A["A"] --> X["???（断裂）"] -.-> C["C"]
+```
 
 
 
@@ -205,7 +266,10 @@ C.next = A
 
 继续沿用前面的链表，假设桶中节点为：
 
-![](/images/Java-concurrency/IMG-20260707-000129.png)
+```mermaid
+graph LR
+    A["A"] --> B["B"] --> C["C"]
+```
 
 
 
@@ -218,14 +282,25 @@ A.next = C;
 
 删除后，从 `table[i]` 出发的新路径变成：
 
-![](/images/Java-concurrency/IMG-20260707-000130.png)
+```mermaid
+graph LR
+    A["A"] --> C["C"]
+```
 
 
 
 
 如果读线程在删除之前已经走到了 `B`，它的局部变量仍然可以继续指向 `B`：
 
-![](/images/Java-concurrency/IMG-20260707-000131.png)
+```mermaid
+graph LR
+    subgraph 全局["全局路径"]
+        t["table[i]"] --> A_g["A"] --> C_g["C"]
+    end
+    subgraph 局部["读线程局部引用"]
+        e["e 局部变量"] --> B_g["B"] --> C_g2["C"]
+    end
+```
 
 
 
@@ -238,14 +313,32 @@ A.next = C;
 
 哈希表的数组长度是固定的，创建之后不能原地变大。当元素越来越多时，桶会变挤，冲突增多，链表变长，查找和写入成本都会上升。因此需要创建一个更大的数组，并把旧数组中的节点重新分散过去。
 
-![](/images/Java-concurrency/IMG-20260707-000132.png)
+```mermaid
+graph LR
+    oldTable["oldTable 长度=4"]
+    oldTable --> o0["[0] A → B"]
+    o0 --> o1["[1] C"]
+    o1 --> o2["[2] null"]
+    o2 --> o3["[3] D → E"]
+```
 
 
 
 
 扩容后会创建新数组：
 
-![](/images/Java-concurrency/IMG-20260707-000133.png)
+```mermaid
+graph LR
+    newTable["newTable 长度=8"]
+    newTable --> n0["[0] null"]
+    n0 --> n1["[1] null"]
+    n1 --> n2["[2] null"]
+    n2 --> n3["[3] null"]
+    n3 --> n4["[4] null"]
+    n4 --> n5["[5] null"]
+    n5 --> n6["[6] null"]
+    n6 --> n7["[7] null"]
+```
 
 
 
@@ -254,7 +347,11 @@ A.next = C;
 
 在扩容过程中，旧表和新表会同时存在：
 
-![](/images/Java-concurrency/IMG-20260707-000134.png)
+```mermaid
+graph LR
+    table["table"] --> oldTable["oldTable"]
+    nextTable["nextTable"] --> newTable["newTable"]
+```
 
 
 
@@ -265,14 +362,24 @@ A.next = C;
 
 某个旧桶迁移完成后，旧表对应位置会被放入一个特殊节点：`ForwardingNode`。它可以理解成一个路标。
 
-![](/images/Java-concurrency/IMG-20260707-000135.png)
+```mermaid
+flowchart LR
+    old["oldTable[i]"] --> fn["ForwardingNode"]
+    fn --> nt["nextTable"]
+```
 
 
 
 
 `ForwardingNode` 保存的是整张新表的引用，而不是保存某一个新下标。线程在旧表中遇到它后，会拿着 key 的 hash，到 `nextTable` 中根据新数组长度重新计算下标。
 
-![](/images/Java-concurrency/IMG-20260707-000136.png)
+```mermaid
+flowchart LR
+    A["读取 oldTable[i]"] --> B["发现 ForwardingNode"]
+    B --> C["读取 nextTable"]
+    C --> D["根据 hash 和 nextTable.length<br>计算新下标"]
+    D --> E["在 nextTable 中继续查找"]
+```
 
 
 
@@ -287,7 +394,18 @@ A.next = C;
 
 假设旧表有多个桶：
 
-![](/images/Java-concurrency/IMG-20260707-000137.png)
+```mermaid
+graph LR
+    oldTable["oldTable"]
+    oldTable --> slot0["[0]"]
+    slot0 --> slot1["[1]"]
+    slot1 --> slot2["[2]"]
+    slot2 --> slot3["[3]"]
+    slot3 --> slot4["[4]"]
+    slot4 --> slot5["[5]"]
+    slot5 --> slot6["[6]"]
+    slot6 --> slot7["[7]"]
+```
 
 
 
@@ -296,7 +414,14 @@ A.next = C;
 
 为了避免两个线程搬同一个桶，`ConcurrentHashMap` 会维护迁移进度，可以简化理解成一个任务分配指针。线程通过 CAS 领取一段桶，领取成功后再迁移这段范围。
 
-![](/images/Java-concurrency/IMG-20260707-000138.png)
+```mermaid
+graph LR
+    transferIndex["transferIndex = 8"]
+    transferIndex --> t1["线程1 认领 [6, 7]"]
+    t1 --> t2["线程2 认领 [4, 5]"]
+    t2 --> t3["线程3 认领 [2, 3]"]
+    t3 --> t4["线程4 认领 [0, 1]"]
+```
 
 
 
@@ -309,7 +434,14 @@ A.next = C;
 
 扩容期间不能简单说 `put` 一定写旧表，或者一定写新表。它取决于当前 key 落到的旧桶是否已经迁移。
 
-![](/images/Java-concurrency/IMG-20260707-000139.png)
+```mermaid
+graph LR
+    oldTable2["oldTable"]
+    oldTable2 --> f0["[0] ForwardingNode"]
+    oldTable2 --> f1["[1] A -> B"]
+    oldTable2 --> f2["[2] ForwardingNode"]
+    oldTable2 --> f3["[3] C -> D"]
+```
 
 
 
@@ -334,14 +466,28 @@ table = nextTable;
 
 JDK 1.8 的 `ConcurrentHashMap` 使用类似 `LongAdder` 的分散计数思路：
 
-![](/images/Java-concurrency/IMG-20260707-000140.png)
+```mermaid
+graph LR
+    root["计数结构"]
+    root --> baseCount["baseCount"]
+    baseCount --> cc0["CounterCell[0]"]
+    cc0 --> cc1["CounterCell[1]"]
+    cc1 --> cc2["CounterCell[2]"]
+    cc2 --> ccN["..."]
+```
 
 
 
 
 低竞争时，线程尽量更新 `baseCount`；竞争激烈时，更新压力会被分散到多个 `CounterCell` 中。统计总数时，再把这些值加起来：
 
-![](/images/Java-concurrency/IMG-20260707-000141.png)
+```mermaid
+graph LR
+    base["baseCount"] --> total["total<br>baseCount + sum(CounterCell[])"]
+    cc0["CounterCell[0]"] --> total
+    cc1["CounterCell[1]"] --> total
+    ccN["CounterCell[...]"] --> total
+```
 
 
 

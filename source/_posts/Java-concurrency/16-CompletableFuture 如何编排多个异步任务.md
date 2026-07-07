@@ -209,7 +209,10 @@ CompletableFuture<List<Order>> ordersFuture =
 
 `thenCompose()` 的作用是连接两个前后依赖的异步阶段，并把嵌套结构展平成一层。
 
-![](/images/Java-concurrency/IMG-20260707-000071.png)
+```mermaid
+graph LR
+    Nested["CompletableFuture<br>嵌套版本"] --> Flat["CompletableFuture<br>扁平版本"]
+```
 
 
 
@@ -270,7 +273,12 @@ CompletableFuture<Price> priceFuture =
 
 执行关系可以表示为：
 
-![](/images/Java-concurrency/IMG-20260707-000072.png)
+```mermaid
+graph LR
+    UF["userFuture → User"] --> CP["计算价格"]
+    CF["couponFuture → Coupon"] --> CP
+    CP --> Price["价格"]
+```
 
 
 
@@ -330,7 +338,12 @@ CompletableFuture<Object> anyFuture =
 
 需要注意，`anyOf()` 完成后，其他任务不会自动取消：
 
-![](/images/Java-concurrency/IMG-20260707-000073.png)
+```mermaid
+graph LR
+    FA["futureA: 已完成"] --> Any["anyFuture<br>完成"]
+    FB["futureB: 运行中"]
+    FC["futureC: 运行中"]
+```
 
 
 

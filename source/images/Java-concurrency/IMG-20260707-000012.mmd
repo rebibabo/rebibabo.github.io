@@ -1,7 +1,9 @@
 graph LR
     subgraph Thread_A["Thread A"]
+        direction LR
         lock_a["Lock = 0x2000<br>Enter critical section"]
     end
     subgraph Thread_B["Thread B"]
+        direction LR
         lock_b["Lock = 0x3000<br>Enter critical section"]
     end

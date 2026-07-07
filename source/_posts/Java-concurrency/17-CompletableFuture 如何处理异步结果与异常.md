@@ -30,7 +30,25 @@ System.out.println("调用线程继续执行");
 
 调用 `supplyAsync()` 的线程和执行 Lambda 的工作线程通常不是同一个线程。异常只能沿当前线程的调用栈向上传播，工作线程中的异常无法直接跳到主线程的调用栈中。
 
-![](/images/Java-concurrency/IMG-20260707-000074.png)
+```mermaid
+graph LR
+    subgraph Main["主线程"]
+        direction LR
+        M1["调用 supplyAsync"] --> M2["拿到 future"]
+        M2 --> M3["继续执行"]
+    end
+    subgraph Worker["工作线程"]
+        direction LR
+        W1["执行 Supplier"] --> W2["抛出异常"]
+        W2 --> W3["完成 future"]
+    end
+    subgraph Heap["堆"]
+        direction LR
+        CF["CompletableFuture<br>result = 异常对象<br>state = 完成"]
+    end
+    M2 --> CF
+    W3 --> CF
+```
 
 
 
@@ -110,7 +128,17 @@ CompletableFuture<String> future =
 
 可以把任务链理解成两条路径：
 
-![](/images/Java-concurrency/IMG-20260707-000075.png)
+```mermaid
+graph LR
+    subgraph Normal["正常路径"]
+        direction LR
+        SA["supplyAsync"] --> TA["thenApply"] --> TAc["thenAccept"] --> TR["thenRun"]
+    end
+    subgraph Error["异常路径"]
+        direction LR
+        SA2["supplyAsync"] --> EX["exceptionally<br>handle<br>whenComplete"]
+    end
+```
 
 
 
@@ -445,7 +473,12 @@ CompletableFuture<Void> future =
 
 `allOf()` 等待所有任务完成。如果其中至少一个任务异常完成，组合后的 `CompletableFuture<Void>` 也会异常完成。
 
-![](/images/Java-concurrency/IMG-20260707-000076.png)
+```mermaid
+graph LR
+    FA["futureA: 成功"] --> All["allOf: 失败"]
+    FB["futureB: 失败"] --> All
+    FC["futureC: 成功"] --> All
+```
 
 
 
@@ -454,7 +487,12 @@ CompletableFuture<Void> future =
 
 `anyOf()` 在任意一个任务最先完成时结束，这里的“完成”包括正常完成和异常完成。
 
-![](/images/Java-concurrency/IMG-20260707-000077.png)
+```mermaid
+graph LR
+    FA["futureA: 首个失败"] --> Any["anyOf: 失败"]
+    FB["futureB: 后续成功"]
+    FC["futureC: 后续成功"]
+```
 
 
 

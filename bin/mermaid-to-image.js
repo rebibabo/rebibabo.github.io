@@ -70,7 +70,7 @@ function normalizeMermaid(code) {
   // subgraph 内部 direction TB/TD → direction LR
   code = code.replace(/^(\s+)direction\s+T[BD]\b/mg, '$1direction LR');
   // subgraph 开头如果没有 direction，自动插入 direction LR
-  code = code.replace(/^(\s+subgraph\s+\w+\["[^"]*"\]\n)(?!\s*direction\b)/gm, '$1$1    direction LR\n');
+  code = code.replace(/^(\s+)(subgraph\s+\w+\["[^"]*"\])\n(?!\s*direction\b)/gm, '$1$2\n$1    direction LR\n');
   // 菱形节点 id{"..."} → 方框 id["..."]
   code = code.replace(/(?<!\/>)\b(\w+)\{([^}]+)\}/g, '$1[$2]');
   return code;

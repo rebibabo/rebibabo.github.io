@@ -1,8 +1,10 @@
 graph LR
     subgraph Write["Write Thread"]
+        direction LR
         D["data = 42"] --> VR["volatile write: ready = true"]
     end
     subgraph Read["Read Thread"]
+        direction LR
         VD["volatile read: ready == true"] --> RD["read data"]
     end
     VR -->|synchronizes-with| VD

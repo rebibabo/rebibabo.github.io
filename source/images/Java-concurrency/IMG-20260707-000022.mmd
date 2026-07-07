@@ -1,7 +1,9 @@
 graph LR
     subgraph Lock["Lock Based"]
+        direction LR
         L1["Thread A 拥有锁"] --> L2["Thread B 等待释放"]
     end
     subgraph CAS["CAS Based"]
+        direction LR
         C1["Thread A 更新值"] --> C2["Thread B 检测旧值"]
     end

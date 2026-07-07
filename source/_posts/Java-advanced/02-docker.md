@@ -51,7 +51,11 @@ Docker 部署：
 
 **虚拟机（VM）：**
 
-![](/images/Java-advanced/IMG-20260707-000006.png)
+```mermaid
+graph LR
+    V1["应用 A 应用 B 应用 C<br/>各自装完整操作系统（很重）"] --> V2["Hypervisor 虚拟化层"]
+    V2 --> V3["宿主机操作系统"]
+```
 
 
 
@@ -59,7 +63,11 @@ Docker 部署：
 
 **容器（Container）：**
 
-![](/images/Java-advanced/IMG-20260707-000007.png)
+```mermaid
+graph LR
+    C1["应用 A 应用 B 应用 C<br/>只打包依赖，共享宿主机内核"] --> C2["Docker Engine"]
+    C2 --> C3["宿主机操作系统"]
+```
 
 
 
@@ -81,7 +89,11 @@ Docker 部署：
 
 理解 Docker 只需要先搞懂三个词的关系：
 
-![](/images/Java-advanced/IMG-20260707-000008.png)
+```mermaid
+graph LR
+    DF["Dockerfile<br/>（打包脚本）"] -->|build| Image["镜像（Image）<br/>（打包好的模板）"]
+    Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]
+```
 
 
 
@@ -156,7 +168,11 @@ docker exec -it my-ssp bash
 
 `-p 8080:8080` 这个参数最容易迷糊，记住格式是 **宿主机端口:容器端口**：
 
-![](/images/Java-advanced/IMG-20260707-000009.png)
+```mermaid
+graph LR
+    Browser["浏览器 localhost:9090"] -->|外部访问| Host["宿主机 9090 端口"]
+    Host -->|Docker 转发| Container["容器内部 8080 端口<br/>Spring Boot 应用监听 8080"]
+```
 
 
 
@@ -337,7 +353,12 @@ docker run -m 512m --cpus 1 my-app
 
 镜像是**一层一层叠起来**的，每层只记录和上一层的差异：
 
-![](/images/Java-advanced/IMG-20260707-000010.png)
+```mermaid
+graph LR
+    L1["Layer 1: 基础 Linux 系统"] --> L2["Layer 2: 装上 JRE"]
+    L2 --> L3["Layer 3: 复制进 jar 包"]
+    L3 --> View["合并视图：完整的运行环境"]
+```
 
 
 

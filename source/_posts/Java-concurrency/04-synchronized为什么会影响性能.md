@@ -39,7 +39,20 @@ static class Counter {
 
 假设有四个线程不断调用 `increment()`，执行关系可能是：
 
-![](/images/Java-concurrency/IMG-20260707-000014.png)
+```mermaid
+sequenceDiagram
+    participant A as Thread A
+    participant Lock
+    participant B as Thread B
+    participant CD as Thread C/D
+
+    A->>Lock: Acquire → Execute → Release
+    B-->>Lock: Wait
+    CD-->>Lock: Wait
+    A->>Lock: Release
+    B->>Lock: Acquire → Execute
+    Note over CD: Still waiting
+```
 
 
 
@@ -96,7 +109,16 @@ public void runTask() {
 
 从简化模型看，竞争过程可以表示为：
 
-![](/images/Java-concurrency/IMG-20260707-000015.png)
+```mermaid
+graph LR
+    Runnable --> TryAcquire["Try Acquire"]
+    TryAcquire --> Check["Lock Acquired?"]
+    Check -->|Yes| Running
+    Check -->|No| Blocked
+    Blocked --> Released["Lock Released"]
+    Released --> Compete["Compete Again"]
+    Compete --> TryAcquire
+```
 
 
 
@@ -134,7 +156,11 @@ Java 线程状态中的 `BLOCKED`，专门表示线程正在等待进入某个 `
 
 线程的执行现场包括程序执行位置、寄存器内容、栈指针等信息。只有保存这些内容，Thread A 下次获得 CPU 时才能从原来的位置继续执行。
 
-![](/images/Java-concurrency/IMG-20260707-000016.png)
+```mermaid
+graph LR
+    A["Thread A<br>Register Snapshot<br>Program Position<br>Stack Pointer"] -->|Save| CPU["CPU Core"]
+    CPU -->|Restore| B["Thread B<br>Register Snapshot<br>Program Position<br>Stack Pointer"]
+```
 
 
 
@@ -271,7 +297,11 @@ class Counter {
 
 可以把任务大致分成两部分：
 
-![](/images/Java-concurrency/IMG-20260707-000017.png)
+```mermaid
+graph LR
+    Work["Total Work"] --> Parallel["Parallel Part"]
+    Work --> Serial["Serialized Part"]
+```
 
 
 

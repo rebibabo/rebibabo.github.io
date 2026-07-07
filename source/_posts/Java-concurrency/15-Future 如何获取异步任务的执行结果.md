@@ -228,7 +228,23 @@ return futureTask;
 
 也就是说，工作线程执行的对象和提交线程拿到的 `Future`，通常是同一个堆对象。
 
-![](/images/Java-concurrency/IMG-20260707-000067.png)
+```mermaid
+graph LR
+    subgraph Sub["提交线程"]
+        direction LR
+        future["future = 0x1000"]
+    end
+    subgraph Worker["工作线程"]
+        direction LR
+        task["task = 0x1000"]
+    end
+    subgraph Heap["堆"]
+        direction LR
+        ft["FutureTask @ 0x1000<br>callable = 原始任务<br>state = 任务状态<br>outcome = 结果或异常"]
+    end
+    future --> ft
+    task --> ft
+```
 
 
 
@@ -544,21 +560,41 @@ for (Future<Integer> future : futures) {
 
 把前面的内容合在一起，一次 `submit()` 调用可以概括为：
 
-![](/images/Java-concurrency/IMG-20260707-000068.png)
+```mermaid
+graph LR
+    Submit["提交 Callable"] --> Create["创建 FutureTask"]
+    Create --> Exec["作为 Runnable 执行"]
+    Exec --> Return["返回 FutureTask"]
+```
 
 
 
 
 工作线程一侧：
 
-![](/images/Java-concurrency/IMG-20260707-000069.png)
+```mermaid
+graph LR
+    W["工作线程拿到 FutureTask"] --> Call["调用 callable.call"]
+    Call --> Save["保存结果或异常"]
+    Save --> Publish["发布最终状态"]
+    Publish --> Wake["唤醒等待 get 的线程"]
+```
 
 
 
 
 提交线程一侧：
 
-![](/images/Java-concurrency/IMG-20260707-000070.png)
+```mermaid
+graph LR
+    Get["get 检查状态"] --> Check["已完成?"]
+    Check -->|否| Wait["阻塞等待"]
+    Wait --> Check
+    Check -->|是| Result["结果类型?"]
+    Result -->|正常| Return["返回结果"]
+    Result -->|异常| Ex["抛出 ExecutionException"]
+    Result -->|取消| Cancel["抛出 CancellationException"]
+```
 
 
 
