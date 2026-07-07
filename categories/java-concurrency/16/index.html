@@ -26,17 +26,13 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="上一章介绍 FutureTask 时，我们已经知道，异步任务执行结束后，正常结果或异常会保存在 FutureTask 中，提交任务的线程可以通过 get() 取得最终结果。 例如： 1234Future&lt;User&gt; userFuture &#x3D;        executorService.submit(() -&gt; queryUser());User user &#x3D; userFutur">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000071.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000072.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000073.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:41:44.567Z">
+<meta property="article:modified_time" content="2026-07-07T13:46:21.347Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="CompletableFuture">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="高并发">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000071.png">
   
   
   
@@ -232,7 +228,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          9.8k 字
+          10k 字
         
       </span>
     
@@ -243,7 +239,7 @@
         
         
         
-          82 分钟
+          86 分钟
         
       </span>
     
@@ -417,7 +413,12 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">CompletableFuture&lt;List&lt;Order&gt;&gt; ordersFuture =<br>        queryUserAsync()<br>                .thenCompose(user -&gt;<br>                        queryOrdersAsync(user.getId())<br>                );<br></code></pre></td></tr></table></figure>
 
 <p><code>thenCompose()</code> 的作用是连接两个前后依赖的异步阶段，并把嵌套结构展平成一层。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000071.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Nested[&quot;CompletableFuture&lt;br&gt;嵌套版本&quot;] --&gt; Flat[&quot;CompletableFuture&lt;br&gt;扁平版本&quot;]
+</code></pre>
+
+
+
 <p>判断规则可以简化为：</p>
 <table>
 <thead>
@@ -450,7 +451,14 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">CompletableFuture&lt;Price&gt; priceFuture =<br>        userFuture.thenCombine(<br>                couponFuture,<br>                (user, coupon) -&gt;<br>                        calculatePrice(user, coupon)<br>        );<br></code></pre></td></tr></table></figure>
 
 <p>执行关系可以表示为：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000072.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    UF[&quot;userFuture → User&quot;] --&gt; CP[&quot;计算价格&quot;]
+    CF[&quot;couponFuture → Coupon&quot;] --&gt; CP
+    CP --&gt; Price[&quot;价格&quot;]
+</code></pre>
+
+
+
 <p>合并函数只有在两个任务都正常完成后才会执行。它不要求哪个任务先完成，只要求两个结果最终都可用。</p>
 <p><code>thenCompose()</code> 和 <code>thenCombine()</code> 的区别可以概括为：</p>
 <table>
@@ -485,7 +493,14 @@
 
 <p><code>anyOf()</code> 返回 <code>CompletableFuture&lt;Object&gt;</code>，保存的是最先完成任务的结果。之所以是 <code>Object</code>，是因为传入任务的结果类型可能不同，编译器无法提前确定最先完成的是哪一种结果。</p>
 <p>需要注意，<code>anyOf()</code> 完成后，其他任务不会自动取消：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000073.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    FA[&quot;futureA: 已完成&quot;] --&gt; Any[&quot;anyFuture&lt;br&gt;完成&quot;]
+    FB[&quot;futureB: 运行中&quot;]
+    FC[&quot;futureC: 运行中&quot;]
+</code></pre>
+
+
+
 <p>此外，最先完成不一定是最先成功。如果某个任务最先异常完成，<code>anyOf()</code> 也可能直接异常完成。异常处理会放到下一章单独讨论。</p>
 <p>多任务关系可以这样选择：</p>
 <table>

@@ -26,27 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="上一章讨论的是单机内存版任务处理系统：请求线程把 Task 放入有界队列，Worker 从队列中取出任务并执行。这个模型可以解决任务异步化、短暂削峰、有限并发执行的问题，但它还有一个明显边界：任务只存在于 JVM 内存里。 一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000190.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000191.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000192.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000193.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000194.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000195.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000196.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000197.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000198.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000199.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000200.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000201.png">
 <meta property="article:published_time" content="2026-07-04T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:41:44.569Z">
+<meta property="article:modified_time" content="2026-07-07T13:46:21.349Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="MQ">
 <meta property="article:tag" content="任务补偿">
 <meta property="article:tag" content="并发任务">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000190.png">
   
   
   
@@ -242,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.9k 字
+          7.5k 字
         
       </span>
     
@@ -253,7 +240,7 @@
         
         
         
-          50 分钟
+          63 分钟
         
       </span>
     
@@ -301,13 +288,26 @@
 <p>一旦服务重启、机器宕机，或者系统部署成多个实例，内存队列就很难继续保证任务可靠。文件解析任务如果只放在本地队列中，进程一退出，队列里还没执行的任务就会消失；Worker 正在执行到一半的任务，也没有稳定位置记录它到底完成了没有。</p>
 <p>本章继续沿用文件解析任务这个例子，讨论任务不能丢时，系统为什么要从内存队列升级到数据库任务表或 MQ。重点不是直接比较两个工具，而是先看内存队列缺了什么，再看数据库任务表和 MQ 分别补上了哪一部分能力，以及它们各自的边界。</p>
 <h2 id="1、为什么内存队列无法保证任务可靠"><a href="#1、为什么内存队列无法保证任务可靠" class="headerlink" title="1、为什么内存队列无法保证任务可靠"></a>1、为什么内存队列无法保证任务可靠</h2><p>上一章的任务提交流程是这样的：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000190.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    Request[&quot;请求线程&quot;] --&gt; MemoryQueue[&quot;内存队列&quot;] --&gt; Worker[&quot;工作线程&quot;]
+</code></pre>
+
+
+
 <p>请求线程创建文件解析任务，然后放入本地内存队列：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Task</span> <span class="hljs-variable">task</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Task</span>(taskId, TaskType.FILE_PARSE, fileId);<br><span class="hljs-type">SubmitResult</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> taskSubmitter.submit(task);<br></code></pre></td></tr></table></figure>
 
 <p>这套模型的问题在于，任务的唯一存放位置是 JVM 内存。只要任务还没被 Worker 处理完成，它就依赖当前进程继续存活。</p>
 <p>如果服务刚好在任务排队时重启，流程会变成：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000191.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;创建任务&quot;] --&gt; B[&quot;放入内存队列&quot;]
+    B --&gt; C[&quot;服务重启&quot;]
+    C --&gt; D[&quot;内存队列被清空&quot;]
+    D --&gt; E[&quot;任务丢失&quot;]
+</code></pre>
+
+
+
 <p>如果服务在 Worker 正在执行时宕机，问题会更复杂。系统不知道这个文件解析任务是完全没执行、执行了一半，还是已经处理完但没来得及记录结果。因为内存队列只负责临时排队，并不负责保存任务状态。</p>
 <p>所以内存队列的边界可以从三个问题理解：</p>
 <table>
@@ -334,7 +334,14 @@
 <h2 id="2、数据库任务表如何让任务可恢复"><a href="#2、数据库任务表如何让任务可恢复" class="headerlink" title="2、数据库任务表如何让任务可恢复"></a>2、数据库任务表如何让任务可恢复</h2><p>数据库任务表要解决的第一个问题是：任务不能只存在于内存里，必须有一个可恢复的状态记录。</p>
 <p>它不是简单地把 <code>BlockingQueue</code> 换成数据库，而是让数据库成为任务的事实来源。内存队列仍然可以存在，但它只负责加速本机 Worker 取任务；真正判断任务有没有创建、有没有成功、是否需要重试，要看数据库任务表。</p>
 <p>角色关系变成：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000192.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    Request[&quot;请求线程&quot;] --&gt; TaskTable[&quot;数据库任务表&quot;] --&gt; MemoryQueue[&quot;内存队列&quot;]
+    TaskTable --&gt; TaskStatus[&quot;任务状态&quot;]
+    MemoryQueue --&gt; Worker[&quot;工作线程&quot;]
+</code></pre>
+
+
+
 <p>文件上传接口不再只是把任务放入内存队列，而是先写入任务表：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE TABLE</span> task_record (<br>    id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">PRIMARY KEY</span> AUTO_INCREMENT,<br>    task_id <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">64</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    task_type <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">64</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    biz_id <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">128</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    status <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">32</span>) <span class="hljs-keyword">NOT NULL</span>,<br>    retry_count <span class="hljs-type">INT</span> <span class="hljs-keyword">NOT NULL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">0</span>,<br>    max_retry_count <span class="hljs-type">INT</span> <span class="hljs-keyword">NOT NULL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">3</span>,<br>    error_message TEXT,<br>    next_retry_time DATETIME,<br>    create_time DATETIME <span class="hljs-keyword">NOT NULL</span>,<br>    update_time DATETIME <span class="hljs-keyword">NOT NULL</span><br>);<br></code></pre></td></tr></table></figure>
 
@@ -347,7 +354,20 @@
 
 <p>这时内存队列的角色发生了变化。上一章中，内存队列是任务的主要存放位置；现在，数据库任务表才是任务的主要存放位置，内存队列只是本机执行前的缓冲。</p>
 <p>任务状态也要从内存字段变成数据库中的稳定记录：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000193.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">stateDiagram-v2
+    [*] --&gt; CREATED
+    CREATED --&gt; RUNNING
+    RUNNING --&gt; SUCCESS
+    RUNNING --&gt; FAILED
+    FAILED --&gt; RETRYING
+    RETRYING --&gt; RUNNING
+    RUNNING --&gt; DEAD
+    SUCCESS --&gt; [*]
+    DEAD --&gt; [*]
+</code></pre>
+
+
+
 <p>这样即使服务重启，系统也能根据任务表恢复现场：</p>
 <table>
 <thead>
@@ -380,7 +400,13 @@
 <p>数据库任务表解决的不是高吞吐，而是可恢复。它让系统从“任务在内存里排队”升级成“任务有稳定状态，服务重启后还能继续处理”。</p>
 <h2 id="3、多实例下如何避免任务被重复执行"><a href="#3、多实例下如何避免任务被重复执行" class="headerlink" title="3、多实例下如何避免任务被重复执行"></a>3、多实例下如何避免任务被重复执行</h2><p>引入数据库任务表后，下一个问题会自然出现：如果服务部署了多个实例，它们都会扫描 <code>task_record</code>，同一个任务会不会被多个 Worker 同时取走？</p>
 <p>例如：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000194.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    InstanceA[&quot;实例 A&quot;] --&gt; TaskTable[&quot;数据库任务表&quot;]
+    InstanceB[&quot;实例 B&quot;] --&gt; TaskTable
+</code></pre>
+
+
+
 <p>如果两个实例同时查到同一条 <code>CREATED</code> 任务，并且都开始执行，就会出现重复解析文件、重复生成预览、重复通知用户的问题。</p>
 <p>所以数据库任务表在多实例场景下，不能只会“查任务”，还必须会“抢任务”。抢任务的核心是：只有一个实例能把任务状态从 <code>CREATED</code> 改成 <code>RUNNING</code>。</p>
 <p>一种常见做法是带状态条件更新：</p>
@@ -391,7 +417,13 @@
 
 <p>如果影响行数是 1，说明当前实例抢到了任务；如果影响行数是 0，说明任务已经被其他实例抢走，当前实例应该放弃执行。</p>
 <p>这个设计的重点不是“加锁”这个词，而是让状态流转变成一次原子判断：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000195.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;状态为 CREATED&quot;] --&gt; B[&quot;改为 RUNNING&quot;]
+    B --&gt; C[&quot;只有一个 Worker 成功&quot;]
+</code></pre>
+
+
+
 <p>即使这样，也不能完全假设任务永远只执行一次。因为还有一些边界情况：Worker 抢到任务后宕机，数据库里任务停在 <code>RUNNING</code>；系统重试这个任务时，前一次执行可能已经对部分业务数据产生影响。</p>
 <p>所以可靠任务系统还需要幂等。幂等的意思是：同一个任务即使被执行多次，最终业务结果也应该和执行一次一致。</p>
 <p>对于文件解析任务，可以用 <code>task_id</code> 或 <code>file_id</code> 作为幂等依据。例如生成预览图时，先检查这个文件是否已经生成过预览：</p>
@@ -420,7 +452,12 @@
 <p>这时需要思考另一个问题：系统真正需要的，可能不只是“保存任务状态”，而是一个能承接大量任务投递、支持多消费者消费、失败后可以重投的通道。</p>
 <p>这个通道就是 MQ。</p>
 <p>MQ 的角色关系是：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000196.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    Producer[&quot;生产者&quot;] --&gt; Broker[&quot;Broker&quot;] --&gt; Consumer[&quot;消费者&quot;]
+</code></pre>
+
+
+
 <p>在文件解析任务里，上传服务作为 Producer，把文件解析消息发送到 MQ；MQ 的 Broker 负责保存和投递消息；解析服务作为 Consumer 消费消息并处理文件。</p>
 <p>和数据库任务表相比，MQ 更强调“投递与消费”：</p>
 <table>
@@ -461,20 +498,49 @@
 <p>当系统主要矛盾是“任务必须可查、可补偿、状态要清晰”时，数据库任务表更自然；当主要矛盾是“任务量大、需要削峰、多消费者扩展”时，MQ 更合适。</p>
 <h2 id="5、MQ-的消费确认、重试、死信与幂等"><a href="#5、MQ-的消费确认、重试、死信与幂等" class="headerlink" title="5、MQ 的消费确认、重试、死信与幂等"></a>5、MQ 的消费确认、重试、死信与幂等</h2><p>引入 MQ 后，任务不再靠本地 Worker 从内存队列取，而是由 Consumer 从 MQ 接收消息。</p>
 <p>一个基本消费流程是：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000197.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;发送消息&quot;] --&gt; B[&quot;Broker 保存消息&quot;]
+    B --&gt; C[&quot;消费者接收消息&quot;]
+    C --&gt; D[&quot;执行业务&quot;]
+    D --&gt; E[&quot;确认消息 ack&quot;]
+</code></pre>
+
+
+
 <p>这里第一次出现了 <code>ack</code>。它是消费确认，表示 Consumer 告诉 MQ：这条消息已经处理完成，可以从待投递范围中移除了。</p>
 <p>为什么需要 <code>ack</code>？因为 Consumer 收到消息不代表任务已经成功。文件解析可能失败，数据库写入可能失败，服务也可能在处理过程中宕机。如果 MQ 在“消息刚投递出去”时就删除消息，那么 Consumer 一旦中途失败，任务就丢了。</p>
 <p>所以更合理的顺序是：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000198.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;接收消息&quot;] --&gt; B[&quot;处理文件任务&quot;]
+    B --&gt; C[&quot;业务成功&quot;]
+    C --&gt; D[&quot;确认消息 ack&quot;]
+</code></pre>
+
+
+
 <p>不要反过来：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000199.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;接收消息&quot;] --&gt; B[&quot;确认消息 ack&quot;]
+    B --&gt; C[&quot;处理文件任务&quot;]
+</code></pre>
+
+
+
 <p>因为先确认再处理，会把可靠性窗口提前关闭。只要确认之后处理失败，MQ 已经认为消息完成，后续就不会再投递。</p>
 <p>但“处理成功后再 ack”也带来另一个边界：如果业务处理成功了，但 ack 之前 Consumer 宕机，MQ 可能会再次投递同一条消息。因此 MQ 消费通常要默认面对“至少一次投递”，也就是消息可能重复到达。</p>
 <p>这时仍然需要幂等。前面数据库任务表中提到的文件预览幂等，在 MQ 场景下同样成立：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">consume</span><span class="hljs-params">(FileParseMessage message)</span> &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">fileId</span> <span class="hljs-operator">=</span> message.getFileId();<br><br>    <span class="hljs-keyword">if</span> (taskResultRepository.existsByFileId(fileId)) &#123;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;<br><br>    parseFile(fileId);<br>    generatePreview(fileId);<br>    notifyUser(fileId);<br><br>    taskResultRepository.saveSuccess(fileId);<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>失败重试在 MQ 中通常由消息重投或延迟消息完成。多次失败后，消息可以进入死信队列：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000200.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;消费失败&quot;] --&gt; B[&quot;稍后重试&quot;]
+    B --&gt; C[&quot;仍然失败&quot;]
+    C --&gt; D[&quot;超过重试次数&quot;]
+    D --&gt; E[&quot;进入死信队列&quot;]
+</code></pre>
+
+
+
 <p>死信队列不是垃圾桶。它的作用是把长期失败的消息从正常消费链路中隔离出来，避免它一直阻塞正常消息，同时保留排查和人工补偿入口。</p>
 <p>MQ 场景下，几个概念要放在同一条链路里理解：</p>
 <table>
@@ -554,7 +620,16 @@
 </tr>
 </tbody></table>
 <p>也可以用一个简单规则判断：</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000201.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">flowchart LR
+    A[&quot;需要清晰的任务状态？&quot;] --&gt;|是| B[&quot;使用数据库任务表&quot;]
+    A --&gt;|否| C[&quot;需要高吞吐投递？&quot;]
+    C --&gt;|是| D[&quot;使用 MQ&quot;]
+    B --&gt; E[&quot;同时需要高吞吐投递？&quot;]
+    E --&gt;|是| F[&quot;MQ + 业务任务表&quot;]
+</code></pre>
+
+
+
 <p>最后一种组合在实际系统里也很常见。MQ 负责投递和削峰，业务任务表负责记录状态和支持查询。文件上传后，系统可以先写业务任务表，再发送 MQ 消息；Consumer 消费消息后，更新任务表状态。这样 MQ 负责“让任务被消费”，数据库负责“让任务可追踪”。</p>
 <p>但组合方案也意味着复杂度上升。它需要处理发送消息和写数据库之间的一致性，需要设计幂等消费，也需要处理消息重复、消息延迟和死信补偿。因此，不要为了“架构完整”一开始就上组合方案，而要根据任务量、可靠性和排查需求逐步升级。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文可以从上一章的内存队列边界开始理解：因为内存队列只存在于当前 JVM，所以它能解决短暂排队和本机并发执行，却不能保证服务重启、机器宕机、多实例部署下任务仍然可靠。文件解析任务如果不能丢，就必须把任务从“内存中的临时对象”升级成“有稳定状态的任务记录”。</p>

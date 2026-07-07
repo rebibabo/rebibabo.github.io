@@ -26,20 +26,13 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言前面 27 篇基本都是”一个应用、一个数据库”的视角——写 Controller、Service、Mapper，连上 MySQL&#x2F;Redis 就能跑。但当系统越来越大（比如一个完整的广告投放平台，要做投放管理、计费、报表、用户中心），继">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000000.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000001.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000002.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000003.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000004.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000005.png">
 <meta property="article:published_time" content="2026-04-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:29:37.393Z">
+<meta property="article:modified_time" content="2026-07-07T13:46:21.351Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Spring Cloud">
 <meta property="article:tag" content="微服务">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000000.png">
   
   
   
@@ -235,7 +228,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          9.4k 字
+          11k 字
         
       </span>
     
@@ -246,7 +239,7 @@
         
         
         
-          79 分钟
+          88 分钟
         
       </span>
     
@@ -330,8 +323,29 @@
 <li>一般有自己独立的数据库（不共享表）</li>
 <li>服务之间通过<strong>网络请求</strong>（HTTP&#x2F;RPC）通信，不再是 Java 方法调用</li>
 </ul>
-<p><img src="/images/Java-advanced/IMG-20260707-000000.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/images/Java-advanced/IMG-20260707-000001.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    subgraph &quot;单体架构&quot;
+        direction LR
+        M[&quot;广告平台 (一个进程)&lt;br/&gt;用户模块 · 投放模块 · 计费模块 · 报表模块&quot;]
+        M --&gt; MySQL[(MySQL)]
+    end
+</code></pre>
+
+
+
+
+<pre><code class=" mermaid">graph LR
+    subgraph &quot;微服务架构&quot;
+        direction LR
+        US[&quot;用户服务&lt;br/&gt;+ DB&quot;] &lt;--&gt;|网络调用| TS[&quot;投放服务&lt;br/&gt;+ DB&quot;]
+        TS &lt;--&gt;|网络调用| BS[&quot;计费服务&lt;br/&gt;+ DB&quot;]
+        BS &lt;--&gt;|网络调用| RS[&quot;报表服务&lt;br/&gt;+ DB&quot;]
+    end
+</code></pre>
+
+
+
+
 <h3 id="1-3-微服务不是免费的午餐"><a href="#1-3-微服务不是免费的午餐" class="headerlink" title="1.3 微服务不是免费的午餐"></a>1.3 微服务不是免费的午餐</h3><p>拆分之后，<strong>每个模块内部</strong>确实变简单了——投放服务只用关心投放逻辑。但<strong>模块之间</strong>的复杂度从”方法调用”变成了”网络调用”，这就引入了一整套单体应用里根本不存在的新问题：</p>
 <table>
 <thead>
@@ -430,7 +444,16 @@
 <li><strong>心跳续约</strong>：计费服务定期向注册中心发心跳，证明自己还活着；注册中心如果一段时间没收到心跳，就把这个实例摘除</li>
 <li><strong>服务发现</strong>：投放服务要调用计费服务时，先问注册中心”计费服务现在有哪些可用实例”，拿到一个地址列表</li>
 </ol>
-<p><img src="/images/Java-advanced/IMG-20260707-000002.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    B1[&quot;计费服务实例1&quot;] --&gt;|① 注册 + 心跳| Registry[&quot;注册中心&lt;br/&gt;(Nacos / Eureka)&quot;]
+    B2[&quot;计费服务实例2&quot;] --&gt;|① 注册 + 心跳| Registry
+    B3[&quot;计费服务实例3&quot;] --&gt;|① 注册 + 心跳| Registry
+    Registry --&gt;|② 查询计费服务地址列表| Consumer[&quot;投放服务&quot;]
+</code></pre>
+
+
+
+
 <p>常见注册中心：Netflix Eureka（Spring Cloud 早期默认）、阿里 Nacos（同时支持注册中心 + 配置中心，国内更主流）。</p>
 <h3 id="3-3-最简示例（Spring-Cloud-Alibaba-Nacos）"><a href="#3-3-最简示例（Spring-Cloud-Alibaba-Nacos）" class="headerlink" title="3.3 最简示例（Spring Cloud Alibaba + Nacos）"></a>3.3 最简示例（Spring Cloud Alibaba + Nacos）</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- pom.xml：让服务接入 Nacos 注册中心 --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-discovery<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
 
@@ -472,10 +495,29 @@
 </tr>
 </tbody></table>
 <p>Spring Cloud 里，OpenFeign（4 节）和 <code>RestTemplate</code> 都可以直接集成 <code>spring-cloud-starter-loadbalancer</code>——你在 4.2 节写的 <code>BillingClient</code> 调用，背后实际上已经经过了负载均衡器，<strong>业务代码完全无感知</strong>。这也是注册中心 + 负载均衡组合的核心价值：调用方只写”服务名”，”该打给哪个实例”完全交给框架处理。</p>
-<p><img src="/images/Java-advanced/IMG-20260707-000003.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Service[&quot;投放服务&quot;] --&gt;|BillingClient.charge 调用| LB[&quot;负载均衡器（轮询）&quot;]
+    LB --&gt; I1[&quot;实例1&quot;]
+    LB --&gt; I2[&quot;实例2&quot;]
+    LB --&gt; I3[&quot;实例3&quot;]
+</code></pre>
+
+
+
+
 <h2 id="6-API-网关"><a href="#6-API-网关" class="headerlink" title="6. API 网关"></a>6. API 网关</h2><h3 id="6-1-为什么需要"><a href="#6-1-为什么需要" class="headerlink" title="6.1 为什么需要"></a>6.1 为什么需要</h3><p>现在系统内部有用户服务、投放服务、计费服务、报表服务……前端（网页&#x2F;App）要调用这些接口时，难道要分别记住每个服务的地址吗？而且像”登录校验””限流””统一加密”这些逻辑，难道每个服务都要重复写一遍？</p>
 <h3 id="6-2-网关：所有外部请求的统一入口"><a href="#6-2-网关：所有外部请求的统一入口" class="headerlink" title="6.2 网关：所有外部请求的统一入口"></a>6.2 网关：所有外部请求的统一入口</h3><p><strong>API 网关</strong>是部署在最外层的一个独立服务，所有外部请求<strong>先经过网关</strong>，再由网关转发给内部对应的服务：</p>
-<p><img src="/images/Java-advanced/IMG-20260707-000004.png" srcset="/img/loading.gif" lazyload></p>
+<pre><code class=" mermaid">graph LR
+    Frontend[&quot;前端&quot;] --&gt; Gateway[&quot;API 网关 (Gateway)&lt;br/&gt;统一鉴权 · 限流 · 日志&quot;]
+    Gateway --&gt; US[&quot;用户服务&quot;]
+    Gateway --&gt; TS[&quot;投放服务&quot;]
+    Gateway --&gt; BS[&quot;计费服务&quot;]
+    Gateway --&gt; RS[&quot;报表服务&quot;]
+</code></pre>
+
+
+
+
 <p>网关的核心能力：</p>
 <table>
 <thead>
@@ -546,7 +588,16 @@
 <td>高速路口堵车时，导航改走备用路线</td>
 </tr>
 </tbody></table>
-<h3 id="8-3-熔断器的三种状态"><a href="#8-3-熔断器的三种状态" class="headerlink" title="8.3 熔断器的三种状态"></a>8.3 熔断器的三种状态</h3><p><img src="/images/Java-advanced/IMG-20260707-000005.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="8-3-熔断器的三种状态"><a href="#8-3-熔断器的三种状态" class="headerlink" title="8.3 熔断器的三种状态"></a>8.3 熔断器的三种状态</h3><pre><code class=" mermaid">graph LR
+    Closed[&quot;关闭 (Closed)&quot;] --&gt;|失败率超过阈值| Open[&quot;打开 (Open)&quot;]
+    Open --&gt;|等待一段时间| Half[&quot;半开 (Half-Open)&quot;]
+    Half --&gt;|试探请求成功| Closed
+    Half --&gt;|试探请求失败| Open
+</code></pre>
+
+
+
+
 <ul>
 <li><strong>关闭</strong>：正常状态，请求正常发给计费服务</li>
 <li><strong>打开</strong>：失败率超过阈值后，熔断器”跳闸”，后续请求<strong>不再真正调用</strong>计费服务，直接走降级逻辑（比如返回”账单暂不可用，请稍后重试”）</li>
