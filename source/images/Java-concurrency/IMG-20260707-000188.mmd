@@ -1,0 +1,15 @@
+flowchart TD
+    A["生产者 put(e)"] --> B["获取 putLock"]
+    B --> C[""队列已满?""]
+    C -->|"是"| D["等待 notFull"]
+    D --> C
+    C -->|"否"| E["追加节点到尾部"]
+    E --> F["原子递增 count"]
+    F --> G[""入队后仍未满?""]
+    G -->|"是"| H["signal notFull<br>（唤醒其他生产者）"]
+    G -->|"否"| I["释放 putLock"]
+    H --> I
+    I --> J[""入队前队列为空?""]
+    J -->|"是"| K["获取 takeLock<br>signal notEmpty<br>释放 takeLock"]
+    J -->|"否"| L["结束"]
+    K --> L

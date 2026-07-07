@@ -250,4 +250,6 @@ async function main() {
   console.log(`   源码 .mmd 保存在 source/images/${filterDir || '*'}/ 中`);
 }
 
-main().catch(console.error);
+if (require.main === module) {
+  main().catch(console.error);
+}

@@ -1,0 +1,3 @@
+graph TD
+    A["order-worker-1<br>持有 orderLock"] -->|等待| B["stockLock<br>被 order-worker-2 持有"]
+    C["order-worker-2<br>持有 stockLock"] -->|等待| D["orderLock<br>被 order-worker-1 持有"]
