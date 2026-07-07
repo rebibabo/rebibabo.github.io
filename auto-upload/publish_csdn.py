@@ -20,6 +20,7 @@ from playwright.sync_api import Playwright, sync_playwright
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAME = "Java高并发"          # 专栏名
 DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签
+USE_AI_DECLARATION = False          # 是否勾选"部分内容由AI辅助生成"，默认不勾选（无声明）
 
 
 # ============================================================
