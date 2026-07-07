@@ -181,7 +181,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
             print(f"  ⚠️  添加标签 {tag} 失败: {e}")
 
     # 关闭标签选择弹窗
-    safe_click(page2, 'button:has-text("关闭")')
+    safe_click(page2, ".mark_selection_box_body .modal__close-button")
 
     # ---- 第十步：填摘要 ----
     print("10. 填写摘要...")
