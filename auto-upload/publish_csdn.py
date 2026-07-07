@@ -13,6 +13,7 @@ import sys
 import os
 import json
 import ssl
+import base64
 import urllib.request
 from pathlib import Path
 from urllib.parse import quote
@@ -37,7 +38,7 @@ BLOG_SOURCE_DIR = os.path.join(os.path.dirname(__file__), "..", "source")  # sou
 # 图片外链替换
 # ============================================================
 def resolve_images_in_body(body: str, md_filepath: str) -> str:
-    """将 markdown 中的本地图片路径替换为 GitHub raw 外链"""
+    """将 markdown 中的本地图片转为 base64 内嵌，彻底避免外链转存失败"""
     image_pattern = re.compile(r'!\[([^\]]*)\]\(([^)]+)\)')
     md_dir = os.path.dirname(md_filepath)
 
@@ -52,7 +53,6 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
         # 策略2：相对路径（相对于 markdown 文件所在目录）
         candidate = os.path.normpath(os.path.join(md_dir, img_path))
         if os.path.exists(candidate):
-            # 转回相对于 source/ 的路径
             return os.path.relpath(candidate, BLOG_SOURCE_DIR)
 
         # 策略3：按文件名在 source/images/ 下全局搜索
@@ -62,6 +62,16 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
                 return os.path.relpath(os.path.join(root, filename), BLOG_SOURCE_DIR)
 
         return None
+
+    def _image_to_base64(filepath: str) -> str:
+        """将图片文件转为 base64 data URI"""
+        ext = os.path.splitext(filepath)[1].lower().lstrip(".")
+        mime_map = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+                     "gif": "image/gif", "webp": "image/webp", "svg": "image/svg+xml"}
+        mime = mime_map.get(ext, "image/png")
+        with open(filepath, "rb") as f:
+            data = base64.b64encode(f.read()).decode("ascii")
+        return f"data:{mime};base64,{data}"
 
     def replace_image(match: re.Match) -> str:
         alt = match.group(1)
@@ -78,24 +88,17 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             return match.group(0)
 
         local_file = os.path.join(BLOG_SOURCE_DIR, rel_path)
-        # markdown 中保留原始路径（中文不编码，避免 CSDN 处理异常）
-        raw_url = f"{GITHUB_RAW_BASE}/{rel_path}"
-        # 内部检查用编码后的 URL
-        encoded_path = "/".join(quote(part, safe="") for part in rel_path.split("/"))
-        check_url = f"{GITHUB_RAW_BASE}/{encoded_path}"
+        file_size = os.path.getsize(local_file)
 
-        # 先查外链
-        if _check_url(check_url):
-            print(f"  🔗 {rel_path}")
+        if file_size > 2 * 1024 * 1024:  # 超过 2MB 用外链兜底
+            print(f"  ⚠️  图片过大 ({file_size / 1024:.0f}KB)，使用外链: {rel_path}")
+            raw_url = f"{GITHUB_RAW_BASE}/{rel_path}"
             return f"![{alt}]({raw_url})"
 
-        # 外链不可用，本地有 → git sync + 刷新 jsDelivr 缓存
-        print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
-        print(f"     正在 git add → commit → push...")
-        _git_sync()
-        _purge_jsdelivr(encoded_path)
-        print(f"     ✅ 已推送并刷新 CDN 缓存")
-        return f"![{alt}]({raw_url})"
+        # 转 base64 内嵌
+        data_uri = _image_to_base64(local_file)
+        print(f"  🖼️  base64 内嵌: {rel_path} ({file_size / 1024:.0f}KB)")
+        return f"![{alt}]({data_uri})"
 
     return image_pattern.sub(replace_image, body)
 
