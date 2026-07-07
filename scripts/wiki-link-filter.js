@@ -19,16 +19,6 @@ hexo.extend.filter.register('before_generate', function() {
     });
   }
 
-  // Add hidden markdown-body trigger to wiki pages
-  // so Fluid theme loads mermaid natively
-  const pages = hexo.locals.get('pages');
-  if (pages) {
-    pages.forEach(function(page) {
-      if (page.source && page.source.indexOf('wiki/') === 0 && page.content) {
-        page.content += '<div class="markdown-body" style="display:none" aria-hidden="true"></div>';
-      }
-    });
-  }
 }, 0);
 
 // Convert [[wiki/...]] Obsidian links to Hexo links during markdown rendering
