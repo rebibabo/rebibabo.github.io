@@ -1,6 +1,6 @@
 {
     "daily_limit": 1,
-    "default_columns": ["Java高并发", "Java基础"],
+    "default_columns": ["Java高并发"],
     "articles": [
         {
             "path": "source/_posts/Java高并发底层原理/09-ReentrantLock 为什么能够实现互斥.md"
