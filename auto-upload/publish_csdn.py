@@ -132,7 +132,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     # ---- 第七步：选择专栏 ----
     print(f"7. 选择专栏: {COLUMN_NAME}")
     page2.get_by_text(COLUMN_NAME, exact=True).click()
-    page2.wait_for_timeout(50000)
+    page2.wait_for_timeout(5000000)
 
     # ---- 第八步：删除已有标签 ----
     print("8. 清理已有标签...")
