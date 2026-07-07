@@ -23,7 +23,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java高并发底层原理（十八）—— ThreadLocal 的线程隔离与线程池问题">
 <meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/18/index.html">
-<meta property="og:site_name" content="AI Infra">
+<meta property="og:site_name" content="rebibabo的博客">
 <meta property="og:description" content="ThreadLocal 要解决的不是“如何让共享对象变得线程安全”，而是换一条思路：既然多个线程共享同一份可变状态会产生竞争，那就让每个线程各自持有一份数据。这样一来，线程之间没有共享，也就不需要通过锁或 CAS 去协调访问顺序。 但这个模型有一个隐含前提：线程的生命周期最好和任务的生命周期一致。在线程池里，线程会被反复复用，一个任务结束并不代表线程结束，挂在线程身上的 ThreadLocal 数">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000076.png">
@@ -50,7 +50,7 @@
   
   
   
-  <title>Java高并发底层原理（十八）—— ThreadLocal 的线程隔离与线程池问题 - AI Infra</title>
+  <title>Java高并发底层原理（十八）—— ThreadLocal 的线程隔离与线程池问题 - rebibabo的博客</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
 

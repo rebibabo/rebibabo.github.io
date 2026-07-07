@@ -23,13 +23,12 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成">
 <meta property="og:url" content="https://rebibabo.github.io/categories/java-concurrency/11/index.html">
-<meta property="og:site_name" content="AI Infra">
+<meta property="og:site_name" content="rebibabo的博客">
 <meta property="og:description" content="ReentrantLock 解决的是多个线程竞争共享数据时，如何保证同一时刻只有一个线程进入临界区；Condition 解决的是线程已经获得锁后，如何等待某个业务条件成立。并发程序中还有另一类问题：一个线程不一定要和其他线程互斥执行，但必须等多个任务全部完成后才能继续。 例如主线程启动三个工作线程，三个工作线程可以并发执行，但主线程必须等它们都结束后，才能汇总结果： 123456789101112">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000053.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-concurrency/IMG-20260707-000054.png">
 <meta property="article:published_time" content="2026-07-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T14:05:43.585Z">
+<meta property="article:modified_time" content="2026-07-07T14:45:27.759Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="CountDownLatch">
@@ -40,7 +39,7 @@
   
   
   
-  <title>Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成 - AI Infra</title>
+  <title>Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成 - rebibabo的博客</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
 
@@ -396,7 +395,6 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Throwable</span> <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br><br><span class="hljs-type">Thread</span> <span class="hljs-variable">worker</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        doWork();<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        error = e;<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
 
 <p>Lambda 试图重新给局部变量 <code>error</code> 赋值，所以它不再是事实上 <code>final</code>。使用数组后，局部变量 <code>error</code> 保存的数组引用没有变化，线程修改的是数组对象内部的元素。</p>
-<p><img src="/images/Java-concurrency/IMG-20260707-000054.png" srcset="/img/loading.gif" lazyload></p>
 <p>也可以使用普通 Holder 对象：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ResultHolder</span> &#123;<br>    Throwable error;<br>&#125;<br></code></pre></td></tr></table></figure>
 

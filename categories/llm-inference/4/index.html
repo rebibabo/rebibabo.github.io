@@ -23,7 +23,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="LLM推理优化实战(四)：Prefix Caching原理详解与TTFT性能实测">
 <meta property="og:url" content="https://rebibabo.github.io/categories/llm-inference/4/index.html">
-<meta property="og:site_name" content="AI Infra">
+<meta property="og:site_name" content="rebibabo的博客">
 <meta property="og:description" content="一、前言前两篇文章分别建立了 BF16 基线和 AWQ INT4 量化实验，也验证了 KV Cache 是高并发场景下的显存瓶颈，以及 AWQ 量化通过释放 KV Cache 空间实现吞吐翻倍的根本原因。本文在此基础上，继续探索另一个常见但容易被忽视的推理优化手段——Prefix Caching。 在实际生产中，大量请求共享相同的 system prompt 或上下文前缀，而这部分 KV 每次都被">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://rebibabo.github.io/images/llm-inference/IMG-20260604215456909.png">
@@ -35,7 +35,7 @@
   
   
   
-  <title>LLM推理优化实战(四)：Prefix Caching原理详解与TTFT性能实测 - AI Infra</title>
+  <title>LLM推理优化实战(四)：Prefix Caching原理详解与TTFT性能实测 - rebibabo的博客</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
 
