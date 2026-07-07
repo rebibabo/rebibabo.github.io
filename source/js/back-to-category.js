@@ -7,7 +7,7 @@
   }
 
   function isPostPage() {
-    return /^\/\d{4}\/\d{2}\/\d{2}\//.test(location.pathname);
+    return !isCategoryPage() && !!document.querySelector(".markdown-body");
   }
 
   function scrollKey(pathname) {
