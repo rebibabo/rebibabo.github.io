@@ -100,7 +100,7 @@ async function runConcurrent(tasks, concurrency) {
   });
 }
 
-/** 渲染单个 mermaid 块 */
+/** 渲染单个 mermaid 块，限制最大高度 */
 async function renderBlock(mmdContent, outputPath) {
   const mmdPath = outputPath.replace(/\.png$/, '.mmd');
   fs.writeFileSync(mmdPath, mmdContent, 'utf-8');
@@ -108,9 +108,20 @@ async function renderBlock(mmdContent, outputPath) {
   const cmd = `mmdc -i "${mmdPath}" -o "${outputPath}" -b white --scale 2`;
   await execAsync(cmd, { timeout: 60000 });
 
-  // 保留源码 .mmd
-  // 已经写入 mmdPath 了，保留即可
-  return mmdPath;
+  // 限制图片最大高度，保持宽高比
+  const MAX_H = 1080;
+  try {
+    const { stdout } = await execAsync(`sips --getProperty pixelHeight "${outputPath}"`, { timeout: 5000 });
+    const h = parseInt(stdout.match(/\d+/)[0], 10);
+    if (h > MAX_H) {
+      await execAsync(`sips --resampleHeight ${MAX_H} "${outputPath}"`, { timeout: 10000 });
+    }
+  } catch {
+    // sips 不可用时忽略，保留原图
+  }
+
+  // 删除临时 .mmd 文件
+  try { fs.unlinkSync(mmdPath); } catch {}
 }
 
 // --- 主流程 ---

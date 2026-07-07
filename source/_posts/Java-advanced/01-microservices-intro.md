@@ -56,6 +56,7 @@ graph TB
 
 
 
+
 <pre style="display:none">
 graph LR
     subgraph "微服务架构"
@@ -66,6 +67,7 @@ graph LR
     end
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000001.png)
+
 
 
 
@@ -135,6 +137,7 @@ graph TB
     Registry -->|② 查询计费服务地址列表| Consumer["投放服务"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000002.png)
+
 
 
 
@@ -245,6 +248,7 @@ graph LR
 
 
 
+
 ## 6. API 网关
 
 ### 6.1 为什么需要
@@ -264,6 +268,7 @@ graph TB
     Gateway --> RS["报表服务"]
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000004.png)
+
 
 
 
@@ -360,6 +365,7 @@ graph LR
     Half -->|试探请求失败| Open
 </pre>
 ![](/images/Java-advanced/IMG-20260707-000005.png)
+
 
 
 
