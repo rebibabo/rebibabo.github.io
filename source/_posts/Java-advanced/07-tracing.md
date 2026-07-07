@@ -49,7 +49,7 @@ graph TB
     Stock --> Payment["支付服务"]
     Payment --> DB["数据库"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000027.png)
+![](/images/Java-advanced/IMG-20260707-000027.png)
 
 
 同一个请求，被拆到了 5、6 个**不同的进程**里执行，这些进程可能还跑在不同的机器上。这时候原来的排查手段全部失灵了：
@@ -132,7 +132,7 @@ graph TB
     B --> E["Span E 调用支付服务 ← 慢！（200ms ~ 800ms）"]
     E --> F["Span F 支付服务查数据库 ← 根因在这（250ms ~ 780ms）"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000028.png)
+![](/images/Java-advanced/IMG-20260707-000028.png)
 
 
 - 所有 Span 的 `traceId` 都是 `abc123`（同一次请求）
@@ -166,7 +166,7 @@ graph TB
     Log --> Span["Service 要建子 Span<br/>→ 掏出 spanId=A 作为 parent"]
     Span --> Clean["请求结束<br/>→ 清空 T1 的口袋<br/>{否则会串味影响下一个请求}"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000029.png)
+![](/images/Java-advanced/IMG-20260707-000029.png)
 
 
 这也解释了一个常见的坑（第 8 节细讲）：一旦你把活儿丢到**线程池/异步线程**里执行，新线程是另一个口袋，里面是空的，上下文就"丢"了。
@@ -188,7 +188,7 @@ graph LR
     TraceId --> ParentId["00f067aa0ba902b7<br/>parentSpanId"]
     ParentId --> Flags["01<br/>采样标志"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000030.png)
+![](/images/Java-advanced/IMG-20260707-000030.png)
 
 
 - 调用方（订单服务）发请求前，把"我的 traceId + 我当前的 spanId"编码进 `traceparent` 头
@@ -201,7 +201,7 @@ graph TB
     GW["网关<br/>生成 traceId=abc123, spanId=A"] -->|"HTTP 请求头带上<br/>traceparent: ...abc123-A..."| Order["订单服务<br/>读出 traceId=abc123, parent=A<br/>→ 新建 spanId=B"]
     Order -->|"HTTP 请求头带上<br/>traceparent: ...abc123-B..."| Payment["支付服务<br/>读出 traceId=abc123, parent=B<br/>→ 新建 spanId=E"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000031.png)
+![](/images/Java-advanced/IMG-20260707-000031.png)
 
 
 **注意全程 traceId 始终是 abc123 没变**（这是把所有 Span 绑在一起的关键），变的是每一跳新建自己的 spanId、并把 parent 指向上一跳。
@@ -279,7 +279,7 @@ graph TB
     Collector --> Store["③ 存储（时序/检索数据库）<br/>按 traceId、耗时、服务检索"]
     Store --> UI["④ UI 可视化<br/>画成甘特图，一眼看出慢在哪"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000032.png)
+![](/images/Java-advanced/IMG-20260707-000032.png)
 
 
 这套流水线，市面上的主流工具基本都是这个骨架，只是分工和侧重不同：
@@ -387,7 +387,7 @@ graph TB
     Tracing --> Logging["③ Logging<br/>拿 traceId 搜日志<br/>支付服务: 数据库连接池耗尽"]
     Logging --> RootCause["根因找到 ✅"]
 </pre>
-![图](/images/Java-advanced/IMG-20260707-000033.png)
+![](/images/Java-advanced/IMG-20260707-000033.png)
 
 
 一句话记住三者的角色：

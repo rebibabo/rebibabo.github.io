@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * 从 .mmd 文件恢复源码到 markdown 中
- * 将 ![mermaid](...) 替换为 <pre>源码</pre> + ![图](...)
+ * 将 ![mermaid](...) 替换为 <pre>源码</pre> + ![](...)
  * 补全缺失的 PNG
  */
 const { execSync } = require('child_process');
@@ -49,7 +49,7 @@ for (const mmd of missingPNGs) {
 
 console.log(`\n补全完成，处理 markdown 文件...\n`);
 
-// 处理 markdown 文件：替换 ![mermaid] 为 <pre>源码</pre> + ![图]
+// 处理 markdown 文件：替换 ![mermaid] 为 <pre>源码</pre> + ![]
 const mdFiles = findMdFiles(POSTS_DIR);
 let total = 0;
 
@@ -74,7 +74,7 @@ for (const mdFile of mdFiles) {
 
     const sourceCode = fs.readFileSync(mmdPath, 'utf-8').trim();
     const prefix = `<pre style="display:none">\n${sourceCode}\n</pre>\n`;
-    const newRef = `![图](/images/Java-advanced/${m[1]})`;
+    const newRef = `![](/images/Java-advanced/${m[1]})`;
 
     content = content.slice(0, m.index) + prefix + newRef + content.slice(m.index + m[0].length);
     modified = true;

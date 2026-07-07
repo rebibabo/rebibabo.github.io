@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * 将 markdown 中的 mermaid 代码块渲染为 PNG 图片
- * 图片按分类存入 source/images/<category>/
+ * 将 markdown 中的 mermaid 代码块渲染为 PNG 片
+ * 片按分类存入 source/images/<category>/
  * 源码以 .mmd 文件与 PNG 并列保存，方便后续修改
  * markdown 中的 ```mermaid 替换为 ![](/images/<category>/IMG-xxx.png)
  *
@@ -136,7 +136,7 @@ async function main() {
       if (blocks.length === 0) continue;
       totalFiles++;
       totalBlocks += blocks.length;
-      console.log(`📄 ${path.relative(POSTS_DIR, mdFile)} (${blocks.length} 图)`);
+      console.log(`📄 ${path.relative(POSTS_DIR, mdFile)} (${blocks.length} )`);
       blocks.forEach((b, i) => {
         const firstLine = b.code.split('\n')[0].slice(0, 60);
         console.log(`   [${i + 1}] ${firstLine}...`);
@@ -169,7 +169,7 @@ async function main() {
     for (const block of blocks) {
       const basename = generateFilename(globalIndex++);
       const outputPath = path.join(catImagesDir, `${basename}.png`);
-      const imgRef = `![图](${path.posix.join('/images', category, `${basename}.png`)})`;
+      const imgRef = `![](${path.posix.join('/images', category, `${basename}.png`)})`;
 
       tasks.push({
         category,
@@ -235,13 +235,13 @@ async function main() {
     fs.writeFileSync(mdFile, content, 'utf-8');
     modifiedCount++;
     const name = path.relative(POSTS_DIR, mdFile);
-    console.log(`   ✅ ${name} — 替换 ${edits.length} 个图`);
+    console.log(`   ✅ ${name} — 替换 ${edits.length} 个`);
   }
 
   // 第五阶段：清理临时目录
   try { fs.rmSync(TMP_DIR, { recursive: true, force: true }); } catch {}
 
-  console.log(`\n✅ 完成: ${modifiedCount} 个文件, ${totalBlocks} 张图`);
+  console.log(`\n✅ 完成: ${modifiedCount} 个文件, ${totalBlocks} 张`);
   console.log(`   源码 .mmd 文件保存在 images 目录中，与 PNG 并列`);
 }
 
