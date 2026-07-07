@@ -1,4 +1,3 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     Request["HTTP 请求"] --> FilterChain["Spring Security 过滤器链<br/>过滤器1 → 过滤器2 → ... → JWT过滤器<br/>← 在这里做认证授权检查"]
     FilterChain -->|检查通过| Controller["Controller（你的业务代码）"]

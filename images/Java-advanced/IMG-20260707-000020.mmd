@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     Code["你的代码"] -->|调用统一 API 埋点| Facade["Micrometer（门面，统一接口）"]
     Facade --> Prom["Prometheus<br/>（你选这个）"]
     Facade --> Other["其他监控系统<br/>（Datadog 等）"]

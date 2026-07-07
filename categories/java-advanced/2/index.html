@@ -26,13 +26,19 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言写完 Mini-SSP 后会遇到一个现实问题：项目依赖 MySQL、Redis、还有好几个服务，在自己电脑上配好了，换台机器又要重新装一遍环境。Docker 就是为了解决”在我电脑上能跑，在你电脑上跑不起来”这个经典问题。这篇文章用最直白的方式讲">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000006.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000007.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000008.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000009.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000010.png">
 <meta property="article:published_time" content="2026-05-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:06:04.865Z">
+<meta property="article:modified_time" content="2026-07-07T13:18:36.694Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Docker">
 <meta property="article:tag" content="容器">
 <meta property="article:tag" content="部署">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000006.png">
   
   
   
@@ -228,7 +234,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5.7k 字
+          4.8k 字
         
       </span>
     
@@ -239,7 +245,7 @@
         
         
         
-          48 分钟
+          40 分钟
         
       </span>
     
@@ -297,26 +303,8 @@
 <h3 id="1-2-解决的核心问题"><a href="#1-2-解决的核心问题" class="headerlink" title="1.2 解决的核心问题"></a>1.2 解决的核心问题</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">传统部署：<br>  开发机：装 <span class="hljs-keyword">JDK </span><span class="hljs-number">17</span>、MySQL <span class="hljs-number">8</span>.<span class="hljs-number">0</span>、Redis <span class="hljs-number">7</span>、配一堆环境变量 → 能跑<br>  测试机：重新装一遍，版本差一点 → 可能跑不起来<br>  生产机：再装一遍，漏了个配置 → <span class="hljs-string">&quot;在我电脑上明明好好的啊&quot;</span><br><br>Docker 部署：<br>  把 <span class="hljs-keyword">JDK、应用、依赖全打包成一个镜像</span><br><span class="hljs-keyword"></span>  开发机、测试机、生产机：docker run 同一个镜像 → 处处一致<br></code></pre></td></tr></table></figure>
 
 <h3 id="1-3-容器-vs-虚拟机"><a href="#1-3-容器-vs-虚拟机" class="headerlink" title="1.3 容器 vs 虚拟机"></a>1.3 容器 vs 虚拟机</h3><p>很多人会把容器和虚拟机搞混，它们都能”隔离环境”，但原理完全不同：</p>
-<pre><code class=" mermaid">graph TB
-    subgraph &quot;虚拟机 (VM)&quot;
-        direction TB
-        VM_Apps[&quot;应用 A (完整OS) | 应用 B (完整OS) | 应用 C (完整OS)&lt;br/&gt;← 每个 VM 装一套完整操作系统，很重&quot;]
-        VM_Hyper[&quot;Hypervisor&lt;br/&gt;← 虚拟化层&quot;]
-        VM_Host[&quot;宿主机操作系统&quot;]
-        VM_Apps --- VM_Hyper --- VM_Host
-    end
-</code></pre>
-
-<pre><code class=" mermaid">graph TB
-    subgraph &quot;容器 (Container)&quot;
-        direction TB
-        C_Apps[&quot;应用 A (依赖) | 应用 B (依赖) | 应用 C (依赖)&lt;br/&gt;← 只打包应用和依赖，共享宿主机内核&quot;]
-        C_Engine[&quot;Docker Engine&quot;]
-        C_Host[&quot;宿主机操作系统&lt;br/&gt;← 所有容器共享这一个内核&quot;]
-        C_Apps --- C_Engine --- C_Host
-    end
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000006.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/images/Java-advanced/IMG-20260707-000007.png" srcset="/img/loading.gif" lazyload></p>
 <table>
 <thead>
 <tr>
@@ -354,11 +342,7 @@
 <p>简单说：<strong>虚拟机是”模拟一台完整的电脑”，容器是”在同一台电脑上隔离出独立的运行空间”</strong>。容器更轻、更快，所以现代后端部署几乎都用容器。</p>
 <hr>
 <h2 id="2-三个核心概念"><a href="#2-三个核心概念" class="headerlink" title="2. 三个核心概念"></a>2. 三个核心概念</h2><p>理解 Docker 只需要先搞懂三个词的关系：</p>
-<pre><code class=" mermaid">graph LR
-    DF[&quot;Dockerfile&lt;br/&gt;（打包脚本）&quot;] --&gt;|build| Image[&quot;镜像（Image）&lt;br/&gt;（打包好的模板）&quot;]
-    Image --&gt;|run| Container[&quot;容器（Container）&lt;br/&gt;（运行中的实例）&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000008.png" srcset="/img/loading.gif" lazyload></p>
 <table>
 <thead>
 <tr>
@@ -395,11 +379,7 @@
 <h3 id="3-2-容器相关"><a href="#3-2-容器相关" class="headerlink" title="3.2 容器相关"></a>3.2 容器相关</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 运行容器（最常用）</span><br>docker run -d -p 8080:8080 --name my-ssp my-app:1.0<br><span class="hljs-comment"># -d        后台运行（detached）</span><br><span class="hljs-comment"># -p 8080:8080  端口映射，宿主机8080 → 容器8080</span><br><span class="hljs-comment"># --name    给容器起个名字，方便后续操作</span><br><br><span class="hljs-comment"># 查看正在运行的容器</span><br>docker ps<br><br><span class="hljs-comment"># 查看所有容器（包括已停止的）</span><br>docker ps -a<br><br><span class="hljs-comment"># 停止 / 启动 / 重启容器</span><br>docker stop my-ssp<br>docker start my-ssp<br>docker restart my-ssp<br><br><span class="hljs-comment"># 删除容器（要先停止）</span><br>docker <span class="hljs-built_in">rm</span> my-ssp<br><br><span class="hljs-comment"># 查看容器日志</span><br>docker logs my-ssp<br>docker logs -f my-ssp           <span class="hljs-comment"># -f 持续跟踪输出（类似 tail -f）</span><br><br><span class="hljs-comment"># 进入正在运行的容器内部（排查问题用）</span><br>docker <span class="hljs-built_in">exec</span> -it my-ssp bash<br><span class="hljs-comment"># -it 表示交互式终端，进去后就像在容器内的 Linux 里操作</span><br></code></pre></td></tr></table></figure>
 
 <h3 id="3-3-端口映射详解"><a href="#3-3-端口映射详解" class="headerlink" title="3.3 端口映射详解"></a>3.3 端口映射详解</h3><p><code>-p 8080:8080</code> 这个参数最容易迷糊，记住格式是 <strong>宿主机端口:容器端口</strong>：</p>
-<pre><code class=" mermaid">graph LR
-    Browser[&quot;浏览器 localhost:9090&quot;] --&gt;|外部访问| Host[&quot;宿主机 9090 端口&quot;]
-    Host --&gt;|Docker 转发| Container[&quot;容器内部 8080 端口&lt;br/&gt;Spring Boot 应用监听 8080&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000009.png" srcset="/img/loading.gif" lazyload></p>
 <p>容器之间是隔离的，不做端口映射，外部就访问不到容器里的服务。</p>
 <hr>
 <h2 id="4-把-Spring-Boot-应用打包成镜像"><a href="#4-把-Spring-Boot-应用打包成镜像" class="headerlink" title="4. 把 Spring Boot 应用打包成镜像"></a>4. 把 Spring Boot 应用打包成镜像</h2><h3 id="4-1-编写-Dockerfile"><a href="#4-1-编写-Dockerfile" class="headerlink" title="4.1 编写 Dockerfile"></a>4.1 编写 Dockerfile</h3><p>在项目根目录创建一个名为 <code>Dockerfile</code> 的文件（没有后缀）：</p>
@@ -465,12 +445,7 @@
 
 <p>防止某个容器吃光宿主机所有资源，影响其他容器。</p>
 <h3 id="6-3-联合文件系统（UnionFS）——-负责分层"><a href="#6-3-联合文件系统（UnionFS）——-负责分层" class="headerlink" title="6.3 联合文件系统（UnionFS）—— 负责分层"></a>6.3 联合文件系统（UnionFS）—— 负责分层</h3><p>镜像是<strong>一层一层叠起来</strong>的，每层只记录和上一层的差异：</p>
-<pre><code class=" mermaid">graph TB
-    L1[&quot;Layer 1: 基础 Linux 系统&quot;] --&gt; L2[&quot;Layer 2: 装上 JRE&quot;]
-    L2 --&gt; L3[&quot;Layer 3: 复制进 jar 包&quot;]
-    L3 --&gt; View[&quot;合并视图：完整的运行环境&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000010.png" srcset="/img/loading.gif" lazyload></p>
 <p>分层的好处：</p>
 <ul>
 <li><strong>复用</strong>：多个镜像都基于同一个 JRE 层，这一层只存一份</li>

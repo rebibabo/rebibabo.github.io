@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     S1["① 客户端请求受保护接口<br/>Authorization: Bearer eyJhbGci..."] --> S2["② JWT 过滤器拦截请求，取出 token"]
     S2 --> S3{"③ 用密钥验证签名<br/>验证是否过期"}
     S3 -->|通过 ✅| S4["④ 解析用户信息<br/>存入 SecurityContext"]

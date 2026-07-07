@@ -1,5 +1,4 @@
-%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
-flowchart TB
+graph TB
     B1["计费服务实例1"] -->|① 注册 + 心跳| Registry["注册中心<br/>(Nacos / Eureka)"]
     B2["计费服务实例2"] -->|① 注册 + 心跳| Registry
     B3["计费服务实例3"] -->|① 注册 + 心跳| Registry

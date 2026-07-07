@@ -26,8 +26,15 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言前面两篇——指标 和 Grafana 大盘——已经把可观测性三大支柱里的 Metrics（指标） 讲完了，还把它画成了能实时盯的大盘。指标能告诉你”系统整体健康吗”——QPS 多少、成功率多少、P99 耗时多少。但当大盘告诉你”下单接口变慢了”，">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000027.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000028.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000029.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000030.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000031.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000032.png">
+<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000033.png">
 <meta property="article:published_time" content="2026-05-06T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T13:06:04.867Z">
+<meta property="article:modified_time" content="2026-07-07T13:18:36.696Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="OpenTelemetry">
 <meta property="article:tag" content="Tracing">
@@ -35,6 +42,7 @@
 <meta property="article:tag" content="微服务">
 <meta property="article:tag" content="链路追踪">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000027.png">
   
   
   
@@ -230,7 +238,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          10k 字
+          8.2k 字
         
       </span>
     
@@ -241,7 +249,7 @@
         
         
         
-          88 分钟
+          69 分钟
         
       </span>
     
@@ -301,15 +309,7 @@
 </ul>
 <p>本质原因是：<strong>所有事情都发生在一个地方，天然就是连贯的。</strong></p>
 <h3 id="1-2-微服务时代，请求被”打散”了"><a href="#1-2-微服务时代，请求被”打散”了" class="headerlink" title="1.2 微服务时代，请求被”打散”了"></a>1.2 微服务时代，请求被”打散”了</h3><p>现在一个”用户下单”的请求，可能要经过这样一条链路：</p>
-<pre><code class=" mermaid">graph TB
-    User[&quot;用户&quot;] --&gt; Gateway[&quot;API 网关&quot;]
-    Gateway --&gt; Order[&quot;订单服务&quot;]
-    Order --&gt; Stock[&quot;库存服务&quot;]
-    Order --&gt; Coupon[&quot;优惠券服务&quot;]
-    Stock --&gt; Payment[&quot;支付服务&quot;]
-    Payment --&gt; DB[&quot;数据库&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000027.png" srcset="/img/loading.gif" lazyload></p>
 <p>同一个请求，被拆到了 5、6 个<strong>不同的进程</strong>里执行，这些进程可能还跑在不同的机器上。这时候原来的排查手段全部失灵了：</p>
 <table>
 <thead>
@@ -396,15 +396,7 @@
 </tbody></table>
 <h3 id="3-2-Trace：一堆-Span-组成的”一棵树”"><a href="#3-2-Trace：一堆-Span-组成的”一棵树”" class="headerlink" title="3.2 Trace：一堆 Span 组成的”一棵树”"></a>3.2 Trace：一堆 Span 组成的”一棵树”</h3><p><strong>Trace（一条追踪）</strong> &#x3D; 一次完整请求里产生的<strong>所有 Span 的集合</strong>。它们靠 <code>traceId</code> 相同绑在一起，又靠 <code>parentSpanId</code> 形成<strong>父子关系</strong>，最终拼成一棵树（或者说一张调用关系图）。</p>
 <p>还是用下单的例子，一次请求产生的 Span 树长这样：</p>
-<pre><code class=" mermaid">graph TB
-    Trace[&quot;Trace: traceId = abc123&quot;] --&gt; A[&quot;Span A 网关处理请求（0ms ~ 850ms）&quot;]
-    A --&gt; B[&quot;Span B 订单服务下单（20ms ~ 840ms）&quot;]
-    B --&gt; C[&quot;Span C 调用库存服务（50ms ~ 180ms）&quot;]
-    B --&gt; D[&quot;Span D 调用优惠券服务（60ms ~ 120ms）&quot;]
-    B --&gt; E[&quot;Span E 调用支付服务 ← 慢！（200ms ~ 800ms）&quot;]
-    E --&gt; F[&quot;Span F 支付服务查数据库 ← 根因在这（250ms ~ 780ms）&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000028.png" srcset="/img/loading.gif" lazyload></p>
 <ul>
 <li>所有 Span 的 <code>traceId</code> 都是 <code>abc123</code>（同一次请求）</li>
 <li>Span B 的 <code>parentSpanId</code> 指向 Span A，C&#x2F;D&#x2F;E 的 parent 指向 B……父子关系就是这么连起来的</li>
@@ -420,35 +412,19 @@
 <p>它要解决两个层面的传递：<strong>一个进程内部</strong>怎么传，<strong>跨进程&#x2F;跨服务</strong>怎么传。</p>
 <h3 id="4-1-进程内传递：靠-ThreadLocal-“悄悄带着走”"><a href="#4-1-进程内传递：靠-ThreadLocal-“悄悄带着走”" class="headerlink" title="4.1 进程内传递：靠 ThreadLocal “悄悄带着走”"></a>4.1 进程内传递：靠 ThreadLocal “悄悄带着走”</h3><p>在<strong>同一个服务内部</strong>，一个请求通常由<strong>同一个线程</strong>从头处理到尾（Controller → Service → Mapper）。那这个请求的 traceId、当前 spanId 存哪？</p>
 <p>答案是存在 <strong>ThreadLocal</strong> 里——这是 Java 里”线程私有变量”的机制，可以理解成”每个线程身上挂着的一个小口袋”。请求一进来，框架就把当前的追踪上下文（traceId、当前 spanId）塞进这个线程的小口袋里。之后这个线程跑到任何一层代码，想用的时候伸手到口袋里一掏就有了，<strong>不需要在每个方法的参数里一层层传 traceId</strong>。</p>
-<pre><code class=" mermaid">graph TB
-    Enter[&quot;请求进入&quot;] --&gt; Pocket[&quot;线程 T1 的口袋里放入&lt;br/&gt;&#123;traceId=abc123, spanId=A&#125;&quot;]
-    Pocket --&gt; Log[&quot;Controller 想打日志&lt;br/&gt;→ 从口袋掏出 traceId=abc123&quot;]
-    Log --&gt; Span[&quot;Service 要建子 Span&lt;br/&gt;→ 掏出 spanId=A 作为 parent&quot;]
-    Span --&gt; Clean[&quot;请求结束&lt;br/&gt;→ 清空 T1 的口袋&lt;br/&gt;&#123;否则会串味影响下一个请求&#125;&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000029.png" srcset="/img/loading.gif" lazyload></p>
 <p>这也解释了一个常见的坑（第 8 节细讲）：一旦你把活儿丢到<strong>线程池&#x2F;异步线程</strong>里执行，新线程是另一个口袋，里面是空的，上下文就”丢”了。</p>
 <h3 id="4-2-跨进程传递：把上下文塞进-HTTP-请求头"><a href="#4-2-跨进程传递：把上下文塞进-HTTP-请求头" class="headerlink" title="4.2 跨进程传递：把上下文塞进 HTTP 请求头"></a>4.2 跨进程传递：把上下文塞进 HTTP 请求头</h3><p>进程内靠口袋，可一旦订单服务要通过 HTTP <strong>调用支付服务</strong>，那就是两个进程、两个线程、两个完全独立的”口袋系统”了。口袋里的东西没法隔着网络自动跑过去。</p>
 <p>办法很直接：<strong>调用方在发出 HTTP 请求时，把追踪上下文写进请求头（Header）里带过去；被调用方收到请求时，再从请求头里把它读出来，放进自己的口袋。</strong></p>
 <p>这就像快递包裹从深圳的车转到北京的车，工作人员会把”单号 + 来源”这张小标签<strong>贴在包裹外面</strong>一起交接，新一站撕下来登记，继续往下贴。</p>
 <p>具体传什么？业界已经有了统一标准 <strong>W3C Trace Context</strong>，它规定用一个叫 <code>traceparent</code> 的请求头来携带：</p>
-<pre><code class=" mermaid">graph LR
-    Header[&quot;traceparent:&quot;] --&gt; Version[&quot;00&lt;br/&gt;版本&quot;]
-    Version --&gt; TraceId[&quot;abc123def456...&lt;br/&gt;traceId&quot;]
-    TraceId --&gt; ParentId[&quot;00f067aa0ba902b7&lt;br/&gt;parentSpanId&quot;]
-    ParentId --&gt; Flags[&quot;01&lt;br/&gt;采样标志&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000030.png" srcset="/img/loading.gif" lazyload></p>
 <ul>
 <li>调用方（订单服务）发请求前，把”我的 traceId + 我当前的 spanId”编码进 <code>traceparent</code> 头</li>
 <li>被调用方（支付服务）一收到请求，解析这个头，就知道了：”哦，我属于 traceId&#x3D;abc123 这条链路，我的上游 span 是那个,我要新建一个 span 并把 parent 指向它”</li>
 </ul>
 <p>整个传递链路串起来就是：</p>
-<pre><code class=" mermaid">graph TB
-    GW[&quot;网关&lt;br/&gt;生成 traceId=abc123, spanId=A&quot;] --&gt;|&quot;HTTP 请求头带上&lt;br/&gt;traceparent: ...abc123-A...&quot;| Order[&quot;订单服务&lt;br/&gt;读出 traceId=abc123, parent=A&lt;br/&gt;→ 新建 spanId=B&quot;]
-    Order --&gt;|&quot;HTTP 请求头带上&lt;br/&gt;traceparent: ...abc123-B...&quot;| Payment[&quot;支付服务&lt;br/&gt;读出 traceId=abc123, parent=B&lt;br/&gt;→ 新建 spanId=E&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000031.png" srcset="/img/loading.gif" lazyload></p>
 <p><strong>注意全程 traceId 始终是 abc123 没变</strong>（这是把所有 Span 绑在一起的关键），变的是每一跳新建自己的 spanId、并把 parent 指向上一跳。</p>
 <blockquote>
 <p>划重点：链路追踪能”跨服务”，靠的不是什么黑魔法，就是<strong>在每次远程调用的请求头里夹带 traceId 这张小标签</strong>。换成 RPC、消息队列也一样——RPC 把它放进调用的元数据里，消息队列把它放进消息的 header 里，原理完全相同。</p>
@@ -494,20 +470,7 @@
 <p>收集器把来自各个服务、但 traceId 相同的 Span <strong>按 traceId 归拢到一起</strong>，根据 parentSpanId 重建出父子树，存进后端存储，最后由 UI 查询展示。</p>
 <hr>
 <h2 id="6-整体架构：从产生到看见的全景图"><a href="#6-整体架构：从产生到看见的全景图" class="headerlink" title="6. 整体架构：从产生到看见的全景图"></a>6. 整体架构：从产生到看见的全景图</h2><p>把上面几节串起来，一条 Span 数据从”产生”到”被你看见”，要走完这条流水线：</p>
-<pre><code class=" mermaid">graph TB
-    subgraph &quot;① 各个服务（埋点产生 Span）&quot;
-        direction TB
-        O[&quot;订单服务&quot;]
-        P[&quot;支付服务&quot;]
-        S[&quot;库存服务&quot;]
-    end
-    O --&gt;|异步上报| Collector[&quot;② Collector 收集器&lt;br/&gt;按 traceId 归拢 Span&lt;br/&gt;重建成树&quot;]
-    P --&gt;|异步上报| Collector
-    S --&gt;|异步上报| Collector
-    Collector --&gt; Store[&quot;③ 存储（时序/检索数据库）&lt;br/&gt;按 traceId、耗时、服务检索&quot;]
-    Store --&gt; UI[&quot;④ UI 可视化&lt;br/&gt;画成甘特图，一眼看出慢在哪&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000032.png" srcset="/img/loading.gif" lazyload></p>
 <p>这套流水线，市面上的主流工具基本都是这个骨架，只是分工和侧重不同：</p>
 <table>
 <thead>
@@ -571,12 +534,7 @@
 <p>记住这是个<strong>成本 vs 完整性</strong>的权衡，没有银弹，按业务重要性调。</p>
 <hr>
 <h2 id="9-三大支柱怎么配合：Metrics、Tracing、Logging"><a href="#9-三大支柱怎么配合：Metrics、Tracing、Logging" class="headerlink" title="9. 三大支柱怎么配合：Metrics、Tracing、Logging"></a>9. 三大支柱怎么配合：Metrics、Tracing、Logging</h2><p>到这里，可观测性三件套你就齐了。它们不是三选一，而是<strong>分工协作、层层下钻</strong>：</p>
-<pre><code class=" mermaid">graph TB
-    Metrics[&quot;① Metrics 指标大盘告警&lt;br/&gt;下单接口 P99 从 200ms 涨到 2s 了！&lt;br/&gt;知道有问题，但不知道为什么&quot;] --&gt; Tracing[&quot;② Tracing&lt;br/&gt;翻出慢的 trace&lt;br/&gt;原来卡在调用支付服务那一段&lt;br/&gt;知道卡在哪步，但不知道内部发生了什么&quot;]
-    Tracing --&gt; Logging[&quot;③ Logging&lt;br/&gt;拿 traceId 搜日志&lt;br/&gt;支付服务: 数据库连接池耗尽&quot;]
-    Logging --&gt; RootCause[&quot;根因找到 ✅&quot;]
-</code></pre>
-
+<p><img src="/images/Java-advanced/IMG-20260707-000033.png" srcset="/img/loading.gif" lazyload></p>
 <p>一句话记住三者的角色：</p>
 <table>
 <thead>
@@ -699,6 +657,8 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" class="print-no-link">#微服务</a>
+      
         <a href="/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/" class="print-no-link">#可观测性</a>
       
         <a href="/tags/%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/" class="print-no-link">#链路追踪</a>
@@ -706,8 +666,6 @@
         <a href="/tags/Tracing/" class="print-no-link">#Tracing</a>
       
         <a href="/tags/OpenTelemetry/" class="print-no-link">#OpenTelemetry</a>
-      
-        <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" class="print-no-link">#微服务</a>
       
     </div>
   
@@ -773,12 +731,6 @@
                   </article>
                   <article class="post-next col-6">
                     
-                    
-                      <a href="/categories/java-advanced/1/" title="Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶">
-                        <span class="hidden-mobile">Java进阶(1) | 微服务入门：从单体到 Spring Cloud 全家桶</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
                     
                   </article>
                 </div>
