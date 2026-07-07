@@ -58,7 +58,7 @@ for (const mdFile of mdFiles) {
   let modified = false;
 
   // 匹配所有 ![mermaid](/images/.../IMG-xxx.png)
-  const regex = /!\[mermaid\]\(\/images\/Java-advanced\/(IMG-\d+\.png)\)/g;
+  const regex = /!\[mermaid\]\(\/images\/Java-advanced\/(IMG-[\d-]+\.png)\)/g;
   const matches = [...content.matchAll(regex)];
 
   // 从后往前替换
