@@ -1,0 +1,4 @@
+%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
+flowchart LR
+    DF["Dockerfile<br/>（打包脚本）"] -->|build| Image["镜像（Image）<br/>（打包好的模板）"]
+    Image -->|run| Container["容器（Container）<br/>（运行中的实例）"]

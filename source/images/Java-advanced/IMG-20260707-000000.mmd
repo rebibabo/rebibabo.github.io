@@ -1,0 +1,7 @@
+%%{init: {"flowchart":{"nodeSpacing":14,"rankSpacing":26,"curve":"linear","diagramPadding":6},"themeVariables":{"fontSize":"13px"}}}%%
+flowchart TB
+    subgraph "单体架构"
+        direction TB
+        M["广告平台 (一个进程)<br/>用户模块 · 投放模块 · 计费模块 · 报表模块"]
+        M --> MySQL[(MySQL)]
+    end
