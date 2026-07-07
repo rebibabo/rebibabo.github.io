@@ -3,7 +3,9 @@
   const SCROLL_KEY_PREFIX = "category-scroll:";
 
   function isCategoryPage() {
-    return location.pathname.startsWith(CATEGORY_PREFIX);
+    // /categories/xxx/  (一个子路径) → 分类列表页
+    // /categories/xxx/01/ (两个子路径) → 文章页
+    return /^\/categories\/[^/]+\/$/.test(location.pathname);
   }
 
   function isPostPage() {
