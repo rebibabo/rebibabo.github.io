@@ -26,17 +26,14 @@
 <meta property="og:site_name" content="AI Infra">
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言上一篇用 Docker Compose 把 Mini-SSP 的几个服务跑起来了。但 Compose 只能管理一台机器上的容器——如果服务要跑在几十台机器上、某个容器挂了要自动重启、流量大了要自动扩容，Compose 就力不从心了。这时候就需要">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000011.png">
-<meta property="og:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000012.png">
 <meta property="article:published_time" content="2026-05-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T12:35:43.989Z">
+<meta property="article:modified_time" content="2026-07-07T12:37:59.666Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="K8s">
 <meta property="article:tag" content="Kubernetes">
 <meta property="article:tag" content="容器编排">
 <meta property="article:tag" content="部署">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rebibabo.github.io/images/Java-advanced/IMG-20260707-000011.png">
   
   
   
@@ -232,7 +229,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6k 字
+          6.3k 字
         
       </span>
     
@@ -243,7 +240,7 @@
         
         
         
-          50 分钟
+          53 分钟
         
       </span>
     
@@ -325,10 +322,20 @@ graph TB
     Ingress -->|/api/ssp/*| SSP["SSP Service"]
     Ingress -->|/api/dsp/*| DSP["DSP Service"]
     Ingress -->|/admin/*| Admin["管理后台 Service"]
-</pre>
-<p><img src="/images/Java-advanced/IMG-20260707-000011.png" srcset="/img/loading.gif" lazyload></p>
-<p>多个服务可以共享一个外部 IP，由 Ingress 根据 URL 分发——类似 Nginx 的反向代理。</p>
-<h3 id="2-5-四者关系图"><a href="#2-5-四者关系图" class="headerlink" title="2.5 四者关系图"></a>2.5 四者关系图</h3><pre style="display:none">
+
+![](/images/Java-advanced/IMG-20260707-000011.png)
+
+
+
+
+
+
+
+多个服务可以共享一个外部 IP，由 Ingress 根据 URL 分发——类似 Nginx 的反向代理。
+
+### 2.5 四者关系图
+
+<pre style="display:none">
 graph TB
     Request["外部请求"] --> Ingress["Ingress<br/>根据 URL 路由"]
     Ingress --> Service["Service<br/>固定入口 + 负载均衡"]
@@ -338,166 +345,125 @@ graph TB
     Deploy["Deployment<br/>统一管理"] -.-> P1
     Deploy -.-> P2
     Deploy -.-> P3
-</pre>
-<p><img src="/images/Java-advanced/IMG-20260707-000012.png" srcset="/img/loading.gif" lazyload></p>
-<hr>
-<h2 id="3-集群架构（简单理解）"><a href="#3-集群架构（简单理解）" class="headerlink" title="3. 集群架构（简单理解）"></a>3. 集群架构（简单理解）</h2><p>一个 K8s 集群由两类机器组成：</p>
-<h3 id="3-1-控制平面（Control-Plane）——-大脑"><a href="#3-1-控制平面（Control-Plane）——-大脑" class="headerlink" title="3.1 控制平面（Control Plane）—— 大脑"></a>3.1 控制平面（Control Plane）—— 大脑</h3><p>负责决策和调度，主要组件：</p>
-<table>
-<thead>
-<tr>
-<th>组件</th>
-<th>作用</th>
-<th>类比</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>kube-apiserver</code></td>
-<td>所有操作的唯一入口，接收命令</td>
-<td>前台接待</td>
-</tr>
-<tr>
-<td><code>etcd</code></td>
-<td>存储整个集群的状态（键值数据库）</td>
-<td>档案室</td>
-</tr>
-<tr>
-<td><code>kube-scheduler</code></td>
-<td>决定 Pod 应该调度到哪台机器</td>
-<td>调度员</td>
-</tr>
-<tr>
-<td><code>kube-controller-manager</code></td>
-<td>一堆控制循环，让实际状态向期望状态靠拢</td>
-<td>监工</td>
-</tr>
-</tbody></table>
-<h3 id="3-2-工作节点（Worker-Node）——-干活的机器"><a href="#3-2-工作节点（Worker-Node）——-干活的机器" class="headerlink" title="3.2 工作节点（Worker Node）—— 干活的机器"></a>3.2 工作节点（Worker Node）—— 干活的机器</h3><p>真正运行 Pod 的机器，每个节点上有：</p>
-<table>
-<thead>
-<tr>
-<th>组件</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>kubelet</code></td>
-<td>节点上的代理，负责按指令启动&#x2F;停止容器</td>
-</tr>
-<tr>
-<td><code>kube-proxy</code></td>
-<td>处理 Service 的网络转发规则</td>
-</tr>
-<tr>
-<td>容器运行时</td>
-<td>真正运行容器的程序（现在用 containerd，不再是 Docker Engine）</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>注意：早期 K8s 用 Docker 作为容器运行时，但从 K8s 1.24（2022 年 4 月）起移除了 docker 适配层，现在底层统一用 containerd。不过这不影响你——你的镜像还是用 Docker 构建，K8s 照样能跑。</p>
-</blockquote>
-<h3 id="3-3-工作流程"><a href="#3-3-工作流程" class="headerlink" title="3.3 工作流程"></a>3.3 工作流程</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs tap">你执行 kubectl apply -f deployment.yaml（声明要<span class="hljs-number"> 3 </span>个 Pod）<br>    ↓<br>请求发到 kube-apiserver<br>    ↓<br>状态存进 etcd（期望：3 个 Pod）<br>    ↓<br>controller-manager 发现实际<span class="hljs-number"> 0 </span>个 ≠ 期望<span class="hljs-number"> 3 </span>个<br>    ↓<br>scheduler 决定这<span class="hljs-number"> 3 </span>个 Pod 分别放到哪个 Node<br>    ↓<br>对应 Node 上的 kubelet 启动容器<br>    ↓<br>3 个 Pod 跑起来，状态写回 etcd<br></code></pre></td></tr></table></figure>
 
-<hr>
-<h2 id="4-常用命令（kubectl）"><a href="#4-常用命令（kubectl）" class="headerlink" title="4. 常用命令（kubectl）"></a>4. 常用命令（kubectl）</h2><p><code>kubectl</code> 是操作 K8s 的命令行工具，读作 “kube control”。</p>
+![](/images/Java-advanced/IMG-20260707-000012.png)
+
+
+
+
+
+
+
+---
+
+## 3. 集群架构（简单理解）
+
+一个 K8s 集群由两类机器组成：
+
+### 3.1 控制平面（Control Plane）—— 大脑
+
+负责决策和调度，主要组件：
+
+| 组件 | 作用 | 类比 |
+|------|------|------|
+| `kube-apiserver` | 所有操作的唯一入口，接收命令 | 前台接待 |
+| `etcd` | 存储整个集群的状态（键值数据库） | 档案室 |
+| `kube-scheduler` | 决定 Pod 应该调度到哪台机器 | 调度员 |
+| `kube-controller-manager` | 一堆控制循环，让实际状态向期望状态靠拢 | 监工 |
+
+### 3.2 工作节点（Worker Node）—— 干活的机器
+
+真正运行 Pod 的机器，每个节点上有：
+
+| 组件 | 作用 |
+|------|------|
+| `kubelet` | 节点上的代理，负责按指令启动/停止容器 |
+| `kube-proxy` | 处理 Service 的网络转发规则 |
+| 容器运行时 | 真正运行容器的程序（现在用 containerd，不再是 Docker Engine） |
+
+> 注意：早期 K8s 用 Docker 作为容器运行时，但从 K8s 1.24（2022 年 4 月）起移除了 docker 适配层，现在底层统一用 containerd。不过这不影响你——你的镜像还是用 Docker 构建，K8s 照样能跑。
+
+### 3.3 工作流程
+
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs tap">你执行 kubectl apply -f deployment.yaml（声明要<span class="hljs-number"> 3 </span>个 Pod）<br>    ↓<br>请求发到 kube-apiserver<br>    ↓<br>状态存进 etcd（期望：3 个 Pod）<br>    ↓<br>controller-manager 发现实际<span class="hljs-number"> 0 </span>个 ≠ 期望<span class="hljs-number"> 3 </span>个<br>    ↓<br>scheduler 决定这<span class="hljs-number"> 3 </span>个 Pod 分别放到哪个 Node<br>    ↓<br>对应 Node 上的 kubelet 启动容器<br>    ↓<br>3 个 Pod 跑起来，状态写回 etcd<br></code></pre></td></tr></table></figure>
+
+---
+
+## 4. 常用命令（kubectl）
+
+`kubectl` 是操作 K8s 的命令行工具，读作 "kube control"。
+
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 查看资源</span><br>kubectl get pods                    <span class="hljs-comment"># 查看所有 Pod</span><br>kubectl get deployments             <span class="hljs-comment"># 查看所有 Deployment</span><br>kubectl get services                <span class="hljs-comment"># 查看所有 Service</span><br>kubectl get nodes                   <span class="hljs-comment"># 查看所有节点</span><br><br><span class="hljs-comment"># 查看详情（排查问题最常用）</span><br>kubectl describe pod &lt;pod名&gt;        <span class="hljs-comment"># 查看 Pod 的详细信息和事件</span><br>kubectl logs &lt;pod名&gt;                <span class="hljs-comment"># 查看 Pod 日志</span><br>kubectl logs -f &lt;pod名&gt;             <span class="hljs-comment"># 持续跟踪日志</span><br><br><span class="hljs-comment"># 进入 Pod 内部</span><br>kubectl <span class="hljs-built_in">exec</span> -it &lt;pod名&gt; -- bash<br><br><span class="hljs-comment"># 应用/删除配置（声明式操作，最核心）</span><br>kubectl apply -f deployment.yaml    <span class="hljs-comment"># 应用配置（创建或更新）</span><br>kubectl delete -f deployment.yaml   <span class="hljs-comment"># 删除配置里的资源</span><br><br><span class="hljs-comment"># 扩缩容</span><br>kubectl scale deployment ssp --replicas=5   <span class="hljs-comment"># 把 SSP 扩到 5 个副本</span><br><br><span class="hljs-comment"># 滚动更新后回滚</span><br>kubectl rollout undo deployment ssp         <span class="hljs-comment"># 回滚到上一个版本</span><br></code></pre></td></tr></table></figure>
 
-<p><code>kubectl apply -f</code> 是最核心的命令——把”期望状态”写在 YAML 里，应用上去，K8s 负责达成。</p>
-<hr>
-<h2 id="5-把-Mini-SSP-部署到-K8s"><a href="#5-把-Mini-SSP-部署到-K8s" class="headerlink" title="5. 把 Mini-SSP 部署到 K8s"></a>5. 把 Mini-SSP 部署到 K8s</h2><h3 id="5-1-Deployment-配置"><a href="#5-1-Deployment-配置" class="headerlink" title="5.1 Deployment 配置"></a>5.1 Deployment 配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># ssp-deployment.yaml</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">apps/v1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">Deployment</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">ssp</span>                      <span class="hljs-comment"># Deployment 的名字</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">replicas:</span> <span class="hljs-number">3</span>                    <span class="hljs-comment"># 期望运行 3 个 Pod</span><br>  <span class="hljs-attr">selector:</span><br>    <span class="hljs-attr">matchLabels:</span><br>      <span class="hljs-attr">app:</span> <span class="hljs-string">ssp</span>                   <span class="hljs-comment"># 管理带有 app=ssp 标签的 Pod</span><br>  <span class="hljs-attr">template:</span>                      <span class="hljs-comment"># Pod 的模板</span><br>    <span class="hljs-attr">metadata:</span><br>      <span class="hljs-attr">labels:</span><br>        <span class="hljs-attr">app:</span> <span class="hljs-string">ssp</span>                 <span class="hljs-comment"># 给 Pod 打上 app=ssp 标签（必须和上面的 selector 一致）</span><br>    <span class="hljs-attr">spec:</span><br>      <span class="hljs-attr">containers:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">ssp</span><br>        <span class="hljs-attr">image:</span> <span class="hljs-string">mini-ssp:1.0</span>      <span class="hljs-comment"># 用上一篇构建的镜像</span><br>        <span class="hljs-attr">ports:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">containerPort:</span> <span class="hljs-number">8080</span><br>        <span class="hljs-attr">env:</span>                     <span class="hljs-comment"># 环境变量</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">SPRING_DATASOURCE_URL</span><br>          <span class="hljs-attr">value:</span> <span class="hljs-string">jdbc:mysql://mysql-service:3306/mini_ssp</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">SPRING_DATA_REDIS_HOST</span><br>          <span class="hljs-attr">value:</span> <span class="hljs-string">redis-service</span><br></code></pre></td></tr></table></figure>
+`kubectl apply -f` 是最核心的命令——把"期望状态"写在 YAML 里，应用上去，K8s 负责达成。
 
-<p><strong>最关键的坑——label 和 selector 必须匹配</strong>：</p>
+---
+
+## 5. 把 Mini-SSP 部署到 K8s
+
+### 5.1 Deployment 配置
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># ssp-deployment.yaml</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">apps/v1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">Deployment</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">ssp</span>                      <span class="hljs-comment"># Deployment 的名字</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">replicas:</span> <span class="hljs-number">3</span>                    <span class="hljs-comment"># 期望运行 3 个 Pod</span><br>  <span class="hljs-attr">selector:</span><br>    <span class="hljs-attr">matchLabels:</span><br>      <span class="hljs-attr">app:</span> <span class="hljs-string">ssp</span>                   <span class="hljs-comment"># 管理带有 app=ssp 标签的 Pod</span><br>  <span class="hljs-attr">template:</span>                      <span class="hljs-comment"># Pod 的模板</span><br>    <span class="hljs-attr">metadata:</span><br>      <span class="hljs-attr">labels:</span><br>        <span class="hljs-attr">app:</span> <span class="hljs-string">ssp</span>                 <span class="hljs-comment"># 给 Pod 打上 app=ssp 标签（必须和上面的 selector 一致）</span><br>    <span class="hljs-attr">spec:</span><br>      <span class="hljs-attr">containers:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">ssp</span><br>        <span class="hljs-attr">image:</span> <span class="hljs-string">mini-ssp:1.0</span>      <span class="hljs-comment"># 用上一篇构建的镜像</span><br>        <span class="hljs-attr">ports:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">containerPort:</span> <span class="hljs-number">8080</span><br>        <span class="hljs-attr">env:</span>                     <span class="hljs-comment"># 环境变量</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">SPRING_DATASOURCE_URL</span><br>          <span class="hljs-attr">value:</span> <span class="hljs-string">jdbc:mysql://mysql-service:3306/mini_ssp</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">SPRING_DATA_REDIS_HOST</span><br>          <span class="hljs-attr">value:</span> <span class="hljs-string">redis-service</span><br></code></pre></td></tr></table></figure>
+
+**最关键的坑——label 和 selector 必须匹配**：
+
 <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs routeros">selector.matchLabels: <span class="hljs-attribute">app</span>=ssp   ← Deployment 说<span class="hljs-string">&quot;我管理 app=ssp 的 Pod&quot;</span><br>template.metadata.labels: <span class="hljs-attribute">app</span>=ssp ← Pod 被打上 <span class="hljs-attribute">app</span>=ssp 标签<br><br>这两个对不上，Deployment 就管不到自己创建的 Pod，会反复创建新 Pod。<br>这是新手最常见的错误之一。<br></code></pre></td></tr></table></figure>
 
-<h3 id="5-2-Service-配置"><a href="#5-2-Service-配置" class="headerlink" title="5.2 Service 配置"></a>5.2 Service 配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># ssp-service.yaml</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">v1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">Service</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">ssp-service</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">selector:</span><br>    <span class="hljs-attr">app:</span> <span class="hljs-string">ssp</span>                     <span class="hljs-comment"># 把请求转发给 app=ssp 标签的 Pod</span><br>  <span class="hljs-attr">ports:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">port:</span> <span class="hljs-number">80</span>                     <span class="hljs-comment"># Service 暴露的端口</span><br>    <span class="hljs-attr">targetPort:</span> <span class="hljs-number">8080</span>             <span class="hljs-comment"># 转发到 Pod 的 8080 端口</span><br>  <span class="hljs-attr">type:</span> <span class="hljs-string">ClusterIP</span>                <span class="hljs-comment"># 仅集群内部可访问</span><br></code></pre></td></tr></table></figure>
+### 5.2 Service 配置
 
-<p><code>selector: app=ssp</code> 让 Service 自动找到所有带 <code>app=ssp</code> 标签的 Pod，把请求负载均衡过去。<strong>Service 和 Deployment 通过同一个 label 关联起来</strong>，不需要手动指定 IP。</p>
-<h3 id="5-3-部署"><a href="#5-3-部署" class="headerlink" title="5.3 部署"></a>5.3 部署</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 应用配置</span><br>kubectl apply -f ssp-deployment.yaml<br>kubectl apply -f ssp-service.yaml<br><br><span class="hljs-comment"># 查看状态</span><br>kubectl get pods         <span class="hljs-comment"># 应该看到 3 个 ssp-xxx Pod 在 Running</span><br>kubectl get service      <span class="hljs-comment"># 看到 ssp-service</span><br><br><span class="hljs-comment"># 测试自愈：手动删一个 Pod</span><br>kubectl delete pod &lt;某个ssp-pod名&gt;<br>kubectl get pods         <span class="hljs-comment"># 会发现 K8s 立即创建了一个新 Pod，始终保持 3 个</span><br><br><span class="hljs-comment"># 测试扩容</span><br>kubectl scale deployment ssp --replicas=5<br>kubectl get pods         <span class="hljs-comment"># 变成 5 个</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># ssp-service.yaml</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">v1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">Service</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">ssp-service</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">selector:</span><br>    <span class="hljs-attr">app:</span> <span class="hljs-string">ssp</span>                     <span class="hljs-comment"># 把请求转发给 app=ssp 标签的 Pod</span><br>  <span class="hljs-attr">ports:</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-attr">port:</span> <span class="hljs-number">80</span>                     <span class="hljs-comment"># Service 暴露的端口</span><br>    <span class="hljs-attr">targetPort:</span> <span class="hljs-number">8080</span>             <span class="hljs-comment"># 转发到 Pod 的 8080 端口</span><br>  <span class="hljs-attr">type:</span> <span class="hljs-string">ClusterIP</span>                <span class="hljs-comment"># 仅集群内部可访问</span><br></code></pre></td></tr></table></figure>
 
-<p>删一个 Pod 后立即自动补回的现象，就是 1.3 节”自动调谐”的直观体现——你声明了 3 个，K8s 就死死维持 3 个。</p>
-<hr>
-<h2 id="6-什么时候该用-K8s？"><a href="#6-什么时候该用-K8s？" class="headerlink" title="6. 什么时候该用 K8s？"></a>6. 什么时候该用 K8s？</h2><p>K8s 很强大，但也很复杂，不是所有项目都需要：</p>
-<table>
-<thead>
-<tr>
-<th>场景</th>
-<th>建议</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>单机小项目、个人博客</td>
-<td>不需要，Docker Compose 足够</td>
-</tr>
-<tr>
-<td>几个服务、流量稳定</td>
-<td>Docker Compose 或简单的容器部署即可</td>
-</tr>
-<tr>
-<td>微服务、多实例、需要自动扩缩容</td>
-<td>适合 K8s</td>
-</tr>
-<tr>
-<td>大规模、高可用、多团队协作</td>
-<td>K8s 几乎是标配</td>
-</tr>
-</tbody></table>
-<p>对你的 Mini-SSP 来说，本地学习用 Docker Compose 完全够；但 OPPO 这种规模的广告系统，线上几乎一定跑在 K8s 上（或公司自研的类似平台）。<strong>理解 Pod&#x2F;Deployment&#x2F;Service 这套模型，是看懂公司部署体系的基础。</strong></p>
-<p>学习建议：本地用 <strong>Minikube</strong> 或 <strong>kind</strong> 起一个单机 K8s 集群练手，不用真的准备一堆服务器。把上面的 Mini-SSP 部署跑通，理解”声明式 + 自愈”这个核心思想，入门就够了。</p>
-<hr>
-<h2 id="7-小结"><a href="#7-小结" class="headerlink" title="7. 小结"></a>7. 小结</h2><table>
-<thead>
-<tr>
-<th>主题</th>
-<th>关键要点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>为什么需要 K8s</td>
-<td>Compose 只能管单机；K8s 管多机集群，自动调度、自愈、扩缩容</td>
-</tr>
-<tr>
-<td>核心思想</td>
-<td>声明式 + 自动调谐：你声明期望状态，K8s 持续维持</td>
-</tr>
-<tr>
-<td>Pod</td>
-<td>最小部署单元，1 个或多个容器；用完即弃，不直接创建</td>
-</tr>
-<tr>
-<td>Deployment</td>
-<td>管理 Pod 副本数、自愈、滚动更新、回滚</td>
-</tr>
-<tr>
-<td>Service</td>
-<td>给 Pod 提供稳定入口 + 负载均衡，通过 label 关联 Pod</td>
-</tr>
-<tr>
-<td>Ingress</td>
-<td>HTTP 路由，多个 Service 共享外部入口</td>
-</tr>
-<tr>
-<td>集群架构</td>
-<td>控制平面（大脑）+ 工作节点（干活），底层用 containerd</td>
-</tr>
-<tr>
-<td>核心命令</td>
-<td><code>kubectl apply/get/describe/logs/scale</code></td>
-</tr>
-<tr>
-<td>最常见的坑</td>
-<td>label 和 selector 不匹配，Service 找不到 Pod</td>
-</tr>
-</tbody></table>
-<p>从 Docker（单容器）→ Docker Compose（单机多容器）→ Kubernetes（多机集群编排），这是容器化部署的完整进阶路径。你现在已经走完了这条路的入门段。</p>
-<hr>
-<blockquote>
-<p><strong>下一篇预告</strong>：CI&#x2F;CD 入门——用 GitHub Actions 自动构建镜像并部署</p>
-</blockquote>
+`selector: app=ssp` 让 Service 自动找到所有带 `app=ssp` 标签的 Pod，把请求负载均衡过去。**Service 和 Deployment 通过同一个 label 关联起来**，不需要手动指定 IP。
+
+### 5.3 部署
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 应用配置</span><br>kubectl apply -f ssp-deployment.yaml<br>kubectl apply -f ssp-service.yaml<br><br><span class="hljs-comment"># 查看状态</span><br>kubectl get pods         <span class="hljs-comment"># 应该看到 3 个 ssp-xxx Pod 在 Running</span><br>kubectl get service      <span class="hljs-comment"># 看到 ssp-service</span><br><br><span class="hljs-comment"># 测试自愈：手动删一个 Pod</span><br>kubectl delete pod &lt;某个ssp-pod名&gt;<br>kubectl get pods         <span class="hljs-comment"># 会发现 K8s 立即创建了一个新 Pod，始终保持 3 个</span><br><br><span class="hljs-comment"># 测试扩容</span><br>kubectl scale deployment ssp --replicas=5<br>kubectl get pods         <span class="hljs-comment"># 变成 5 个</span><br></code></pre></td></tr></table></figure>
+
+删一个 Pod 后立即自动补回的现象，就是 1.3 节"自动调谐"的直观体现——你声明了 3 个，K8s 就死死维持 3 个。
+
+---
+
+## 6. 什么时候该用 K8s？
+
+K8s 很强大，但也很复杂，不是所有项目都需要：
+
+| 场景 | 建议 |
+|------|------|
+| 单机小项目、个人博客 | 不需要，Docker Compose 足够 |
+| 几个服务、流量稳定 | Docker Compose 或简单的容器部署即可 |
+| 微服务、多实例、需要自动扩缩容 | 适合 K8s |
+| 大规模、高可用、多团队协作 | K8s 几乎是标配 |
+
+对你的 Mini-SSP 来说，本地学习用 Docker Compose 完全够；但 OPPO 这种规模的广告系统，线上几乎一定跑在 K8s 上（或公司自研的类似平台）。**理解 Pod/Deployment/Service 这套模型，是看懂公司部署体系的基础。**
+
+学习建议：本地用 **Minikube** 或 **kind** 起一个单机 K8s 集群练手，不用真的准备一堆服务器。把上面的 Mini-SSP 部署跑通，理解"声明式 + 自愈"这个核心思想，入门就够了。
+
+---
+
+## 7. 小结
+
+| 主题 | 关键要点 |
+|------|---------|
+| 为什么需要 K8s | Compose 只能管单机；K8s 管多机集群，自动调度、自愈、扩缩容 |
+| 核心思想 | 声明式 + 自动调谐：你声明期望状态，K8s 持续维持 |
+| Pod | 最小部署单元，1 个或多个容器；用完即弃，不直接创建 |
+| Deployment | 管理 Pod 副本数、自愈、滚动更新、回滚 |
+| Service | 给 Pod 提供稳定入口 + 负载均衡，通过 label 关联 Pod |
+| Ingress | HTTP 路由，多个 Service 共享外部入口 |
+| 集群架构 | 控制平面（大脑）+ 工作节点（干活），底层用 containerd |
+| 核心命令 | `kubectl apply/get/describe/logs/scale` |
+| 最常见的坑 | label 和 selector 不匹配，Service 找不到 Pod |
+
+从 Docker（单容器）→ Docker Compose（单机多容器）→ Kubernetes（多机集群编排），这是容器化部署的完整进阶路径。你现在已经走完了这条路的入门段。
+
+---
+
+> **下一篇预告**：CI/CD 入门——用 GitHub Actions 自动构建镜像并部署
+
 <!-- follow-me -->
-<hr>
-<blockquote>
-<p>🎯 如果这篇文章对你有帮助，别忘了<strong>点赞、收藏、关注</strong>三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~</p>
-</blockquote>
+---
+
+> 🎯 如果这篇文章对你有帮助，别忘了**点赞、收藏、关注**三连！关注我，让你在 Java 学习的道路上不迷路，持续为你带来成体系的 Java 干货~
 
                 
               </div>
