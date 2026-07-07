@@ -398,7 +398,7 @@ System.out.println(BankAccount.getAccountCount()); // 2
 
 下图展示了 Java 中类级别成员与对象级别成员的归属关系及生命周期：
 
-![类与对象结构全景](/images/Java-basic/class-object-structure.png)
+![类与对象结构全景](images/Java-basic/IMG-20260611110916910.png)
 
 **类级别（紫色）**：随 JVM 类加载而存在，整个程序生命周期内只有一份。
 - `static {}` 静态代码块：类第一次被加载时执行一次，常用于初始化静态资源

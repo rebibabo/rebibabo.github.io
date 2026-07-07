@@ -429,7 +429,7 @@ deque.peek();        // = peekFirst（栈和队列的 peek 碰巧一样）
 
 `offerFirst` / `offerLast` 等完整形式只在需要**同时操作两端**时才用得上（如滑动窗口单调队列）。
 
-![ArrayDeque方法总结](/images/Java-basic/arraydeque-methods.png)
+![ArrayDeque方法总结](images/Java-basic/IMG-20260611105100762.png)
 
 ### 5.3 PriorityQueue —— 优先队列（堆）
 

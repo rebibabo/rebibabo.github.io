@@ -162,7 +162,7 @@ public class UserService {
 | 循环依赖 | 启动时立即报错（好事） | 可能隐藏循环依赖问题 |
 ### 2.3 Spring 容器（ApplicationContext）
 
-![Spring ApplicationContext 工作原理](images/Java-basic/spring-container.png)
+![Spring ApplicationContext 工作原理](images/Java-basic/IMG-20260612104610499.png)
 
 Spring 容器本质就是一个**大 Map**——key 是 Bean 的名字，value 是 Bean 的实例对象。
 
