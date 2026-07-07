@@ -147,6 +147,7 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
         storage_state=AUTH_FILE,
         viewport={"width": 1280, "height": 900},
         locale="zh-CN",
+        permissions=["clipboard-read", "clipboard-write"],
     )
     page = context.new_page()
 
@@ -173,16 +174,37 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
     page2.wait_for_load_state("domcontentloaded")
     page2.wait_for_timeout(2000)
 
-    # ---- 第四步：定位编辑器，清空模板内容，填入正文 ----
+    # ---- 第四步：通过 CodeMirror API 注入正文（保留 markdown 格式）----
     print("4. 填入文章内容...")
-    # 点一下编辑器区域获取焦点，然后全选清空
-    page2.locator(".editor-pane, .CodeMirror, .markdown-editor, .editor").first.click()
-    page2.wait_for_timeout(500)
-    page2.keyboard.press("ControlOrMeta+a")
-    page2.keyboard.press("Backspace")
-    page2.wait_for_timeout(300)
-    # 填入正文
-    page2.keyboard.insert_text(body)
+    page2.wait_for_timeout(1000)
+
+    result = page2.evaluate("""
+        (content) => {
+            const cm = document.querySelector('.CodeMirror');
+            if (cm && cm.CodeMirror) {
+                cm.CodeMirror.setValue(content);
+                return 'codemirror';
+            }
+            // Monaco editor fallback
+            if (window.monaco) {
+                const model = window.monaco.editor.getModels()[0];
+                if (model) { model.setValue(content); return 'monaco'; }
+            }
+            return 'fallback';
+        }
+    """, body)
+
+    if result == "fallback":
+        print("  ⚠️  CodeMirror 未找到，改用剪贴板粘贴...")
+        page2.locator(".editor-pane, .CodeMirror, .markdown-editor, .editor").first.click()
+        page2.wait_for_timeout(500)
+        page2.keyboard.press("ControlOrMeta+a")
+        page2.wait_for_timeout(100)
+        # 通过 JS 写入剪贴板再粘贴
+        page2.evaluate("navigator.clipboard.writeText(arguments[0])", body)
+        page2.wait_for_timeout(300)
+        page2.keyboard.press("ControlOrMeta+v")
+
     print(f"  ✅ 已填入正文（{len(body)} 字）")
 
     # ---- 第五步：设置标题 ----
