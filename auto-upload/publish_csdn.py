@@ -272,31 +272,16 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # ============================================================
 def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
     browser = playwright.chromium.launch(headless=True)
-
-    # ---- 第零步：检查/创建登录态 ----
-    if not os.path.exists(AUTH_FILE):
-        print("0. auth.json 不存在，需要先登录...")
-        _do_login(browser)
-    else:
-        print("0. 检查登录状态...")
-        test_ctx = browser.new_context(
-            storage_state=AUTH_FILE,
-            viewport={"width": 1280, "height": 900},
-            locale="zh-CN",
-        )
-        if _check_logged_in(test_ctx):
-            print("  ✅ 登录有效")
-        else:
-            print("  ⚠️  登录已过期，重新登录...")
-            _do_login(browser)
-        test_ctx.close()
-
     context = browser.new_context(
         storage_state=AUTH_FILE,
         viewport={"width": 1280, "height": 900},
         locale="zh-CN",
         permissions=["clipboard-read", "clipboard-write"],
     )
+    print(f"\n{'='*60}")
+    print(f"📝 正在发布: {title}")
+    print(f"{'='*60}\n")
+
     page = context.new_page()
 
     # ---- 第一步：打开 CSDN 后台，关闭广告 ----
@@ -505,6 +490,25 @@ if __name__ == "__main__":
     print(f"\n文章标题: {article['title']}")
     print(f"最终标签: {tags}")
     print()
+
+    # 第 -2 步：检查登录态（用独立 headed browser）
+    if not os.path.exists(AUTH_FILE):
+        print("-2. auth.json 不存在，需要先登录...")
+        _do_login()
+    else:
+        print("-2. 检查登录状态...")
+        with sync_playwright() as p:
+            b = p.chromium.launch(headless=True)
+            c = b.new_context(storage_state=AUTH_FILE)
+            if _check_logged_in(c):
+                print("  ✅ 登录有效")
+                c.close()
+                b.close()
+            else:
+                print("  ⚠️  登录已过期，重新登录...")
+                c.close()
+                b.close()
+                _do_login()
 
     with sync_playwright() as playwright:
         run(playwright, article["title"], article["body"], tags, summary)
