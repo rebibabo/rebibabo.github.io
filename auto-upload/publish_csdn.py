@@ -116,7 +116,6 @@ def _git_sync():
     """在博客根目录执行 git add → commit → push"""
     import subprocess
     blog_root = os.path.join(os.path.dirname(__file__), "..")
-    repo_url = "https://github.com/rebibabo/rebibabo.github.io.git"
 
     subprocess.run(["git", "add", "source/images/"], cwd=blog_root, capture_output=True)
     subprocess.run(
@@ -125,7 +124,7 @@ def _git_sync():
     )
     # 直接用 HTTPS URL push，绕过 SSH 认证问题
     result = subprocess.run(
-        ["git", "push", repo_url, "source"],
+        ["git", "push", "origin", "source"],
         cwd=blog_root, capture_output=True, text=True,
         env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
     )
