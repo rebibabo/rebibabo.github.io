@@ -1,5 +1,0 @@
-graph TB
-    Code["你的代码"] -->|调用统一 API 埋点| Facade["Micrometer（门面，统一接口）"]
-    Facade --> Prom["Prometheus<br/>（你选这个）"]
-    Facade --> Other["其他监控系统<br/>（Datadog 等）"]
-    Facade --> Another["又一个监控系统<br/>（CloudWatch 等）"]
