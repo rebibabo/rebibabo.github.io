@@ -86,7 +86,7 @@ def resolve_images_in_body(body: str, md_filepath: str) -> str:
             print(f"  🔗 {rel_path}")
             return f"![{alt}]({raw_url})"
 
-        # 外链不可用，本地有 → git sync
+        # 外链不可用，本地有 → git sync 再试
         print(f"  ⚠️  图片未推送到 GitHub: {rel_path}")
         print(f"     正在 git add → commit → push...")
         _git_sync()
@@ -113,22 +113,24 @@ def _check_url(url: str) -> bool:
 
 
 def _git_sync():
-    """在博客根目录执行 git add → commit → push（push 失败不影响主流程）"""
+    """在博客根目录执行 git add → commit → push"""
     import subprocess
     blog_root = os.path.join(os.path.dirname(__file__), "..")
+    repo_url = "https://github.com/rebibabo/rebibabo.github.io.git"
 
     subprocess.run(["git", "add", "source/images/"], cwd=blog_root, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "auto: sync images for CSDN upload"],
         cwd=blog_root, capture_output=True,
     )
+    # 直接用 HTTPS URL push，绕过 SSH 认证问题
     result = subprocess.run(
-        ["git", "push", "origin", "source"],
+        ["git", "push", repo_url, "source"],
         cwd=blog_root, capture_output=True, text=True,
+        env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
     )
     if result.returncode != 0:
         print(f"     ⚠️  git push 失败: {result.stderr.strip()}")
-        print(f"     请手动 push 后重试")
 
 
 # ============================================================
