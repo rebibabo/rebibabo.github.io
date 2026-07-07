@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-07T10:43:36.731Z",
+  "updatedAt": "2026-07-07T10:48:20.955Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
-    "vaultPath": "_posts/Java-advanced/01-microservices-intro.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/02-DSP.md",
+    "vaultPath": "_posts/programmatic-ads/02-DSP.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/02-DSP.md",
     "hasFocus": false
   },
   "openFiles": [
     {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
-      "vaultPath": "_posts/Java-advanced/01-microservices-intro.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/Java-advanced/01-microservices-intro.md",
+      "filePath": "/Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/02-DSP.md",
+      "vaultPath": "_posts/programmatic-ads/02-DSP.md",
+      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/_posts/programmatic-ads/02-DSP.md",
       "isActive": true
     }
   ],
   "selection": {
-    "text": "",
-    "isEmpty": true,
+    "text": "(images/programmatic-ads/IMG-20260608201929000.jpg)",
+    "isEmpty": false,
     "from": {
-      "line": 119,
-      "ch": 50,
-      "offset": 3206
+      "line": 210,
+      "ch": 24,
+      "offset": 3306
     },
     "to": {
-      "line": 119,
-      "ch": 50,
-      "offset": 3206
+      "line": 210,
+      "ch": 75,
+      "offset": 3357
     }
   }
 }
