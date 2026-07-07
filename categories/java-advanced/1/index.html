@@ -27,7 +27,7 @@
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言前面 27 篇基本都是”一个应用、一个数据库”的视角——写 Controller、Service、Mapper，连上 MySQL&#x2F;Redis 就能跑。但当系统越来越大（比如一个完整的广告投放平台，要做投放管理、计费、报表、用户中心），继">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T10:28:12.811Z">
+<meta property="article:modified_time" content="2026-07-07T10:28:33.888Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Spring Cloud">
@@ -228,7 +228,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          10k 字
+          11k 字
         
       </span>
     
@@ -239,7 +239,7 @@
         
         
         
-          87 分钟
+          89 分钟
         
       </span>
     
@@ -500,7 +500,13 @@
 
 <h2 id="6-API-网关"><a href="#6-API-网关" class="headerlink" title="6. API 网关"></a>6. API 网关</h2><h3 id="6-1-为什么需要"><a href="#6-1-为什么需要" class="headerlink" title="6.1 为什么需要"></a>6.1 为什么需要</h3><p>现在系统内部有用户服务、投放服务、计费服务、报表服务……前端（网页&#x2F;App）要调用这些接口时，难道要分别记住每个服务的地址吗？而且像”登录校验””限流””统一加密”这些逻辑，难道每个服务都要重复写一遍？</p>
 <h3 id="6-2-网关：所有外部请求的统一入口"><a href="#6-2-网关：所有外部请求的统一入口" class="headerlink" title="6.2 网关：所有外部请求的统一入口"></a>6.2 网关：所有外部请求的统一入口</h3><p><strong>API 网关</strong>是部署在最外层的一个独立服务，所有外部请求<strong>先经过网关</strong>，再由网关转发给内部对应的服务：</p>
-<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs nix">        ┌────────────────────────┐<br>前端 ──→│   API 网关 (Gateway)     │<br>        │  统一鉴权 <span class="hljs-symbol">/</span> 限流 <span class="hljs-symbol">/</span> 日志    │<br>        └──┬─────┬─────┬─────┬───┘<br>           ▼     ▼     ▼     ▼<br>         用户   投放   计费   报表<br>         服务   服务   服务   服务<br></code></pre></td></tr></table></figure>
+<pre><code class=" mermaid">graph TB
+    Frontend[&quot;前端&quot;] --&gt; Gateway[&quot;API 网关 (Gateway)&lt;br/&gt;统一鉴权 · 限流 · 日志&quot;]
+    Gateway --&gt; US[&quot;用户服务&quot;]
+    Gateway --&gt; TS[&quot;投放服务&quot;]
+    Gateway --&gt; BS[&quot;计费服务&quot;]
+    Gateway --&gt; RS[&quot;报表服务&quot;]
+</code></pre>
 
 <p>网关的核心能力：</p>
 <table>
@@ -572,7 +578,12 @@
 <td>高速路口堵车时，导航改走备用路线</td>
 </tr>
 </tbody></table>
-<h3 id="8-3-熔断器的三种状态"><a href="#8-3-熔断器的三种状态" class="headerlink" title="8.3 熔断器的三种状态"></a>8.3 熔断器的三种状态</h3><figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs inform7">关闭 (<span class="hljs-keyword">Closed</span>) ──失败率超过阈值──→ 打开 (<span class="hljs-keyword">Open</span>)<br>   ↑                                  │<br>   │                              等待一段时间<br>   │                                  ↓<br>   └──── 试探请求成功 ──── 半开 (Half-<span class="hljs-keyword">Open</span>)<br>                              │<br>                          试探请求失败<br>                              ↓<br>                           打开 (<span class="hljs-keyword">Open</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="8-3-熔断器的三种状态"><a href="#8-3-熔断器的三种状态" class="headerlink" title="8.3 熔断器的三种状态"></a>8.3 熔断器的三种状态</h3><pre><code class=" mermaid">graph LR
+    Closed[&quot;关闭 (Closed)&quot;] --&gt;|失败率超过阈值| Open[&quot;打开 (Open)&quot;]
+    Open --&gt;|等待一段时间| Half[&quot;半开 (Half-Open)&quot;]
+    Half --&gt;|试探请求成功| Closed
+    Half --&gt;|试探请求失败| Open
+</code></pre>
 
 <ul>
 <li><strong>关闭</strong>：正常状态，请求正常发给计费服务</li>

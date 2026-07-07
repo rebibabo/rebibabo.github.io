@@ -27,7 +27,7 @@
 <meta property="og:description" content="📚 本系列系统梳理了 Java 开发的详细知识点，从基础语法到工程实践层层递进，内容详实成体系，建议先收藏再慢慢阅读，方便日后随时回顾查阅。  前言写完 Mini-SSP 后会遇到一个现实问题：项目依赖 MySQL、Redis、还有好几个服务，在自己电脑上配好了，换台机器又要重新装一遍环境。Docker 就是为了解决”在我电脑上能跑，在你电脑上跑不起来”这个经典问题。这篇文章用最直白的方式讲">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-05-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-07T04:24:58.157Z">
+<meta property="article:modified_time" content="2026-07-07T10:28:46.330Z">
 <meta property="article:author" content="rebibabo">
 <meta property="article:tag" content="Docker">
 <meta property="article:tag" content="容器">
@@ -239,7 +239,7 @@
         
         
         
-          46 分钟
+          47 分钟
         
       </span>
     
@@ -297,7 +297,25 @@
 <h3 id="1-2-解决的核心问题"><a href="#1-2-解决的核心问题" class="headerlink" title="1.2 解决的核心问题"></a>1.2 解决的核心问题</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">传统部署：<br>  开发机：装 <span class="hljs-keyword">JDK </span><span class="hljs-number">17</span>、MySQL <span class="hljs-number">8</span>.<span class="hljs-number">0</span>、Redis <span class="hljs-number">7</span>、配一堆环境变量 → 能跑<br>  测试机：重新装一遍，版本差一点 → 可能跑不起来<br>  生产机：再装一遍，漏了个配置 → <span class="hljs-string">&quot;在我电脑上明明好好的啊&quot;</span><br><br>Docker 部署：<br>  把 <span class="hljs-keyword">JDK、应用、依赖全打包成一个镜像</span><br><span class="hljs-keyword"></span>  开发机、测试机、生产机：docker run 同一个镜像 → 处处一致<br></code></pre></td></tr></table></figure>
 
 <h3 id="1-3-容器-vs-虚拟机"><a href="#1-3-容器-vs-虚拟机" class="headerlink" title="1.3 容器 vs 虚拟机"></a>1.3 容器 vs 虚拟机</h3><p>很多人会把容器和虚拟机搞混，它们都能”隔离环境”，但原理完全不同：</p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs css">虚拟机（VM）：<br>┌─────────────────────────────┐<br>│  应用 <span class="hljs-selector-tag">A</span>    应用 <span class="hljs-selector-tag">B</span>    应用 C    │<br>│  完整OS    完整OS    完整OS    │  ← 每个 VM 装一套完整操作系统，很重<br>├─────────────────────────────┤<br>│        Hypervisor            │  ← 虚拟化层<br>├─────────────────────────────┤<br>│        宿主机操作系统          │<br>└─────────────────────────────┘<br><br>容器（<span class="hljs-attribute">Container</span>）：<br>┌─────────────────────────────┐<br>│  应用 <span class="hljs-selector-tag">A</span>    应用 <span class="hljs-selector-tag">B</span>    应用 C    │<br>│  依赖      依赖      依赖      │  ← 只打包应用和依赖，共享宿主机内核<br>├─────────────────────────────┤<br>│        Docker Engine         │<br>├─────────────────────────────┤<br>│        宿主机操作系统          │  ← 所有容器共享这一个内核<br>└─────────────────────────────┘<br></code></pre></td></tr></table></figure>
+<pre><code class=" mermaid">graph TB
+    subgraph &quot;虚拟机 (VM)&quot;
+        direction TB
+        VM_Apps[&quot;应用 A (完整OS) | 应用 B (完整OS) | 应用 C (完整OS)&lt;br/&gt;← 每个 VM 装一套完整操作系统，很重&quot;]
+        VM_Hyper[&quot;Hypervisor&lt;br/&gt;← 虚拟化层&quot;]
+        VM_Host[&quot;宿主机操作系统&quot;]
+        VM_Apps --- VM_Hyper --- VM_Host
+    end
+</code></pre>
+
+<pre><code class=" mermaid">graph TB
+    subgraph &quot;容器 (Container)&quot;
+        direction TB
+        C_Apps[&quot;应用 A (依赖) | 应用 B (依赖) | 应用 C (依赖)&lt;br/&gt;← 只打包应用和依赖，共享宿主机内核&quot;]
+        C_Engine[&quot;Docker Engine&quot;]
+        C_Host[&quot;宿主机操作系统&lt;br/&gt;← 所有容器共享这一个内核&quot;]
+        C_Apps --- C_Engine --- C_Host
+    end
+</code></pre>
 
 <table>
 <thead>
@@ -533,11 +551,11 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/%E9%83%A8%E7%BD%B2/" class="print-no-link">#部署</a>
+      
         <a href="/tags/Docker/" class="print-no-link">#Docker</a>
       
         <a href="/tags/%E5%AE%B9%E5%99%A8/" class="print-no-link">#容器</a>
-      
-        <a href="/tags/%E9%83%A8%E7%BD%B2/" class="print-no-link">#部署</a>
       
     </div>
   
