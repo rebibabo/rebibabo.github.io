@@ -39,18 +39,24 @@ hexo.extend.filter.register('before_post_render', function(data) {
 hexo.extend.filter.register('after_render:html', function(html, data) {
   if (!data.path || !/^wiki\//.test(data.path)) return html;
 
-  // Convert remaining [[wiki/...]] links (handle URL-encoded slashes)
-  // Match both raw and encoded: [[wiki/path|text]] or [[wiki&#x2F;path&#x2F;...|text]]
-  html = html.replace(/\[\[wiki(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
-    // Decode URL-encoded separators in the path
+  // Only process body content (avoid breaking meta tags in <head>)
+  const bodyMatch = html.match(/([\s\S]*<body[^>]*>)([\s\S]*)(<\/body>[\s\S]*)/i);
+  if (!bodyMatch) return html;
+
+  let head = bodyMatch[1];
+  let body = bodyMatch[2];
+  let foot = bodyMatch[3];
+
+  // Convert [[wiki/...]] links — only within body content
+  body = body.replace(/\[\[wiki(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
     const cleanPath = path.replace(/&#x2F;/g, '/').replace(/\.md$/, '');
     const display = text || cleanPath.split('/').pop();
     const url = cleanPath === 'index' ? '/wiki/' : '/wiki/' + cleanPath + '.html';
     return '<a href="' + url + '" class="wiki-link">' + display + '</a>';
   });
 
-  // Convert [[_posts/...]] links (handle URL-encoded)
-  html = html.replace(/\[\[_posts(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
+  // Convert [[_posts/...]] links — only within body content
+  body = body.replace(/\[\[_posts(?:&#x2F;|\/)([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, function(match, path, text) {
     const key = '_posts/' + path;
     const keyNoExt = key.replace(/\.md$/, '');
     const url = sourceToUrl[key] || sourceToUrl[keyNoExt];
@@ -62,7 +68,7 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
     return '<a href="/wiki/">' + display + ' (unresolved)</a>';
   });
 
-  return html;
+  return head + body + foot;
 }, 15);
 
 function convertWikilinks(content, data) {
