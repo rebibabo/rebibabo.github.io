@@ -1,5 +1,5 @@
 ---
-title: 系列
+title: rebibabo的博客
 layout: page
 ---
 
