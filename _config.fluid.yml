@@ -48,3 +48,4 @@ static_prefix:
   fancybox: https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/
   nprogress: https://cdn.jsdelivr.net/npm/nprogress@0.2.0/
   mathjax: https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/
+  mermaid: https://cdn.jsdelivr.net/npm/mermaid@11/dist/
