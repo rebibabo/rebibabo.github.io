@@ -75,6 +75,8 @@ function normalizeMermaid(code) {
   code = code.replace(/(?<!\/>)\b(\w+)\{([^}]+)\}/g, '$1[$2]');
   // 修复 Obsidian 转义: &#40;→( &#41;→)
   code = code.replace(/&#40;/g, '(').replace(/&#41;/g, ')');
+  // 同一行多个 --> 语句拆分（mermaid 每行只能一个连接）
+  code = code.replace(/^(\s+)(.+?)\s+(\w+\s*(?:-->|~~~|---)\s*\w+)$/gm, '$1$2\n$1$3');
 
   // 子图内独立节点（无 --> / --- 连接）串成链
   code = code.replace(
