@@ -254,6 +254,13 @@ body > header .header-inner {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2) !important;
 }
 
+/* ===== Mermaid 生成的图片限制宽度 ===== */
+.markdown-body pre[style*="display:none"] + p > img {
+  max-width: 480px;
+  display: block;
+  margin: 1rem auto;
+}
+
 /* ===== Mermaid 流程图缩放 ===== */
 .markdown-body pre .mermaid,
 .markdown-body .mermaid {
