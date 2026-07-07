@@ -12,6 +12,7 @@ import re
 import sys
 import os
 import json
+import ssl
 import urllib.request
 from pathlib import Path
 from playwright.sync_api import Playwright, sync_playwright
@@ -21,7 +22,7 @@ from playwright.sync_api import Playwright, sync_playwright
 # ============================================================
 AUTH_FILE = os.path.join(os.path.dirname(__file__), "auth.json")
 COLUMN_NAMES = ["Java高并发", "Java基础"]       # 专栏名列表，可多选
-DEFAULT_TAGS = ["Java", "高并发"]   # 默认标签（AI 失败时的兜底）
+DEFAULT_TAGS = ["学习笔记"]   # 默认标签（AI 失败时的兜底）
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = "deepseek-chat"    # flash 模型
 
@@ -108,7 +109,8 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
                 },
             )
 
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            ctx = ssl._create_unverified_context()
+            with urllib.request.urlopen(req, timeout=60, context=ctx) as resp:
                 result = json.loads(resp.read().decode("utf-8"))
 
             content = result["choices"][0]["message"]["content"]
@@ -139,7 +141,7 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # ============================================================
 # 主流程
 # ============================================================
-def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
+def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
     browser = playwright.chromium.launch(headless=False)
     context = browser.new_context(
         storage_state=AUTH_FILE,
@@ -262,13 +264,12 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
 
     # ---- 第十步：填摘要 ----
     print("10. 填写摘要...")
-    summary = body[:200].replace("\n", " ").strip()
     try:
         summary_input = page2.locator(".desc-box textarea")
         summary_input.wait_for(timeout=600_000)  # 10 分钟超时
         summary_input.click()
         summary_input.fill(summary)
-        print(f"  ✅ 已填入摘要")
+        print(f"  ✅ 已填入摘要（{len(summary)} 字）")
     except Exception as e:
         print(f"  ⚠️  填写摘要失败: {e}")
 
