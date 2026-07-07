@@ -129,41 +129,53 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str]) -> None:
     page2.get_by_role("button", name="发布文章").click()
     page2.wait_for_timeout(200)
 
-    # ---- 第七步：选择专栏 ----
+    # ---- 第七步：打开专栏选择，选中目标专栏 ----
     print(f"7. 选择专栏: {COLUMN_NAME}")
-    page2.get_by_text(COLUMN_NAME, exact=True).click()
-    page2.wait_for_timeout(5000000)
+    # 先点开专栏选择面板
+    try:
+        page2.locator("#tagList .tag__btn-tag").wait_for(timeout=10_000)
+        page2.locator("#tagList .tag__btn-tag").click()
+        page2.wait_for_timeout(500)
+        print("  ✅ 打开专栏选择面板")
+    except Exception:
+        print("  ⚠️  未找到专栏选择按钮，尝试直接选择...")
+
+    # 选中目标专栏（不可见就卡着等）
+    page2.get_by_text(COLUMN_NAME, exact=True).click(timeout=600_000)
+    print(f"  ✅ 已选择专栏: {COLUMN_NAME}")
+    page2.wait_for_timeout(500)
 
     # ---- 第八步：删除已有标签 ----
     print("8. 清理已有标签...")
-    # 找到所有删除标签的按钮（通常是标签右侧的 × 图标）
-    delete_btns = page2.locator(".el-tag .el-icon-close, .tag-item .close, i.el-icon-close")
+    # 找到所有标签删除按钮
+    delete_btns = page2.locator(".el-tag__close.el-icon-close")
     count = delete_btns.count()
     print(f"  当前有 {count} 个标签需要删除")
     for i in range(count):
         try:
             delete_btns.nth(0).click()  # 每次点第一个，因为删掉后索引会变
-            page2.wait_for_timeout(20000)
+            page2.wait_for_timeout(300)
+            print(f"  ✅ 删除第 {i + 1} 个标签")
         except Exception:
             break
     print("  ✅ 标签清理完成")
 
     # ---- 第九步：添加新标签 ----
     print(f"9. 添加标签: {tags}")
-    page2.get_by_role("button", name="添加文章标签").click()
-    page2.wait_for_timeout(50000)
+    # 点开添加标签面板
+    page2.locator(".mark_selection .tag__btn-tag").click()
+    page2.wait_for_timeout(500)
 
     for tag in tags:
         if not tag:
             continue
         try:
-            # 输入框填入标签名然后回车
             tag_input = page2.locator('[placeholder*="搜索"], [placeholder*="标签"]').last
             tag_input.click()
             tag_input.fill(tag)
-            page2.wait_for_timeout(30000)
+            page2.wait_for_timeout(300)
             tag_input.press("Enter")
-            page2.wait_for_timeout(50000)
+            page2.wait_for_timeout(500)
             print(f"  ✅ 添加标签: {tag}")
         except Exception as e:
             print(f"  ⚠️  添加标签 {tag} 失败: {e}")
