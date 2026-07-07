@@ -9,7 +9,7 @@
 PLIST_NAME="com.csdn.publish"
 PLIST_FILE="$HOME/Library/LaunchAgents/$PLIST_NAME.plist"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PYTHON="$(which python3)"
+RUNNER="$SCRIPT_DIR/auto-upload/run_publish.sh"
 
 echo "===== CSDN 定时发布设置 ====="
 
@@ -22,7 +22,7 @@ echo "   ✅ 唤醒计划已设置（每天 23:58）"
 
 # ── 2. 创建 launchd plist ──
 echo ""
-echo "2. 创建 launchd 定时任务（每天 00:00 执行）..."
+echo "2. 创建 launchd 定时任务（每天 00:00 执行，caffeinate 防休眠）..."
 
 cat > "$PLIST_FILE" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -35,8 +35,8 @@ cat > "$PLIST_FILE" << EOF
 
     <key>ProgramArguments</key>
     <array>
-        <string>$PYTHON</string>
-        <string>$SCRIPT_DIR/auto-upload/schedule_publish.py</string>
+        <string>/bin/bash</string>
+        <string>$RUNNER</string>
     </array>
 
     <key>StartCalendarInterval</key>
