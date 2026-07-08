@@ -4,35 +4,49 @@
     "type": "split",
     "children": [
       {
-        "id": "355ce6a6eb016cbb",
-        "type": "tabs",
+        "id": "6d46ae083432f732",
+        "type": "split",
         "children": [
           {
-            "id": "2d3291a039fa99be",
-            "type": "leaf",
-            "state": {
-              "type": "terminal-view",
-              "state": {},
-              "icon": "terminal",
-              "title": "Terminal"
-            }
+            "id": "30f1c1fa702db715",
+            "type": "tabs",
+            "dimension": 36.822429906542055,
+            "children": [
+              {
+                "id": "a0ebf1a2908d683c",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "_posts/Java-concurrency/03-synchronized为什么能够保证线程安全.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "03-synchronized为什么能够保证线程安全"
+                }
+              }
+            ]
           },
           {
-            "id": "36e60ba979dacb50",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "wiki/concepts/concurrency/并发总图.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "并发总图"
-            }
+            "id": "91364202fe0987f6",
+            "type": "tabs",
+            "dimension": 63.177570093457945,
+            "children": [
+              {
+                "id": "76a21137542cf634",
+                "type": "leaf",
+                "state": {
+                  "type": "mindmap-nextgen-plugin",
+                  "state": {},
+                  "icon": "dot-network",
+                  "title": "01-计算机是如何执行Java程序的"
+                }
+              }
+            ]
           }
         ],
-        "currentTab": 1
+        "direction": "horizontal"
       }
     ],
     "direction": "vertical"
@@ -189,11 +203,16 @@
       "templates:插入模板": false,
       "bases:新建数据库": false,
       "termy:打开Termy终端": false,
-      "obsidian-git:Open Git source control": false
+      "obsidian-git:Open Git source control": false,
+      "command-palette:打开命令面板": false
     }
   },
-  "active": "36e60ba979dacb50",
+  "active": "a0ebf1a2908d683c",
   "lastOpenFiles": [
+    "_posts/Java-concurrency/01-计算机是如何执行Java程序的.md",
+    "_posts/programmatic-ads/01-introduction.md",
+    "_posts/Java-advanced/01-microservices-intro.md",
+    "wiki/concepts/concurrency/并发总图.md",
     "_posts/Java-concurrency/29-从内存队列到可靠任务系统：数据库任务表与 MQ 如何选择.md",
     "_posts/Java-concurrency/28-并发任务处理系统如何设计：从任务模型到 Worker 执行.md",
     "_posts/Java-concurrency/27-死锁、活锁与线程饥饿是如何发生的.md",
@@ -216,10 +235,6 @@
     "_posts/Java-concurrency/12-Semaphore 如何控制并发线程数量.md",
     "_posts/Java-concurrency/08-Java内存到底规定什么.md",
     "_posts/Java-advanced/07-tracing.md",
-    "skills/mermaid-to-png.md",
-    "_posts/Java-advanced/06-grafana.md",
-    "_posts/Java-advanced/05-metric.md",
-    "_posts/Java-advanced/04-jwt.md",
     "images/Java-advanced/IMG-20260707-000024.png",
     "images/Java-advanced/IMG-20260707-000032.png",
     "images/Java-advanced/IMG-20260707-000033.png",
