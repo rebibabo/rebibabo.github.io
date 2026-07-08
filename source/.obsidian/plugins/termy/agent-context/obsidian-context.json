@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-08T00:51:06.704Z",
+  "updatedAt": "2026-07-08T01:02:04.598Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/Excalidraw/Drawing 2026-07-08 08.40.49.excalidraw.md",
-    "vaultPath": "Excalidraw/Drawing 2026-07-08 08.40.49.excalidraw.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/Excalidraw/Drawing%202026-07-08%2008.40.49.excalidraw.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+    "vaultPath": "wiki/maps/java-basic.md",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
     "hasFocus": false
   },
   "openFiles": [
@@ -17,8 +17,21 @@
       "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
       "vaultPath": "wiki/maps/java-basic.md",
       "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-      "isActive": false
+      "isActive": true
     }
   ],
-  "selection": null
+  "selection": {
+    "text": "",
+    "isEmpty": true,
+    "from": {
+      "line": 17,
+      "ch": 0,
+      "offset": 256
+    },
+    "to": {
+      "line": 17,
+      "ch": 0,
+      "offset": 256
+    }
+  }
 }
