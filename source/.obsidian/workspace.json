@@ -15,14 +15,12 @@
                 "id": "5b738eb0c105cc05",
                 "type": "leaf",
                 "state": {
-                  "type": "markdown",
+                  "type": "image",
                   "state": {
-                    "file": "wiki/maps/java-basic.md",
-                    "mode": "source",
-                    "source": false
+                    "file": "images/Java-concurrency/IMG-20260707-000180.png"
                   },
-                  "icon": "lucide-file",
-                  "title": "java-basic"
+                  "icon": "lucide-image",
+                  "title": "IMG-20260707-000180"
                 }
               }
             ]
@@ -38,7 +36,7 @@
                   "type": "terminal-view",
                   "state": {},
                   "icon": "terminal",
-                  "title": "Terminal"
+                  "title": "Claude Code"
                 }
               }
             ]
@@ -101,7 +99,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 242.5
+    "width": 403.5
   },
   "right": {
     "id": "45b1b62d2251b5b8",
@@ -206,10 +204,19 @@
       "obsidian-excalidraw-plugin:新建绘图文件": false
     }
   },
-  "active": "762be4f937e05121",
+  "active": "5b738eb0c105cc05",
   "lastOpenFiles": [
-    "Excalidraw/Drawing 2026-07-08 08.40.49.excalidraw.md",
+    "images/Java-concurrency/IMG-20260707-000178.png",
+    "images/Java-concurrency/IMG-20260707-000179.png",
+    "images/Java-concurrency/IMG-20260707-000180.png",
+    "images/Java-concurrency/IMG-20260707-000176.png",
+    "images/Java-concurrency/IMG-20260707-000184.png",
+    "images/Java-concurrency/IMG-20260707-000190.png",
+    "images/Java-concurrency/IMG-20260707-000193.png",
+    "images/Java-concurrency/IMG-20260707-000195.png",
+    "images/Java-concurrency/IMG-20260707-000198.png",
     "wiki/maps/java-basic.md",
+    "Excalidraw/Drawing 2026-07-08 08.40.49.excalidraw.md",
     "_posts/Java-concurrency/03-synchronized为什么能够保证线程安全.md",
     "Excalidraw",
     "_posts/Java-concurrency/01-计算机是如何执行Java程序的.md",
@@ -234,17 +241,8 @@
     "_posts/Java-concurrency/14-线程池如何复用和调度线程.md",
     "_posts/Java-concurrency/13-Object Monitor 如何实现对象锁与线程等待.md",
     "_posts/Java-concurrency/09-ReentrantLock 为什么能够实现互斥.md",
-    "_posts/Java-concurrency/11-CountDownLatch 如何等待多个线程完成.md",
     "images/Java-advanced/IMG-20260707-000024.png",
     "images/Java-advanced/IMG-20260707-000032.png",
-    "images/Java-advanced/IMG-20260707-000033.png",
-    "images/Java-advanced/IMG-20260707-000031.png",
-    "images/Java-advanced/IMG-20260707-000030.png",
-    "images/Java-advanced/IMG-20260707-000028.png",
-    "images/Java-advanced/IMG-20260707-000029.png",
-    "images/Java-advanced/IMG-20260707-000023.png",
-    "images/Java-advanced/IMG-20260707-000018.png",
-    "images/Java-advanced/IMG-20260707-000027.png",
     "images/Java-advanced/IMG-20260707-000033.mmd",
     "images/Java-advanced/IMG-20260707-000032.mmd",
     "images/Java-advanced/IMG-20260707-000031.mmd",

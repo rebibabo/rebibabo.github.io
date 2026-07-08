@@ -1,24 +1,17 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-07-08T06:36:33.920Z",
+  "updatedAt": "2026-07-08T06:45:53.917Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
   "activeFile": {
-    "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-    "vaultPath": "wiki/maps/java-basic.md",
-    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/images/Java-concurrency/IMG-20260707-000180.png",
+    "vaultPath": "images/Java-concurrency/IMG-20260707-000180.png",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/images/Java-concurrency/IMG-20260707-000180.png",
     "hasFocus": false
   },
-  "openFiles": [
-    {
-      "filePath": "/Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-      "vaultPath": "wiki/maps/java-basic.md",
-      "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/wiki/maps/java-basic.md",
-      "isActive": true
-    }
-  ],
+  "openFiles": [],
   "selection": null
 }
