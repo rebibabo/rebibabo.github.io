@@ -1,0 +1,10 @@
+{
+  "default_branch": "source",
+  "branches": {
+    "source": {
+      "db_file": "tokensave.db",
+      "created_at": "1783473496",
+      "last_synced_at": "1783473496"
+    }
+  }
+}
