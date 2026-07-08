@@ -4,45 +4,22 @@
     "type": "split",
     "children": [
       {
-        "id": "c0a22e133226b2c4",
-        "type": "split",
+        "id": "e50ad5d8d39c70ac",
+        "type": "tabs",
         "children": [
           {
-            "id": "e50ad5d8d39c70ac",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "5b738eb0c105cc05",
-                "type": "leaf",
-                "state": {
-                  "type": "image",
-                  "state": {
-                    "file": "images/Java-concurrency/IMG-20260707-000180.png"
-                  },
-                  "icon": "lucide-image",
-                  "title": "IMG-20260707-000180"
-                }
-              }
-            ]
-          },
-          {
-            "id": "8907823fac735ccc",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "762be4f937e05121",
-                "type": "leaf",
-                "state": {
-                  "type": "terminal-view",
-                  "state": {},
-                  "icon": "terminal",
-                  "title": "Claude Code"
-                }
-              }
-            ]
+            "id": "5b738eb0c105cc05",
+            "type": "leaf",
+            "state": {
+              "type": "image",
+              "state": {
+                "file": "images/Java-concurrency/IMG-20260707-000180.png"
+              },
+              "icon": "lucide-image",
+              "title": "IMG-20260707-000180"
+            }
           }
-        ],
-        "direction": "horizontal"
+        ]
       }
     ],
     "direction": "vertical"
