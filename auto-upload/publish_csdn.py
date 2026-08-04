@@ -160,35 +160,8 @@ def safe_click(page, selector: str, timeout: int = 2000):
 
 
 # ============================================================
-# 登录状态检测 + 自动重新登录
+# 登录（登录态校验已合并进 run() 第一步）
 # ============================================================
-def _check_logged_in(context) -> bool:
-    """快速检查当前 auth 是否有效"""
-    page = context.new_page()
-    try:
-        page.goto("https://mp.csdn.net/", wait_until="domcontentloaded", timeout=15000)
-        page.wait_for_timeout(2000)
-        url = page.url
-        # 如果被重定向到登录页，说明过期
-        if "passport.csdn.net" in url:
-            return False
-        # 多策略检测登录态
-        logged_in = page.evaluate("""() => {
-            return !!(
-                document.querySelector('.hasAvatar') ||
-                document.querySelector('[class*="avatar"]') ||
-                document.querySelector('a[href*="editor"]') ||
-                document.querySelector('a:has-text("创作")')
-            );
-        }""")
-        return logged_in
-    except Exception as e:
-        print(f"  ⚠️  登录检测异常: {e}")
-        return False
-    finally:
-        page.close()
-
-
 def _do_login(playwright=None):
     """有头模式打开登录页，等用户手动登录后保存 auth"""
     if playwright is None:
@@ -311,22 +284,51 @@ def extract_metadata_via_ai(body: str, title: str) -> dict | None:
 # ============================================================
 def run(playwright: Playwright, title: str, body: str, tags: list[str], summary: str = "") -> None:
     browser = playwright.chromium.launch(headless=HEADLESS)
-    context = browser.new_context(
-        storage_state=AUTH_FILE,
-        viewport={"width": 1280, "height": 900},
-        locale="zh-CN",
-        permissions=["clipboard-read", "clipboard-write"],
-    )
+
+    def new_context():
+        return browser.new_context(
+            storage_state=AUTH_FILE,
+            viewport={"width": 1280, "height": 900},
+            locale="zh-CN",
+            permissions=["clipboard-read", "clipboard-write"],
+        )
+
+    context = new_context()
     print(f"\n{'='*60}")
     print(f"📝 正在发布: {title}")
     print(f"{'='*60}\n")
 
     page = context.new_page()
 
-    # ---- 第一步：打开 CSDN 后台，关闭广告 ----
-    print("1. 打开 CSDN 创作后台...")
-    page.goto("https://mp.csdn.net/")
-    page.wait_for_timeout(2000)
+    # ---- 第一步：打开 CSDN 后台（顺带校验登录，不再单独开浏览器验证）----
+    print("1. 打开 CSDN 创作后台（顺带校验登录）...")
+    page.goto("https://mp.csdn.net/", wait_until="domcontentloaded")
+
+    def login_ok() -> bool:
+        """登录有效 = 没被重定向到登录页，且「创作」入口出现"""
+        if "passport.csdn.net" in page.url:
+            return False
+        try:
+            page.get_by_role("link", name="创作").first.wait_for(timeout=8000)
+            return True
+        except Exception:
+            print(f"  🔍 未等到「创作」入口，当前 URL: {page.url}")
+            return False
+
+    if login_ok():
+        print("  ✅ 登录有效")
+    else:
+        print("  ⚠️  登录已过期，弹出登录窗口...")
+        context.close()
+        _do_login(playwright)
+        context = new_context()
+        page = context.new_page()
+        page.goto("https://mp.csdn.net/", wait_until="domcontentloaded")
+        if not login_ok():
+            print("  ❌ 重新登录后仍未检测到登录态，退出")
+            context.close()
+            browser.close()
+            sys.exit(3)
 
     # 关闭广告弹窗（如果有的话）
     safe_click(page, ".close-btn")
@@ -473,12 +475,17 @@ def run(playwright: Playwright, title: str, body: str, tags: list[str], summary:
 
     # ---- 第十二步：最终发布 ----
     print("12. 发布文章...")
-    page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
+    # page2.get_by_label("Insert publishArticle").get_by_role("button", name="发布文章").click()
 
-    # 等待"发布成功"提示出现（最多等 30 秒）
+    # 等待结果提示："发布成功"和"已成功保存至草稿箱"都算成功（最多等 10 分钟）
+    success = page2.locator('.content-title:has-text("发布成功")')
+    draft = page2.locator('.notice-box .notice:has-text("已成功保存至草稿箱")')
     try:
-        page2.locator('.content-title:has-text("发布成功")').wait_for(timeout=30000)
-        print("  ✅ 发布成功！正在审核中")
+        success.or_(draft).first.wait_for(timeout=600000)
+        if success.count() > 0:
+            print("  ✅ 发布成功！正在审核中")
+        else:
+            print("  ✅ 已保存至草稿箱")
     except Exception:
         print("  ⚠️  未检测到发布成功提示，继续...")
 
@@ -550,21 +557,10 @@ if __name__ == "__main__":
     print(f"最终标签: {tags}")
     print()
 
-    # 第 -2 步：检查登录态 + 主流程，共用一个 playwright 实例
+    # 第 -2 步：登录校验已合并进 run() 第一步；这里只处理 auth.json 不存在的首次登录
     with sync_playwright() as playwright:
         if not os.path.exists(AUTH_FILE):
             print("-2. auth.json 不存在，需要先登录...")
             _do_login(playwright)
-        else:
-            print("-2. 检查登录状态...")
-            b = playwright.chromium.launch(headless=HEADLESS)
-            c = b.new_context(storage_state=AUTH_FILE)
-            if _check_logged_in(c):
-                print("  ✅ 登录有效")
-            else:
-                print("  ⚠️  登录已过期，重新登录...")
-                _do_login(playwright)
-            c.close()
-            b.close()
 
         run(playwright, article["title"], article["body"], tags, summary)

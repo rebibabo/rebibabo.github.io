@@ -12,6 +12,7 @@ import json
 import subprocess
 import sys
 import os
+import threading
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,34 +58,45 @@ def main():
             remaining.append(article)
             continue
 
-        path = article["path"]
-        columns = article.get("columns", default_columns)
-        tags = article.get("tags", [])
+        # 兼容两种格式：纯字符串路径，或 {"path": ..., "columns": [...], "tags": [...]}
+        if isinstance(article, str):
+            path, columns, tags = article, default_columns, []
+        else:
+            path = article["path"]
+            columns = article.get("columns", default_columns)
+            tags = article.get("tags", [])
 
         log(f"📝 发布 ({published + 1}/{daily_limit}): {path}")
 
-        # 构建命令
-        cmd = [sys.executable, PUBLISH_SCRIPT, path]
+        # 构建命令（-u 让子进程输出不缓冲，可实时透传）
+        cmd = [sys.executable, "-u", PUBLISH_SCRIPT, path]
         if columns:
             cmd += ["-c", ",".join(columns)]
         cmd.extend(tags)
 
         blog_root = os.path.join(SCRIPT_DIR, "..")
+        # 实时流式打印子进程输出（同时进日志），不再静默捕获
+        proc = subprocess.Popen(cmd, cwd=blog_root, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        streamer = threading.Thread(
+            target=lambda: [log(f"   │ {line.rstrip()}") for line in proc.stdout],
+            daemon=True,
+        )
+        streamer.start()
         try:
-            result = subprocess.run(cmd, cwd=blog_root, timeout=300,
-                                    capture_output=True, text=True)
+            returncode = proc.wait(timeout=1800)
         except subprocess.TimeoutExpired:
-            log(f"   ⏱️  发布超时（5分钟），保留在队列")
+            proc.kill()
+            log(f"   ⏱️  发布超时（30分钟），保留在队列")
             remaining.append(article)
             continue
+        streamer.join(timeout=5)
 
-        if result.returncode == 0:
+        if returncode == 0:
             published += 1
             log(f"   ✅ 发布成功")
         else:
-            err = result.stderr.strip()[-200:] if result.stderr else "无错误输出"
-            log(f"   ❌ 发布失败 (exit={result.returncode}): {err}")
-            remaining.append(article)
+            log(f"   ❌ 发布失败 (exit={returncode})")
             remaining.append(article)
 
     # 写回剩余
