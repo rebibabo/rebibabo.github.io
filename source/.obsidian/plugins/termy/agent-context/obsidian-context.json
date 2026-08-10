@@ -1,12 +1,17 @@
 {
   "schemaVersion": 1,
   "source": "termy",
-  "updatedAt": "2026-08-10T02:28:05.207Z",
+  "updatedAt": "2026-08-10T02:28:06.126Z",
   "vaultRoot": "Users/zs.yuan/Documents/blogs/source",
   "workspaceFolders": [
     "Users/zs.yuan/Documents/blogs/source"
   ],
-  "activeFile": null,
+  "activeFile": {
+    "filePath": "/Users/zs.yuan/Documents/blogs/source/images/Java-concurrency/IMG-20260707-000180.png",
+    "vaultPath": "images/Java-concurrency/IMG-20260707-000180.png",
+    "fileUrl": "file:///Users/zs.yuan/Documents/blogs/source/images/Java-concurrency/IMG-20260707-000180.png",
+    "hasFocus": false
+  },
   "openFiles": [],
   "selection": null
 }
