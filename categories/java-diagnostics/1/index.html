@@ -19,26 +19,25 @@
   <meta name="author" content="rebibabo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Java 程序出现 CPU 飙高、请求卡住、线程池耗尽或大量锁等待时，问题最终往往表现为：某些线程正在长时间执行、等待某个资源，或者阻塞了其他线程。jstack 的作用，就是把 JVM 中所有线程在某一时刻的状态和调用栈记录下来，帮助我们还原线程当时正在做什么。 不过，一份 Thread Dump 只是一个瞬间的快照。真正有效的分析不能只看某个线程是 RUNNABLE、WAITING 还是 BLO">
+    <meta name="description" content="垃圾回收通常被简化成一句话：JVM 自动回收不再使用的对象。但真正进行 GC 分析时，仅仅知道“对象会被回收”是不够的。我们还需要理解对象放在哪里、JVM 如何判断对象是否存活、年轻代与老年代为什么存在，以及不同垃圾收集器为什么会表现出不同的暂停和吞吐量。 本文从 JVM 的整体内存结构开始，逐步建立对象存活、分代回收、Stop-The-World、垃圾收集算法和垃圾收集器之间的关系。最后再把这些">
 <meta property="og:type" content="article">
-<meta property="og:title" content="jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障">
+<meta property="og:title" content="Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析">
 <meta property="og:url" content="https://rebibabo.github.io/categories/java-diagnostics/1/index.html">
 <meta property="og:site_name" content="rebibabo的博客">
-<meta property="og:description" content="Java 程序出现 CPU 飙高、请求卡住、线程池耗尽或大量锁等待时，问题最终往往表现为：某些线程正在长时间执行、等待某个资源，或者阻塞了其他线程。jstack 的作用，就是把 JVM 中所有线程在某一时刻的状态和调用栈记录下来，帮助我们还原线程当时正在做什么。 不过，一份 Thread Dump 只是一个瞬间的快照。真正有效的分析不能只看某个线程是 RUNNABLE、WAITING 还是 BLO">
+<meta property="og:description" content="垃圾回收通常被简化成一句话：JVM 自动回收不再使用的对象。但真正进行 GC 分析时，仅仅知道“对象会被回收”是不够的。我们还需要理解对象放在哪里、JVM 如何判断对象是否存活、年轻代与老年代为什么存在，以及不同垃圾收集器为什么会表现出不同的暂停和吞吐量。 本文从 JVM 的整体内存结构开始，逐步建立对象存活、分代回收、Stop-The-World、垃圾收集算法和垃圾收集器之间的关系。最后再把这些">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-12T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-16T02:14:54.882Z">
+<meta property="article:modified_time" content="2026-07-13T13:22:29.106Z">
 <meta property="article:author" content="rebibabo">
-<meta property="article:tag" content="AIOps">
+<meta property="article:tag" content="GC">
 <meta property="article:tag" content="JVM">
-<meta property="article:tag" content="Thread Dump">
-<meta property="article:tag" content="jstack">
-<meta property="article:tag" content="线程诊断">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="jstat">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障 - rebibabo的博客</title>
+  <title>Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析 - rebibabo的博客</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
 
@@ -207,7 +206,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障"></span>
+            <span id="subtitle" data-typed-text="Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析"></span>
           
         </div>
 
@@ -241,7 +240,7 @@
         
         
         
-          84 分钟
+          86 分钟
         
       </span>
     
@@ -280,328 +279,373 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障</h1>
+            <h1 id="seo-header">Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析</h1>
             
             
               <div class="markdown-body">
                 
-                <p>Java 程序出现 CPU 飙高、请求卡住、线程池耗尽或大量锁等待时，问题最终往往表现为：某些线程正在长时间执行、等待某个资源，或者阻塞了其他线程。<code>jstack</code> 的作用，就是把 JVM 中所有线程在某一时刻的状态和调用栈记录下来，帮助我们还原线程当时正在做什么。</p>
-<p>不过，一份 Thread Dump 只是一个瞬间的快照。真正有效的分析不能只看某个线程是 <code>RUNNABLE</code>、<code>WAITING</code> 还是 <code>BLOCKED</code>，而要继续结合调用栈、锁关系、线程角色和多次快照中的变化，判断线程是在正常等待，还是已经形成持续性瓶颈。</p>
-<h2 id="1、jstack-观察的到底是什么"><a href="#1、jstack-观察的到底是什么" class="headerlink" title="1、jstack 观察的到底是什么"></a>1、jstack 观察的到底是什么</h2><p>一个 JVM 进程内部通常存在许多线程，包括：</p>
-<ul>
-<li>处理 HTTP 请求的业务线程；</li>
-<li>线程池中的工作线程；</li>
-<li>数据库连接池维护线程；</li>
-<li>GC、JIT 编译等 JVM 内部线程；</li>
-<li>用户自己创建的线程。</li>
-</ul>
-<p><code>jstack</code> 获取的是这些线程在某一时刻的执行快照，也就是 Thread Dump。</p>
+                <p>垃圾回收通常被简化成一句话：JVM 自动回收不再使用的对象。但真正进行 GC 分析时，仅仅知道“对象会被回收”是不够的。我们还需要理解对象放在哪里、JVM 如何判断对象是否存活、年轻代与老年代为什么存在，以及不同垃圾收集器为什么会表现出不同的暂停和吞吐量。</p>
+<p>本文从 JVM 的整体内存结构开始，逐步建立对象存活、分代回收、Stop-The-World、垃圾收集算法和垃圾收集器之间的关系。最后再把这些机制对应到 <code>jstat</code> 指标上，说明为什么单次采样只能看到状态，而连续采样才能判断 GC 是否频繁、老年代是否持续增长以及回收效果是否正常。</p>
+<h2 id="1、理解-GC-之前，为什么要先看-JVM-内存结构"><a href="#1、理解-GC-之前，为什么要先看-JVM-内存结构" class="headerlink" title="1、理解 GC 之前，为什么要先看 JVM 内存结构"></a>1、理解 GC 之前，为什么要先看 JVM 内存结构</h2><p>GC 回收的是内存，但 JVM 进程使用的内存并不只有 Java 堆。如果一开始没有区分堆、线程栈和元空间，后面看到“老年代不足”“元空间溢出”或“本地内存不足”时，就容易把不同问题混在一起。</p>
+<p>JVM 本质上是运行在操作系统中的一个进程。操作系统先为 JVM 进程提供内存，JVM 再把这些内存用于不同用途。</p>
 <pre><code class=" mermaid">graph LR
-    A[&quot;JVM 进程&quot;] --&gt; B[&quot;全部线程&quot;]
-    B --&gt; C[&quot;线程状态&quot;]
-    C --&gt; D[&quot;方法调用栈&quot;]
-    D --&gt; E[&quot;等待与持锁关系&quot;]
+    A[&quot;操作系统内存&quot;] --&gt; B[&quot;JVM 进程&quot;]
+    B --&gt; C[&quot;Java 堆&quot;]
+    B --&gt; D[&quot;线程栈&quot;]
+    B --&gt; E[&quot;元空间&quot;]
+    B --&gt; F[&quot;其他本地内存&quot;]
 </code></pre>
 
-<p>因此，<code>jstack</code> 主要回答四个问题：</p>
+<p>几个主要区域的职责如下。</p>
+<table>
+<thead>
+<tr>
+<th>内存区域</th>
+<th>主要存放内容</th>
+<th align="right">是否线程共享</th>
+<th>与 GC 的关系</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Java 堆</td>
+<td>普通对象实例、数组、Class 对象等</td>
+<td align="right">是</td>
+<td>GC 的主要工作区域</td>
+</tr>
+<tr>
+<td>Java 线程栈</td>
+<td>栈帧、局部变量、方法调用状态</td>
+<td align="right">否</td>
+<td>栈中的引用可以成为 GC Roots</td>
+</tr>
+<tr>
+<td>元空间</td>
+<td>类结构、字段和方法描述、运行时常量池等类元数据</td>
+<td align="right">是</td>
+<td>类卸载时可能被回收</td>
+</tr>
+<tr>
+<td>程序计数器</td>
+<td>当前线程正在执行的字节码位置</td>
+<td align="right">否</td>
+<td>不是普通对象回收区域</td>
+</tr>
+<tr>
+<td>本地方法栈</td>
+<td>Native 方法执行状态</td>
+<td align="right">否</td>
+<td>由 JVM 和本地代码管理</td>
+</tr>
+<tr>
+<td>直接内存等</td>
+<td>DirectBuffer、JVM 内部结构等</td>
+<td align="right">视用途而定</td>
+<td>不属于 Java 堆</td>
+</tr>
+</tbody></table>
+<p>这里所说的“本地内存”并不是 JVM 外部的一块独立内存，而是 JVM 进程从操作系统获得、但不属于 Java 堆的内存。</p>
+<p>例如设置：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">-Xmx2g<br></code></pre></td></tr></table></figure>
+
+<p>只表示 Java 堆最大约为 2 GB，并不意味着 JVM 进程最多只会使用 2 GB。线程栈、元空间、直接内存和 JVM 自身结构仍然会额外占用内存。</p>
+<p>对于本文的 GC 主线，目前只需要抓住一点：</p>
+<blockquote>
+<p>Java 堆是普通对象分配和垃圾回收的主要区域，年轻代和老年代都属于 Java 堆；元空间和线程栈不属于 Java 堆。</p>
+</blockquote>
+<h2 id="2、GC-真正要判断的不是对象有没有变量名"><a href="#2、GC-真正要判断的不是对象有没有变量名" class="headerlink" title="2、GC 真正要判断的不是对象有没有变量名"></a>2、GC 真正要判断的不是对象有没有变量名</h2><p>考虑一个处理订单的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">processOrder</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">Order</span> <span class="hljs-variable">order</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Order</span>();<br>    <span class="hljs-type">Payment</span> <span class="hljs-variable">payment</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Payment</span>();<br><br>    order.setPayment(payment);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>Order</code> 和 <code>Payment</code> 对象通常分配在堆中，而局部变量 <code>order</code>、<code>payment</code> 所对应的引用存在当前线程的栈帧中。</p>
+<p>方法执行期间，引用关系可以简化为：</p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;线程栈&quot;] --&gt; B[&quot;order 引用&quot;]
+    B --&gt; C[&quot;Order 对象&quot;]
+    C --&gt; D[&quot;Payment 对象&quot;]
+</code></pre>
+
+<p>方法结束后，栈帧被弹出，局部变量引用随之消失。如果此时没有其他引用能够找到这些对象，它们就可能成为垃圾。</p>
+<p>但执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">order = <span class="hljs-literal">null</span>;<br></code></pre></td></tr></table></figure>
+
+<p>并不意味着对象会在这一行立即消失。它只表示当前变量不再指向原来的对象。JVM 仍然需要判断是否还有其他引用可以访问该对象。</p>
+<p>因此，GC 判断对象是否存活的核心问题是：</p>
+<blockquote>
+<p>这个对象能否从一组确定存活的起点出发，通过引用链找到？</p>
+</blockquote>
+<p>这些起点称为 <strong>GC Roots</strong>。常见的 GC Roots 包括：</p>
+<ul>
+<li>当前线程栈中的局部变量引用；</li>
+<li>已加载类的静态字段引用；</li>
+<li>正在运行的线程及其关联对象；</li>
+<li>JNI 等本地代码持有的引用；</li>
+<li>JVM 内部持有的特定对象。</li>
+</ul>
+<p>JVM 从 GC Roots 出发遍历对象引用。如果对象可以被找到，就认为它仍然可达；如果整个对象关系无法从任何 GC Root 到达，就可以进入回收流程。</p>
+<p>这也解释了为什么循环引用不会阻止 Java GC：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">a.next = b;<br>b.next = a;<br><br>a = <span class="hljs-literal">null</span>;<br>b = <span class="hljs-literal">null</span>;<br></code></pre></td></tr></table></figure>
+
+<p>虽然两个对象仍然互相引用，但只要没有 GC Root 能够到达它们，整个引用环仍然可以被回收。</p>
+<p>可达性分析解决的是“谁还活着”，而复制、清除和整理解决的是“确认垃圾后，怎样释放空间”。这两个层级不能混为一谈。</p>
+<h2 id="3、为什么堆还要分成年轻代和老年代"><a href="#3、为什么堆还要分成年轻代和老年代" class="headerlink" title="3、为什么堆还要分成年轻代和老年代"></a>3、为什么堆还要分成年轻代和老年代</h2><p>实际程序中的对象生命周期并不相同。处理一次请求时创建的参数对象、临时集合和中间结果，往往很快失去引用；缓存、线程池对象和应用级组件则可能存活很久。</p>
+<p>这种现象可以概括为：</p>
+<blockquote>
+<p>大多数对象创建后很快死亡，只有少部分对象能够长期存活。</p>
+</blockquote>
+<p>如果每次内存不足都扫描整个堆，就会反复检查大量长期存活对象。JVM 因此把对象按照生命周期进行分代管理。</p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;创建新对象&quot;] --&gt; B[&quot;Eden&quot;]
+    B --&gt; C[&quot;Survivor&quot;]
+    C --&gt; D[&quot;老年代&quot;]
+</code></pre>
+
+<p>传统分代堆可以理解为：</p>
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>主要职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Eden</td>
+<td>接收绝大多数新对象</td>
+</tr>
+<tr>
+<td>Survivor 0</td>
+<td>保存一次 Young GC 后仍然存活的对象</td>
+</tr>
+<tr>
+<td>Survivor 1</td>
+<td>与另一个 Survivor 区交替接收存活对象</td>
+</tr>
+<tr>
+<td>老年代</td>
+<td>保存长期存活、提前晋升或体积较大的对象</td>
+</tr>
+</tbody></table>
+<p>两个 Survivor 区不会同时承担相同角色。一次 Young GC 中，一个是保存现有存活对象的 From 区，另一个是接收复制对象的 To 区。回收完成后，两者交换角色。</p>
+<p>当 Eden 空间不足时，JVM 会触发 Young GC。存活对象被复制到 Survivor 或老年代，Eden 和原 Survivor 区则可以整体清空。</p>
+<p>对象进入老年代主要有几种情况：</p>
 <ol>
-<li>JVM 中有哪些线程；</li>
-<li>每个线程当前是什么状态；</li>
-<li>每个线程执行到了什么位置；</li>
-<li>线程正在等待什么资源，或者持有哪些锁。</li>
+<li>对象经历多次 Young GC，年龄达到晋升条件；</li>
+<li>Survivor 空间不足，无法容纳所有存活对象；</li>
+<li>某些收集器可能让大对象直接进入老年代；</li>
+<li>收集器根据对象年龄分布动态调整晋升条件。</li>
 </ol>
-<p>它适合排查：</p>
-<ul>
-<li>程序假死；</li>
-<li>Java 层死锁；</li>
-<li>CPU 使用率过高；</li>
-<li>大量线程阻塞；</li>
-<li>线程池工作线程被占满；</li>
-<li>数据库连接池耗尽；</li>
-<li>远程接口调用长时间不返回；</li>
-<li>线程数量持续增长。</li>
-</ul>
-<p>它不负责直接分析堆内存、对象占用和 GC 原因，这些问题需要结合 <code>jstat</code>、GC 日志、堆转储等工具。</p>
-<h2 id="2、如何获取一份-Thread-Dump"><a href="#2、如何获取一份-Thread-Dump" class="headerlink" title="2、如何获取一份 Thread Dump"></a>2、如何获取一份 Thread Dump</h2><p>首先找到目标 JVM 的进程号：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jps -l<br></code></pre></td></tr></table></figure>
-
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">21836 com.example.Application<br></code></pre></td></tr></table></figure>
-
-<p>然后执行：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstack 21836<br></code></pre></td></tr></table></figure>
-
-<p>线上排查通常保存到文件中：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstack 21836 &gt; thread-dump.txt<br></code></pre></td></tr></table></figure>
-
-<p>如果希望获得更多关于 <code>java.util.concurrent</code> 同步器的信息，可以使用：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstack -l 21836 &gt; thread-dump.txt<br></code></pre></td></tr></table></figure>
-
-<p>现代 JDK 中也可以使用：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jcmd 21836 Thread.<span class="hljs-built_in">print</span><br></code></pre></td></tr></table></figure>
-
-<p>带扩展锁信息时：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jcmd 21836 Thread.<span class="hljs-built_in">print</span> -l<br></code></pre></td></tr></table></figure>
-
-<p>实际分析时不应只抓一份。更常见的做法是连续抓取多次：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> &#123;1..5&#125;; <span class="hljs-keyword">do</span><br>    ts=$(<span class="hljs-built_in">date</span> +%Y%m%d-%H%M%S)<br>    jstack -l 21836 &gt; <span class="hljs-string">&quot;thread-<span class="hljs-variable">$ts</span>.txt&quot;</span><br>    <span class="hljs-built_in">sleep</span> 5<br><span class="hljs-keyword">done</span><br></code></pre></td></tr></table></figure>
-
-<p>连续抓取的原因是：一份 Dump 只能说明线程当时碰巧执行到了哪里，多份 Dump 才能观察线程是否持续停留、调用栈是否发生变化，以及同类线程是否不断增加。</p>
-<h2 id="3、如何读懂一条线程记录"><a href="#3、如何读懂一条线程记录" class="headerlink" title="3、如何读懂一条线程记录"></a>3、如何读懂一条线程记录</h2><p>一条典型线程记录可能是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;http-nio-8080-exec-8&quot; #28 daemon prio=5 os_prio=0<br>   tid=0x00007f123400 nid=0x5596 runnable<br><br>   java.lang.Thread.State: RUNNABLE<br><br>    at java.net.SocketInputStream.socketRead0(Native Method)<br>    at com.example.order.RemoteOrderClient.query(RemoteOrderClient.java:68)<br>    at com.example.order.OrderService.create(OrderService.java:42)<br></code></pre></td></tr></table></figure>
-
-<p>阅读时可以分成三层。</p>
-<h3 id="3-1-线程是谁"><a href="#3-1-线程是谁" class="headerlink" title="3.1 线程是谁"></a>3.1 线程是谁</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;http-nio-8080-exec-8&quot;<br></code></pre></td></tr></table></figure>
-
-<p>线程名称通常能说明它属于哪个组件。</p>
-<table>
-<thead>
-<tr>
-<th>线程名称</th>
-<th>常见含义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>http-nio-8080-exec-*</code></td>
-<td>Tomcat HTTP 请求线程</td>
-</tr>
-<tr>
-<td><code>pool-1-thread-*</code></td>
-<td>普通线程池工作线程</td>
-</tr>
-<tr>
-<td><code>ForkJoinPool.commonPool-worker-*</code></td>
-<td>ForkJoinPool 工作线程</td>
-</tr>
-<tr>
-<td><code>HikariPool-*-housekeeper</code></td>
-<td>HikariCP 连接池维护线程</td>
-</tr>
-<tr>
-<td><code>GC Thread#*</code></td>
-<td>GC 工作线程</td>
-</tr>
-<tr>
-<td><code>C2 CompilerThread*</code></td>
-<td>JIT 编译线程</td>
-</tr>
-</tbody></table>
-<p>分析时，应先判断它是业务线程、线程池工作线程，还是 JVM 内部线程。</p>
-<h3 id="3-2-线程是什么状态"><a href="#3-2-线程是什么状态" class="headerlink" title="3.2 线程是什么状态"></a>3.2 线程是什么状态</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">java.lang.Thread.State: RUNNABLE<br></code></pre></td></tr></table></figure>
-
-<p>状态说明线程当前处于哪一类执行阶段，但状态本身不是结论。</p>
-<h3 id="3-3-线程为什么处于这个状态"><a href="#3-3-线程为什么处于这个状态" class="headerlink" title="3.3 线程为什么处于这个状态"></a>3.3 线程为什么处于这个状态</h3><p>调用栈顶部表示线程当前最接近的执行位置：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">SocketInputStream.socketRead0<br></code></pre></td></tr></table></figure>
-
-<p>继续向下可以找到触发该操作的业务方法：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">RemoteOrderClient.query<br>OrderService.create<br></code></pre></td></tr></table></figure>
-
-<p>因此，这条线程记录表示：</p>
-<blockquote>
-<p>一个 Tomcat 请求线程正在处理订单创建请求，当前停在 <code>RemoteOrderClient.query()</code> 发起的网络读取中。</p>
-</blockquote>
-<p>分析 Thread Dump 的核心不是只问：</p>
-<blockquote>
-<p>线程是什么状态？</p>
-</blockquote>
-<p>而是继续问：</p>
-<blockquote>
-<p>它为什么处于这个状态，当前停在哪一段调用链中？</p>
-</blockquote>
-<h2 id="4、六种-Java-线程状态应该如何理解"><a href="#4、六种-Java-线程状态应该如何理解" class="headerlink" title="4、六种 Java 线程状态应该如何理解"></a>4、六种 Java 线程状态应该如何理解</h2><p>Java 定义了六种线程状态：</p>
-<table>
-<thead>
-<tr>
-<th>状态</th>
-<th>主要含义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>NEW</code></td>
-<td>已创建线程对象，但还未调用 <code>start()</code></td>
-</tr>
-<tr>
-<td><code>RUNNABLE</code></td>
-<td>可运行、正在运行，或处于某些底层 I&#x2F;O 操作</td>
-</tr>
-<tr>
-<td><code>BLOCKED</code></td>
-<td>等待进入 <code>synchronized</code> 保护的临界区</td>
-</tr>
-<tr>
-<td><code>WAITING</code></td>
-<td>无超时时间地等待某个条件</td>
-</tr>
-<tr>
-<td><code>TIMED_WAITING</code></td>
-<td>带最长等待时间地等待</td>
-</tr>
-<tr>
-<td><code>TERMINATED</code></td>
-<td><code>run()</code> 已执行结束</td>
-</tr>
-</tbody></table>
-<p>在实际 Thread Dump 中，最常见的是中间四种。</p>
-<h3 id="4-1-RUNNABLE-不一定正在消耗-CPU"><a href="#4-1-RUNNABLE-不一定正在消耗-CPU" class="headerlink" title="4.1 RUNNABLE 不一定正在消耗 CPU"></a>4.1 <code>RUNNABLE</code> 不一定正在消耗 CPU</h3><p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">java.lang.Thread.State: RUNNABLE<br><br>at java.net.SocketInputStream.socketRead0(Native Method)<br></code></pre></td></tr></table></figure>
-
-<p>线程虽然显示为 <code>RUNNABLE</code>，但它可能正在等待底层网络数据，并不一定持续占用 CPU。</p>
-<p>因此，<code>RUNNABLE</code> 可能表示：</p>
-<ul>
-<li>正在 CPU 上执行计算；</li>
-<li>已具备运行条件，等待操作系统调度；</li>
-<li>正在执行 Native Method；</li>
-<li>正在等待某些底层网络或文件 I&#x2F;O。</li>
-</ul>
-<p>是否高 CPU，不能只根据 <code>RUNNABLE</code> 判断。</p>
-<h3 id="4-2-BLOCKED-专门表示等待-Monitor"><a href="#4-2-BLOCKED-专门表示等待-Monitor" class="headerlink" title="4.2 BLOCKED 专门表示等待 Monitor"></a>4.2 <code>BLOCKED</code> 专门表示等待 Monitor</h3><p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">java.lang.Thread.State: BLOCKED (on object monitor)<br><br>- waiting to lock &lt;0x000000076b21a8f0&gt;<br></code></pre></td></tr></table></figure>
-
-<p>它表示线程希望进入某个 <code>synchronized</code> 临界区，但对象 Monitor 已被其他线程持有。</p>
-<p><code>BLOCKED</code> 不是“线程卡住”的泛称，而是专门表示等待 Monitor。</p>
-<h3 id="4-3-WAITING-表示没有明确超时时间"><a href="#4-3-WAITING-表示没有明确超时时间" class="headerlink" title="4.3 WAITING 表示没有明确超时时间"></a>4.3 <code>WAITING</code> 表示没有明确超时时间</h3><p>常见来源包括：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">object.wait();<br>thread.join();<br>countDownLatch.await();<br>blockingQueue.take();<br></code></pre></td></tr></table></figure>
-
-<p>线程池中的空闲工作线程也经常处于：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">WAITING (parking)<br></code></pre></td></tr></table></figure>
-
-<p>因为它们正在任务队列上等待新任务。</p>
-<h3 id="4-4-TIMED-WAITING-表示带超时等待"><a href="#4-4-TIMED-WAITING-表示带超时等待" class="headerlink" title="4.4 TIMED_WAITING 表示带超时等待"></a>4.4 <code>TIMED_WAITING</code> 表示带超时等待</h3><p>常见来源包括：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread.sleep(<span class="hljs-number">5000</span>);<br>object.wait(<span class="hljs-number">5000</span>);<br>thread.join(<span class="hljs-number">5000</span>);<br>LockSupport.parkNanos(...);<br></code></pre></td></tr></table></figure>
-
-<p>它与 <code>WAITING</code> 的区别是：即使没有其他线程主动唤醒，超时时间到达后也可以返回。</p>
-<h3 id="4-5-NEW-和-TERMINATED-通常不常见"><a href="#4-5-NEW-和-TERMINATED-通常不常见" class="headerlink" title="4.5 NEW 和 TERMINATED 通常不常见"></a>4.5 <code>NEW</code> 和 <code>TERMINATED</code> 通常不常见</h3><p><code>NEW</code> 线程还未真正启动，<code>TERMINATED</code> 线程已经执行结束，因此在常规 Thread Dump 中通常不会大量出现。</p>
-<h2 id="5、为什么等锁有时是-BLOCKED，有时是-WAITING"><a href="#5、为什么等锁有时是-BLOCKED，有时是-WAITING" class="headerlink" title="5、为什么等锁有时是 BLOCKED，有时是 WAITING"></a>5、为什么等锁有时是 BLOCKED，有时是 WAITING</h2><p>“等待锁”并不一定都表现为 <code>BLOCKED</code>，这取决于锁的实现方式。</p>
-<h3 id="5-1-等待-synchronized-通常是-BLOCKED"><a href="#5-1-等待-synchronized-通常是-BLOCKED" class="headerlink" title="5.1 等待 synchronized 通常是 BLOCKED"></a>5.1 等待 synchronized 通常是 BLOCKED</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">synchronized</span> (lock) &#123;<br>    process();<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>如果其他线程已经持有 <code>lock</code>，当前线程会等待 JVM Monitor：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">java.lang.Thread.State: BLOCKED<br><br>- waiting to lock &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
-
-<h3 id="5-2-等待-ReentrantLock-通常是-WAITING"><a href="#5-2-等待-ReentrantLock-通常是-WAITING" class="headerlink" title="5.2 等待 ReentrantLock 通常是 WAITING"></a>5.2 等待 ReentrantLock 通常是 WAITING</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">lock.lock();<br><span class="hljs-keyword">try</span> &#123;<br>    process();<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    lock.unlock();<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p><code>ReentrantLock</code> 基于 AQS 管理竞争线程。线程获取失败后，通常通过 <code>LockSupport.park()</code> 挂起：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">java.lang.Thread.State: WAITING (parking)<br><br>at jdk.internal.misc.Unsafe.park(Native Method)<br>at java.util.concurrent.locks.LockSupport.park(...)<br>at java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(...)<br>at java.util.concurrent.locks.ReentrantLock.lock(...)<br></code></pre></td></tr></table></figure>
-
-<p>因此：</p>
-<table>
-<thead>
-<tr>
-<th>等待对象</th>
-<th>常见等待机制</th>
-<th>常见状态</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>synchronized</code></td>
-<td>JVM Monitor</td>
-<td><code>BLOCKED</code></td>
-</tr>
-<tr>
-<td><code>ReentrantLock</code></td>
-<td>AQS + <code>park()</code></td>
-<td><code>WAITING</code></td>
-</tr>
-<tr>
-<td>线程池任务队列</td>
-<td>Condition + <code>park()</code></td>
-<td><code>WAITING</code></td>
-</tr>
-<tr>
-<td><code>CountDownLatch</code></td>
-<td>AQS + <code>park()</code></td>
-<td><code>WAITING</code></td>
-</tr>
-</tbody></table>
-<p>看到 <code>WAITING (parking)</code> 时，不能直接判断线程在等待什么，必须继续看调用栈。</p>
-<h2 id="6、如何理解-Thread-Dump-中的锁标记"><a href="#6、如何理解-Thread-Dump-中的锁标记" class="headerlink" title="6、如何理解 Thread Dump 中的锁标记"></a>6、如何理解 Thread Dump 中的锁标记</h2><p>Thread Dump 中常见的锁信息包括：</p>
-<h3 id="6-1-waiting-to-lock"><a href="#6-1-waiting-to-lock" class="headerlink" title="6.1 waiting to lock"></a>6.1 <code>waiting to lock</code></h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- waiting to lock &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>表示线程正在等待获取对应的 Monitor。</p>
-<h3 id="6-2-locked"><a href="#6-2-locked" class="headerlink" title="6.2 locked"></a>6.2 <code>locked</code></h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- locked &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>表示线程当前已经持有对应的 Monitor。</p>
-<p>如果出现：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">线程 A：- locked &lt;0x1000&gt;<br>线程 B：- waiting to lock &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>就可以确定线程 B 正在等待线程 A 释放锁。</p>
-<h3 id="6-3-parking-to-wait-for"><a href="#6-3-parking-to-wait-for" class="headerlink" title="6.3 parking to wait for"></a>6.3 <code>parking to wait for</code></h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- parking to wait for &lt;0x2000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>表示线程通过 <code>LockSupport.park()</code> 等待某个同步器对象。</p>
-<p>它可能对应：</p>
-<ul>
-<li><code>ReentrantLock</code>；</li>
-<li><code>Condition</code>；</li>
-<li><code>CountDownLatch</code>；</li>
-<li>线程池任务队列；</li>
-<li><code>CompletableFuture</code>；</li>
-<li>其他 AQS 同步器。</li>
-</ul>
-<p>对象地址并不能直接说明线程究竟在等待哪种业务资源，仍然要结合调用栈判断。</p>
-<h3 id="6-4-waiting-on"><a href="#6-4-waiting-on" class="headerlink" title="6.4 waiting on"></a>6.4 <code>waiting on</code></h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- waiting on &lt;0x3000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>常见于线程执行：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">object.wait();<br></code></pre></td></tr></table></figure>
-
-<p>线程已经释放对应 Monitor，并等待 <code>notify()</code>、<code>notifyAll()</code> 或中断。</p>
-<h3 id="6-5-waiting-to-re-lock-in-wait"><a href="#6-5-waiting-to-re-lock-in-wait" class="headerlink" title="6.5 waiting to re-lock in wait()"></a>6.5 <code>waiting to re-lock in wait()</code></h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- waiting to re-lock in wait() &lt;0x3000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>表示线程已经从 <code>wait()</code> 中被唤醒，但必须重新获取 Monitor，才能继续执行同步代码块。</p>
-<p>这些标记帮助我们建立线程与资源之间的关系，但不能替代调用栈分析。</p>
-<h2 id="7、如何识别死锁和普通锁等待"><a href="#7、如何识别死锁和普通锁等待" class="headerlink" title="7、如何识别死锁和普通锁等待"></a>7、如何识别死锁和普通锁等待</h2><p>普通锁等待中，持锁线程最终会释放锁：</p>
+<p>因此，对象并不是必须在 Survivor 中停留固定次数后才会进入老年代。对象年龄只是晋升判断的一部分，Survivor 容量和收集器策略同样会影响结果。</p>
+<h2 id="4、一次-Young-GC-为什么适合使用复制算法"><a href="#4、一次-Young-GC-为什么适合使用复制算法" class="headerlink" title="4、一次 Young GC 为什么适合使用复制算法"></a>4、一次 Young GC 为什么适合使用复制算法</h2><p>假设 Eden 中有大量对象，但只有少量对象仍然可达。Young GC 可以先找到这些存活对象，再将它们复制到新的 Survivor 区或老年代。</p>
 <pre><code class=" mermaid">graph LR
-    A[&quot;线程 A 持锁&quot;] --&gt; B[&quot;线程 B 等待&quot;]
-    B --&gt; C[&quot;线程 A 释放&quot;]
-    C --&gt; D[&quot;线程 B 继续&quot;]
+    A[&quot;暂停业务线程&quot;] --&gt; B[&quot;查找存活对象&quot;]
+    B --&gt; C[&quot;复制存活对象&quot;]
+    C --&gt; D[&quot;清空原区域&quot;]
+    D --&gt; E[&quot;恢复业务线程&quot;]
 </code></pre>
 
-<p>死锁则形成循环等待：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">线程 A：持有 lock1，等待 lock2<br>线程 B：持有 lock2，等待 lock1<br></code></pre></td></tr></table></figure>
-
-<p>此时两个线程都无法继续。</p>
-<p><code>jstack</code> 通常会在输出末尾给出：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">Found one Java-level deadlock:<br></code></pre></td></tr></table></figure>
-
-<p>分析时仍应验证完整关系：</p>
+<p>复制算法的关键不在于“复制所有对象”，而在于只复制存活对象。</p>
+<p>如果 Eden 中有 1000 个对象，只有 50 个仍然存活，JVM 只需要移动这 50 个对象。其余 950 个死亡对象不需要逐个删除，原 Eden 区可以整体重新使用。</p>
+<p>复制算法因此特别适合年轻代：</p>
+<ul>
+<li>年轻代死亡对象比例通常较高；</li>
+<li>实际需要复制的对象较少；</li>
+<li>复制后对象连续排列，不容易产生碎片；</li>
+<li>原区域可以整体清空。</li>
+</ul>
+<p>复制算法的代价是必须准备接收存活对象的空间。如果 Survivor 无法容纳全部存活对象，多余对象就可能提前晋升到老年代。</p>
+<p>Young GC 通常会产生 Stop-The-World，但暂停范围和持续时间要根据具体收集器判断。Young GC 不是异常事件，而是 JVM 正常的内存循环。</p>
+<p>真正需要关注的是：</p>
+<ul>
+<li>Young GC 是否过于频繁；</li>
+<li>每次暂停是否过长；</li>
+<li>回收后 Eden 是否释放充分；</li>
+<li>是否有大量对象不断晋升老年代。</li>
+</ul>
+<h2 id="5、老年代为什么不能照搬年轻代的回收方式"><a href="#5、老年代为什么不能照搬年轻代的回收方式" class="headerlink" title="5、老年代为什么不能照搬年轻代的回收方式"></a>5、老年代为什么不能照搬年轻代的回收方式</h2><p>年轻代通常是“死亡对象多，存活对象少”，老年代则通常相反。进入老年代的对象已经经历过多次存活判断，其中较大比例仍然可达。</p>
+<p>如果老年代也使用简单的双区域复制，就需要移动大量存活对象，并准备足够大的备用空间，成本通常过高。因此老年代更常使用标记—清除或标记—整理思路。</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>执行方式</th>
+<th>优点</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>复制</td>
+<td>复制存活对象，再清空旧区域</td>
+<td>分配简单，没有碎片</td>
+<td>需要额外空间</td>
+</tr>
+<tr>
+<td>标记—清除</td>
+<td>标记存活对象，清除死亡对象</td>
+<td>不需要移动存活对象</td>
+<td>容易产生碎片</td>
+</tr>
+<tr>
+<td>标记—整理</td>
+<td>标记后移动存活对象到一侧</td>
+<td>获得连续空闲空间</td>
+<td>移动和更新引用成本较高</td>
+</tr>
+</tbody></table>
+<p>标记—清除不会移动存活对象，但回收后可能出现多个分散的小空闲块。即使总空闲空间足够，也可能因为缺少连续区域而无法分配大对象。</p>
+<p>标记—整理会把存活对象移动到一侧，从而形成连续空间。但对象地址变化后，所有指向该对象的引用都需要更新。这种移动过程通常需要更强的同步，因此容易带来较长暂停。</p>
+<p>这里就引出了 <strong>Stop-The-World，简称 STW</strong>。</p>
+<p>STW 并不是整个操作系统停止，也不是 JVM 内部所有线程都停止，而是 JVM 暂停应用程序线程，使它们暂时不能继续执行 Java 业务代码。GC 线程仍然可以运行。</p>
+<p>暂停业务线程通常有两个原因：</p>
 <ol>
-<li>找到线程正在等待的锁；</li>
-<li>找到持有该锁的线程；</li>
-<li>继续查看持有者又在等待什么；</li>
-<li>判断等待链是否回到起点。</li>
+<li>GC 需要在一个相对稳定的引用关系上判断对象是否存活；</li>
+<li>移动对象时，需要避免业务线程继续通过旧地址访问对象。</li>
 </ol>
-<p>死锁的关键不是存在锁等待，而是存在循环等待。</p>
-<p>需要注意的是，现实中的系统假死并不一定存在 Java 层死锁。例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">所有 Tomcat 线程等待数据库连接<br>所有数据库连接又被慢事务长期占用<br></code></pre></td></tr></table></figure>
+<p>某些收集器可以让标记、清除甚至对象移动与业务线程并发执行，但通常仍然存在少量必须 STW 的阶段。</p>
+<h2 id="6、垃圾收集器为什么不断演进"><a href="#6、垃圾收集器为什么不断演进" class="headerlink" title="6、垃圾收集器为什么不断演进"></a>6、垃圾收集器为什么不断演进</h2><p>复制、标记—清除和标记—整理是基础回收算法，而 Serial、Parallel、CMS、G1 和 ZGC 是采用这些思想的具体垃圾收集器。</p>
+<p>垃圾收集器需要在三个目标之间进行取舍：</p>
+<ul>
+<li>吞吐量；</li>
+<li>单次暂停时间；</li>
+<li>CPU 和内存额外开销。</li>
+</ul>
+<p>吞吐量表示一段总运行时间中，应用真正执行业务代码的时间比例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">吞吐量 = 业务运行时间 ÷ 总运行时间<br></code></pre></td></tr></table></figure>
 
-<p>系统已经无法处理请求，但 Thread Dump 末尾未必会出现死锁提示。</p>
-<h2 id="8、CPU-飙高时如何结合-top-和-jstack"><a href="#8、CPU-飙高时如何结合-top-和-jstack" class="headerlink" title="8、CPU 飙高时如何结合 top 和 jstack"></a>8、CPU 飙高时如何结合 top 和 jstack</h2><p><code>jstack</code> 不能直接告诉我们哪个线程当前最耗 CPU，因此需要先用操作系统工具找到高 CPU 线程。</p>
-<p>假设 JVM PID 是 <code>21836</code>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">top -Hp 21836<br></code></pre></td></tr></table></figure>
-
-<p>可能看到：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">PID      %CPU<br>21910    85.3<br>21911     2.1<br></code></pre></td></tr></table></figure>
-
-<p>这里的 <code>21910</code> 是操作系统线程 ID，通常以十进制显示。</p>
-<p>Thread Dump 中对应的是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">nid=0x5596<br></code></pre></td></tr></table></figure>
-
-<p>因此需要先转换：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">printf</span> <span class="hljs-string">&quot;%x\n&quot;</span> 21910<br></code></pre></td></tr></table></figure>
-
-<p>得到：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">5596<br></code></pre></td></tr></table></figure>
-
-<p>然后在 Dump 中搜索：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">nid=0x5596<br></code></pre></td></tr></table></figure>
-
-<p>完整过程是：</p>
+<p>例如程序运行 100 秒，其中业务运行 95 秒、GC 暂停 5 秒，吞吐量约为 95%。</p>
+<p>不同收集器的发展主线可以概括为：</p>
 <pre><code class=" mermaid">graph LR
-    A[&quot;top 找高 CPU 线程&quot;] --&gt; B[&quot;线程 ID 转十六进制&quot;]
-    B --&gt; C[&quot;匹配 jstack nid&quot;]
-    C --&gt; D[&quot;查看线程调用栈&quot;]
-    D --&gt; E[&quot;连续抓取验证&quot;]
+    A[&quot;Serial&lt;br/&gt;单线程回收&quot;] --&gt; B[&quot;Parallel&lt;br/&gt;多线程回收&quot;]
+    B --&gt; C[&quot;CMS&lt;br/&gt;并发标记清除&quot;]
+    C --&gt; D[&quot;G1&lt;br/&gt;Region 分区&quot;]
+    D --&gt; E[&quot;ZGC&lt;br/&gt;并发移动&quot;]
 </code></pre>
 
-<p>需要区分：</p>
+<h3 id="6-1-Serial：用最简单的方式完成回收"><a href="#6-1-Serial：用最简单的方式完成回收" class="headerlink" title="6.1 Serial：用最简单的方式完成回收"></a>6.1 Serial：用最简单的方式完成回收</h3><p>Serial GC 在 GC 时暂停业务线程，并使用单个 GC 线程完成回收。</p>
+<p>它的优势是结构简单、线程协调成本低，适合堆较小、CPU 核心较少或对暂停不敏感的程序。堆变大后，单线程处理的暂停时间容易增加。</p>
+<h3 id="6-2-Parallel：用多个-GC-线程提高吞吐量"><a href="#6-2-Parallel：用多个-GC-线程提高吞吐量" class="headerlink" title="6.2 Parallel：用多个 GC 线程提高吞吐量"></a>6.2 Parallel：用多个 GC 线程提高吞吐量</h3><p>Parallel GC 同样会暂停业务线程，但它会让多个 GC 线程同时处理回收任务。</p>
+<p>例如原本一个线程需要处理全部对象，现在可以由多个线程分担。在 CPU 核心充足时，一次 GC 的实际耗时可能缩短，业务线程因此能更快恢复，总 GC 时间占比也可能下降。</p>
+<p>这里要区分两个概念：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>同时运行的线程</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>并行 Parallel</td>
+<td>多个 GC 线程同时工作，业务线程暂停</td>
+</tr>
+<tr>
+<td>并发 Concurrent</td>
+<td>GC 线程与业务线程同时运行</td>
+</tr>
+</tbody></table>
+<p>Parallel GC 主要追求总体吞吐量，并不保证每次暂停都很短。因此它更适合批处理和离线计算，而在线服务通常更关注单次暂停是否会导致请求超时。</p>
+<h3 id="6-3-CMS：把耗时标记工作放到并发阶段"><a href="#6-3-CMS：把耗时标记工作放到并发阶段" class="headerlink" title="6.3 CMS：把耗时标记工作放到并发阶段"></a>6.3 CMS：把耗时标记工作放到并发阶段</h3><p>CMS 的目标是降低老年代回收时的持续停顿。它把老年代回收拆成初始标记、并发标记、重新标记和并发清除等阶段。</p>
+<p>初始标记和重新标记需要 STW，而工作量较大的并发标记和清除阶段可以与业务线程同时运行。</p>
+<p>重新标记不是重新扫描整个老年代。业务线程在并发标记期间修改引用时，JVM 会通过写屏障记录相关变化。重新标记阶段主要补查这些变化，因此通常比从头完成一次完整标记更短。</p>
+<p>这种过程更接近“增量修正”，而不是普通算法中的剪枝。</p>
+<p>CMS 没有采用并发标记—整理，主要是因为移动对象会改变地址。如果业务线程仍然通过旧引用访问对象，JVM 就必须提供额外的地址转发和访问屏障机制。CMS 没有完整解决这个问题，因此选择不移动对象的标记—清除。</p>
+<p>这也带来了几个代价：</p>
+<ul>
+<li>清除后产生内存碎片；</li>
+<li>GC 线程和业务线程争抢 CPU；</li>
+<li>并发期间会出现只能等待下一轮回收的浮动垃圾；</li>
+<li>老年代空间耗尽时可能发生并发模式失败，退化为长时间 STW。</li>
+</ul>
+<h3 id="6-4-G1：把堆切成可以独立选择的-Region"><a href="#6-4-G1：把堆切成可以独立选择的-Region" class="headerlink" title="6.4 G1：把堆切成可以独立选择的 Region"></a>6.4 G1：把堆切成可以独立选择的 Region</h3><p>G1 不再要求年轻代和老年代分别占据一整块连续空间，而是把堆划分成多个大小相同的 Region。</p>
+<p>Region 可以动态承担 Eden、Survivor、Old、Free 或大对象区域等角色。年轻代和老年代仍然存在，但它们变成由一组 Region 构成的逻辑分组。</p>
+<p>Young GC 通常回收 Eden 和 Survivor Region。并发标记完成后，G1 会了解各 Old Region 的垃圾比例，随后在 Mixed GC 中回收年轻代 Region 和部分收益较高的 Old Region。</p>
+<p>G1 会把选中 Region 中的存活对象疏散到其他 Region，再整体释放原 Region。这种方式能不断获得完整的空闲 Region，比 CMS 的原地标记—清除更不容易产生细碎空洞。</p>
+<p>G1 的主要价值不是保证每次暂停绝对准确，而是可以通过控制本次回收的 Region 数量，让暂停范围更容易估算和调整。</p>
+<h3 id="6-5-ZGC：连对象移动也尽量并发完成"><a href="#6-5-ZGC：连对象移动也尽量并发完成" class="headerlink" title="6.5 ZGC：连对象移动也尽量并发完成"></a>6.5 ZGC：连对象移动也尽量并发完成</h3><p>G1 的标记阶段可以并发执行，但疏散存活对象时通常仍需要暂停业务线程。</p>
+<p>ZGC 进一步解决对象移动的问题。它通过指针信息、读屏障和地址转发等机制，使对象被移动后，业务线程仍然能够找到新的位置。</p>
+<p>因此，ZGC 可以把标记、重定位和引用修正中的大部分工作放到并发阶段完成。它仍然存在短暂 STW，但暂停时间通常比传统收集器更容易维持在较低水平。</p>
+<p>代价是业务线程需要执行额外屏障逻辑，GC 线程也会持续占用 CPU。ZGC 更偏向低延迟目标，并不意味着它在吞吐量和资源消耗方面一定优于 G1。</p>
+<p>几种收集器可以收束为：</p>
+<table>
+<thead>
+<tr>
+<th>收集器</th>
+<th>核心方式</th>
+<th>主要目标</th>
+<th>主要代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Serial</td>
+<td>单线程 STW 回收</td>
+<td>简单、低额外开销</td>
+<td>大堆暂停较长</td>
+</tr>
+<tr>
+<td>Parallel</td>
+<td>多 GC 线程 STW 回收</td>
+<td>高吞吐量</td>
+<td>单次暂停仍可能较长</td>
+</tr>
+<tr>
+<td>CMS</td>
+<td>标记和清除尽量并发</td>
+<td>降低老年代暂停</td>
+<td>碎片、CPU 竞争</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>Region 化并分批疏散</td>
+<td>平衡吞吐量与暂停</td>
+<td>维护跨 Region 信息</td>
+</tr>
+<tr>
+<td>ZGC</td>
+<td>标记和移动大部分并发</td>
+<td>极低停顿</td>
+<td>屏障和并发开销</td>
+</tr>
+</tbody></table>
+<h2 id="7、Young-GC、老年代回收和-Full-GC-分别因为什么发生"><a href="#7、Young-GC、老年代回收和-Full-GC-分别因为什么发生" class="headerlink" title="7、Young GC、老年代回收和 Full GC 分别因为什么发生"></a>7、Young GC、老年代回收和 Full GC 分别因为什么发生</h2><p>Young GC 最常见的触发原因是 Eden 空间不足。</p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;持续创建对象&quot;] --&gt; B[&quot;Eden 接近满&quot;]
+    B --&gt; C[&quot;Young GC&quot;]
+    C --&gt; D[&quot;复制存活对象&quot;]
+    D --&gt; E[&quot;恢复对象分配&quot;]
+</code></pre>
+
+<p>老年代回收通常与老年代占用持续升高有关，但不同收集器的表现不同：</p>
+<ul>
+<li>Parallel Old 可能通过 STW 回收和整理老年代；</li>
+<li>CMS 会提前启动并发老年代回收；</li>
+<li>G1 会启动并发标记，随后执行 Mixed GC；</li>
+<li>ZGC 可以执行并发的老年代回收过程。</li>
+</ul>
+<p>因此，老年代空间下降不一定要求 <code>FGC</code> 增加。例如 G1 的 Mixed GC 就可能在没有传统 Full GC 的情况下释放 Old Region。</p>
+<p>Full GC 往往是更重的兜底行为，可能由以下情况引起：</p>
+<ul>
+<li>老年代无法容纳晋升对象；</li>
+<li>大对象找不到足够空间；</li>
+<li>正常并发回收来不及释放空间；</li>
+<li>显式调用 <code>System.gc()</code>；</li>
+<li>元空间不足，需要尝试类卸载；</li>
+<li>G1 疏散失败或 CMS 并发模式失败。</li>
+</ul>
+<p>“Major GC”和“Full GC”在不同资料和收集器中的定义并不完全统一。实际分析时，不应只依据名称，而要结合具体收集器和 GC 日志判断回收范围。</p>
+<p>一次 Full GC 并不一定意味着内存泄漏。更重要的是观察回收效果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Full GC 前：老年代 96%<br>Full GC 后：老年代 40%<br></code></pre></td></tr></table></figure>
+
+<p>说明本次释放了大量空间，可能只是一次阶段性压力。</p>
+<p>如果表现为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Full GC 前：老年代 96%<br>Full GC 后：老年代 92%<br></code></pre></td></tr></table></figure>
+
+<p>说明大部分对象仍然可达。程序很可能很快再次接近满，从而形成频繁 Full GC。</p>
+<p>真正危险的不是“发生过一次 Full GC”，而是：</p>
+<blockquote>
+<p>老年代回收越来越频繁，但每次只能释放很少空间。</p>
+</blockquote>
+<h2 id="8、为什么一次-jstat-采样不能判断-GC-是否健康"><a href="#8、为什么一次-jstat-采样不能判断-GC-是否健康" class="headerlink" title="8、为什么一次 jstat 采样不能判断 GC 是否健康"></a>8、为什么一次 jstat 采样不能判断 GC 是否健康</h2><p><code>jstat</code> 可以观察 JVM 各内存区域的使用情况，以及 GC 次数和累计耗时。</p>
+<p>常用命令是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstat -gcutil -t &lt;pid&gt; 1s 120<br></code></pre></td></tr></table></figure>
+
+<p>它表示每秒采样一次，共采样 120 次，并输出相对 JVM 启动时间的时间戳。</p>
+<p>典型字段如下：</p>
 <table>
 <thead>
 <tr>
@@ -610,340 +654,256 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><code>tid</code></td>
-<td>JVM 内部线程标识</td>
+<td><code>S0</code></td>
+<td>Survivor 0 使用率</td>
 </tr>
 <tr>
-<td><code>nid</code></td>
-<td>操作系统原生线程 ID</td>
+<td><code>S1</code></td>
+<td>Survivor 1 使用率</td>
+</tr>
+<tr>
+<td><code>E</code></td>
+<td>Eden 使用率</td>
+</tr>
+<tr>
+<td><code>O</code></td>
+<td>老年代使用率</td>
+</tr>
+<tr>
+<td><code>M</code></td>
+<td>元空间使用率</td>
+</tr>
+<tr>
+<td><code>CCS</code></td>
+<td>压缩类空间使用率</td>
+</tr>
+<tr>
+<td><code>YGC</code></td>
+<td>年轻代相关 GC 累计次数</td>
+</tr>
+<tr>
+<td><code>YGCT</code></td>
+<td>年轻代相关 GC 累计耗时</td>
+</tr>
+<tr>
+<td><code>FGC</code></td>
+<td>Full GC 累计次数</td>
+</tr>
+<tr>
+<td><code>FGCT</code></td>
+<td>Full GC 累计耗时</td>
+</tr>
+<tr>
+<td><code>GCT</code></td>
+<td>GC 累计总耗时</td>
 </tr>
 </tbody></table>
-<p>与 <code>top -Hp</code> 对应的是 <code>nid</code>。</p>
-<h3 id="8-1-为什么不能只抓一次-Dump"><a href="#8-1-为什么不能只抓一次-Dump" class="headerlink" title="8.1 为什么不能只抓一次 Dump"></a>8.1 为什么不能只抓一次 Dump</h3><p>第一次看到：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">at com.example.CalculateService.calculate(CalculateService.java:42)<br></code></pre></td></tr></table></figure>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Timestamp    S0     S1      E      O     YGC   YGCT   FGC   FGCT<br>  100.0      0.0   45.2   78.6   62.4    120   1.82     2    0.45<br></code></pre></td></tr></table></figure>
 
-<p>只能说明抓取快照时线程恰好执行到了第 42 行。</p>
-<p>如果连续三份 Dump 中，同一个高 CPU <code>nid</code> 都停在相同或相近位置：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Dump 1：calculate:42<br>Dump 2：calculate:42<br>Dump 3：calculate:43<br></code></pre></td></tr></table></figure>
-
-<p>并且 CPU 一直很高，才更可能存在：</p>
+<p>单看这一行，只能知道当前 Eden 使用约 78.6%、老年代使用约 62.4%，JVM 启动以来发生过 120 次年轻代相关 GC。</p>
+<p>但它不能回答：</p>
 <ul>
-<li>死循环；</li>
-<li>自旋；</li>
-<li>大量重复计算；</li>
-<li>执行时间异常长的算法。</li>
+<li>最近一分钟发生了多少次 GC；</li>
+<li>Old 是正在上涨还是正在下降；</li>
+<li>最近一次 Young GC 花了多久；</li>
+<li>Full GC 后释放了多少空间；</li>
+<li>当前 GC 开销是否正在恶化。</li>
 </ul>
-<p>部分 JDK 的线程头还会显示累计 CPU 时间：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">cpu=125.30ms elapsed=3600.12s<br></code></pre></td></tr></table></figure>
+<p>因为 <code>YGC</code>、<code>YGCT</code>、<code>FGC</code> 和 <code>FGCT</code> 都是 JVM 启动以来的累计值。要判断当前状态，必须比较相邻或一段窗口内的多个样本。</p>
+<h2 id="9、多次-jstat-采样怎样还原-GC-过程"><a href="#9、多次-jstat-采样怎样还原-GC-过程" class="headerlink" title="9、多次 jstat 采样怎样还原 GC 过程"></a>9、多次 jstat 采样怎样还原 GC 过程</h2><p>假设连续得到以下数据：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Timestamp    E      O     YGC    YGCT<br>100.0       30.0   50.0   120    1.200<br>101.0       65.0   50.0   120    1.200<br>102.0       95.0   50.0   120    1.200<br>103.0        8.0   52.0   121    1.218<br></code></pre></td></tr></table></figure>
+
+<p>从第三条到第四条发生了几件事：</p>
+<ul>
+<li><code>E</code> 从 95% 降到 8%；</li>
+<li><code>YGC</code> 从 120 增加到 121；</li>
+<li><code>YGCT</code> 从 1.200 增加到 1.218；</li>
+<li><code>O</code> 从 50% 上升到 52%。</li>
+</ul>
+<p>这说明发生了一次 Young GC。Eden 被释放，部分存活对象进入 Survivor 或晋升到老年代。</p>
+<p>这次 GC 在累计时间上的增量约为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">ΔYGCT = 1.218 - 1.200 = 0.018 秒<br></code></pre></td></tr></table></figure>
+
+<p>也就是约 18 毫秒。</p>
+<p>连续采样可以进一步计算几个关键指标。</p>
+<h3 id="9-1-GC-频率"><a href="#9-1-GC-频率" class="headerlink" title="9.1 GC 频率"></a>9.1 GC 频率</h3><p>假设观察 60 秒：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">开始时 YGC = 100<br>结束时 YGC = 112<br></code></pre></td></tr></table></figure>
+
+<p>则最近一分钟发生了 12 次年轻代相关 GC：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Young GC 频率 = 12 ÷ 60 = 0.2 次/秒<br>平均间隔 = 60 ÷ 12 = 5 秒<br></code></pre></td></tr></table></figure>
+
+<p>单独看到 <code>YGC = 112</code> 没有诊断意义，因为不知道 JVM 已经运行了多长时间。</p>
+<h3 id="9-2-窗口内-GC-开销"><a href="#9-2-窗口内-GC-开销" class="headerlink" title="9.2 窗口内 GC 开销"></a>9.2 窗口内 GC 开销</h3><p>如果 60 秒内：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">GCT：10.0 → 13.0<br></code></pre></td></tr></table></figure>
+
+<p>说明最近 60 秒 GC 累计消耗了 3 秒：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">GC 时间占比 = 3 ÷ 60 = 5%<br></code></pre></td></tr></table></figure>
+
+<p>对应公式为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">gc_overhead = ΔGCT ÷ 观察窗口时间<br></code></pre></td></tr></table></figure>
+
+<p>相比 JVM 启动以来的总 <code>GCT</code>，窗口内增量更能反映当前压力。</p>
+<h3 id="9-3-平均-GC-时间"><a href="#9-3-平均-GC-时间" class="headerlink" title="9.3 平均 GC 时间"></a>9.3 平均 GC 时间</h3><p>如果某个窗口内：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">ΔYGC = 10<br>ΔYGCT = 0.5 秒<br></code></pre></td></tr></table></figure>
+
+<p>则平均每次年轻代相关 GC 约为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">0.5 ÷ 10 = 0.05 秒<br></code></pre></td></tr></table></figure>
+
+<p>也就是约 50 毫秒。</p>
+<p>但平均值可能掩盖极端暂停。例如 9 次 GC 都是 5 毫秒，另一次是 500 毫秒，平均值无法直接揭示最长暂停。单次事件仍然需要结合 GC 日志或 JFR。</p>
+<h3 id="9-4-老年代增长速度"><a href="#9-4-老年代增长速度" class="headerlink" title="9.4 老年代增长速度"></a>9.4 老年代增长速度</h3><p><code>jstat -gcutil</code> 中的 <code>O</code> 是使用率。如果需要观察老年代实际使用量，应该使用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstat -gc -t &lt;pid&gt; 1s 120<br></code></pre></td></tr></table></figure>
 
 <p>其中：</p>
 <ul>
-<li><code>cpu</code> 是线程累计使用的 CPU 时间；</li>
-<li><code>elapsed</code> 是线程存活时间。</li>
+<li><code>OU</code> 表示老年代实际使用量；</li>
+<li><code>OC</code> 表示老年代当前容量。</li>
 </ul>
-<p>单次 <code>cpu</code> 数值很大不代表当前仍然高 CPU。更有意义的是比较两份 Dump 中 <code>cpu</code> 的增量。</p>
-<p>如果两次 Dump 间隔 5 秒，而某线程的 <code>cpu</code> 增加接近 5 秒，说明它在这段时间内几乎一直占用一个 CPU 核心。</p>
-<h3 id="8-2-先判断是业务线程还是-JVM-内部线程"><a href="#8-2-先判断是业务线程还是-JVM-内部线程" class="headerlink" title="8.2 先判断是业务线程还是 JVM 内部线程"></a>8.2 先判断是业务线程还是 JVM 内部线程</h3><p>如果高 CPU 线程是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;http-nio-8080-exec-8&quot;<br></code></pre></td></tr></table></figure>
+<p>假设：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">0 秒：OU = 500 MB<br>60 秒：OU = 800 MB<br></code></pre></td></tr></table></figure>
 
-<p>应继续分析业务调用栈。</p>
-<p>如果是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;GC Thread#2&quot;<br>&quot;G1 Conc#0&quot;<br></code></pre></td></tr></table></figure>
+<p>老年代净增长速率为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">old_growth_rate = 300 MB ÷ 60 秒 = 5 MB/s<br></code></pre></td></tr></table></figure>
 
-<p>则更可能与垃圾回收压力有关，需要切换到 <code>jstat</code>、GC 日志和堆内存分析。</p>
-<p>如果是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;C2 CompilerThread0&quot;<br></code></pre></td></tr></table></figure>
+<p>如果多个连续窗口都保持正增长，说明对象进入老年代的速度持续高于老年代释放空间的速度。</p>
+<p>不过 <code>OU</code> 的净增长不能直接等于晋升量，因为窗口内可能同时发生对象晋升和老年代回收。它表示的是这两个过程叠加后的最终结果。</p>
+<h3 id="9-5-老年代的几种典型走势"><a href="#9-5-老年代的几种典型走势" class="headerlink" title="9.5 老年代的几种典型走势"></a>9.5 老年代的几种典型走势</h3><p>正常情况下，老年代可能呈现锯齿形：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">40% → 50% → 60% → 35% → 45% → 55%<br></code></pre></td></tr></table></figure>
 
-<p>则可能是 JIT 编译活动，而不一定是业务死循环。</p>
-<h2 id="9、如何分析大量-BLOCKED、WAITING-和线程池耗尽"><a href="#9、如何分析大量-BLOCKED、WAITING-和线程池耗尽" class="headerlink" title="9、如何分析大量 BLOCKED、WAITING 和线程池耗尽"></a>9、如何分析大量 BLOCKED、WAITING 和线程池耗尽</h2><p>一份 Thread Dump 中最值得关注的通常不是某条线程偶然出现了什么，而是大量线程是否集中表现出相同模式。</p>
-<h3 id="9-1-大量-BLOCKED：先找热点锁，再看持锁线程"><a href="#9-1-大量-BLOCKED：先找热点锁，再看持锁线程" class="headerlink" title="9.1 大量 BLOCKED：先找热点锁，再看持锁线程"></a>9.1 大量 BLOCKED：先找热点锁，再看持锁线程</h3><p>如果许多线程都显示：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- waiting to lock &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
+<p>含义是对象持续晋升，老年代回收后又明显下降。</p>
+<p>如果表现为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">50% → 60% → 70% → 80%<br></code></pre></td></tr></table></figure>
 
-<p>说明 <code>&lt;0x1000&gt;</code> 可能是热点 Monitor。</p>
-<p>然后搜索：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">- locked &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
+<p>说明老年代持续净增长，但还不能立刻判断为内存泄漏。也可能是缓存预热、流量上涨、年轻代过小或短期任务堆积。</p>
+<p>更危险的是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">90% → 96% → 回收 → 92% → 97% → 再次回收<br></code></pre></td></tr></table></figure>
 
-<p>找到当前持锁线程。</p>
-<p>真正需要重点分析的通常不是几十个等待线程，而是持锁线程为什么迟迟没有释放锁。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">&quot;worker-A&quot;<br>java.lang.Thread.State: RUNNABLE<br><br>at java.net.SocketInputStream.socketRead0(Native Method)<br>at com.example.RemoteService.call(RemoteService.java:58)<br>at com.example.OrderService.process(OrderService.java:42)<br>- locked &lt;0x1000&gt;<br></code></pre></td></tr></table></figure>
-
-<p>这说明线程在持锁期间调用了远程接口。网络响应越慢，锁持有时间越长，其他线程被阻塞的时间也越长。</p>
-<p>问题不一定是锁本身，而可能是把不可控的 I&#x2F;O 放进了临界区。</p>
-<h3 id="9-2-大量-WAITING-不一定异常"><a href="#9-2-大量-WAITING-不一定异常" class="headerlink" title="9.2 大量 WAITING 不一定异常"></a>9.2 大量 WAITING 不一定异常</h3><p>线程池空闲时，工作线程可能全部停在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">LinkedBlockingQueue.take<br>ThreadPoolExecutor.getTask<br>ThreadPoolExecutor.runWorker<br></code></pre></td></tr></table></figure>
-
-<p>这通常说明线程池正在等待任务，是正常状态。</p>
-<p>但如果系统外部请求很多，而对应工作线程仍全部停在 <code>getTask()</code>，则可能意味着：</p>
-<ul>
-<li>请求没有被提交到这个线程池；</li>
-<li>提交逻辑被上游阻塞；</li>
-<li>实际处理请求的是另一个线程池；</li>
-<li>任务被拒绝或提前失败。</li>
-</ul>
-<p>因此，线程状态必须结合当前业务负载解释。</p>
-<h3 id="9-3-线程池工作线程全部忙碌"><a href="#9-3-线程池工作线程全部忙碌" class="headerlink" title="9.3 线程池工作线程全部忙碌"></a>9.3 线程池工作线程全部忙碌</h3><p>假设线程池只有四个线程：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">thread-1：数据库查询<br>thread-2：数据库查询<br>thread-3：远程接口<br>thread-4：远程接口<br></code></pre></td></tr></table></figure>
-
-<p>此时新任务只能进入队列等待。</p>
-<p>分析重点是：</p>
-<blockquote>
-<p>所有工作线程被什么操作占住了？</p>
-</blockquote>
-<p>如果全部卡在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">socketRead0<br></code></pre></td></tr></table></figure>
-
-<p>更可能是下游接口慢。</p>
-<p>如果全部卡在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">executeQuery<br></code></pre></td></tr></table></figure>
-
-<p>更可能是数据库响应慢。</p>
-<p>如果全部卡在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">ReentrantLock.lock<br></code></pre></td></tr></table></figure>
-
-<p>更可能是本地锁竞争。</p>
-<p>不能看到线程池满就直接增加线程数。增加线程可能让更多请求同时打向已经变慢的下游，使问题进一步恶化。</p>
-<p>线程池任务堆积的本质是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">任务进入速度 &gt; 任务完成速度<br></code></pre></td></tr></table></figure>
-
-<p>这可能由两侧造成：</p>
+<p>这说明回收后老年代仍然很高，大量对象持续可达，GC 很难释放空间。</p>
+<p>因此，判断内存泄漏不能只看 Old 是否上涨，而要同时观察：</p>
+<ol>
+<li>是否发生了老年代回收；</li>
+<li>回收后 Old 能下降多少；</li>
+<li>下降后多久再次接近满；</li>
+<li>GC 频率和 GC 时间是否同步恶化。</li>
+</ol>
+<h2 id="10、jstat-的采样间隔应该怎样设置"><a href="#10、jstat-的采样间隔应该怎样设置" class="headerlink" title="10、jstat 的采样间隔应该怎样设置"></a>10、jstat 的采样间隔应该怎样设置</h2><p>采样间隔需要根据问题持续时间和 GC 频率选择。间隔过长，会丢失 GC 前后的状态变化；间隔过短，则会产生大量样本和无效噪声。</p>
+<p>一般可以采用以下配置。</p>
 <table>
 <thead>
 <tr>
-<th>情况</th>
-<th>可能原因</th>
+<th>分析场景</th>
+<th align="right">建议间隔</th>
+<th align="right">建议窗口</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>上游突然加速</td>
-<td>流量暴增、批量任务集中提交</td>
+<td>初次排查</td>
+<td align="right">1 秒</td>
+<td align="right">1～3 分钟</td>
 </tr>
 <tr>
-<td>下游突然变慢</td>
-<td>数据库、远程服务或锁等待时间增加</td>
+<td>Young GC 每秒发生多次</td>
+<td align="right">250～500 毫秒</td>
+<td align="right">30～60 秒</td>
 </tr>
 <tr>
-<td>本地处理变慢</td>
-<td>CPU 计算、长事务、同步竞争</td>
+<td>观察 Old 中期趋势</td>
+<td align="right">5 秒</td>
+<td align="right">10～30 分钟</td>
 </tr>
 <tr>
-<td>任务未进入线程池</td>
-<td>提交链路异常或使用了错误线程池</td>
+<td>数小时长期监控</td>
+<td align="right">10～30 秒</td>
+<td align="right">数小时</td>
+</tr>
+<tr>
+<td>精确分析单次暂停</td>
+<td align="right">不依赖 jstat</td>
+<td align="right">使用 GC 日志或 JFR</td>
 </tr>
 </tbody></table>
-<p><code>jstack</code> 主要帮助判断工作线程正在做什么；任务提交速率和队列长度还需要结合监控数据。</p>
-<h2 id="10、如何分析数据库连接池耗尽"><a href="#10、如何分析数据库连接池耗尽" class="headerlink" title="10、如何分析数据库连接池耗尽"></a>10、如何分析数据库连接池耗尽</h2><p>如果大量线程停在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">HikariPool.getConnection<br></code></pre></td></tr></table></figure>
+<p>初次进入未知环境时，可以先运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jstat -gcutil -t &lt;pid&gt; 1s 60<br></code></pre></td></tr></table></figure>
 
-<p>能够确认的是：</p>
+<p>根据一分钟结果判断 GC 周期。如果 Young GC 大约每 10 秒一次，1～2 秒间隔通常足够；如果每秒发生多次，可以缩短到 250～500 毫秒。</p>
+<p>一个实用原则是：</p>
 <blockquote>
-<p>这些线程正在等待数据库连接。</p>
+<p>采样间隔尽量小于典型 GC 周期的三分之一到五分之一。</p>
 </blockquote>
-<p>但这不等于已经确认“连接池配置太小”。</p>
-<p>连接池耗尽常见的因果链是：</p>
+<p>不过，即使采样间隔为一秒，也不会完全错过这一秒内发生的 GC。因为 <code>YGC</code>、<code>YGCT</code> 等累计值会发生变化。</p>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">样本一：YGC = 100<br>样本二：YGC = 105<br></code></pre></td></tr></table></figure>
+
+<p>可以知道这一秒发生了 5 次 GC，只是无法还原每一次 GC 前后的 Eden 和 Old 状态，也无法得知最长一次暂停。</p>
+<p>对于自动诊断系统，可以采用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">sampling:</span><br>  <span class="hljs-attr">interval_seconds:</span> <span class="hljs-number">1</span><br>  <span class="hljs-attr">minimum_samples:</span> <span class="hljs-number">30</span><br>  <span class="hljs-attr">analysis_window_seconds:</span> <span class="hljs-number">60</span><br></code></pre></td></tr></table></figure>
+
+<p>系统不应根据单个样本报警，而应在最近 60 秒窗口中计算：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">young_gc_rate = ΔYGC / window_seconds<br>young_gc_avg_pause = ΔYGCT / ΔYGC<br>full_gc_avg_pause = ΔFGCT / ΔFGC<br>gc_overhead = ΔGCT / window_seconds<br>old_growth_rate = ΔOU / window_seconds<br></code></pre></td></tr></table></figure>
+
+<p>再结合趋势进行判断：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>可能含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Young GC 频繁，但暂停短且 Old 稳定</td>
+<td>分配率较高，但未必异常</td>
+</tr>
+<tr>
+<td>Young GC 频繁，Old 同时持续上涨</td>
+<td>晋升压力较大</td>
+</tr>
+<tr>
+<td>FGC 增加，回收后 Old 明显下降</td>
+<td>阶段性内存压力</td>
+</tr>
+<tr>
+<td>FGC 增加，回收后 Old 仍然很高</td>
+<td>长期存活对象过多或泄漏风险</td>
+</tr>
+<tr>
+<td>GC 时间占比持续升高</td>
+<td>JVM 正在花更多时间回收而非执行业务</td>
+</tr>
+<tr>
+<td>M 持续上涨</td>
+<td>需要关注动态类加载或类卸载问题</td>
+</tr>
+</tbody></table>
+<h2 id="11、jstat-能发现问题，但不能独立解释根因"><a href="#11、jstat-能发现问题，但不能独立解释根因" class="headerlink" title="11、jstat 能发现问题，但不能独立解释根因"></a>11、jstat 能发现问题，但不能独立解释根因</h2><p><code>jstat</code> 适合发现趋势：</p>
+<ul>
+<li>GC 是否发生；</li>
+<li>最近发生了多少次；</li>
+<li>累计花费了多少时间；</li>
+<li>Eden 是否快速填满；</li>
+<li>Old 是否持续增长；</li>
+<li>Full GC 后 Old 是否明显下降。</li>
+</ul>
+<p>但它无法直接回答：</p>
+<ul>
+<li>哪个类的对象占用了大量内存；</li>
+<li>哪条引用链阻止对象被回收；</li>
+<li>最长一次暂停具体发生在哪个阶段；</li>
+<li>某次 GC 为什么被触发；</li>
+<li>G1 某个 Region 为什么疏散失败。</li>
+</ul>
+<p>因此，完整诊断通常需要逐层推进：</p>
 <pre><code class=" mermaid">graph LR
-    A[&quot;SQL 或事务变慢&quot;] --&gt; B[&quot;连接长期占用&quot;]
-    B --&gt; C[&quot;可用连接耗尽&quot;]
-    C --&gt; D[&quot;线程等待连接&quot;]
-    D --&gt; E[&quot;请求持续堆积&quot;]
+    A[&quot;jstat&lt;br/&gt;发现趋势&quot;] --&gt; B[&quot;GC 日志&lt;br/&gt;确认事件&quot;]
+    B --&gt; C[&quot;JFR&lt;br/&gt;分析暂停&quot;]
+    C --&gt; D[&quot;Heap Dump&lt;br/&gt;定位对象&quot;]
 </code></pre>
 
-<p>可能原因包括：</p>
-<ul>
-<li>SQL 执行时间过长；</li>
-<li>数据库网络响应慢；</li>
-<li>事务范围过大；</li>
-<li>连接拿到后又执行远程调用；</li>
-<li>连接没有正确关闭；</li>
-<li>突发请求超过连接池容量。</li>
-</ul>
-<p>因此，看到大量线程等待 <code>getConnection()</code> 后，应继续分析那些已经拿到连接的线程正在做什么。</p>
-<p>例如另一批线程集中停在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">PreparedStatement.executeQuery<br>SocketInputStream.socketRead0<br></code></pre></td></tr></table></figure>
-
-<p>可能说明数据库查询或数据库网络响应较慢。</p>
-<p>如果线程拿到连接并开启事务后，又执行远程调用，则 SQL 本身可能不慢，但连接仍然会被业务代码长时间持有。</p>
-<p>直接增大连接池可能只是让更多请求同时打向数据库，并不能解决慢 SQL或长事务问题。</p>
-<h2 id="11、多份-Thread-Dump-为什么需要聚类分析"><a href="#11、多份-Thread-Dump-为什么需要聚类分析" class="headerlink" title="11、多份 Thread Dump 为什么需要聚类分析"></a>11、多份 Thread Dump 为什么需要聚类分析</h2><p>当一份 Dump 中存在几百条线程时，逐条阅读效率很低。更有效的方法是按照相同或相似调用栈分组。</p>
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">40 个线程停在 HikariPool.getConnection<br>30 个线程停在 SocketInputStream.socketRead0<br>20 个线程停在 ThreadPoolExecutor.getTask<br>10 个线程等待同一个 Monitor<br></code></pre></td></tr></table></figure>
-
-<p>这类分组能够快速说明系统的主要线程分布。</p>
-<p>但多份 Dump 分析还要进一步区分两个概念。</p>
-<h3 id="11-1-聚类持续存在"><a href="#11-1-聚类持续存在" class="headerlink" title="11.1 聚类持续存在"></a>11.1 聚类持续存在</h3><p>假设三份 Dump 中都有线程停在 <code>socketRead0()</code>：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Dump 1：线程 A、B、C<br>Dump 2：线程 D、E、F<br>Dump 3：线程 G、H、I<br></code></pre></td></tr></table></figure>
-
-<p>说明远程读取这种执行模式持续存在，但旧线程可能仍能完成，只是新线程不断进入。</p>
-<h3 id="11-2-同一批线程持续停滞"><a href="#11-2-同一批线程持续停滞" class="headerlink" title="11.2 同一批线程持续停滞"></a>11.2 同一批线程持续停滞</h3><p>另一种情况是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Dump 1：线程 A、B、C<br>Dump 2：线程 A、B、C<br>Dump 3：线程 A、B、C<br></code></pre></td></tr></table></figure>
-
-<p>如果这些线程的调用栈位置也没有变化，则说明同一批线程持续停留，没有观察到明显推进。</p>
-<p>因此，多份 Dump 分析至少要比较：</p>
-<table>
-<thead>
-<tr>
-<th>维度</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>线程角色</td>
-<td>判断是否为同类工作线程</td>
-</tr>
-<tr>
-<td>线程状态</td>
-<td>判断执行阶段是否相同</td>
-</tr>
-<tr>
-<td>调用栈方法</td>
-<td>判断是否位于同一执行路径</td>
-</tr>
-<tr>
-<td>栈顶位置</td>
-<td>判断线程是否发生可见推进</td>
-</tr>
-<tr>
-<td><code>nid</code></td>
-<td>判断是否为同一个原生线程</td>
-</tr>
-<tr>
-<td>聚类数量</td>
-<td>判断有多少线程集中在该位置</td>
-</tr>
-<tr>
-<td>同类线程占比</td>
-<td>判断线程池是否大面积被占用</td>
-</tr>
-<tr>
-<td>数量趋势</td>
-<td>判断线程是否不断积压</td>
-</tr>
-<tr>
-<td>成员稳定性</td>
-<td>判断是否为同一批线程</td>
-</tr>
-</tbody></table>
-<h3 id="11-3-调用栈不能只按栈顶聚类"><a href="#11-3-调用栈不能只按栈顶聚类" class="headerlink" title="11.3 调用栈不能只按栈顶聚类"></a>11.3 调用栈不能只按栈顶聚类</h3><p>大量不同操作都可能停在：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">SocketInputStream.socketRead0<br></code></pre></td></tr></table></figure>
-
-<p>其中可能包括：</p>
-<ul>
-<li>HTTP 远程调用；</li>
-<li>数据库通信；</li>
-<li>Redis 请求；</li>
-<li>消息队列消费。</li>
-</ul>
-<p>如果只按栈顶聚类，会把完全不同的业务操作合并在一起。</p>
-<p>更合理的是同时参考：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">底层阻塞位置<br>+<br>第一条业务调用位置<br></code></pre></td></tr></table></figure>
-
-<p>例如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">SocketInputStream.socketRead0<br>+<br>RemoteOrderClient.query<br></code></pre></td></tr></table></figure>
-
-<p>才可以描述为：</p>
-<blockquote>
-<p>一组请求线程正在 <code>RemoteOrderClient.query()</code> 发起的网络读取中。</p>
-</blockquote>
-<h3 id="11-4-多份-Dump-能确认什么"><a href="#11-4-多份-Dump-能确认什么" class="headerlink" title="11.4 多份 Dump 能确认什么"></a>11.4 多份 Dump 能确认什么</h3><p>假设 40 个 Tomcat 请求线程中：</p>
-<table>
-<thead>
-<tr>
-<th>快照</th>
-<th align="right">停在远程调用的线程数</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Dump 1</td>
-<td align="right">25</td>
-</tr>
-<tr>
-<td>Dump 2</td>
-<td align="right">29</td>
-</tr>
-<tr>
-<td>Dump 3</td>
-<td align="right">33</td>
-</tr>
-<tr>
-<td>Dump 4</td>
-<td align="right">36</td>
-</tr>
-</tbody></table>
-<p>并且其中 21 个 <code>nid</code> 在四份 Dump 中保持相同调用栈位置。</p>
-<p>能够确认的是：</p>
-<blockquote>
-<p>大量 Tomcat 请求线程持续被同一个远程读取调用占用，其中部分线程在多个采样周期内没有观察到调用栈推进。</p>
-</blockquote>
-<p>但不能仅凭 Thread Dump 确认：</p>
-<blockquote>
-<p>下游服务自身一定发生了性能故障。</p>
-</blockquote>
-<p>因为网络读取不返回还可能由网络链路、代理、客户端连接或超时配置造成。</p>
-<p>Thread Dump 能观察线程行为，但不能直接观察整个远程调用链上的根因。</p>
-<h2 id="12、jstack-的使用边界"><a href="#12、jstack-的使用边界" class="headerlink" title="12、jstack 的使用边界"></a>12、jstack 的使用边界</h2><p><code>jstack</code> 擅长回答：</p>
-<ul>
-<li>线程是谁；</li>
-<li>线程是什么状态；</li>
-<li>线程停在哪里；</li>
-<li>线程正在等待什么；</li>
-<li>哪个线程持有锁；</li>
-<li>是否存在 Java 层死锁；</li>
-<li>哪些线程表现出相同模式；</li>
-<li>同一线程在多份 Dump 中是否持续停留。</li>
-</ul>
-<p>它不能单独回答：</p>
-<ul>
-<li>线程池队列到底有多长；</li>
-<li>每秒提交了多少任务；</li>
-<li>接口具体耗时是多少；</li>
-<li>哪条 SQL 最慢；</li>
-<li>数据库连接池当前活动数是多少；</li>
-<li>哪些对象占用了堆内存；</li>
-<li>GC 为什么频繁；</li>
-<li>网络链路的哪一段发生延迟。</li>
-</ul>
-<p>因此，实际故障诊断通常需要组合：</p>
-<table>
-<thead>
-<tr>
-<th>工具或数据</th>
-<th>主要作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>jstack</code></td>
-<td>线程状态、调用栈和锁关系</td>
-</tr>
-<tr>
-<td><code>top</code></td>
-<td>进程和线程 CPU 使用率</td>
-</tr>
-<tr>
-<td><code>jstat</code></td>
-<td>GC 次数、时间和内存区变化</td>
-</tr>
-<tr>
-<td>GC 日志</td>
-<td>GC 事件与停顿原因</td>
-</tr>
-<tr>
-<td>应用日志</td>
-<td>请求、异常和业务上下文</td>
-</tr>
-<tr>
-<td>监控指标</td>
-<td>吞吐、延迟、队列和连接池状态</td>
-</tr>
-<tr>
-<td>数据库监控</td>
-<td>SQL、事务和连接使用情况</td>
-</tr>
-</tbody></table>
-<p><code>jstack</code> 不是一个直接输出根因的工具。它提供的是线程层面的证据，需要结合系统状态还原完整因果链。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>jstack</code> 从线程视角观察 JVM：线程名称帮助判断它属于哪个组件，线程状态说明它处于哪种执行阶段，调用栈解释它为什么进入这个状态，锁标记则建立线程和资源之间的等待关系。</p>
-<p>单条线程记录只能说明某个瞬间发生了什么，因此不能看到 <code>RUNNABLE</code> 就判断高 CPU，也不能看到 <code>WAITING</code> 就判断线程异常。真正有效的分析需要从调用栈出发，判断线程是在正常等待任务、等待网络、竞争锁，还是长期停留在某段业务代码。</p>
-<p>当大量线程出现相同模式时，应从群体关系继续分析：大量 <code>BLOCKED</code> 要找热点锁和持锁线程，大量工作线程停在 I&#x2F;O 要判断下游是否变慢，大量线程等待连接要继续查找长期占用连接的线程。CPU 问题则需要先通过操作系统线程 ID 找到对应 <code>nid</code>，再结合多份 Dump 验证调用栈是否持续不变。</p>
-<p>多份 Thread Dump 最终解决的是时间维度问题：它不仅观察某种调用栈是否反复出现，还要区分是否为同一批线程持续停滞。只有把线程身份、调用栈、资源关系和时间变化串联起来，Thread Dump 才能从一份静态文本变成可靠的线程诊断证据。</p>
+<p><code>jstat</code> 更像是体检指标，用来判断系统是否正在朝异常方向发展；GC 日志和 JFR 用来确认具体回收事件；Heap Dump 则用于进一步寻找占用内存的对象及其引用链。</p>
+<p>不能因为 Old 上涨就直接认定内存泄漏，也不能因为没有 Full GC 就认为老年代没有被回收。诊断结论必须结合垃圾收集器类型、时间窗口、GC 增量和回收后的内存变化共同得出。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>GC 问题首先是内存结构问题。普通对象主要位于 Java 堆中，年轻代和老年代是堆内根据对象生命周期形成的逻辑区域；线程栈中的引用、静态字段和 JVM 内部引用则构成可达性分析的起点。</p>
+<p>大多数对象创建后很快死亡，因此年轻代使用复制算法，通过 Young GC 快速释放 Eden。长期存活对象逐渐进入老年代，而老年代由于存活对象比例更高，需要在清除成本、空间碎片和对象移动之间进行取舍。Serial、Parallel、CMS、G1 和 ZGC 的演进，本质上就是不断调整哪些工作需要暂停、哪些工作可以并发，以及对象移动能否在业务线程运行期间安全完成。</p>
+<p>当这些机制落到实际诊断时，单次 <code>jstat</code> 只能提供一个时间点的内存状态。只有比较连续样本，计算 GC 次数、累计时间和 Old 使用量的增量，才能识别 GC 频率、GC 时间占比、晋升压力和回收效果。最终需要关注的不是“是否发生 GC”，而是回收是否及时、暂停是否可接受，以及回收完成后系统能否重新获得足够的可用空间。</p>
 
                 
               </div>
@@ -977,15 +937,13 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
         <a href="/tags/JVM/" class="print-no-link">#JVM</a>
       
-        <a href="/tags/jstack/" class="print-no-link">#jstack</a>
+        <a href="/tags/GC/" class="print-no-link">#GC</a>
       
-        <a href="/tags/Thread-Dump/" class="print-no-link">#Thread Dump</a>
-      
-        <a href="/tags/%E7%BA%BF%E7%A8%8B%E8%AF%8A%E6%96%AD/" class="print-no-link">#线程诊断</a>
-      
-        <a href="/tags/AIOps/" class="print-no-link">#AIOps</a>
+        <a href="/tags/jstat/" class="print-no-link">#jstat</a>
       
     </div>
   
@@ -997,7 +955,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障</div>
+      <div>Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析</div>
       <div>https://rebibabo.github.io/categories/java-diagnostics/1/</div>
     </div>
     <div class="license-meta">
@@ -1042,15 +1000,15 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/categories/java-diagnostics/1/" title="Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/categories/java-diagnostics/1/" title="jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障">
+                        <span class="hidden-mobile">jstack 多份 Thread Dump 聚类分析：如何从线程快照识别持续性故障</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
