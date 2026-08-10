@@ -78,119 +78,7 @@
 
 
   
-<meta name="generator" content="Hexo 8.1.2"><style>mjx-container[jax="SVG"] {
-  direction: ltr;
-}
-
-mjx-container[jax="SVG"] > svg {
-  overflow: visible;
-}
-
-mjx-container[jax="SVG"][display="true"] {
-  display: block;
-  text-align: center;
-  margin: 1em 0;
-}
-
-mjx-container[jax="SVG"][justify="left"] {
-  text-align: left;
-}
-
-mjx-container[jax="SVG"][justify="right"] {
-  text-align: right;
-}
-
-g[data-mml-node="merror"] > g {
-  fill: red;
-  stroke: red;
-}
-
-g[data-mml-node="merror"] > rect[data-background] {
-  fill: yellow;
-  stroke: none;
-}
-
-g[data-mml-node="mtable"] > line[data-line] {
-  stroke-width: 70px;
-  fill: none;
-}
-
-g[data-mml-node="mtable"] > rect[data-frame] {
-  stroke-width: 70px;
-  fill: none;
-}
-
-g[data-mml-node="mtable"] > .mjx-dashed {
-  stroke-dasharray: 140;
-}
-
-g[data-mml-node="mtable"] > .mjx-dotted {
-  stroke-linecap: round;
-  stroke-dasharray: 0,140;
-}
-
-g[data-mml-node="mtable"] > svg {
-  overflow: visible;
-}
-
-[jax="SVG"] mjx-tool {
-  display: inline-block;
-  position: relative;
-  width: 0;
-  height: 0;
-}
-
-[jax="SVG"] mjx-tool > mjx-tip {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-mjx-tool > mjx-tip {
-  display: inline-block;
-  padding: .2em;
-  border: 1px solid #888;
-  font-size: 70%;
-  background-color: #F8F8F8;
-  color: black;
-  box-shadow: 2px 2px 5px #AAAAAA;
-}
-
-g[data-mml-node="maction"][data-toggle] {
-  cursor: pointer;
-}
-
-mjx-status {
-  display: block;
-  position: fixed;
-  left: 1em;
-  bottom: 1em;
-  min-width: 25%;
-  padding: .2em .4em;
-  border: 1px solid #888;
-  font-size: 90%;
-  background-color: #F8F8F8;
-  color: black;
-}
-
-foreignObject[data-mjx-xml] {
-  font-family: initial;
-  line-height: normal;
-  overflow: visible;
-}
-
-.MathJax path {
-  stroke-width: 3;
-}
-
-mjx-container[display="true"] {
-  overflow: auto hidden;
-}
-
-mjx-container[display="true"] + br {
-  display: none;
-}
-</style></head>
+<meta name="generator" content="Hexo 8.1.2"></head>
 
 
 <body>
@@ -345,6 +233,75 @@ mjx-container[display="true"] + br {
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/categories/java-concurrency/21/" target="_self">
+          Java高并发底层原理（二十一）—— 无锁设计、ABA 与 LongAdder
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/21/" target="_self">
+        <div>
+          前面讲锁时，核心问题一直是：多个线程同时访问共享状态时，如何保证结果正确。synchronized、ReentrantLock、读写锁、StampedLock 都是在这个问题上给出的不同答案。 但是，锁不是唯一方案。如果线程获取不到锁，通常要进入阻塞、唤醒、重新竞争的过程；无锁设计则换了一个方向：不让线程因为竞争失败而进入阻塞队列，而是通过 CAS、快照替换、版本校验、分散竞争等方式，在用户态完成
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-04 00:00" pubdate>
+              2026-07-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/CAS/">#CAS</a>
+            
+              <a href="/tags/ABA/">#ABA</a>
+            
+              <a href="/tags/LongAdder/">#LongAdder</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/categories/java-concurrency/22/" target="_self">
           Java高并发底层原理（二十二）—— ConcurrentHashMap 为什么能支持高并发访问
         </a>
@@ -394,9 +351,9 @@ mjx-container[display="true"] + br {
             
               <a href="/tags/Java/">#Java</a>
             
-              <a href="/tags/HashMap/">#HashMap</a>
-            
               <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/HashMap/">#HashMap</a>
             
               <a href="/tags/ConcurrentHashMap/">#ConcurrentHashMap</a>
             
@@ -798,9 +755,9 @@ mjx-container[display="true"] + br {
             
               <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">#线程池</a>
             
-              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">#并发编程</a>
-            
               <a href="/tags/BlockingQueue/">#BlockingQueue</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">#并发编程</a>
             
           </div>
         
@@ -881,15 +838,15 @@ mjx-container[display="true"] + br {
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/categories/llm-inference/1/" target="_self">
-          LLM推理优化实战(一)：RTX3090部署Qwen2.5-7B全记录：TPOT-19.7ms，已逼近显存带宽极限
+        <a href="/categories/java-diagnostics/1/" target="_self">
+          Java运行时诊断（一）—— 从 JVM 内存结构到 jstat 趋势分析
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/1/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-diagnostics/1/" target="_self">
         <div>
-          一、前言在做任何优化之前，你需要一份可信的基线数据——否则你永远不知道优化到底有没有效果。 本文记录在一台 RTX 3090 上从零部署 Qwen2.5-7B-Instruct BF16，并建立完整精度与性能基线的全过程，包括环境搭建、踩坑实录、参数扫描实验和结果分析。这份基线将作为后续量化、投机采样等优化实验的对照组，每次优化都要打败它。 先看结论：    指标 数值    单请求 TPOT 1
+          垃圾回收通常被简化成一句话：JVM 自动回收不再使用的对象。但真正进行 GC 分析时，仅仅知道“对象会被回收”是不够的。我们还需要理解对象放在哪里、JVM 如何判断对象是否存活、年轻代与老年代为什么存在，以及不同垃圾收集器为什么会表现出不同的暂停和吞吐量。 本文从 JVM 的整体内存结构开始，逐步建立对象存活、分代回收、Stop-The-World、垃圾收集算法和垃圾收集器之间的关系。最后再把这些
         </div>
       </a>
 
@@ -897,8 +854,8 @@ mjx-container[display="true"] + br {
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-01 00:00" pubdate>
-              2026-04-01
+            <time datetime="2026-07-13 00:00" pubdate>
+              2026-07-13
             </time>
           </div>
         
@@ -913,7 +870,7 @@ mjx-container[display="true"] + br {
     
       <span class="category-chain">
         
-  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
+  <a href="/categories/java-diagnostics/" class="category-chain-item">java-diagnostics</a>
   
   
 
@@ -925,59 +882,18 @@ mjx-container[display="true"] + br {
           </div>
         
         
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/llm-inference/2/" target="_self">
-          LLM推理优化实战(二)：AWQ INT4 量化实战：TPOT 降 65%、有效吞吐提升 5.5 倍
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/llm-inference/2/" target="_self">
-        <div>
-          一、前言上一篇文章我们在 RTX 3090 上建立了 Qwen2.5-7B-Instruct BF16 的完整基线，得出了一个关键结论：单请求 TPOT 已逼近显存带宽的物理极限（19.7ms vs 理论下限 15ms），纯软件调参已经到顶。 想进一步压缩延迟，必须减少每次 decode 需要搬运的权重字节数——这正是量化要做的事。 本文使用 AWQ INT4 量化，把模型权重从 BF16（每参数
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-02 00:00" pubdate>
-              2026-04-02
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
             
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/llm-inference/" class="category-chain-item">llm-inference</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/JVM/">#JVM</a>
+            
+              <a href="/tags/GC/">#GC</a>
+            
+              <a href="/tags/jstat/">#jstat</a>
+            
           </div>
-        
         
       </div>
     </article>

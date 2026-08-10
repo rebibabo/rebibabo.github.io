@@ -233,6 +233,73 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/categories/java-concurrency/11/" target="_self">
+          Java高并发底层原理（十一）—— CountDownLatch 如何等待多个线程完成
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/11/" target="_self">
+        <div>
+          ReentrantLock 解决的是多个线程竞争共享数据时，如何保证同一时刻只有一个线程进入临界区；Condition 解决的是线程已经获得锁后，如何等待某个业务条件成立。并发程序中还有另一类问题：一个线程不一定要和其他线程互斥执行，但必须等多个任务全部完成后才能继续。 例如主线程启动三个工作线程，三个工作线程可以并发执行，但主线程必须等它们都结束后，才能汇总结果： 123456789101112
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-03 00:00" pubdate>
+              2026-07-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">#Java</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
+            
+              <a href="/tags/AQS/">#AQS</a>
+            
+              <a href="/tags/CountDownLatch/">#CountDownLatch</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/categories/java-concurrency/12/" target="_self">
           Java高并发底层原理（十二）—— Semaphore 如何控制并发线程数量
         </a>
@@ -761,9 +828,9 @@
             
               <a href="/tags/AQS/">#AQS</a>
             
-              <a href="/tags/CountDownLatch/">#CountDownLatch</a>
-            
               <a href="/tags/Semaphore/">#Semaphore</a>
+            
+              <a href="/tags/CountDownLatch/">#CountDownLatch</a>
             
           </div>
         
@@ -833,75 +900,6 @@
               <a href="/tags/ReentrantReadWriteLock/">#ReentrantReadWriteLock</a>
             
               <a href="/tags/StampedLock/">#StampedLock</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/categories/java-concurrency/21/" target="_self">
-          Java高并发底层原理（二十一）—— 无锁设计、ABA 与 LongAdder
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/categories/java-concurrency/21/" target="_self">
-        <div>
-          前面讲锁时，核心问题一直是：多个线程同时访问共享状态时，如何保证结果正确。synchronized、ReentrantLock、读写锁、StampedLock 都是在这个问题上给出的不同答案。 但是，锁不是唯一方案。如果线程获取不到锁，通常要进入阻塞、唤醒、重新竞争的过程；无锁设计则换了一个方向：不让线程因为竞争失败而进入阻塞队列，而是通过 CAS、快照替换、版本校验、分散竞争等方式，在用户态完成
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-04 00:00" pubdate>
-              2026-07-04
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/java-concurrency/" class="category-chain-item">java-concurrency</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">#Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">#高并发</a>
-            
-              <a href="/tags/CAS/">#CAS</a>
-            
-              <a href="/tags/ABA/">#ABA</a>
-            
-              <a href="/tags/LongAdder/">#LongAdder</a>
             
           </div>
         

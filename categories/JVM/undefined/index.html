@@ -1,0 +1,1131 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="rebibabo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="当 Java 服务的堆内存持续升高时，只知道“堆已经用了 6 GB”通常是不够的。真正需要回答的是：这 6 GB 主要由哪些对象组成，是字符串太多、缓存不断增长，还是某种数组占用了大量内存？ Heap Histogram 就是解决这个第一层定位问题的工具。它不会直接告诉我们哪一行代码发生了内存泄漏，而是先把堆中的对象按照类型汇总，让我们知道哪类对象数量最多、占用最大，以及哪些类型正在持续增长。 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Heap Histogram：从对象统计到堆内存问题定位">
+<meta property="og:url" content="https://rebibabo.github.io/categories/JVM/undefined/index.html">
+<meta property="og:site_name" content="rebibabo的博客">
+<meta property="og:description" content="当 Java 服务的堆内存持续升高时，只知道“堆已经用了 6 GB”通常是不够的。真正需要回答的是：这 6 GB 主要由哪些对象组成，是字符串太多、缓存不断增长，还是某种数组占用了大量内存？ Heap Histogram 就是解决这个第一层定位问题的工具。它不会直接告诉我们哪一行代码发生了内存泄漏，而是先把堆中的对象按照类型汇总，让我们知道哪类对象数量最多、占用最大，以及哪些类型正在持续增长。 1">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-29T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-30T06:15:49.305Z">
+<meta property="article:author" content="rebibabo">
+<meta property="article:tag" content="Heap Histogram">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="内存排查">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Heap Histogram：从对象统计到堆内存问题定位 - rebibabo的博客</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"rebibabo.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0,"collapse_depth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>主页</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/series/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/series/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Heap Histogram：从对象统计到堆内存问题定位"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-30 00:00" pubdate>
+          2026年7月30日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Heap Histogram：从对象统计到堆内存问题定位</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>当 Java 服务的堆内存持续升高时，只知道“堆已经用了 6 GB”通常是不够的。真正需要回答的是：这 6 GB 主要由哪些对象组成，是字符串太多、缓存不断增长，还是某种数组占用了大量内存？</p>
+<p>Heap Histogram 就是解决这个第一层定位问题的工具。它不会直接告诉我们哪一行代码发生了内存泄漏，而是先把堆中的对象按照类型汇总，让我们知道哪类对象数量最多、占用最大，以及哪些类型正在持续增长。</p>
+<h2 id="1、为什么只看堆内存大小还不够"><a href="#1、为什么只看堆内存大小还不够" class="headerlink" title="1、为什么只看堆内存大小还不够"></a>1、为什么只看堆内存大小还不够</h2><p>假设监控发现某个 Java 服务的堆使用量不断上涨：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">10:00    2 GB<br>10:10    3 GB<br>10:20    5 GB<br></code></pre></td></tr></table></figure>
+
+<p>这些数字只能说明堆中对象占用的空间越来越多，却没有说明增长来自哪里。</p>
+<p>可能的原因有很多：</p>
+<ul>
+<li>缓存中的数据只增加、不删除；</li>
+<li>消息队列消费速度跟不上；</li>
+<li>文件或网络响应被读取成大字节数组；</li>
+<li>某种业务对象仍被集合引用，无法回收；</li>
+<li>大量临时对象尚未等到下一次 GC。</li>
+</ul>
+<p>如果不知道是哪类对象在增长，后续就只能盲目查看代码。Heap Histogram 的作用，就是先把排查范围从“整个 Java 程序”缩小到“几个可疑的对象类型”。</p>
+<h2 id="2、Heap-Histogram-到底是什么"><a href="#2、Heap-Histogram-到底是什么" class="headerlink" title="2、Heap Histogram 到底是什么"></a>2、Heap Histogram 到底是什么</h2><p>Heap Histogram 可以理解为一张<strong>堆对象分类统计表</strong>。</p>
+<p>JVM 会遍历堆中的对象，然后按照对象所属的类进行分组。例如堆里存在：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-type">int</span> age;<br>    String name;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>程序创建了两个 <code>User</code> 对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">User</span> <span class="hljs-variable">user1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br><span class="hljs-type">User</span> <span class="hljs-variable">user2</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br></code></pre></td></tr></table></figure>
+
+<p>Heap Histogram 不会把 <code>user1</code> 和 <code>user2</code> 分别列出来，而是把相同类型的对象合并成一行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">#instances    #bytes    class name<br>2             48        User<br></code></pre></td></tr></table></figure>
+
+<p>这行表示：</p>
+<ul>
+<li>堆中有 2 个 <code>User</code> 对象；</li>
+<li>这些 <code>User</code> 对象自身合计占用 48 字节；</li>
+<li>它们都属于 <code>User</code> 类型。</li>
+</ul>
+<p>因此，Heap Histogram 观察的不是某一个具体对象，而是<strong>同一种类型的对象整体情况</strong>。</p>
+<h2 id="3、一行-Histogram-应该怎样阅读"><a href="#3、一行-Histogram-应该怎样阅读" class="headerlink" title="3、一行 Histogram 应该怎样阅读"></a>3、一行 Histogram 应该怎样阅读</h2><p>典型的 Heap Histogram 输出如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text"> num     #instances         #bytes  class name<br>------------------------------------------------<br>   1:         100000       8000000  [B<br>   2:          50000       1200000  java.lang.String<br>   3:          10000        240000  com.example.User<br>------------------------------------------------<br>Total          160000       9440000<br></code></pre></td></tr></table></figure>
+
+<p>四个字段分别承担不同职责：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>num</code></td>
+<td>当前类型按照内存占用排列后的名次</td>
+</tr>
+<tr>
+<td><code>#instances</code></td>
+<td>这种类型一共有多少个对象</td>
+</tr>
+<tr>
+<td><code>#bytes</code></td>
+<td>这些对象自身大小的总和</td>
+</tr>
+<tr>
+<td><code>class name</code></td>
+<td>对象所属的类</td>
+</tr>
+</tbody></table>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">3:    10000    240000    com.example.User<br></code></pre></td></tr></table></figure>
+
+<p>可以读成：</p>
+<blockquote>
+<p>堆中存在 10000 个 <code>User</code> 对象，它们自身合计占用 240000 字节，在当前结果中排名第三。</p>
+</blockquote>
+<p>还可以进一步计算平均大小：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">240000 ÷ 10000 = 24 字节<br></code></pre></td></tr></table></figure>
+
+<p>这说明每个 <code>User</code> 对象平均占用约 24 字节。</p>
+<p>最后的 <code>Total</code> 是所有行的对象数量和自身大小之和。它不是 JVM 的最大堆容量，也不是整个 Java 进程占用的全部内存。</p>
+<h2 id="4、为什么对象引用的内容不会一起计算"><a href="#4、为什么对象引用的内容不会一起计算" class="headerlink" title="4、为什么对象引用的内容不会一起计算"></a>4、为什么对象引用的内容不会一起计算</h2><p>理解 <code>#bytes</code> 时，最重要的是区分：</p>
+<ul>
+<li>对象自身占用了多少内存；</li>
+<li>对象连同它引用的其他对象一共关联了多少内存。</li>
+</ul>
+<p>继续使用 <code>User</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-type">int</span> age;<br>    String name;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>创建对象后，堆中的关系大致如下：</p>
+<pre><code class=" mermaid">graph LR
+    A[&quot;栈中引用&quot;] --&gt; B[&quot;User 对象&quot;]
+    B --&gt;|name 引用| C[&quot;String 对象&quot;]
+    B --&gt; D[&quot;统计 User 自身&quot;]
+    C --&gt; E[&quot;单独统计 String&quot;]
+</code></pre>
+
+<p><code>User</code> 对象自身包含：</p>
+<ul>
+<li>JVM 使用的对象头；</li>
+<li><code>age</code> 字段保存的整数值；</li>
+<li><code>name</code> 字段保存的引用。</li>
+</ul>
+<p>但 <code>name</code> 指向的 <code>String</code> 是另一个独立对象，因此会单独统计在 <code>java.lang.String</code> 那一行。</p>
+<p>假设当前 JVM 中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">User 自身大小      24 字节<br>String 自身大小    24 字节<br></code></pre></td></tr></table></figure>
+
+<p>Histogram 会分别显示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">#instances    #bytes    class name<br>1             24        User<br>1             24        java.lang.String<br></code></pre></td></tr></table></figure>
+
+<p>它不会把 <code>User</code> 显示为 48 字节。</p>
+<p>这种只计算对象自身、不继续递归计算引用对象的大小，通常称为 <strong>Shallow Size，也就是浅大小</strong>。</p>
+<p>普通对象的自身大小可以先理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">对象自身大小 = 对象头 + 字段 + 对齐填充<br></code></pre></td></tr></table></figure>
+
+<p>其中，基本类型字段直接保存值，引用字段只保存一个引用。引用指向的对象需要单独计算。</p>
+<p>对象的实际大小还会受 JVM 位数、压缩指针、字段排列和对象对齐方式影响，因此不能把某个固定字节数当成所有环境都成立的结论。</p>
+<h2 id="5、为什么数组会以特殊名称出现"><a href="#5、为什么数组会以特殊名称出现" class="headerlink" title="5、为什么数组会以特殊名称出现"></a>5、为什么数组会以特殊名称出现</h2><p>数组本身也是对象，因此也会出现在 Heap Histogram 中。</p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">String[] names = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[<span class="hljs-number">3</span>];<br></code></pre></td></tr></table></figure>
+
+<p>堆中会存在：</p>
+<ul>
+<li>一个 <code>String[]</code> 数组对象；</li>
+<li>数组内部的三个引用位置；</li>
+<li>这些引用可能指向三个独立的 <code>String</code> 对象。</li>
+</ul>
+<p>数组自身的大小包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">数组头 + 所有元素位置 + 对齐填充<br></code></pre></td></tr></table></figure>
+
+<p>它不包括数组元素引用所指向的对象。</p>
+<p>Heap Histogram 使用 JVM 内部类型名称表示数组，常见形式如下：</p>
+<table>
+<thead>
+<tr>
+<th>Histogram 名称</th>
+<th>Java 类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>[B</code></td>
+<td><code>byte[]</code></td>
+</tr>
+<tr>
+<td><code>[I</code></td>
+<td><code>int[]</code></td>
+</tr>
+<tr>
+<td><code>[J</code></td>
+<td><code>long[]</code></td>
+</tr>
+<tr>
+<td><code>[C</code></td>
+<td><code>char[]</code></td>
+</tr>
+<tr>
+<td><code>[Z</code></td>
+<td><code>boolean[]</code></td>
+</tr>
+<tr>
+<td><code>[Ljava.lang.String;</code></td>
+<td><code>String[]</code></td>
+</tr>
+<tr>
+<td><code>[Ljava.lang.Object;</code></td>
+<td><code>Object[]</code></td>
+</tr>
+</tbody></table>
+<p>其中：</p>
+<ul>
+<li><code>[</code> 表示数组；</li>
+<li>后面的单个字母表示基本类型；</li>
+<li><code>[L类名;</code> 表示某种对象数组。</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">[Ljava.lang.String;<br></code></pre></td></tr></table></figure>
+
+<p>可以拆解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">[                     数组<br>L                     对象类型<br>java.lang.String      类名<br>;                     类名结束<br></code></pre></td></tr></table></figure>
+
+<p>因此它表示 <code>String[]</code>。</p>
+<h2 id="6、怎样生成-Heap-Histogram"><a href="#6、怎样生成-Heap-Histogram" class="headerlink" title="6、怎样生成 Heap Histogram"></a>6、怎样生成 Heap Histogram</h2><p>常见命令是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jcmd &lt;PID&gt; GC.class_histogram<br></code></pre></td></tr></table></figure>
+
+<p>其中 <code>&lt;PID&gt;</code> 是目标 Java 进程的进程编号。</p>
+<p>例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jcmd 12345 GC.class_histogram<br></code></pre></td></tr></table></figure>
+
+<p>这个命令关注的是 GC 后仍然存活的对象。在常见 HotSpot 实现中，它可能请求一次 Full GC，然后再生成 Histogram。</p>
+<p>这会带来两个结果：</p>
+<ol>
+<li>已经不可达、等待回收的对象会被清理；</li>
+<li>应用线程可能因为 Full GC 和堆遍历而出现停顿。</li>
+</ol>
+<p>因此，默认形式不能在生产环境中随意或高频执行。</p>
+<p>另一种形式是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">jcmd 12345 GC.class_histogram -all<br></code></pre></td></tr></table></figure>
+
+<p><code>-all</code> 表示统计当前堆里尚未被清理的全部对象，包括：</p>
+<ul>
+<li>仍然可以从 GC Root 到达的对象；</li>
+<li>已经不可达，但还没等到 GC 回收的对象。</li>
+</ul>
+<p>它不会为了生成结果主动请求 Full GC，因此通常更适合先做线上采样。</p>
+<p>不过，<code>-all</code> 仍然需要遍历堆，也可能造成暂停和额外开销。它只是避免了主动触发 Full GC，并不等于一个可以高频运行的普通监控命令。</p>
+<p>两种方式的核心区别可以整理为：</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>观察对象</th>
+<th>主要优点</th>
+<th>主要限制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>默认模式</td>
+<td>GC 后仍存活的对象</td>
+<td>结果更接近真正仍被引用的对象</td>
+<td>可能请求 Full GC，线上影响较大</td>
+</tr>
+<tr>
+<td><code>-all</code></td>
+<td>当前堆中所有尚未清理的对象</td>
+<td>不主动请求 Full GC</td>
+<td>混有等待回收的垃圾对象</td>
+</tr>
+</tbody></table>
+<h2 id="7、Heap-Histogram-可以排查什么问题"><a href="#7、Heap-Histogram-可以排查什么问题" class="headerlink" title="7、Heap Histogram 可以排查什么问题"></a>7、Heap Histogram 可以排查什么问题</h2><p>Heap Histogram 最适合处理的问题是：</p>
+<blockquote>
+<p>堆内存异常升高时，找到哪一类对象正在大量堆积。</p>
+</blockquote>
+<h3 id="7-1-怀疑内存泄漏"><a href="#7-1-怀疑内存泄漏" class="headerlink" title="7.1 怀疑内存泄漏"></a>7.1 怀疑内存泄漏</h3><p>如果某种业务对象持续增长：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th align="right"><code>User</code> 数量</th>
+<th align="right"><code>User</code> 内存</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10:00</td>
+<td align="right">100000</td>
+<td align="right">2.4 MB</td>
+</tr>
+<tr>
+<td>10:05</td>
+<td align="right">180000</td>
+<td align="right">4.3 MB</td>
+</tr>
+<tr>
+<td>10:10</td>
+<td align="right">300000</td>
+<td align="right">7.2 MB</td>
+</tr>
+</tbody></table>
+<p>并且业务流量已经稳定，这说明 <code>User</code> 对象可能一直被某个地方引用，没有正常释放。</p>
+<p>Histogram 能帮助我们锁定 <code>User</code> 是可疑类型，但还不能告诉我们是谁持有它。</p>
+<h3 id="7-2-缓存或集合不断增长"><a href="#7-2-缓存或集合不断增长" class="headerlink" title="7.2 缓存或集合不断增长"></a>7.2 缓存或集合不断增长</h3><p>如果看到下面的内部类型持续增加：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">java.util.HashMap$Node<br>java.util.concurrent.ConcurrentHashMap$Node<br></code></pre></td></tr></table></figure>
+
+<p><code>$</code> 表示内部类，因此 <code>HashMap$Node</code> 可以理解为：</p>
+<blockquote>
+<p><code>HashMap</code> 内部用来保存键值关系的节点对象。</p>
+</blockquote>
+<p>节点数量很多，通常意味着某些 Map 中保存了大量键值对。可能是正常的大缓存，也可能是缓存没有过期、状态表没有清理或集合一直写入。</p>
+<h3 id="7-3-大量数组占用内存"><a href="#7-3-大量数组占用内存" class="headerlink" title="7.3 大量数组占用内存"></a>7.3 大量数组占用内存</h3><p>如果 <code>[B</code> 的 <code>#bytes</code> 很高，说明堆中存在大量或很大的 <code>byte[]</code>。</p>
+<p>它们可能来自：</p>
+<ul>
+<li>文件内容；</li>
+<li>图片数据；</li>
+<li>网络请求与响应；</li>
+<li>序列化结果；</li>
+<li>字符串底层数据；</li>
+<li>缓存中的二进制内容。</li>
+</ul>
+<p>但 <code>[B</code> 排名高不能直接证明发生泄漏，因为很多正常 Java 服务本身就需要大量字节数组。</p>
+<h3 id="7-4-容器内部数组过大"><a href="#7-4-容器内部数组过大" class="headerlink" title="7.4 容器内部数组过大"></a>7.4 容器内部数组过大</h3><p><code>ArrayList</code> 内部并不是直接保存所有元素，而是使用一个 <code>Object[]</code> 保存元素引用。</p>
+<p>因此，如果看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">java.util.ArrayList<br>[Ljava.lang.Object;<br></code></pre></td></tr></table></figure>
+
+<p>其中 <code>Object[]</code> 占用很大，可能意味着某些 <code>ArrayList</code> 装了大量元素。</p>
+<p>这里只能说“可能”，因为 <code>Object[]</code> 也会被其他框架和数据结构使用。Histogram 只能看到类型数量，无法确认某个数组具体属于哪个 <code>ArrayList</code>。</p>
+<h2 id="8、为什么单次排名高不能证明异常"><a href="#8、为什么单次排名高不能证明异常" class="headerlink" title="8、为什么单次排名高不能证明异常"></a>8、为什么单次排名高不能证明异常</h2><p>Heap Histogram 是某一时刻的堆快照。</p>
+<p>假设结果中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">#instances    #bytes      class name<br>500000        40000000    java.lang.String<br></code></pre></td></tr></table></figure>
+
+<p><code>String</code> 排名很高，并不一定异常。大多数 Java 程序都会长期存在大量字符串。</p>
+<p>真正需要关注的是趋势：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th align="right"><code>String</code> 占用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10:00</td>
+<td align="right">40 MB</td>
+</tr>
+<tr>
+<td>10:05</td>
+<td align="right">42 MB</td>
+</tr>
+<tr>
+<td>10:10</td>
+<td align="right">41 MB</td>
+</tr>
+</tbody></table>
+<p>这种上下波动可能只是正常对象创建与 GC 回收。</p>
+<p>但如果是：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th align="right"><code>String</code> 占用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10:00</td>
+<td align="right">40 MB</td>
+</tr>
+<tr>
+<td>10:05</td>
+<td align="right">80 MB</td>
+</tr>
+<tr>
+<td>10:10</td>
+<td align="right">150 MB</td>
+</tr>
+</tbody></table>
+<p>并且对象在业务空闲后仍未明显下降，就更值得调查。</p>
+<p>分析时可以同时看三个维度：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>可以发现的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>#instances</code></td>
+<td>是否创建了过多对象</td>
+</tr>
+<tr>
+<td><code>#bytes</code></td>
+<td>哪类对象真正占用了大量内存</td>
+</tr>
+<tr>
+<td>平均大小</td>
+<td>是否出现了少量但特别大的对象</td>
+</tr>
+</tbody></table>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">#instances    #bytes      class name<br>100           50000000    [B<br></code></pre></td></tr></table></figure>
+
+<p>虽然只有 100 个 <code>byte[]</code>，但平均每个约 500 KB。这与“创建了几百万个很小的对象”是两种完全不同的问题。</p>
+<p>因此，Histogram 不是简单地看谁排名第一，而是结合业务负载、GC 状态和多次采样判断：</p>
+<blockquote>
+<p>哪类对象正在以不合理的方式持续增长。</p>
+</blockquote>
+<h2 id="9、发现可疑类型后为什么还需要-Heap-Dump"><a href="#9、发现可疑类型后为什么还需要-Heap-Dump" class="headerlink" title="9、发现可疑类型后为什么还需要 Heap Dump"></a>9、发现可疑类型后为什么还需要 Heap Dump</h2><p>Heap Histogram 能回答：</p>
+<ul>
+<li>哪种类型的对象最多；</li>
+<li>哪种类型占用内存最大；</li>
+<li>哪些对象正在持续增长；</li>
+<li>数量增长和内存增长分别来自哪里。</li>
+</ul>
+<p>但它不能回答：</p>
+<ul>
+<li>是哪个缓存保存了这些对象；</li>
+<li>哪个集合正在持有它们；</li>
+<li>对象到 GC Root 的引用路径是什么；</li>
+<li>哪一行代码导致对象一直无法释放。</li>
+</ul>
+<p>例如看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">java.util.concurrent.ConcurrentHashMap$Node<br></code></pre></td></tr></table></figure>
+
+<p>持续增长，只能说明某些并发 Map 里存在越来越多的键值对。</p>
+<p>Histogram 无法告诉我们：</p>
+<ul>
+<li>是用户缓存；</li>
+<li>是任务状态表；</li>
+<li>是连接管理器；</li>
+<li>还是某个第三方框架的内部数据结构。</li>
+</ul>
+<p>这时需要进一步生成 Heap Dump，通过对象引用关系找到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">GC Root<br>→ 某个单例服务<br>→ ConcurrentHashMap<br>→ Node<br>→ User<br></code></pre></td></tr></table></figure>
+
+<p>因此，两种工具的职责并不相同：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>主要回答的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Heap Histogram</td>
+<td>哪一类对象可疑</td>
+</tr>
+<tr>
+<td>Heap Dump</td>
+<td>谁在持有这些对象，为什么回收不了</td>
+</tr>
+</tbody></table>
+<p>Heap Histogram 适合做快速筛查，Heap Dump 适合做引用关系调查。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>堆内存升高时，真正困难的不是确认“内存变多了”，而是找出增长来自哪里。Heap Histogram 通过按照类型汇总堆中对象，把一个模糊的内存问题转化成可以观察的对象数量、对象自身大小和增长趋势。</p>
+<p>它统计的是对象的浅大小：对象头、字段和对齐填充会计入当前对象，但引用指向的其他对象会被单独统计。数组同样是对象，因此会以 <code>[B</code>、<code>[I</code> 或 <code>[Ljava.lang.Object;</code> 等 JVM 内部名称出现。</p>
+<p>默认的 <code>GC.class_histogram</code> 更接近观察 GC 后仍存活的对象，但可能请求 Full GC；<code>-all</code> 不主动请求 Full GC，却会混入等待回收的对象。两种方式都需要遍历堆，生产环境中都不能高频执行。</p>
+<p>最终，Heap Histogram 的价值不是直接证明内存泄漏，而是快速锁定最值得调查的对象类型。当问题进一步变成“是谁持有这些对象”时，就应当停止在 Histogram 中继续猜测，转而使用 Heap Dump 分析引用链。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/JVM/" class="category-chain-item">JVM</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
+      
+        <a href="/tags/Heap-Histogram/" class="print-no-link">#Heap Histogram</a>
+      
+        <a href="/tags/%E5%86%85%E5%AD%98%E6%8E%92%E6%9F%A5/" class="print-no-link">#内存排查</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Heap Histogram：从对象统计到堆内存问题定位</div>
+      <div>https://rebibabo.github.io/categories/JVM/undefined/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>rebibabo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default","themeVariables":{"fontSize":"13px"},"flowchart":{"useMaxWidth":true,"htmlLabels":true,"nodeSpacing":15,"rankSpacing":25,"padding":6}});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/tocbot@4.20.1/dist/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/anchor-js@5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/back-to-category.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
